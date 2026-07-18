@@ -1,145 +1,148 @@
-# 🎨 Agentické návrhové vzory s GitHub modely (.NET)
+# 🎨 Agentní návrhové vzory s Azure OpenAI (Responses API) (.NET)
 
 ## 📋 Cíle učení
 
-Tento příklad ukazuje návrhové vzory na podnikové úrovni pro vytváření inteligentních agentů pomocí Microsoft Agent Framework v .NET s integrací GitHub modelů. Naučíte se profesionální vzory a architektonické přístupy, které činí agenty připravené pro produkci, snadno udržovatelné a škálovatelné.
+Tento příklad demonstruje podnikové návrhové vzory pro tvorbu inteligentních agentů pomocí Microsoft Agent Framework v .NET s integrací Azure OpenAI (Responses API). Naučíte se profesionální vzory a architektonické přístupy, které činí agenty připravenými pro produkci, udržitelnými a škálovatelnými.
 
 ### Podnikové návrhové vzory
 
-- 🏭 **Factory Pattern**: Standardizované vytváření agentů s využitím dependency injection
-- 🔧 **Builder Pattern**: Plynulá konfigurace a nastavení agentů
-- 🧵 **Thread-Safe Patterns**: Správa konverzací v konkurenčním prostředí
-- 📋 **Repository Pattern**: Organizovaná správa nástrojů a schopností
+- 🏭 **Factory Pattern**: Standardizovaná tvorba agentů s dependency injection
+- 🔧 **Builder Pattern**: Fluent konfigurace a nastavení agentů
+- 🧵 **Thread-Safe Patterns**: Současné řízení konverzací
+- 📋 **Repository Pattern**: Organizované řízení nástrojů a schopností
 
-## 🎯 Architektonické výhody .NET
+## 🎯 Architektonické výhody specifické pro .NET
 
 ### Podnikové funkce
 
-- **Silné typování**: Validace při kompilaci a podpora IntelliSense
-- **Dependency Injection**: Integrovaná podpora DI kontejneru
+- **Silné typování**: Ověření při kompilaci a podpora IntelliSense
+- **Dependency Injection**: Integrovaný DI container
 - **Správa konfigurace**: Vzory IConfiguration a Options
 - **Async/Await**: Prvotřídní podpora asynchronního programování
 
-### Vzory připravené pro produkci
+### Vzory připravené na produkci
 
-- **Integrace logování**: Podpora ILogger a strukturovaného logování
-- **Kontroly stavu**: Vestavěné monitorování a diagnostika
+- **Integrace logování**: ILogger a strukturované logování
+- **Kontroly zdravotního stavu**: Integrovaný monitoring a diagnostika
 - **Validace konfigurace**: Silné typování s datovými anotacemi
-- **Zpracování chyb**: Strukturovaná správa výjimek
+- **Zpracování chyb**: Strukturované řízení výjimek
 
 ## 🔧 Technická architektura
 
-### Základní komponenty .NET
+### Jádrové komponenty .NET
 
-- **Microsoft.Extensions.AI**: Jednotné abstrakce AI služeb
-- **Microsoft.Agents.AI**: Rámec pro orchestraci podnikových agentů
-- **Integrace GitHub modelů**: Vzory API klientů s vysokým výkonem
-- **Systém konfigurace**: Integrace appsettings.json a prostředí
+- **Microsoft.Extensions.AI**: Unified AI service abstractions
+- **Microsoft.Agents.AI**: Podnikový framework pro orchestraci agentů
+- **Azure OpenAI (Responses API)**: Vysokovýkonné vzory klientů API
+- **Konfigurační systém**: appsettings.json a integrace prostředí
 
 ### Implementace návrhových vzorů
 
 ```mermaid
 graph LR
-    A[IServiceCollection] --> B[Agent Builder]
-    B --> C[Configuration]
-    C --> D[Tool Registry]
-    D --> E[AI Agent]
+    A[IServiceCollection] --> B[Tvůrce agenta]
+    B --> C[Konfigurace]
+    C --> D[Registr nástrojů]
+    D --> E[AI agent]
 ```
 
-## 🏗️ Ukázané podnikové vzory
+## 🏗️ Demonstrované podnikové vzory
 
-### 1. **Vzory pro vytváření**
+### 1. **Tvořivé vzory**
 
-- **Agent Factory**: Centralizované vytváření agentů s konzistentní konfigurací
-- **Builder Pattern**: Plynulé API pro komplexní konfiguraci agentů
+- **Agent Factory**: Centralizovaná tvorba agentů s konzistentní konfigurací
+- **Builder Pattern**: Fluent API pro komplexní konfiguraci agentů
 - **Singleton Pattern**: Sdílené zdroje a správa konfigurace
-- **Dependency Injection**: Volné propojení a testovatelnost
+- **Dependency Injection**: Volné vazby a testovatelnost
 
 ### 2. **Behaviorální vzory**
 
 - **Strategy Pattern**: Zaměnitelné strategie provádění nástrojů
-- **Command Pattern**: Zapouzdřené operace agentů s možností vrácení
-- **Observer Pattern**: Správa životního cyklu agentů řízená událostmi
+- **Command Pattern**: Zapouzdřené operace agenta s undo/redo
+- **Observer Pattern**: Řízení životního cyklu agenta na základě událostí
 - **Template Method**: Standardizované pracovní postupy agentů
 
 ### 3. **Strukturální vzory**
 
-- **Adapter Pattern**: Vrstva integrace API GitHub modelů
-- **Decorator Pattern**: Rozšíření schopností agentů
-- **Facade Pattern**: Zjednodušené rozhraní pro interakci s agenty
+- **Adapter Pattern**: Vrstvu integrace Azure OpenAI (Responses API)
+- **Decorator Pattern**: Vylepšení schopností agenta
+- **Facade Pattern**: Zjednodušené rozhraní interakce s agentem
 - **Proxy Pattern**: Lazy loading a caching pro výkon
 
-## 📚 Návrhové principy .NET
+## 📚 Principy návrhu v .NET
 
-### SOLID principy
+### Principy SOLID
 
 - **Single Responsibility**: Každá komponenta má jeden jasný účel
-- **Open/Closed**: Rozšiřitelné bez modifikace
+- **Open/Closed**: Rozšiřitelná bez úprav
 - **Liskov Substitution**: Implementace nástrojů založené na rozhraní
-- **Interface Segregation**: Zaměřená, soudržná rozhraní
-- **Dependency Inversion**: Závislost na abstrakcích, ne na konkrétních implementacích
+- **Interface Segregation**: Zaměřená, kohezní rozhraní
+- **Dependency Inversion**: Závislost na abstrakcích, ne na konkrétnostech
 
 ### Čistá architektura
 
 - **Doménová vrstva**: Základní abstrakce agentů a nástrojů
-- **Aplikační vrstva**: Orchestrace agentů a pracovní postupy
-- **Infrastrukturní vrstva**: Integrace GitHub modelů a externích služeb
-- **Prezentační vrstva**: Interakce s uživatelem a formátování odpovědí
+- **Aplikační vrstva**: Orchestraci a pracovní postupy agentů
+- **Infrastrukturní vrstva**: Integrace Azure OpenAI (Responses API) a externích služeb
+- **Prezentační vrstva**: Uživatelská interakce a formátování odpovědí
 
-## 🔒 Podnikové úvahy
+## 🔒 Podnikové aspekty
 
-### Bezpečnost
+### Zabezpečení
 
 - **Správa přihlašovacích údajů**: Bezpečné zacházení s API klíči pomocí IConfiguration
-- **Validace vstupů**: Silné typování a validace datovými anotacemi
-- **Sanitace výstupů**: Bezpečné zpracování a filtrování odpovědí
-- **Audit logování**: Komplexní sledování operací
+- **Validace vstupů**: Silné typování a validace pomocí datových anotací
+- **Sanitizace výstupů**: Bezpečné zpracování a filtrování odpovědí
+- **Auditní logování**: Komplexní sledování operací
 
 ### Výkon
 
-- **Asynchronní vzory**: Neblokující I/O operace
-- **Pooling připojení**: Efektivní správa HTTP klientů
-- **Caching**: Ukládání odpovědí pro zlepšení výkonu
-- **Správa zdrojů**: Správné uvolňování a čištění
+- **Asynchronní vzory**: Nezablokované I/O operace
+- **Pooling připojení**: Efektivní správa HTTP klienta
+- **Caching**: Kešování odpovědí pro lepší výkon
+- **Správa zdrojů**: Správné uvolňování a vzory úklidu
 
 ### Škálovatelnost
 
-- **Bezpečnost vláken**: Podpora konkurenčního provádění agentů
-- **Pooling zdrojů**: Efektivní využití zdrojů
-- **Správa zátěže**: Omezení rychlosti a řízení zpětného tlaku
-- **Monitorování**: Metriky výkonu a kontroly stavu
+- **Bezpečnost vlákna**: Podpora současného provádění agentů
+- **Přístup ke zdrojům**: Efektivní využívání zdrojů
+- **Řízení zátěže**: Omezení rychlosti a zvládání zpětného tlaku
+- **Monitoring**: Metriky výkonu a kontroly zdravotního stavu
 
-## 🚀 Nasazení do produkce
+## 🚀 Produkční nasazení
 
 - **Správa konfigurace**: Nastavení specifická pro prostředí
 - **Strategie logování**: Strukturované logování s korelačními ID
-- **Zpracování chyb**: Globální správa výjimek s odpovídající obnovou
-- **Monitorování**: Application Insights a výkonové čítače
-- **Testování**: Jednotkové testy, integrační testy a vzory zátěžového testování
+- **Zpracování chyb**: Globální správa výjimek s řádným zotavením
+- **Monitorování**: Application Insights a výkonnostní čítače
+- **Testování**: Jednotkové testy, integrační testy a vzory zatěžovacího testování
 
-Připraveni vytvořit inteligentní agenty na podnikové úrovni s .NET? Pojďme navrhnout něco robustního! 🏢✨
+Připraveni tvořit inteligentní agenty podnikového rázu s .NET? Postavme něco robustního! 🏢✨
 
 ## 🚀 Začínáme
 
-### Předpoklady
+### Požadavky
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) nebo vyšší
-- [Přístupový token API GitHub modelů](https://docs.github.com/github-models/github-models-at-scale/using-your-own-api-keys-in-github-models)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) nebo novější
+- Předplatné [Azure](https://azure.microsoft.com/free/) s Azure OpenAI zdrojem a nasazením modelu
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — přihlaste se pomocí `az login`
 
 ### Požadované proměnné prostředí
 
 ```bash
 # zsh/bash
-export GH_TOKEN=<your_github_token>
-export GH_ENDPOINT=https://models.github.ai/inference
-export GH_MODEL_ID=openai/gpt-5-mini
+export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+# Pak se přihlaste, aby AzureCliCredential mohl získat token
+az login
 ```
 
 ```powershell
 # PowerShell
-$env:GH_TOKEN = "<your_github_token>"
-$env:GH_ENDPOINT = "https://models.github.ai/inference"
-$env:GH_MODEL_ID = "openai/gpt-5-mini"
+$env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+# Pak se přihlaste, aby AzureCliCredential mohl získat token
+az login
 ```
 
 ### Ukázkový kód
@@ -158,21 +161,23 @@ Nebo pomocí dotnet CLI:
 dotnet run ./03-dotnet-agent-framework.cs
 ```
 
-Podívejte se na [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) pro kompletní kód.
+Viz [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) pro kompletní kód.
 
 ```csharp
 #!/usr/bin/dotnet run
 
 #:package Microsoft.Extensions.AI@10.*
 #:package Microsoft.Agents.AI.OpenAI@1.*-*
+#:package Azure.AI.OpenAI@2.1.0
+#:package Azure.Identity@1.13.1
 
-using System.ClientModel;
 using System.ComponentModel;
 
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
-using OpenAI;
+using Azure.AI.OpenAI;
+using Azure.Identity;
 
 // Tool Function: Random Destination Generator
 // This static method will be available to the agent as a callable tool
@@ -204,26 +209,12 @@ static string GetRandomDestination()
     return destinations[index];
 }
 
-// Extract configuration from environment variables
-// Retrieve the GitHub Models API endpoint, defaults to https://models.github.ai/inference if not specified
-// Retrieve the model ID, defaults to openai/gpt-5-mini if not specified
-// Retrieve the GitHub token for authentication, throws exception if not specified
-var github_endpoint = Environment.GetEnvironmentVariable("GH_ENDPOINT") ?? "https://models.github.ai/inference";
-var github_model_id = Environment.GetEnvironmentVariable("GH_MODEL_ID") ?? "openai/gpt-5-mini";
-var github_token = Environment.GetEnvironmentVariable("GH_TOKEN") ?? throw new InvalidOperationException("GH_TOKEN is not set.");
+// Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
+var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
+    ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
 
-// Configure OpenAI Client Options
-// Create configuration options to point to GitHub Models endpoint
-// This redirects OpenAI client calls to GitHub's model inference service
-var openAIOptions = new OpenAIClientOptions()
-{
-    Endpoint = new Uri(github_endpoint)
-};
-
-// Initialize OpenAI Client with GitHub Models Configuration
-// Create OpenAI client using GitHub token for authentication
-// Configure it to use GitHub Models endpoint instead of OpenAI directly
-var openAIClient = new OpenAIClient(new ApiKeyCredential(github_token), openAIOptions);
+var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
 // Define Agent Identity and Comprehensive Instructions
 // Agent name for identification and logging purposes
@@ -249,28 +240,28 @@ Always prioritize user preferences. If they mention a specific destination like 
 """;
 
 // Create AI Agent with Advanced Travel Planning Capabilities
-// Initialize complete agent pipeline: OpenAI client → Chat client → AI agent
+// Get the Responses client for the deployment and create the AI agent
 // Configure agent with name, detailed instructions, and available tools
 // This demonstrates the .NET agent creation pattern with full configuration
-AIAgent agent = openAIClient
-    .GetChatClient(github_model_id)
-    .CreateAIAgent(
+AIAgent agent = azureClient
+    .GetChatClient(deployment)
+    .AsAIAgent(
         name: AGENT_NAME,
         instructions: AGENT_INSTRUCTIONS,
         tools: [AIFunctionFactory.Create(GetRandomDestination)]
     );
 
-// Create New Conversation Thread for Context Management
-// Initialize a new conversation thread to maintain context across multiple interactions
-// Threads enable the agent to remember previous exchanges and maintain conversational state
+// Create New Conversation Session for Context Management
+// Initialize a new conversation session to maintain context across multiple interactions
+// Sessions enable the agent to remember previous exchanges and maintain conversational state
 // This is essential for multi-turn conversations and contextual understanding
-AgentThread thread = agent.GetNewThread();
+var session = await agent.CreateSessionAsync();
 
 // Execute Agent: First Travel Planning Request
 // Run the agent with an initial request that will likely trigger the random destination tool
 // The agent will analyze the request, use the GetRandomDestination tool, and create an itinerary
-// Using the thread parameter maintains conversation context for subsequent interactions
-await foreach (var update in agent.RunStreamingAsync("Plan me a day trip", thread))
+// Using the session parameter maintains conversation context for subsequent interactions
+await foreach (var update in agent.RunStreamingAsync("Plan me a day trip", session))
 {
     await Task.Delay(10);
     Console.Write(update);
@@ -281,8 +272,8 @@ Console.WriteLine();
 // Execute Agent: Follow-up Request with Context Awareness
 // Demonstrate contextual conversation by referencing the previous response
 // The agent remembers the previous destination suggestion and will provide an alternative
-// This showcases the power of conversation threads and contextual understanding in .NET agents
-await foreach (var update in agent.RunStreamingAsync("I don't like that destination. Plan me another vacation.", thread))
+// This showcases the power of conversation sessions and contextual understanding in .NET agents
+await foreach (var update in agent.RunStreamingAsync("I don't like that destination. Plan me another vacation.", session))
 {
     await Task.Delay(10);
     Console.Write(update);
@@ -292,6 +283,6 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Prohlášení**:  
-Tento dokument byl přeložen pomocí služby AI pro překlady [Co-op Translator](https://github.com/Azure/co-op-translator). Ačkoli se snažíme o přesnost, mějte prosím na paměti, že automatizované překlady mohou obsahovat chyby nebo nepřesnosti. Původní dokument v jeho původním jazyce by měl být považován za autoritativní zdroj. Pro důležité informace se doporučuje profesionální lidský překlad. Neodpovídáme za žádná nedorozumění nebo nesprávné interpretace vyplývající z použití tohoto překladu.
+**Prohlášení o omezení odpovědnosti**:
+Tento dokument byl přeložen pomocí AI překladatelské služby [Co-op Translator](https://github.com/Azure/co-op-translator). Přestože usilujeme o co největší přesnost, mějte prosím na paměti, že automatizované překlady mohou obsahovat chyby nebo nepřesnosti. Originální dokument v jeho mateřském jazyce by měl být považován za autoritativní zdroj. Pro kritické informace se doporučuje profesionální lidský překlad. Nejsme odpovědní za jakékoli nedorozumění nebo nesprávné interpretace vzniklé použitím tohoto překladu.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

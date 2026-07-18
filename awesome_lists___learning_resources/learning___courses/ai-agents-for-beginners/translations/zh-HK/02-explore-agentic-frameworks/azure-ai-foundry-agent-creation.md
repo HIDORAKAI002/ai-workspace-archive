@@ -1,42 +1,42 @@
-# Azure AI Agent 服務開發
+# Microsoft Foundry 代理服務開發
 
-在此練習中，你會使用 [Microsoft Foundry 入口網站](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) 的 Azure AI Agent 服務工具來建立一個航班預訂代理。該代理能與使用者互動並提供航班資訊。
+在此練習中，您將使用 [Microsoft Foundry 入口網站](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) 中的 Microsoft Foundry 代理服務工具，建立一個飛行訂票代理。該代理將能夠與使用者互動並提供航班相關資訊。
 
 ## 先決條件
 
-要完成此練習，你需要以下項目：
-1. 一個具有有效訂閱的 Azure 帳戶。 [免費建立帳戶](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst).
-2. 你需要權限以建立 Microsoft Foundry hub 或由他人為你建立一個。
-    - 如果你的角色是 Contributor 或 Owner，你可以按照本教學中的步驟。
+完成此練習，您需要以下項目：
+1. 一個具有有效訂閱的 Azure 帳戶。[免費建立帳戶](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst)。
+2. 您需要有權限建立 Microsoft Foundry 集線器或由他人為您建立。
+    - 如果您的角色是參與者（Contributor）或擁有者（Owner），可以按照本教學的步驟操作。
 
-## 建立 Microsoft Foundry hub
+## 建立 Microsoft Foundry 集線器
 
-> **注意：** Microsoft Foundry 之前稱為 Azure AI Studio。
+> **注意：** Microsoft Foundry 原名為 Azure AI Studio。
 
-1. 根據此 [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) 部落格文章中的指引建立 Microsoft Foundry hub.
-2. 當你的專案建立後，關閉所有顯示的提示，然後檢視 Microsoft Foundry 入口網站上的專案頁面，應該會與以下圖片相似：
+1. 請參考 [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) 部落格文章中的指引來建立 Microsoft Foundry 集線器。
+2. 當您的專案建立完成後，關閉任何顯示的提示，並檢視 Microsoft Foundry 入口網站中的專案頁面，應該類似以下圖片：
 
-    ![Microsoft Foundry 專案](../../../translated_images/zh-HK/azure-ai-foundry.88d0c35298348c2f.webp)
+    ![Microsoft Foundry Project](../../../translated_images/zh-HK/azure-ai-foundry.88d0c35298348c2f.webp)
 
 ## 部署模型
 
-1. 在專案左側窗格的 **My assets** 區段，選取 **Models + endpoints** 頁面。
-2. 在 **Models + endpoints** 頁面，於 **Model deployments** 標籤，從 **+ Deploy model** 選單選擇 **Deploy base model**。
-3. 在清單中搜尋 `gpt-4o-mini` 模型，然後選取並確認它。
+1. 在專案左側窗格的 <strong>我的資產</strong> 區域，選擇 **模型 + 端點** 頁面。
+2. 在 **模型 + 端點** 頁面中，切換到 <strong>模型部署</strong> 標籤，點選 **+ 部署模型** 選單中的 <strong>部署基礎模型</strong>。
+3. 在列表中搜尋 `gpt-4.1-mini` 模型，然後選擇並確認。
 
-    > **注意**：降低 TPM 有助於避免超出你所使用訂閱的配額。
+    > <strong>注意</strong>：降低 TPM 有助於避免過度使用您所使用訂閱的額度。
 
-    ![已部署的模型](../../../translated_images/zh-HK/model-deployment.3749c53fb81e18fd.webp)
+    ![Model Deployed](../../../translated_images/zh-HK/model-deployment.3749c53fb81e18fd.webp)
 
 ## 建立代理
 
-現在已部署模型，你可以建立一個代理。代理是一個可用來與使用者互動的對話式 AI 模型。
+現在您已經部署一個模型，可以建立一個代理。代理是一個對話式人工智能模型，可用於與使用者互動。
 
-1. 在專案左側窗格的 **Build & Customize** 區段，選取 **Agents** 頁面。
-2. 按一下 **+ Create agent** 以建立新代理。於 **Agent Setup** 對話方塊下：
-    - 輸入代理名稱，例如 `FlightAgent`。
-    - 確保已選取你先前建立的 `gpt-4o-mini` 模型部署。
-    - 依據你希望代理遵循的提示設定 **Instructions**。以下是一個範例：
+1. 在專案左側窗格的 <strong>建置與自訂</strong> 區域，選擇 <strong>代理</strong> 頁面。
+2. 點選 **+ 建立代理** 來建立新代理。在 <strong>代理設定</strong> 對話方塊中：
+    - 輸入代理名稱，如 `FlightAgent`。
+    - 確認選擇先前建立的 `gpt-4.1-mini` 模型部署。
+    - 根據您希望代理遵循的提示設定 <strong>指令</strong>。以下是範例：
     ```
     You are FlightAgent, a virtual assistant specialized in handling flight-related queries. Your role includes assisting users with searching for flights, retrieving flight details, checking seat availability, and providing real-time flight status. Follow the instructions below to ensure clarity and effectiveness in your responses:
 
@@ -64,45 +64,46 @@
     
     ```
 > [!NOTE]
-> 有關詳細提示，你可以查看 [此儲存庫](https://github.com/ShivamGoyal03/RoamMind) 以取得更多資訊。
+> 有關詳細提示，您可以參考 [此資源庫](https://github.com/ShivamGoyal03/RoamMind) 以取得更多資訊。
     
-> 此外，你可以新增 **Knowledge Base** 與 **Actions** 以增強代理的能力，提供更多資訊並根據使用者要求執行自動化任務。在此練習中，你可以跳過這些步驟。
+> 此外，您可以新增 <strong>知識庫</strong> 及 <strong>動作</strong>，以提升代理的能力，根據使用者請求提供更多資訊並執行自動任務。本練習中可跳過這些步驟。
     
-![代理設定](../../../translated_images/zh-HK/agent-setup.9bbb8755bf5df672.webp)
+![Agent Setup](../../../translated_images/zh-HK/agent-setup.9bbb8755bf5df672.webp)
 
-3. 若要建立新的多 AI 代理，只需按 **New Agent**。新建立的代理將顯示在 Agents 頁面。
+3. 若要建立新的多 AI 代理，只需點選 <strong>新代理</strong>。新建立的代理將會出現在代理頁面上。
+
 
 ## 測試代理
 
-建立代理後，你可以在 Microsoft Foundry 入口網站的 playground 中測試它，以查看它如何回應使用者查詢。
+建立代理後，可以在 Microsoft Foundry 入口網站的遊樂場中測試代理對使用者詢問的回應。
 
-1. 在代理的 **Setup** 窗格頂部，選取 **Try in playground**。
-2. 在 **Playground** 窗格中，你可以在聊天視窗輸入查詢與代理互動。例如，你可以要求代理搜尋 28 日從 Seattle 到 New York 的航班。
+1. 在代理的 <strong>設定</strong> 面板頂端，選擇 <strong>在遊樂場中嘗試</strong>。
+2. 在 <strong>遊樂場</strong> 面板中，您可以在聊天視窗輸入查詢與代理互動。例如，您可以請代理搜尋 28 日從西雅圖飛往紐約的航班。
 
-    > **注意**：代理可能不會提供準確的回應，因為本練習中沒有使用即時資料。其目的是測試代理根據所提供指示理解並回應使用者查詢的能力。
+    > <strong>注意</strong>：由於本練習未使用即時資料，代理可能無法提供準確回應。目的在於測試代理根據提供的指令理解及回應使用者查詢的能力。
 
-    ![代理 Playground](../../../translated_images/zh-HK/agent-playground.dc146586de715010.webp)
+    ![Agent Playground](../../../translated_images/zh-HK/agent-playground.dc146586de715010.webp)
 
-3. 測試代理後，你可以透過新增更多 intents、training data 與 actions 來進一步自訂以增強其能力。
+3. 測試完代理後，您還可以透過新增更多意圖、訓練資料及動作，進一步自訂以提升其能力。
 
-## 清理資源
+## 清除資源
 
-完成測試後，你可以刪除它以避免產生額外費用。
-1. 開啟 [Azure 入口網站](https://portal.azure.com) 並檢視你在本練習中部署 hub 資源的資源群組內容。
-2. 在工具列上，選取 **Delete resource group**。
-3. 輸入資源群組名稱並確認要刪除。
+完成代理測試後，請刪除代理以避免產生額外費用。
+1. 開啟 [Azure 入口網站](https://portal.azure.com)，檢視您在此練習中部署集線器資源的資源群組內容。
+2. 在工具列上，選擇 <strong>刪除資源群組</strong>。
+3. 輸入資源群組名稱並確認刪除。
 
 ## 資源
 
 - [Microsoft Foundry 文件](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst)
 - [Microsoft Foundry 入口網站](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst)
-- [Azure AI Studio 入門](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
-- [Azure 上的 AI 代理基礎](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
+- [Microsoft Foundry 入門](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
+- [Azure 上 AI 代理基礎](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
 - [Azure AI Discord](https://aka.ms/AzureAI/Discord)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-免責聲明：
-本文件已透過 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。雖然我們力求準確，但請注意自動化翻譯可能包含錯誤或不準確之處。原始語言版本應視為具權威性的參考來源。對於重要或關鍵資訊，建議採用專業的人工作業翻譯。我們不就使用本翻譯而導致的任何誤解或誤釋承擔責任。
+**免責聲明**：
+本文件由 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 翻譯而成。雖然我們致力於確保準確性，但請注意，機器自動翻譯可能包含錯誤或不準確之處。原始文件的母語版本應被視為權威來源。對於重要資訊，建議進行專業人工翻譯。我們不對因使用本翻譯而產生的任何誤解或誤釋承擔責任。
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

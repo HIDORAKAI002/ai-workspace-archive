@@ -1,51 +1,55 @@
-# Contextos Raíz de MCP
+> [OBSOLETO: CANDIDATO A LANZAMIENTO 2026-07-28](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
 
-Los contextos raíz son un concepto fundamental en el Model Context Protocol que proporcionan una capa persistente para mantener el historial de conversación y el estado compartido a lo largo de múltiples solicitudes y sesiones.
+# Contextos Raíz MCP
+
+> **Aviso de obsolescencia:** el candidato a especificación de lanzamiento MCP `2026-07-28` marca las raíces como obsoletas a favor de parámetros de herramientas, URIs de recursos o configuración del servidor. Las raíces continúan funcionando en `2025-11-25` y durante al menos un año después de cualquier obsolescencia formal, por lo que todo en esta lección sigue siendo válido, pero los nuevos diseños de servidor deberían evaluar el patrón de reemplazo. Véase [Qué está cambiando en MCP: El candidato a lanzamiento 2026-07-28](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Los contextos raíz son un concepto fundamental en el Protocolo de Contexto de Modelo que provee una capa persistente para mantener el historial de conversaciones y el estado compartido a través de múltiples solicitudes y sesiones.
 
 ## Introducción
 
-En esta lección, exploraremos cómo crear, gestionar y utilizar contextos raíz en MCP.
+En esta lección exploraremos cómo crear, administrar y utilizar contextos raíz en MCP.
 
-## Objetivos de Aprendizaje
+## Objetivos de aprendizaje
 
-Al finalizar esta lección, serás capaz de:
+Al final de esta lección, podrás:
 
 - Entender el propósito y la estructura de los contextos raíz
-- Crear y gestionar contextos raíz usando las bibliotecas cliente de MCP
+- Crear y administrar contextos raíz usando bibliotecas cliente MCP
 - Implementar contextos raíz en aplicaciones .NET, Java, JavaScript y Python
 - Utilizar contextos raíz para conversaciones de múltiples turnos y gestión de estado
-- Aplicar las mejores prácticas para la gestión de contextos raíz
+- Implementar buenas prácticas para la gestión de contextos raíz
 
-## Entendiendo los Contextos Raíz
+## Comprendiendo los Contextos Raíz
 
-Los contextos raíz funcionan como contenedores que almacenan el historial y el estado de una serie de interacciones relacionadas. Permiten:
+Los contextos raíz actúan como contenedores que almacenan el historial y el estado para una serie de interacciones relacionadas. Permiten:
 
-- **Persistencia de la Conversación**: Mantener conversaciones coherentes de múltiples turnos
-- **Gestión de Memoria**: Almacenar y recuperar información a lo largo de las interacciones
-- **Gestión de Estado**: Rastrear el progreso en flujos de trabajo complejos
-- **Compartición de Contexto**: Permitir que múltiples clientes accedan al mismo estado de conversación
+- **Persistencia de la conversación**: Mantener conversaciones coherentes de múltiples turnos
+- **Gestión de memoria**: Almacenar y recuperar información a través de interacciones
+- **Gestión de estado**: Rastrear el progreso en flujos de trabajo complejos
+- **Compartición de contexto**: Permitir que múltiples clientes accedan al mismo estado de conversación
 
 En MCP, los contextos raíz tienen estas características clave:
 
 - Cada contexto raíz tiene un identificador único.
-- Pueden contener historial de conversación, preferencias del usuario y otros metadatos.
+- Pueden contener historial de la conversación, preferencias de usuario y otros metadatos.
 - Pueden ser creados, accedidos y archivados según sea necesario.
-- Soportan control de acceso y permisos detallados.
+- Soportan control de acceso y permisos granulares.
 
-## Ciclo de Vida del Contexto Raíz
+## Ciclo de vida del contexto raíz
 
 ```mermaid
 flowchart TD
-    A[Create Root Context] --> B[Initialize with Metadata]
-    B --> C[Send Requests with Context ID]
-    C --> D[Update Context with Results]
+    A[Crear contexto raíz] --> B[Inicializar con metadatos]
+    B --> C[Enviar solicitudes con ID de contexto]
+    C --> D[Actualizar contexto con resultados]
     D --> C
-    D --> E[Archive Context When Complete]
+    D --> E[Archivar contexto cuando esté completo]
 ```
 
-## Trabajando con Contextos Raíz
+## Trabajando con contextos raíz
 
-Aquí tienes un ejemplo de cómo crear y gestionar contextos raíz.
+Aquí hay un ejemplo de cómo crear y administrar contextos raíz.
 
 ### Implementación en C#
 
@@ -130,14 +134,14 @@ En el código anterior hemos:
 1. Recuperado información del contexto para entender el historial de la conversación.
 1. Archivado el contexto cuando la conversación finalizó.
 
-## Ejemplo: Implementación de Contexto Raíz para análisis financiero
+## Ejemplo: Implementación de contexto raíz para análisis financiero
 
-En este ejemplo, crearemos un contexto raíz para una sesión de análisis financiero, demostrando cómo mantener el estado a lo largo de múltiples interacciones.
+En este ejemplo, crearemos un contexto raíz para una sesión de análisis financiero, demostrando cómo mantener el estado a través de múltiples interacciones.
 
 ### Implementación en Java
 
 ```java
-// Java Example: Root Context Implementation
+// Ejemplo de Java: Implementación de Contexto Raíz
 package com.example.mcp.contexts;
 
 import com.mcp.client.McpClient;
@@ -162,19 +166,19 @@ public class RootContextsDemo {
     }
     
     public void demonstrateRootContext() throws Exception {
-        // Create context metadata
+        // Crear metadatos de contexto
         Map<String, String> metadata = new HashMap<>();
         metadata.put("projectName", "Financial Analysis");
         metadata.put("userRole", "Financial Analyst");
         metadata.put("dataSource", "Q1 2025 Financial Reports");
         
-        // 1. Create a new root context
+        // 1. Crear un nuevo contexto raíz
         RootContext context = contextManager.createRootContext("Financial Analysis Session", metadata);
         String contextId = context.getId();
         
         System.out.println("Created context: " + contextId);
         
-        // 2. First interaction
+        // 2. Primera interacción
         McpResponse response1 = client.sendPrompt(
             "Analyze the trends in Q1 financial data for our technology division",
             contextId
@@ -182,11 +186,11 @@ public class RootContextsDemo {
         
         System.out.println("First response: " + response1.getGeneratedText());
         
-        // 3. Update context with important information gained from response
+        // 3. Actualizar el contexto con información importante obtenida de la respuesta
         contextManager.addContextMetadata(contextId, 
             Map.of("identifiedTrend", "Increasing cloud infrastructure costs"));
         
-        // Second interaction - using the same context
+        // Segunda interacción - usando el mismo contexto
         McpResponse response2 = client.sendPrompt(
             "What's driving the increase in cloud infrastructure costs?",
             contextId
@@ -194,17 +198,17 @@ public class RootContextsDemo {
         
         System.out.println("Second response: " + response2.getGeneratedText());
         
-        // 4. Generate a summary of the analysis session
+        // 4. Generar un resumen de la sesión de análisis
         McpResponse summaryResponse = client.sendPrompt(
             "Summarize our analysis of the technology division financials in 3-5 key points",
             contextId
         );
         
-        // Store the summary in context metadata
+        // Almacenar el resumen en los metadatos del contexto
         contextManager.addContextMetadata(contextId, 
             Map.of("analysisSummary", summaryResponse.getGeneratedText()));
             
-        // Get updated context information
+        // Obtener información actualizada del contexto
         RootContext updatedContext = contextManager.getRootContext(contextId);
         
         System.out.println("Context Information:");
@@ -213,7 +217,7 @@ public class RootContextsDemo {
         System.out.println("- Analysis Summary: " + 
             updatedContext.getMetadata().get("analysisSummary"));
             
-        // 5. Archive context when done
+        // 5. Archivar el contexto cuando haya terminado
         contextManager.archiveContext(contextId);
         System.out.println("Context archived");
     }
@@ -228,25 +232,25 @@ En el código anterior, hemos:
 4. Generado un resumen de la sesión de análisis y almacenado en los metadatos del contexto.
 5. Archivado el contexto cuando la conversación finalizó.
 
-## Ejemplo: Gestión de Contextos Raíz
+## Ejemplo: Gestión de contextos raíz
 
-Gestionar los contextos raíz de manera efectiva es crucial para mantener el historial y el estado de la conversación. A continuación, un ejemplo de cómo implementar la gestión de contextos raíz.
+Administrar eficazmente los contextos raíz es crucial para mantener el historial de conversaciones y estado. A continuación, un ejemplo de cómo implementar la gestión de contextos raíz.
 
 ### Implementación en JavaScript
 
 ```javascript
-// JavaScript Example: Managing MCP Root Contexts
+// Ejemplo de JavaScript: Gestión de Contextos Raíz MCP
 const { McpClient, RootContextManager } = require('@mcp/client');
 
 class ContextSession {
   constructor(serverUrl, apiKey = null) {
-    // Initialize the MCP client
+    // Inicializar el cliente MCP
     this.client = new McpClient({
       serverUrl,
       apiKey
     });
     
-    // Initialize context manager
+    // Inicializar el gestor de contexto
     this.contextManager = new RootContextManager(this.client);
   }
   
@@ -284,14 +288,14 @@ class ContextSession {
    */
   async sendMessage(contextId, message, options = {}) {
     try {
-      // Send the message using the specified context
+      // Enviar el mensaje usando el contexto especificado
       const response = await this.client.sendPrompt(message, {
         rootContextId: contextId,
         temperature: options.temperature || 0.7,
         allowedTools: options.allowedTools || []
       });
       
-      // Optionally store important insights from the conversation
+      // Opcionalmente almacenar ideas importantes de la conversación
       if (options.storeInsights) {
         await this.storeConversationInsights(contextId, message, response.generatedText);
       }
@@ -315,10 +319,10 @@ class ContextSession {
    */
   async storeConversationInsights(contextId, userMessage, aiResponse) {
     try {
-      // Extract potential insights (in a real app, this would be more sophisticated)
+      // Extraer posibles ideas (en una aplicación real, esto sería más sofisticado)
       const combinedText = userMessage + "\n" + aiResponse;
       
-      // Simple heuristic to identify potential insights
+      // Heurística simple para identificar posibles ideas
       const insightWords = ["important", "key point", "remember", "significant", "crucial"];
       
       const potentialInsights = combinedText
@@ -329,7 +333,7 @@ class ContextSession {
         .map(sentence => sentence.trim())
         .filter(sentence => sentence.length > 10);
       
-      // Store insights in context metadata
+      // Almacenar ideas en los metadatos del contexto
       if (potentialInsights.length > 0) {
         const insights = {};
         potentialInsights.forEach((insight, index) => {
@@ -341,7 +345,7 @@ class ContextSession {
       }
     } catch (error) {
       console.warn('Error storing conversation insights:', error);
-      // Non-critical error, so just log warning
+      // Error no crítico, solo registrar una advertencia
     }
   }
   
@@ -376,13 +380,13 @@ class ContextSession {
    */
   async generateContextSummary(contextId) {
     try {
-      // Ask the model to generate a summary of the conversation so far
+      // Pedir al modelo que genere un resumen de la conversación hasta ahora
       const response = await this.client.sendPrompt(
         "Please summarize our conversation so far in 3-4 sentences, highlighting the main points discussed.",
         { rootContextId: contextId, temperature: 0.3 }
       );
       
-      // Store the summary in context metadata
+      // Almacenar el resumen en los metadatos del contexto
       await this.contextManager.updateContextMetadata(contextId, {
         conversationSummary: response.generatedText,
         summarizedAt: new Date().toISOString()
@@ -402,10 +406,10 @@ class ContextSession {
    */
   async archiveContext(contextId) {
     try {
-      // Generate a final summary before archiving
+      // Generar un resumen final antes de archivar
       const summary = await this.generateContextSummary(contextId);
       
-      // Archive the context
+      // Archivar el contexto
       await this.contextManager.archiveContext(contextId);
       
       return {
@@ -420,12 +424,12 @@ class ContextSession {
   }
 }
 
-// Example usage
+// Ejemplo de uso
 async function demonstrateContextSession() {
   const session = new ContextSession('https://mcp-server-example.com');
   
   try {
-    // 1. Create a new context for a product support conversation
+    // 1. Crear un nuevo contexto para una conversación de soporte de producto
     const contextId = await session.createConversationContext(
       'Product Support - Database Performance',
       {
@@ -436,7 +440,7 @@ async function demonstrateContextSession() {
       }
     );
     
-    // 2. First message in the conversation
+    // 2. Primer mensaje en la conversación
     const response1 = await session.sendMessage(
       contextId,
       "I'm experiencing slow query performance on our database cluster after the latest update.",
@@ -444,7 +448,7 @@ async function demonstrateContextSession() {
     );
     console.log('Response 1:', response1.message);
     
-    // Follow-up message in the same context
+    // Mensaje de seguimiento en el mismo contexto
     const response2 = await session.sendMessage(
       contextId,
       "Yes, we've already checked the indexes and they seem to be properly configured.",
@@ -452,19 +456,19 @@ async function demonstrateContextSession() {
     );
     console.log('Response 2:', response2.message);
     
-    // 3. Get information about the context
+    // 3. Obtener información sobre el contexto
     const contextInfo = await session.getContextInfo(contextId);
     console.log('Context Information:', contextInfo);
     
-    // 4. Generate and display conversation summary
+    // 4. Generar y mostrar el resumen de la conversación
     const summary = await session.generateContextSummary(contextId);
     console.log('Conversation Summary:', summary);
     
-    // 5. Archive the context when done
+    // 5. Archivar el contexto cuando se termine
     const archiveResult = await session.archiveContext(contextId);
     console.log('Archive Result:', archiveResult);
     
-    // 6. Handle any errors gracefully
+    // 6. Manejar cualquier error de forma elegante
   } catch (error) {
     console.error('Error in context session demonstration:', error);
   }
@@ -477,7 +481,7 @@ En el código anterior hemos:
 
 1. Creado un contexto raíz para una conversación de soporte de producto con la función `createConversationContext`. En este caso, el contexto trata sobre problemas de rendimiento en bases de datos.
 
-1. Enviado múltiples mensajes dentro de ese contexto, permitiendo que el modelo mantenga el estado con la función `sendMessage`. Los mensajes enviados tratan sobre lentitud en consultas y configuración de índices.
+1. Enviado múltiples mensajes dentro de ese contexto, permitiendo que el modelo mantenga el estado con la función `sendMessage`. Los mensajes enviados tratan sobre el rendimiento lento en consultas y configuración de índices.
 
 1. Actualizado el contexto con metadatos relevantes basados en la conversación.
 
@@ -485,16 +489,16 @@ En el código anterior hemos:
 
 1. Archivado el contexto cuando la conversación finalizó con la función `archiveContext`.
 
-1. Manejado errores de forma adecuada para asegurar la robustez.
+1. Manejado errores de forma robusta para garantizar estabilidad.
 
-## Contexto Raíz para Asistencia de Múltiples Turnos
+## Contexto raíz para asistencia de múltiples turnos
 
-En este ejemplo, crearemos un contexto raíz para una sesión de asistencia de múltiples turnos, demostrando cómo mantener el estado a lo largo de varias interacciones.
+En este ejemplo, crearemos un contexto raíz para una sesión de asistencia de múltiples turnos, demostrando cómo mantener el estado a través de múltiples interacciones.
 
 ### Implementación en Python
 
 ```python
-# Python Example: Root Context for Multi-Turn Assistance
+# Ejemplo de Python: Contexto raíz para asistencia multi-turno
 import asyncio
 from datetime import datetime
 from mcp_client import McpClient, RootContextManager
@@ -511,29 +515,29 @@ class AssistantSession:
             "created_at": datetime.now().isoformat(),
         }
         
-        # Add user information if provided
+        # Agregar información del usuario si se proporciona
         if user_info:
             metadata.update({f"user_{k}": v for k, v in user_info.items()})
             
-        # Create the root context
+        # Crear el contexto raíz
         context = await self.context_manager.create_root_context(name, metadata)
         return context.id
     
     async def send_message(self, context_id, message, tools=None):
         """Send a message within a root context"""
-        # Create options with context ID
+        # Crear opciones con ID de contexto
         options = {
             "root_context_id": context_id
         }
         
-        # Add tools if specified
+        # Agregar herramientas si se especifican
         if tools:
             options["allowed_tools"] = tools
         
-        # Send the prompt within the context
+        # Enviar el prompt dentro del contexto
         response = await self.client.send_prompt(message, options)
         
-        # Update context metadata with conversation progress
+        # Actualizar metadatos del contexto con el progreso de la conversación
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -556,13 +560,13 @@ class AssistantSession:
     
     async def end_session(self, context_id):
         """End an assistant session by archiving the context"""
-        # Generate a summary prompt first
+        # Generar un prompt de resumen primero
         summary_response = await self.client.send_prompt(
             "Please summarize our conversation and any key points or decisions made.",
             {"root_context_id": context_id}
         )
         
-        # Store summary in metadata
+        # Almacenar el resumen en los metadatos
         await self.context_manager.update_context_metadata(
             context_id,
             {
@@ -572,7 +576,7 @@ class AssistantSession:
             }
         )
         
-        # Archive the context
+        # Archivar el contexto
         await self.context_manager.archive_context(context_id)
         
         return {
@@ -580,18 +584,18 @@ class AssistantSession:
             "summary": summary_response.generated_text
         }
 
-# Example usage
+# Ejemplo de uso
 async def demo_assistant_session():
     assistant = AssistantSession("https://mcp-server-example.com")
     
-    # 1. Create session
+    # 1. Crear sesión
     context_id = await assistant.create_session(
         "Technical Support Session",
         {"name": "Alex", "technical_level": "advanced", "product": "Cloud Services"}
     )
     print(f"Created session with context ID: {context_id}")
     
-    # 2. First interaction
+    # 2. Primera interacción
     response1 = await assistant.send_message(
         context_id, 
         "I'm having trouble with the auto-scaling feature in your cloud platform.",
@@ -599,18 +603,18 @@ async def demo_assistant_session():
     )
     print(f"Response 1: {response1.generated_text}")
     
-    # Second interaction in the same context
+    # Segunda interacción en el mismo contexto
     response2 = await assistant.send_message(
         context_id,
         "Yes, I've already checked the configuration settings you mentioned, but it's still not working."
     )
     print(f"Response 2: {response2.generated_text}")
     
-    # 3. Get history
+    # 3. Obtener historial
     history = await assistant.get_conversation_history(context_id)
     print(f"Session has {len(history['messages'])} messages")
     
-    # 4. End session
+    # 4. Finalizar sesión
     end_result = await assistant.end_session(context_id)
     print(f"Session ended with summary: {end_result['summary']}")
 
@@ -624,33 +628,37 @@ En el código anterior hemos:
 
 1. Enviado múltiples mensajes dentro de ese contexto, permitiendo que el modelo mantenga el estado con la función `send_message`. Los mensajes enviados tratan sobre problemas con la función de autoescalado.
 
-1. Recuperado el historial de conversación usando la función `get_conversation_history`, que proporciona información del contexto y mensajes.
+1. Recuperado el historial de la conversación usando la función `get_conversation_history`, la cual provee información del contexto y mensajes.
 
-1. Finalizado la sesión archivando el contexto y generando un resumen con la función `end_session`. El resumen captura los puntos clave de la conversación.
+1. Finalizado la sesión archivando el contexto y generando un resumen con la función `end_session`. El resumen captura puntos clave de la conversación.
 
-## Mejores Prácticas para Contextos Raíz
+## Mejores prácticas para contextos raíz
 
-Aquí algunas mejores prácticas para gestionar contextos raíz de forma efectiva:
+Aquí algunas mejores prácticas para gestionar eficazmente contextos raíz:
 
-- **Crear Contextos Enfocados**: Crea contextos raíz separados para diferentes propósitos o dominios de conversación para mantener claridad.
+- **Crear contextos focalizados**: Crear contextos raíz separados para diferentes propósitos o dominios de conversación para mantener claridad.
 
-- **Establecer Políticas de Expiración**: Implementa políticas para archivar o eliminar contextos antiguos para gestionar almacenamiento y cumplir con políticas de retención de datos.
+- **Establecer políticas de expiración**: Implementar políticas para archivar o eliminar contextos antiguos para gestionar almacenamiento y cumplir con políticas de retención de datos.
 
-- **Almacenar Metadatos Relevantes**: Usa los metadatos del contexto para guardar información importante sobre la conversación que pueda ser útil más adelante.
+- **Almacenar metadatos relevantes**: Usar metadatos del contexto para almacenar información importante sobre la conversación que pueda ser útil posteriormente.
 
-- **Usar IDs de Contexto Consistentemente**: Una vez creado un contexto, usa su ID de forma consistente para todas las solicitudes relacionadas para mantener la continuidad.
+- **Usar IDs de contexto consistentemente**: Una vez creado un contexto, usar su ID consistentemente para todas las solicitudes relacionadas para mantener continuidad.
 
-- **Generar Resúmenes**: Cuando un contexto crece mucho, considera generar resúmenes para capturar la información esencial mientras gestionas el tamaño del contexto.
+- **Generar resúmenes**: Cuando un contexto crece mucho, considerar generar resúmenes para capturar información esencial mientras se gestiona el tamaño del contexto.
 
-- **Implementar Control de Acceso**: Para sistemas multiusuario, implementa controles de acceso adecuados para garantizar la privacidad y seguridad de los contextos de conversación.
+- **Implementar control de acceso**: Para sistemas multiusuario, implementar controles de acceso apropiados para garantizar privacidad y seguridad de los contextos de conversación.
 
-- **Manejar Limitaciones del Contexto**: Ten en cuenta las limitaciones de tamaño del contexto e implementa estrategias para manejar conversaciones muy largas.
+- **Manejar limitaciones de contexto**: Ser consciente de las limitaciones del tamaño del contexto e implementar estrategias para manejar conversaciones muy largas.
 
-- **Archivar Cuando se Complete**: Archiva los contextos cuando las conversaciones finalicen para liberar recursos preservando el historial de la conversación.
+- **Archivar al finalizar**: Archivar contextos cuando las conversaciones concluyen para liberar recursos mientras se preserva el historial de conversación.
 
 ## Qué sigue
 
-- [5.5 Routing](../mcp-routing/README.md)
+- [5.5 Enrutamiento](../mcp-routing/README.md)
 
-**Aviso legal**:  
-Este documento ha sido traducido utilizando el servicio de traducción automática [Co-op Translator](https://github.com/Azure/co-op-translator). Aunque nos esforzamos por la precisión, tenga en cuenta que las traducciones automáticas pueden contener errores o inexactitudes. El documento original en su idioma nativo debe considerarse la fuente autorizada. Para información crítica, se recomienda la traducción profesional realizada por humanos. No nos hacemos responsables de malentendidos o interpretaciones erróneas derivadas del uso de esta traducción.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Descargo de responsabilidad**:
+Este documento ha sido traducido utilizando el servicio de traducción automática [Co-op Translator](https://github.com/Azure/co-op-translator). Aunque nos esforzamos por la precisión, tenga en cuenta que las traducciones automatizadas pueden contener errores o inexactitudes. El documento original en su idioma nativo debe considerarse la fuente autorizada. Para información crítica, se recomienda una traducción profesional humana. No somos responsables de cualquier malentendido o interpretación errónea que surja del uso de esta traducción.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

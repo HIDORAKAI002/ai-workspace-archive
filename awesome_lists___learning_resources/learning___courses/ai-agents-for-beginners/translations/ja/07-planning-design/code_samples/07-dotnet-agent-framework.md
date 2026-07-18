@@ -1,63 +1,66 @@
-# 🎯 GitHubモデルを使用した計画とデザインパターン (.NET)
+# 🎯 Azure OpenAI (Responses API) を使った計画とデザインパターン (.NET)
 
 ## 📋 学習目標
 
-このノートブックでは、Microsoft Agent Frameworkを使用してGitHubモデルと.NETでインテリジェントエージェントを構築するためのエンタープライズ向けの計画とデザインパターンを紹介します。複雑な問題を分解し、複数ステップの解決策を計画し、.NETのエンタープライズ機能を活用して高度なワークフローを実行するエージェントの作成方法を学びます。
+このノートブックでは、.NET の Microsoft Agent Framework と Azure OpenAI (Responses API) を用いたインテリジェントエージェント構築のためのエンタープライズグレードの計画とデザインパターンを紹介します。複雑な問題の分解、マルチステップソリューションの計画、そして .NET のエンタープライズ機能を用いた高度なワークフローの実行ができるエージェントの作成方法を学びます。
 
 ## ⚙️ 前提条件とセットアップ
 
 **開発環境:**
-- .NET 9.0 SDK以上
-- Visual Studio 2022 または C#拡張機能付きのVS Code
-- GitHub Models APIアクセス
+- .NET 9.0 SDK 以上
+- Visual Studio 2022 または C# 拡張機能付き VS Code
+- Azure OpenAI リソースとモデルデプロイを持つ Azure サブスクリプション
+- Azure CLI — `az login` でログイン
 
 **必要な依存関係:**
 ```xml
-<PackageReference Include="Microsoft.Extensions.AI" Version="9.9.0" />
-<PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.9.0-preview.1.25458.4" />
+<PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
+<PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
+<PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.*-*" />
+<PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
+<PackageReference Include="Azure.Identity" Version="1.13.1" />
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
-**環境設定 (.envファイル):**
+**環境設定 (.env ファイル):**
 ```env
-GITHUB_TOKEN=your_github_personal_access_token
-GITHUB_ENDPOINT=https://models.inference.ai.azure.com
-GITHUB_MODEL_ID=gpt-4o-mini
+AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
 ```
 
 ## コードの実行
 
-このレッスンでは、.NETシングルファイルアプリの実装が含まれています。実行するには:
+本レッスンでは .NET Single File App の実装を含みます。実行するには:
 
 ```bash
-# Make the file executable (Linux/macOS)
+# ファイルを実行可能にする（Linux/macOS）
 chmod +x 07-dotnet-agent-framework.cs
 
-# Run the application
+# アプリケーションを実行する
 ./07-dotnet-agent-framework.cs
 ```
 
-または、dotnet runコマンドを使用してください:
+または dotnet run コマンドを使います:
 
 ```bash
 dotnet run 07-dotnet-agent-framework.cs
 ```
 
-## コードの実装
+## コード実装
 
-完全な実装は `07-dotnet-agent-framework.cs` にあります。このファイルでは以下を示しています:
+完全な実装は `07-dotnet-agent-framework.cs` にあり、以下を示しています:
 
-- DotNetEnvを使用した環境設定の読み込み
-- GitHubモデル用OpenAIクライアントの設定
-- JSONシリアル化を使用した構造化データモデル (PlanとTravelPlan) の定義
-- JSONスキーマを使用した構造化出力を持つAIエージェントの作成
-- 型安全なレスポンスを伴う計画リクエストの実行
+- DotNetEnv を使った環境設定の読み込み
+- Azure OpenAI クライアントを設定し、`GetChatClient().AsAIAgent()` を使って AI エージェントを作成
+- JSON シリアル化を用いた構造化データモデル (Plan と TravelPlan) の定義
+- JSON スキーマを使った構造化出力の AI エージェント作成
+- 型安全な応答による計画リクエストの実行
 
-## 重要な概念
+## 主要な概念
 
-### 型安全モデルを使用した構造化計画
+### 型安全モデルによる構造化計画
 
-エージェントはC#クラスを使用して計画出力の構造を定義します:
+エージェントは C# クラスを用いて計画の出力構造を定義します:
 
 ```csharp
 public class Plan
@@ -79,13 +82,15 @@ public class TravelPlan
 }
 ```
 
-### 構造化出力のためのJSONスキーマ
+### 構造化出力のための JSON スキーマ
 
-エージェントはTravelPlanスキーマに一致するレスポンスを返すように設定されています:
+エージェントは TravelPlan スキーマに準拠した応答を返すよう設定されています:
 
 ```csharp
-ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_INSTRUCTIONS)
+ChatClientAgentOptions agentOptions = new()
 {
+    Name = AGENT_NAME,
+    Description = AGENT_INSTRUCTIONS,
     ChatOptions = new()
     {
         ResponseFormat = ChatResponseFormatJson.ForJsonSchema(
@@ -98,20 +103,22 @@ ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_
 
 ### 計画エージェントの指示
 
-エージェントはコーディネーターとして機能し、専門のサブエージェントにタスクを委任します:
+エージェントは調整役として振る舞い、専門のサブエージェントにタスクを委任します:
 
-- FlightBooking: フライトの予約とフライト情報の提供
-- HotelBooking: ホテルの予約とホテル情報の提供
-- CarRental: 車のレンタルとレンタル情報の提供
-- ActivitiesBooking: アクティビティの予約とアクティビティ情報の提供
-- DestinationInfo: 目的地に関する情報の提供
+- FlightBooking: フライトの予約および情報提供
+- HotelBooking: ホテルの予約および情報提供
+- CarRental: 車の予約およびレンタル情報提供
+- ActivitiesBooking: アクティビティの予約および情報提供
+- DestinationInfo: 目的地情報の提供
 - DefaultAgent: 一般的なリクエストの処理
 
 ## 期待される出力
 
-旅行計画リクエストでエージェントを実行すると、リクエストを分析し、TravelPlanスキーマに準拠したJSON形式で専門エージェントへの適切なタスク割り当てを含む構造化計画を生成します。
+旅行計画のリクエストでエージェントを実行すると、リクエストを解析し、専門エージェントへの適切なタスク割り当てを含む構造化された計画を TravelPlan スキーマに準拠した JSON 形式で生成します。
 
 ---
 
-**免責事項**:  
-この文書はAI翻訳サービス[Co-op Translator](https://github.com/Azure/co-op-translator)を使用して翻訳されています。正確性を追求しておりますが、自動翻訳には誤りや不正確な部分が含まれる可能性があります。元の言語で記載された文書を正式な情報源としてご参照ください。重要な情報については、専門の人間による翻訳を推奨します。この翻訳の使用に起因する誤解や誤認について、当方は一切の責任を負いません。
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免責事項**：
+本書類は AI 翻訳サービス [Co-op Translator](https://github.com/Azure/co-op-translator) を使用して翻訳されています。正確性を期していますが、自動翻訳には誤りや不正確な部分が含まれる可能性があることをご承知おきください。原文の原語版が正式な情報源とみなされるべきです。重要な情報については、専門の人間による翻訳を推奨します。本翻訳の利用により生じたいかなる誤解や解釈違いについても、当方は責任を負いかねます。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

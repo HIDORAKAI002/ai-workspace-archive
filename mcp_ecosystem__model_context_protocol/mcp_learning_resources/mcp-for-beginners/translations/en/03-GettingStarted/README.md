@@ -2,7 +2,7 @@
 
 [![Build Your First MCP Server](../../../translated_images/en/04.0ea920069efd979a.webp)](https://youtu.be/sNDZO9N4m9Y)
 
-_(Click the image above to view video of this lesson)_
+_(Click the image above to watch the video of this lesson)_
 
 This section consists of several lessons:
 
@@ -32,7 +32,7 @@ This section consists of several lessons:
 
 - **13 MCP Inspector**. Debug and test your MCP servers interactively using the MCP Inspector tool. Learn to troubleshoot tools, resources, and protocol messages, [to the lesson](./13-mcp-inspector/README.md)
 
-- **14 Sampling**. Create MCP Servers that collaborate with MCP clients on LLM related tasks. [to the lesson](./14-sampling/README.md)
+- **14 Sampling**. Create MCP Servers that collaborate with MCP clients on LLM related tasks (deprecated in `2026-07-28` release candidate; still valid for `2025-11-25`). [to the lesson](./14-sampling/README.md)
 
 - **15 MCP Apps**. Build MCP Servers that also reply with UI instructions, [to the lesson](./15-mcp-apps/README.md)
 
@@ -111,5 +111,5 @@ Once you've completed this module, continue to: [Module 4: Practical Implementat
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Disclaimer**:
-This document has been translated using the AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

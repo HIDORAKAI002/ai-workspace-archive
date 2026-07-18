@@ -32,6 +32,10 @@ export const AI_MODELS = {
   "grok-4": { name: "Grok 4", provider: "xAI" },
   "grok-3": { name: "Grok 3", provider: "xAI" },
 
+  // MiniMax
+  "minimax-m3": { name: "MiniMax-M3", provider: "MiniMax" },
+  "minimax-m2-7": { name: "MiniMax-M2.7", provider: "MiniMax" },
+
   // Image Generation
   "nano-banana": { name: "Nano Banana", provider: "Google" },
   "nano-banana-pro": { name: "Nano Banana Pro", provider: "Google" },

@@ -49,6 +49,9 @@ _FRAMEWORK_DECORATOR_PATTERNS: list[re.Pattern[str]] = [
     # Java Spring
     re.compile(r"(Get|Post|Put|Delete|Patch|RequestMapping)Mapping", re.IGNORECASE),
     re.compile(r"(Scheduled|EventListener|Bean|Configuration)", re.IGNORECASE),
+    re.compile(r"KafkaListener", re.IGNORECASE),
+    # Temporal Java callbacks are invoked by the workflow runtime.
+    re.compile(r"(WorkflowMethod|ActivityMethod)", re.IGNORECASE),
     # JS/TS frameworks
     re.compile(r"(Component|Injectable|Controller|Module|Guard|Pipe)", re.IGNORECASE),
     re.compile(r"(Subscribe|Mutation|Query|Resolver)", re.IGNORECASE),
@@ -186,6 +189,8 @@ def detect_entry_points(
 
     for node in candidate_nodes:
         if not include_tests and (node.is_test or _is_test_file(node.file_path)):
+            continue
+        if node.extra.get("verilog_kind"):
             continue
 
         is_entry = False

@@ -8,18 +8,38 @@ from __future__ import annotations
 
 import ast
 import hashlib
+import html
+import importlib
 import json
 import logging
+import math
+import os
 import re
+import subprocess
+import sys
 import threading
 from dataclasses import dataclass, field
 from functools import lru_cache
 from pathlib import Path
-from typing import NamedTuple, Optional
+from typing import Any, NamedTuple, Optional
 
-import tree_sitter_language_pack as tslp
+try:
+    import tomllib
+except ModuleNotFoundError:  # pragma: no cover - Python 3.10
+    import tomli as tomllib  # type: ignore[import-not-found,no-redef]
 
+from .config_keys import is_spring_config_path, normalize_spring_config_key
 from .custom_languages import CustomLanguage, load_custom_languages
+
+try:
+    import yaml as _yaml  # type: ignore[import-untyped]
+    from yaml import MappingNode as _YamlMapping
+    from yaml import ScalarNode as _YamlScalar
+    from yaml import SequenceNode as _YamlSequence
+except ImportError:
+    _yaml = None  # type: ignore[assignment]
+    _YamlMapping = _YamlSequence = _YamlScalar = None  # type: ignore[assignment,misc]
+
 from .tsconfig_resolver import TsconfigResolver
 
 
@@ -40,6 +60,268 @@ _PYTHON_STAR_CACHE_MAX = 15_000
 _PYTHON_STAR_EXPORT_CACHE: dict[tuple[str, int, int], dict[str, str]] = {}
 _PYTHON_STAR_EXPORT_CACHE_LOCK = threading.RLock()
 
+
+@lru_cache(maxsize=512)
+def _read_cargo_manifest(
+    manifest_path: str, _mtime_ns: int, _size: int,
+) -> dict[str, Any]:
+    """Read one Cargo manifest, keyed by immutable file identity metadata."""
+    try:
+        parsed = tomllib.loads(
+            Path(manifest_path).read_text(encoding="utf-8", errors="replace"),
+        )
+    except (OSError, tomllib.TOMLDecodeError):
+        return {}
+    return parsed if isinstance(parsed, dict) else {}
+
+
+def _load_cargo_manifest(path: Path) -> dict[str, Any]:
+    try:
+        stat = path.stat()
+        resolved = path.resolve()
+    except (OSError, RuntimeError, ValueError):
+        return {}
+    return _read_cargo_manifest(str(resolved), stat.st_mtime_ns, stat.st_size)
+
+
+class _PythonScopeBindingVisitor(ast.NodeVisitor):
+    """Collect names bound in one Python lexical scope."""
+
+    def __init__(self) -> None:
+        self.names: set[str] = set()
+
+    def visit_Name(self, node: ast.Name) -> None:  # noqa: N802
+        if isinstance(node.ctx, (ast.Store, ast.Del)):
+            self.names.add(node.id)
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:  # noqa: N802
+        self.names.add(node.name)
+
+    def visit_AsyncFunctionDef(  # noqa: N802
+        self,
+        node: ast.AsyncFunctionDef,
+    ) -> None:
+        self.names.add(node.name)
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:  # noqa: N802
+        self.names.add(node.name)
+
+    def visit_Lambda(self, node: ast.Lambda) -> None:  # noqa: N802
+        return
+
+    def visit_Import(self, node: ast.Import) -> None:  # noqa: N802
+        for alias in node.names:
+            self.names.add(alias.asname or alias.name.split(".", 1)[0])
+
+    def visit_ImportFrom(self, node: ast.ImportFrom) -> None:  # noqa: N802
+        for alias in node.names:
+            if alias.name != "*":
+                self.names.add(alias.asname or alias.name)
+
+
+def _python_type_checking_aliases(
+    tree: ast.Module,
+) -> tuple[frozenset[str], frozenset[str]]:
+    """Return unshadowed aliases for ``typing.TYPE_CHECKING``."""
+    names: set[str] = set()
+    modules: set[str] = set()
+    shadowed: set[str] = set()
+    for statement in tree.body:
+        if isinstance(statement, ast.Import):
+            for alias in statement.names:
+                if alias.name == "typing":
+                    modules.add(alias.asname or "typing")
+                else:
+                    shadowed.add(
+                        alias.asname or alias.name.split(".", 1)[0],
+                    )
+        elif isinstance(statement, ast.ImportFrom) and statement.module == "typing":
+            for alias in statement.names:
+                if alias.name == "TYPE_CHECKING":
+                    names.add(alias.asname or alias.name)
+                elif alias.name != "*":
+                    shadowed.add(alias.asname or alias.name)
+        else:
+            bindings = _PythonScopeBindingVisitor()
+            bindings.visit(statement)
+            shadowed.update(bindings.names)
+    return frozenset(names - shadowed), frozenset(modules - shadowed)
+
+
+def _python_static_truth(
+    node: ast.expr,
+    type_checking_names: frozenset[str] = frozenset(),
+    typing_modules: frozenset[str] = frozenset(),
+) -> Optional[bool]:
+    """Return a truth value for the small constant subset we can prove."""
+    if isinstance(node, ast.Constant) and isinstance(node.value, (bool, int)):
+        return bool(node.value)
+    if isinstance(node, ast.Name) and node.id in type_checking_names:
+        return False
+    if (
+        isinstance(node, ast.Attribute)
+        and node.attr == "TYPE_CHECKING"
+        and isinstance(node.value, ast.Name)
+        and node.value.id in typing_modules
+    ):
+        return False
+    if isinstance(node, ast.UnaryOp) and isinstance(node.op, ast.Not):
+        value = _python_static_truth(
+            node.operand,
+            type_checking_names,
+            typing_modules,
+        )
+        return None if value is None else not value
+    if isinstance(node, ast.BoolOp):
+        values = [
+            _python_static_truth(
+                value,
+                type_checking_names,
+                typing_modules,
+            )
+            for value in node.values
+        ]
+        if isinstance(node.op, ast.And):
+            if False in values:
+                return False
+            return True if all(value is True for value in values) else None
+        if isinstance(node.op, ast.Or):
+            if True in values:
+                return True
+            return False if all(value is False for value in values) else None
+    return None
+
+
+class _PythonUnreachableCallVisitor(ast.NodeVisitor):
+    """Collect calls inside branches whose condition is statically false."""
+
+    def __init__(
+        self,
+        type_checking_names: frozenset[str],
+        typing_modules: frozenset[str],
+    ) -> None:
+        self._dead = False
+        self.positions: set[tuple[int, int]] = set()
+        self._type_checking_names = type_checking_names
+        self._typing_modules = typing_modules
+
+    def visit_Call(self, node: ast.Call) -> None:  # noqa: N802
+        if self._dead:
+            self.positions.add((node.lineno, node.col_offset))
+        self.generic_visit(node)
+
+    def visit_If(self, node: ast.If) -> None:  # noqa: N802
+        self.visit(node.test)
+        truth = _python_static_truth(
+            node.test,
+            self._type_checking_names,
+            self._typing_modules,
+        )
+        self._visit_statements(node.body, dead=truth is False)
+        self._visit_statements(node.orelse, dead=truth is True)
+
+    def visit_FunctionDef(self, node: ast.FunctionDef) -> None:  # noqa: N802
+        self._visit_function(node)
+
+    def visit_AsyncFunctionDef(  # noqa: N802
+        self,
+        node: ast.AsyncFunctionDef,
+    ) -> None:
+        self._visit_function(node)
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:  # noqa: N802
+        for decorator in node.decorator_list:
+            self.visit(decorator)
+        for base in node.bases:
+            self.visit(base)
+        for keyword in node.keywords:
+            self.visit(keyword.value)
+
+        bindings = _PythonScopeBindingVisitor()
+        for statement in node.body:
+            bindings.visit(statement)
+        outer_names = self._type_checking_names
+        outer_modules = self._typing_modules
+        self._type_checking_names = outer_names - bindings.names
+        self._typing_modules = outer_modules - bindings.names
+        self._visit_statements(node.body, dead=False)
+        self._type_checking_names = outer_names
+        self._typing_modules = outer_modules
+
+    def _visit_function(
+        self,
+        node: ast.FunctionDef | ast.AsyncFunctionDef,
+    ) -> None:
+        for decorator in node.decorator_list:
+            self.visit(decorator)
+        for default in (*node.args.defaults, *node.args.kw_defaults):
+            if default is not None:
+                self.visit(default)
+        all_args = (
+            *node.args.posonlyargs,
+            *node.args.args,
+            *node.args.kwonlyargs,
+        )
+        for argument in all_args:
+            if argument.annotation is not None:
+                self.visit(argument.annotation)
+        for optional_argument in (node.args.vararg, node.args.kwarg):
+            if (
+                optional_argument is not None
+                and optional_argument.annotation is not None
+            ):
+                self.visit(optional_argument.annotation)
+        if node.returns is not None:
+            self.visit(node.returns)
+
+        bindings = _PythonScopeBindingVisitor()
+        for statement in node.body:
+            bindings.visit(statement)
+        bindings.names.update(argument.arg for argument in all_args)
+        bindings.names.update(
+            argument.arg
+            for argument in (node.args.vararg, node.args.kwarg)
+            if argument is not None
+        )
+
+        outer_names = self._type_checking_names
+        outer_modules = self._typing_modules
+        self._type_checking_names = outer_names - bindings.names
+        self._typing_modules = outer_modules - bindings.names
+        self._visit_statements(node.body, dead=False)
+        self._type_checking_names = outer_names
+        self._typing_modules = outer_modules
+
+    def _visit_statements(
+        self,
+        statements: list[ast.stmt],
+        *,
+        dead: bool,
+    ) -> None:
+        outer_dead = self._dead
+        self._dead = outer_dead or dead
+        for statement in statements:
+            self.visit(statement)
+        self._dead = outer_dead
+
+
+@lru_cache(maxsize=128)
+def _python_unreachable_call_positions(
+    source: bytes,
+) -> frozenset[tuple[int, int]]:
+    """Return one-based line/byte-column positions of proven-dead calls."""
+    try:
+        tree = ast.parse(source.decode("utf-8"))
+    except (SyntaxError, UnicodeDecodeError, ValueError):
+        return frozenset()
+    type_checking_names, typing_modules = _python_type_checking_aliases(tree)
+    visitor = _PythonUnreachableCallVisitor(
+        type_checking_names,
+        typing_modules,
+    )
+    visitor.visit(tree)
+    return frozenset(visitor.positions)
+
 # SQL keywords that can appear after FROM/JOIN but are NOT table names.
 _SQL_KEYWORDS: frozenset[str] = frozenset({
     "SELECT", "WHERE", "GROUP", "ORDER", "HAVING", "LIMIT", "OFFSET",
@@ -50,6 +332,102 @@ _SQL_KEYWORDS: frozenset[str] = frozenset({
 })
 
 logger = logging.getLogger(__name__)
+
+_DEFAULT_PARSER_LOAD_TIMEOUT_SECONDS = 5.0
+_PARSER_PROBE_RESULTS: dict[str, bool] = {}
+_PARSER_PROBE_LOCK = threading.Lock()
+_EXPECTED_PARSER_LOAD_ERRORS = (ImportError, LookupError, OSError, ValueError)
+
+
+def _parser_load_timeout_seconds() -> float:
+    """Return a safe positive timeout for native grammar probes."""
+    raw = os.environ.get(
+        "CRG_PARSER_LOAD_TIMEOUT_SECONDS",
+        str(_DEFAULT_PARSER_LOAD_TIMEOUT_SECONDS),
+    )
+    try:
+        timeout = float(raw)
+    except ValueError:
+        timeout = _DEFAULT_PARSER_LOAD_TIMEOUT_SECONDS
+    if not math.isfinite(timeout) or timeout <= 0:
+        timeout = _DEFAULT_PARSER_LOAD_TIMEOUT_SECONDS
+    return timeout
+
+
+def _run_parser_load_probe(grammar: str, timeout_seconds: float) -> bool:
+    """Probe one native grammar in a disposable interpreter process."""
+    code = (
+        "from tree_sitter_language_pack import get_parser\n"
+        "import sys\n"
+        "get_parser(sys.argv[1])\n"
+    )
+    try:
+        completed = subprocess.run(
+            [sys.executable, "-I", "-c", code, grammar],
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=timeout_seconds,
+            check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        logger.debug("tree-sitter parser probe failed for %s: %s", grammar, exc)
+        return False
+    return completed.returncode == 0
+
+
+def _parser_load_probe_succeeds(
+    grammar: str,
+    timeout_seconds: float | None = None,
+) -> bool:
+    """Return a process-cached result for one bounded grammar probe.
+
+    The lock deliberately covers the subprocess call: parallel parser users
+    must not start duplicate probes for the same grammar while the first one
+    is still running.
+    """
+    with _PARSER_PROBE_LOCK:
+        cached = _PARSER_PROBE_RESULTS.get(grammar)
+        if cached is not None:
+            return cached
+        timeout = (
+            _parser_load_timeout_seconds()
+            if timeout_seconds is None
+            else timeout_seconds
+        )
+        result = _run_parser_load_probe(grammar, timeout)
+        _PARSER_PROBE_RESULTS[grammar] = result
+        if not result:
+            logger.warning(
+                "Skipping unavailable tree-sitter parser for %s",
+                grammar,
+            )
+        return result
+
+
+def _mark_parser_unavailable(grammar: str) -> None:
+    """Prevent repeated parent-process loads after an expected failure."""
+    with _PARSER_PROBE_LOCK:
+        _PARSER_PROBE_RESULTS[grammar] = False
+
+
+def _clear_parser_probe_cache() -> None:
+    """Clear process-level probe state (used by focused tests)."""
+    with _PARSER_PROBE_LOCK:
+        _PARSER_PROBE_RESULTS.clear()
+
+
+def _load_tree_sitter_parser(grammar: str):
+    """Load a probed grammar, suppressing only known availability errors."""
+    if not _parser_load_probe_succeeds(grammar):
+        return None
+    try:
+        language_pack = importlib.import_module("tree_sitter_language_pack")
+        return language_pack.get_parser(grammar)  # type: ignore[attr-defined]
+    except _EXPECTED_PARSER_LOAD_ERRORS as exc:
+        _mark_parser_unavailable(grammar)
+        logger.debug("tree-sitter parser unavailable for %s: %s", grammar, exc)
+        return None
 
 
 _PhpPsr4Mappings = tuple[tuple[str, tuple[str, ...]], ...]
@@ -222,7 +600,15 @@ EXTENSION_TO_LANGUAGE: dict[str, str] = {
     ".svh": "verilog",
     ".v": "verilog",
     ".vh": "verilog",
+    # tree-sitter-language-pack does not currently bundle Visual Basic.
+    # Keep the fallback deliberately structural and repository-local.
+    ".vb": "vbnet",
     ".sql": "sql",
+    ".tf": "hcl",
+    ".hcl": "hcl",
+    ".properties": "properties",
+    ".yml": "yaml",
+    ".yaml": "yaml",
 }
 
 # Shebang interpreter → language mapping for extension-less Unix scripts.
@@ -260,6 +646,53 @@ SHEBANG_INTERPRETER_TO_LANGUAGE: dict[str, str] = {
 # is ~30 chars) while keeping the worst-case read tiny even on fat binaries.
 _SHEBANG_PROBE_BYTES = 256
 
+# ---------------------------------------------------------------------------
+# Ansible YAML constants
+# ---------------------------------------------------------------------------
+
+# Path components that strongly suggest an Ansible project layout
+_ANSIBLE_PATH_COMPONENTS: frozenset[str] = frozenset({
+    "playbooks", "roles", "tasks", "handlers", "group_vars", "host_vars",
+})
+
+# Common top-level playbook filenames (still require content confirmation)
+_ANSIBLE_PLAYBOOK_NAMES: frozenset[str] = frozenset({
+    "site.yml", "site.yaml", "main.yml", "main.yaml",
+    "install.yml", "install.yaml", "deploy.yml", "deploy.yaml",
+})
+
+# Play-level keys that are ONLY valid in Ansible plays.
+# `hosts:` alone is not sufficient to identify a play — require at least one of these.
+_ANSIBLE_PLAY_KEYS: frozenset[str] = frozenset({
+    "tasks", "handlers", "pre_tasks", "post_tasks", "roles",
+    "gather_facts", "become", "become_user", "become_method",
+    "serial", "strategy", "vars_files", "vars_prompt",
+    "any_errors_fatal", "max_fail_percentage", "ignore_errors",
+})
+
+# Bare module names for content sniffing; also used after FQCN prefix strip
+_ANSIBLE_MODULE_KEYS: frozenset[str] = frozenset({
+    "apt", "yum", "dnf", "package", "pip", "copy", "template", "file",
+    "service", "systemd", "command", "shell", "raw", "git", "user", "stat",
+    "include_tasks", "import_tasks", "include_role", "import_role",
+    "set_fact", "debug", "fail", "assert", "wait_for", "pause",
+    "lineinfile", "blockinfile", "get_url", "uri", "unarchive",
+    "add_host", "group_by", "include_vars",
+})
+
+# Task mapping keys that are metadata, NOT module invocations
+_TASK_META_KEYS: frozenset[str] = frozenset({
+    "name", "when", "loop", "loop_control",
+    "with_items", "with_first_found", "with_fileglob", "with_dict",
+    "with_subelements", "with_nested", "with_sequence", "with_indexed_items",
+    "register", "notify", "tags", "become", "become_user", "become_method",
+    "ignore_errors", "vars", "no_log", "check_mode", "environment",
+    "any_errors_fatal", "run_once", "delegate_to", "delegate_facts",
+    "block", "rescue", "always",
+    "changed_when", "failed_when", "retries", "delay", "until",
+    "listen", "connection", "timeout",
+})
+
 # Tree-sitter node type mappings per language
 # Maps (language) -> dict of semantic role -> list of TS node types
 _CLASS_TYPES: dict[str, list[str]] = {
@@ -268,7 +701,9 @@ _CLASS_TYPES: dict[str, list[str]] = {
     "typescript": ["class_declaration", "class"],
     "tsx": ["class_declaration", "class"],
     "go": ["type_declaration"],
-    "rust": ["struct_item", "enum_item", "impl_item"],
+    # impl_item is a scope for methods, not a second type definition. It is
+    # dispatched separately so repeated impl blocks cannot overwrite structs.
+    "rust": ["struct_item", "enum_item", "trait_item"],
     "java": ["class_declaration", "interface_declaration", "enum_declaration"],
     "c": ["struct_specifier", "type_definition"],
     "cpp": ["class_specifier", "struct_specifier"],
@@ -317,12 +752,20 @@ _CLASS_TYPES: dict[str, list[str]] = {
     "julia": [
         "struct_definition", "abstract_definition", "module_definition",
     ],
-    "verilog": ["module_declaration", "interface_declaration", "class_declaration"],
+    "verilog": [
+        "module_declaration",
+        "interface_declaration",
+        "class_declaration",
+        "package_declaration",
+    ],
     # GDScript: inner classes use ``class Name:`` (class_definition); the
     # file-level ``class_name Name`` gives the script itself an identity.
     "gdscript": ["class_definition", "class_name_statement"],
     # SQL: CREATE TABLE / CREATE VIEW are handled via _parse_sql dispatch.
     "sql": [],
+    # HCL/Terraform: all constructs are blocks; dispatched via
+    # _extract_hcl_constructs.
+    "hcl": [],
 }
 
 _FUNCTION_TYPES: dict[str, list[str]] = {
@@ -331,7 +774,7 @@ _FUNCTION_TYPES: dict[str, list[str]] = {
     "typescript": ["function_declaration", "method_definition", "arrow_function"],
     "tsx": ["function_declaration", "method_definition", "arrow_function"],
     "go": ["function_declaration", "method_declaration"],
-    "rust": ["function_item"],
+    "rust": ["function_item", "function_signature_item"],
     "java": ["method_declaration", "constructor_declaration"],
     "c": ["function_definition"],
     "cpp": ["function_definition"],
@@ -387,6 +830,8 @@ _FUNCTION_TYPES: dict[str, list[str]] = {
     "gdscript": ["function_definition"],
     # SQL: CREATE FUNCTION / CREATE PROCEDURE handled via _parse_sql dispatch.
     "sql": [],
+    # HCL/Terraform: dispatched via _extract_hcl_constructs.
+    "hcl": [],
 }
 
 _IMPORT_TYPES: dict[str, list[str]] = {
@@ -440,6 +885,9 @@ _IMPORT_TYPES: dict[str, list[str]] = {
     "gdscript": ["extends_statement"],
     # SQL: table references extracted as IMPORTS_FROM via _parse_sql dispatch.
     "sql": [],
+    # HCL/Terraform: module source attributes become IMPORTS_FROM via
+    # _extract_hcl_constructs.
+    "hcl": [],
 }
 
 _CALL_TYPES: dict[str, list[str]] = {
@@ -449,7 +897,7 @@ _CALL_TYPES: dict[str, list[str]] = {
     "tsx": ["call_expression", "new_expression"],
     "go": ["call_expression"],
     "rust": ["call_expression", "macro_invocation"],
-    "java": ["method_invocation", "object_creation_expression"],
+    "java": ["method_invocation", "object_creation_expression", "method_reference"],
     "c": ["call_expression"],
     "cpp": ["call_expression"],
     "csharp": ["invocation_expression", "object_creation_expression"],
@@ -496,13 +944,19 @@ _CALL_TYPES: dict[str, list[str]] = {
         "macrocall_expression",
     ],
     "verilog": [
-        "module_instantiation", "function_subroutine_call", "subroutine_call", "system_tf_call"
-        ],
+        "module_instantiation",
+        "interface_instantiation",
+        "function_subroutine_call",
+        "subroutine_call",
+        "system_tf_call",
+    ],
     # GDScript: bare calls produce ``call``; ``obj.method()`` is an
     # ``attribute`` node whose right-hand side is an ``attribute_call``.
     "gdscript": ["call", "attribute_call"],
     # SQL: no call edges extracted (grammar too unreliable for procedure calls).
     "sql": [],
+    # HCL/Terraform: resource references dispatched via _extract_hcl_constructs.
+    "hcl": [],
 }
 
 
@@ -579,11 +1033,7 @@ _SPRING_STEREOTYPE_ANNOTATIONS = frozenset({
 _SPRING_INJECT_ANNOTATIONS = frozenset({
     "Autowired", "Inject", "Resource",
 })
-
-# Lombok annotations that trigger constructor injection of final fields
-_LOMBOK_CONSTRUCTOR_ANNOTATIONS = frozenset({
-    "RequiredArgsConstructor", "AllArgsConstructor",
-})
+_SPRING_PLACEHOLDER_RE = re.compile(r"\$\{([^{}]+)\}")
 
 # Temporal workflow/activity interface markers
 _TEMPORAL_INTERFACE_ANNOTATIONS = frozenset({
@@ -613,6 +1063,274 @@ _KAFKA_PRODUCER_TYPES = frozenset({
     "ReactiveKafkaProducerTemplate",
     "KafkaSender",
 })
+
+# Spring scheduling annotations. ``Scheduled`` is repeatable; ``Schedules``
+# is its explicit Java container form.
+_SPRING_SCHEDULED_ANNOTATIONS = frozenset({"Scheduled", "Schedules"})
+
+_SPRING_EVENT_LISTENER_ANNOTATIONS = frozenset({"EventListener"})
+_SPRING_EVENT_PUBLISH_METHODS = frozenset({"publishEvent"})
+_JAVA_PACKAGE_KEY = "__crg_java_package__"
+_SPRING_REQUEST_PREFIX_KEY = "__crg_spring_request_prefix__:"
+_SPRING_REQUEST_MAPPINGS = {
+    "DeleteMapping": ("DELETE",),
+    "GetMapping": ("GET",),
+    "PatchMapping": ("PATCH",),
+    "PostMapping": ("POST",),
+    "PutMapping": ("PUT",),
+    "RequestMapping": (),
+}
+_SPRING_WEBFLUX_HTTP_VERBS = frozenset({"DELETE", "GET", "PATCH", "POST", "PUT"})
+_HTTP_REQUEST_METHODS = frozenset({
+    "CONNECT", "DELETE", "GET", "HEAD", "OPTIONS", "PATCH", "POST", "PUT", "TRACE",
+})
+
+
+# ---------------------------------------------------------------------------
+# VB.NET regex patterns and helpers (no tree-sitter grammar bundled)
+# ---------------------------------------------------------------------------
+
+_VBNET_IDENT = r"(?:[A-Za-z_][A-Za-z0-9_]*|\[[^\]\r\n]+\])"
+_VBNET_DOTTED_IDENT = rf"{_VBNET_IDENT}(?:\.{_VBNET_IDENT})*"
+_VBNET_MODIFIER_WORDS = (
+    "Public",
+    "Private",
+    "Protected",
+    "Friend",
+    "Partial",
+    "Shared",
+    "Static",
+    "MustInherit",
+    "NotInheritable",
+    "Overridable",
+    "Overrides",
+    "MustOverride",
+    "Overloads",
+    "Default",
+    "ReadOnly",
+    "WriteOnly",
+    "Shadows",
+    "Async",
+    "Iterator",
+    "Declare",
+    "Narrowing",
+    "Widening",
+)
+_VBNET_MODIFIER_RE = rf"(?:(?:{'|'.join(_VBNET_MODIFIER_WORDS)})\s+)*"
+
+_VBNET_IMPORT_RE = re.compile(r"^\s*Imports\s+(.+?)\s*$", re.IGNORECASE)
+_VBNET_NAMESPACE_RE = re.compile(
+    rf"^\s*Namespace\s+(?P<name>{_VBNET_DOTTED_IDENT})\s*$",
+    re.IGNORECASE,
+)
+_VBNET_END_NAMESPACE_RE = re.compile(
+    r"^\s*End\s+Namespace\b", re.IGNORECASE,
+)
+_VBNET_TYPE_RE = re.compile(
+    rf"^\s*{_VBNET_MODIFIER_RE}"
+    rf"(?P<kind>Class|Interface|Structure|Module|Enum)\s+"
+    rf"(?P<name>{_VBNET_IDENT})\b(?P<rest>.*)$",
+    re.IGNORECASE,
+)
+_VBNET_END_TYPE_RE = re.compile(
+    r"^\s*End\s+(?P<kind>Class|Interface|Structure|Module|Enum)\b",
+    re.IGNORECASE,
+)
+_VBNET_MEMBER_RE = re.compile(
+    rf"^\s*(?P<mods>{_VBNET_MODIFIER_RE})"
+    rf"(?P<kind>Function|Sub|Property)\s+"
+    rf"(?P<name>{_VBNET_IDENT})\b(?P<rest>.*)$",
+    re.IGNORECASE,
+)
+_VBNET_OPERATOR_RE = re.compile(
+    rf"^\s*(?P<mods>{_VBNET_MODIFIER_RE})"
+    r"(?P<kind>Operator)\s+(?P<name>\S+)\s*(?P<rest>.*)$",
+    re.IGNORECASE,
+)
+_VBNET_END_MEMBER_RE = re.compile(
+    r"^\s*End\s+(Function|Sub|Property|Operator)\b", re.IGNORECASE,
+)
+_VBNET_INHERITS_RE = re.compile(r"\bInherits\s+(.+?)\s*$", re.IGNORECASE)
+_VBNET_IMPLEMENTS_RE = re.compile(r"\bImplements\s+(.+?)\s*$", re.IGNORECASE)
+_VBNET_NEW_RE = re.compile(
+    rf"\bNew\s+(?P<target>{_VBNET_DOTTED_IDENT})\s*(?:\(Of\b[^)]*\))?\s*\(",
+    re.IGNORECASE,
+)
+_VBNET_CALL_RE = re.compile(
+    rf"(?<![A-Za-z0-9_.])(?P<target>{_VBNET_DOTTED_IDENT})\s*\(",
+    re.IGNORECASE,
+)
+
+_VBNET_CALL_KEYWORDS = frozenset({
+    "addhandler", "and", "andalso", "as", "call", "case", "catch",
+    "class", "cobj", "continue", "ctype", "directcast", "do", "each",
+    "else", "elseif", "end", "enum", "erase", "error", "event", "exit",
+    "finally", "for", "function", "get", "gettype", "getxmlnamespace",
+    "global", "gosub", "goto", "if", "implements", "imports", "inherits",
+    "interface", "loop", "module", "mustinherit", "new", "next", "not",
+    "nothing", "operator", "option", "or", "orelse", "property",
+    "raiseevent", "redim", "rem", "removehandler", "resume", "return",
+    "select", "set", "step", "stop", "structure", "sub", "synclock",
+    "then", "throw", "to", "try", "typeof", "until", "using", "when",
+    "while", "with", "withevents", "xor",
+})
+
+
+def _vbnet_normalize_name(value: str) -> str:
+    """Remove VB escaping while preserving dotted identity."""
+    return ".".join(
+        part[1:-1] if part.startswith("[") and part.endswith("]") else part
+        for part in value.strip().split(".")
+    )
+
+
+def _strip_vbnet_noise(text: str) -> str:
+    """Blank VB comments and string contents while preserving line numbers."""
+    cleaned_lines: list[str] = []
+    for raw_line in text.splitlines(keepends=True):
+        line = raw_line.rstrip("\r\n")
+        ending = raw_line[len(line):]
+        if re.match(r"^\s*Rem\b", line, re.IGNORECASE):
+            cleaned_lines.append(" " * len(line) + ending)
+            continue
+
+        out: list[str] = []
+        in_string = False
+        i = 0
+        while i < len(line):
+            char = line[i]
+            if char == '"':
+                out.append(char)
+                if in_string and i + 1 < len(line) and line[i + 1] == '"':
+                    out.append(" ")
+                    i += 2
+                    continue
+                in_string = not in_string
+                i += 1
+                continue
+            if not in_string and char == "'":
+                out.append(" " * (len(line) - i))
+                break
+            out.append(" " if in_string else char)
+            i += 1
+        cleaned_lines.append("".join(out) + ending)
+    return "".join(cleaned_lines)
+
+
+def _vbnet_logical_lines(cleaned: str) -> list[tuple[int, int, str]]:
+    """Join explicit and parenthesized VB continuations with source ranges."""
+    logical: list[tuple[int, int, str]] = []
+    parts: list[str] = []
+    start_line = 1
+    depth = 0
+    for line_no, raw_line in enumerate(cleaned.splitlines(), start=1):
+        stripped = raw_line.strip()
+        if not stripped and not parts:
+            continue
+        if not parts:
+            start_line = line_no
+        explicit = stripped.endswith("_")
+        if explicit:
+            stripped = stripped[:-1].rstrip()
+        parts.append(stripped)
+        depth += stripped.count("(") - stripped.count(")")
+        if explicit or depth > 0:
+            continue
+        logical.append((start_line, line_no, " ".join(parts)))
+        parts = []
+        depth = 0
+    if parts:
+        logical.append((start_line, len(cleaned.splitlines()) or 1, " ".join(parts)))
+    return logical
+
+
+def _vbnet_parenthesized(text: str, start: int) -> tuple[str, int] | None:
+    """Return one balanced parenthesized group and its exclusive end."""
+    if start >= len(text) or text[start] != "(":
+        return None
+    depth = 0
+    for index in range(start, len(text)):
+        if text[index] == "(":
+            depth += 1
+        elif text[index] == ")":
+            depth -= 1
+            if depth == 0:
+                return text[start + 1:index], index + 1
+    return None
+
+
+def _vbnet_split_top_level(value: str) -> list[str]:
+    """Split a comma list without splitting generic/array groups."""
+    parts: list[str] = []
+    start = 0
+    depth = 0
+    for index, char in enumerate(value):
+        if char == "(":
+            depth += 1
+        elif char == ")":
+            depth = max(0, depth - 1)
+        elif char == "," and depth == 0:
+            parts.append(value[start:index])
+            start = index + 1
+    parts.append(value[start:])
+    return parts
+
+
+def _vbnet_type_parameters(rest: str) -> tuple[list[str], str]:
+    tail = rest.lstrip()
+    if not tail.lower().startswith("(of "):
+        return [], rest
+    group = _vbnet_parenthesized(tail, 0)
+    if group is None:
+        return [], rest
+    content, end = group
+    params = [
+        part.strip().split()[0]
+        for part in _vbnet_split_top_level(content[3:])
+        if part.strip()
+    ]
+    return params, tail[end:]
+
+
+def _vbnet_signature_parts(
+    rest: str,
+) -> tuple[Optional[str], Optional[str], list[str]]:
+    """Extract parameters, return type, and method type parameters."""
+    type_params, tail = _vbnet_type_parameters(rest)
+    tail = tail.lstrip()
+    params: Optional[str] = None
+    if tail.startswith("("):
+        group = _vbnet_parenthesized(tail, 0)
+        if group is not None:
+            raw_params, end = group
+            params = re.sub(r"\s+", " ", raw_params).strip()
+            tail = tail[end:]
+
+    return_type = None
+    return_match = re.search(
+        r"\bAs\s+(.+?)(?=\s+(?:Implements|Handles)\b|$)",
+        tail,
+        re.IGNORECASE,
+    )
+    if return_match:
+        return_type = re.sub(r"\s+", " ", return_match.group(1)).strip()
+    return params, return_type, type_params
+
+
+def _vbnet_relationship_targets(value: str) -> list[str]:
+    targets: list[str] = []
+    for raw_part in _vbnet_split_top_level(value):
+        part = raw_part.strip()
+        if not part:
+            continue
+        if "=" in part:
+            part = part.split("=", 1)[1].strip()
+        if part.lower().startswith("global."):
+            part = part[7:]
+        part = re.sub(r"\s*\(Of\b.*\)\s*$", "", part, flags=re.IGNORECASE)
+        if re.fullmatch(_VBNET_DOTTED_IDENT, part):
+            targets.append(_vbnet_normalize_name(part))
+    return targets
 
 
 # ---------------------------------------------------------------------------
@@ -881,6 +1599,85 @@ def _is_test_function(
     return False
 
 
+# Documentation summaries are stored in ``NodeInfo.extra`` so the graph
+# schema remains backward compatible.  A hard cap keeps parser metadata and
+# semantic-search input bounded even when a source file contains a very long
+# API reference as its docstring.
+_MAX_DOCSTRING_CHARS = 400
+_DOC_COMMENT_NODE_TYPES = frozenset({
+    "comment",
+    "block_comment",
+    "line_comment",
+    "doc_comment",
+})
+_DOC_COMMENT_SKIP_TYPES = frozenset({"attribute_item", "decorator"})
+_DOC_COMMENT_WRAPPER_TYPES = frozenset({
+    "export_statement",
+    "template_declaration",
+})
+_CSHARP_SUMMARY_RE = re.compile(
+    r"<summary(?:\s[^>]*)?>(.*?)</summary\s*>",
+    re.IGNORECASE | re.DOTALL,
+)
+_XML_TAG_RE = re.compile(r"<[^>]+>")
+_DOC_PARAGRAPH_TAG_RE = re.compile(
+    r"</?(?:p|para)(?:\s[^>]*)?>",
+    re.IGNORECASE,
+)
+_DOC_INLINE_TAG_RE = re.compile(
+    r"\{@(?:code|literal|link)\s+([^}]+)\}",
+    re.IGNORECASE,
+)
+_DOC_BRIEF_RE = re.compile(r"^\s*[@\\]brief\s+", re.IGNORECASE)
+
+
+def _clean_docstring_summary(raw: str, language: str) -> str:
+    """Return a whitespace-stable, first-paragraph documentation summary."""
+    text = raw.replace("\r\n", "\n").replace("\r", "\n")
+    if language == "csharp":
+        summary = _CSHARP_SUMMARY_RE.search(text)
+        if summary:
+            text = summary.group(1)
+    if language != "python":
+        text = _DOC_PARAGRAPH_TAG_RE.sub("\n\n", text)
+        text = _DOC_INLINE_TAG_RE.sub(r"\1", text)
+        text = _XML_TAG_RE.sub(" ", text)
+        text = html.unescape(text)
+        text = _DOC_BRIEF_RE.sub("", text)
+
+    lines = [line.strip() for line in text.splitlines()]
+    while lines and not lines[0]:
+        lines.pop(0)
+    paragraph: list[str] = []
+    for line in lines:
+        if not line:
+            break
+        if paragraph and line.startswith(("@param", "@return", "\\param", "\\return")):
+            break
+        paragraph.append(line)
+    return " ".join(" ".join(paragraph).split())[:_MAX_DOCSTRING_CHARS]
+
+
+def _strip_block_doc_comment(text: str) -> str:
+    """Remove a Doxygen/Javadoc-style wrapper and per-line ``*`` prefix."""
+    if text.startswith(("/**", "/*!")):
+        text = text[3:]
+    elif text.startswith("/*"):
+        text = text[2:]
+    if text.endswith("*/"):
+        text = text[:-2]
+
+    lines: list[str] = []
+    for line in text.splitlines():
+        stripped = line.lstrip()
+        if stripped.startswith("*"):
+            stripped = stripped[1:]
+            if stripped.startswith(" "):
+                stripped = stripped[1:]
+        lines.append(stripped)
+    return "\n".join(lines)
+
+
 def _modifier_annotation_names(node) -> list[str]:
     """Return annotation names from a ``modifiers`` child of *node*.
 
@@ -976,6 +1773,283 @@ def file_hash(path: Path) -> str:
 
 
 # ---------------------------------------------------------------------------
+# HCL / Terraform helpers (module-level; no self needed)
+# ---------------------------------------------------------------------------
+
+def _hcl_text(node) -> str:
+    """Decode tree-sitter node bytes to a string."""
+    return node.text.decode("utf-8", errors="replace")
+
+
+def _hcl_child(node, *types: str):
+    """Return the first direct child whose type is in *types*, or None."""
+    return next((c for c in node.children if c.type in types), None)
+
+
+def _hcl_block_name(prefix: str, labels: list[str], n_labels: int) -> Optional[str]:
+    """Build *prefix.label0[.label1]* from the first *n_labels* labels, or None."""
+    if len(labels) < n_labels:
+        return None
+    return ".".join([prefix] + labels[:n_labels])
+
+
+# Terraform reference-namespace prefixes (special roots, not resource types).
+# These roots are *not* resource type names, so they must never be mapped to
+# ``resource.<root>.*``.  The block-local iterators (each, count, self) and
+# built-in namespace objects (path, terraform) are also included so that
+# expressions like ``each.value.id`` or ``terraform.workspace`` do not
+# generate spurious REFERENCES edges.
+_HCL_REF_PREFIXES: frozenset[str] = frozenset({
+    "var", "module", "local", "data",
+    # block-local meta-argument iterators
+    "each", "count", "self",
+    # built-in namespace objects
+    "path", "terraform",
+})
+
+
+def _hcl_ref_target(root: str, attrs: list[str]) -> Optional[str]:
+    """Map a ``variable_expr.get_attr*`` chain to its canonical graph name."""
+    if root == "var" and attrs:
+        return f"var.{attrs[0]}"
+    if root == "module" and attrs:
+        return f"module.{attrs[0]}"
+    if root == "local" and attrs:
+        return f"local.{attrs[0]}"
+    if root == "data" and len(attrs) >= 2:
+        return f"data.{attrs[0]}.{attrs[1]}"
+    if root not in _HCL_REF_PREFIXES and attrs:
+        return f"resource.{root}.{attrs[0]}"
+    return None
+
+
+def _hcl_variable_refs(expr_node):
+    """Yield (root, attrs, line) for each ``variable_expr get_attr*`` chain
+    that is a direct child sequence inside *expr_node*."""
+    children = expr_node.children
+    i = 0
+    while i < len(children):
+        child = children[i]
+        if child.type != "variable_expr":
+            i += 1
+            continue
+        ident = _hcl_child(child, "identifier")
+        if ident is None:
+            i += 1
+            continue
+        j, attrs = i + 1, []
+        while j < len(children) and children[j].type == "get_attr":
+            id_node = _hcl_child(children[j], "identifier")
+            if id_node:
+                attrs.append(_hcl_text(id_node))
+            j += 1
+        yield _hcl_text(ident), attrs, child.start_point[0] + 1
+        i = j
+
+
+# Node types to recurse into when scanning for HCL variable references.
+# ``function_call`` / ``function_arguments`` ensure that variable references
+# inside calls like ``length(var.x)`` are extracted.
+# ``quoted_template`` / ``template_interpolation`` ensure that variable
+# references inside ``"${var.x}"`` template strings are extracted.
+_HCL_RECURSE_TYPES: frozenset[str] = frozenset({
+    "expression", "body", "block", "attribute", "tuple",
+    "object", "object_elem", "collection_value",
+    "template_expr", "for_expr", "for_tuple_expr", "for_object_expr",
+    "for_intro", "for_cond", "conditional",
+    # variable refs inside function call arguments, e.g. length(var.x)
+    "function_call", "function_arguments",
+    # variable refs inside template string interpolations, e.g. "${var.x}"
+    "quoted_template", "template_interpolation",
+})
+
+
+def _hcl_for_iterator_names(for_expr_node) -> frozenset[str]:
+    """Return loop-local symbols declared by a Terraform for-expression."""
+    stack = [for_expr_node]
+    while stack:
+        current = stack.pop()
+        if current.type == "for_intro":
+            return frozenset(
+                _hcl_text(child)
+                for child in current.children
+                if child.type == "identifier"
+            )
+        stack.extend(reversed(current.children))
+    return frozenset()
+
+
+def _hcl_dynamic_iterator_name(block_node) -> Optional[str]:
+    """Return the iterator symbol for a ``dynamic`` block, or ``None``.
+
+    Defaults to the dynamic block's string label (e.g. ``"setting"`` becomes
+    the symbol ``setting``).  Can be overridden by an
+    ``iterator = <ident>`` attribute inside the block body.  Returns ``None``
+    when *block_node* is not a ``dynamic`` block.
+
+    This is used by ``_walk_hcl_expressions`` to build a *local_names* scope
+    so that iterator references such as ``setting.value[...]`` or
+    ``origin_group.key`` do not produce spurious ``resource.*`` REFERENCES
+    edges.
+    """
+    id_node = _hcl_child(block_node, "identifier")
+    if id_node is None or _hcl_text(id_node) != "dynamic":
+        return None
+
+    # Default iterator name = the string label of the dynamic block.
+    # Block children: identifier("dynamic"), string_lit(label), body
+    default_name: Optional[str] = None
+    for child in block_node.children:
+        if child.type == "string_lit":
+            tmpl = _hcl_child(child, "template_literal")
+            default_name = _hcl_text(tmpl) if tmpl is not None else _hcl_text(child).strip('"')
+            break
+    if default_name is None:
+        return None
+
+    # Check for optional ``iterator = <ident>`` override inside the block body.
+    # The value is an unquoted identifier expression, e.g. ``iterator = srv``.
+    body_node = _hcl_child(block_node, "body")
+    if body_node is not None:
+        for attr in body_node.children:
+            if attr.type != "attribute":
+                continue
+            key = _hcl_child(attr, "identifier")
+            if key is None or _hcl_text(key) != "iterator":
+                continue
+            expr = _hcl_child(attr, "expression")
+            if expr is None:
+                continue
+            # Handles both bare identifier (``srv``) and quoted string (``"srv"``)
+            raw = _hcl_text(expr).strip().strip('"')
+            if raw and raw.isidentifier():
+                return raw
+
+    return default_name
+
+
+# Dispatch table: block_type → (graph_kind, name_prefix, n_labels, emit_refs)
+# "terraform" and unknown types are absent so they are silently skipped.
+_HCL_BLOCK_CFG: dict[str, tuple[str, str, int, bool]] = {
+    "resource": ("Class",    "resource", 2, True),
+    "data":     ("Class",    "data",     2, True),
+    "module":   ("Class",    "module",   1, True),
+    "variable": ("Function", "var",      1, False),
+    "output":   ("Function", "output",   1, True),
+    "provider": ("Function", "provider", 1, True),
+}
+
+
+# ---------------------------------------------------------------------------
+# Ansible YAML helpers (module-level so tests can import them directly)
+# ---------------------------------------------------------------------------
+
+
+def _is_ansible_path(path: Path) -> bool:
+    """Return True if the path suggests an Ansible YAML file by directory convention."""
+    parts = {p.lower() for p in path.parts}
+    return bool(parts & _ANSIBLE_PATH_COMPONENTS) or path.name.lower() in _ANSIBLE_PLAYBOOK_NAMES
+
+
+def _is_ansible_content(source: bytes) -> bool:
+    """Lightweight byte-scan: does this YAML look like an Ansible file?
+
+    Checks that the file is a top-level list and contains at least one
+    Ansible-specific structural marker (hosts, tasks, handlers, import_playbook,
+    or a known module key / FQCN pattern).
+    """
+    try:
+        text = source.decode("utf-8", errors="replace")
+    except Exception:
+        return False
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or stripped == "---":
+            continue  # skip blank lines, comments, and YAML document markers
+        if not (line.startswith("- ") or line == "-"):
+            return False
+        break
+    else:
+        return False
+    has_hosts = bool(re.search(r"^\s+hosts\s*:", text, re.MULTILINE))
+    has_tasks = bool(re.search(r"^\s+tasks\s*:", text, re.MULTILINE))
+    has_handlers = bool(re.search(r"^\s+handlers\s*:", text, re.MULTILINE))
+    has_import_pb = bool(re.search(r"^\s+import_playbook\s*:", text, re.MULTILINE))
+    has_name = bool(re.search(r"^\s+-?\s*name\s*:", text, re.MULTILINE))
+    has_module = any(
+        re.search(rf"^\s+{re.escape(k)}\s*:", text, re.MULTILINE)
+        for k in _ANSIBLE_MODULE_KEYS
+    ) or bool(re.search(r"^\s+ansible\.\w+\.\w+\s*:", text, re.MULTILINE))
+    return has_hosts or has_import_pb or has_tasks or has_handlers or (has_name and has_module)
+
+
+def _ansible_file_type(path: Path) -> str:
+    """Classify an Ansible file by path convention.
+
+    Returns one of: 'playbook', 'tasks', 'handlers', 'meta', 'vars', 'unknown'.
+    """
+    parts_lower = [p.lower() for p in path.parts]
+    name_lower = path.name.lower()
+    if "meta" in parts_lower and name_lower in ("main.yml", "main.yaml"):
+        return "meta"
+    if "handlers" in parts_lower:
+        return "handlers"
+    if "tasks" in parts_lower:
+        return "tasks"
+    if any(p in parts_lower for p in ("group_vars", "host_vars", "vars", "defaults")):
+        return "vars"
+    if "playbooks" in parts_lower or name_lower in _ANSIBLE_PLAYBOOK_NAMES:
+        return "playbook"
+    return "unknown"
+
+
+def _ansible_fqcn_short(key: str) -> str:
+    """Strip FQCN prefix: 'ansible.builtin.include_tasks' → 'include_tasks'."""
+    return key.rsplit(".", 1)[-1]
+
+
+def _yaml_line(node: object) -> int:
+    return node.start_mark.line + 1  # type: ignore[attr-defined]
+
+
+def _yaml_end_line(node: object) -> int:
+    return node.end_mark.line + 1  # type: ignore[attr-defined]
+
+
+def _yaml_get_key(mapping_node: object, key: str) -> Optional[object]:
+    for k_node, v_node in mapping_node.value:  # type: ignore[attr-defined]
+        if isinstance(k_node, _YamlScalar) and k_node.value == key:
+            return v_node
+    return None
+
+
+def _yaml_scalar(node: object) -> Optional[str]:
+    if isinstance(node, _YamlScalar):
+        return node.value  # type: ignore[attr-defined]
+    return None
+
+
+def _ansible_is_play_item(item: object) -> bool:
+    """True if this top-level sequence item is a definitive Ansible play or playbook import.
+
+    Requires EITHER:
+    - ``import_playbook:`` key (unambiguous), OR
+    - ``hosts:`` key AND at least one key from ``_ANSIBLE_PLAY_KEYS``.
+
+    A bare ``hosts: all`` without any other play key is too generic and is rejected.
+    """
+    if not isinstance(item, _YamlMapping):
+        return False
+    keys: set[Optional[str]] = {
+        _yaml_scalar(k)
+        for k, _ in item.value  # type: ignore[attr-defined]
+        if isinstance(k, _YamlScalar)
+    }
+    if "import_playbook" in keys:
+        return True
+    return "hosts" in keys and bool(keys & _ANSIBLE_PLAY_KEYS)
+
+# ---------------------------------------------------------------------------
 # Parser
 # ---------------------------------------------------------------------------
 
@@ -1008,6 +2082,10 @@ class CodeParser:
         self._tsconfig_resolver = TsconfigResolver()
         # Per-parse cache of Dart pubspec root lookups; see #87
         self._dart_pubspec_cache: dict[tuple[str, str], Optional[Path]] = {}
+        # Cargo discovery is shared by every Rust import/call in a source file.
+        self._rust_project_cache: dict[
+            str, tuple[Path, Path, Path, dict[str, Path], Path]
+        ] = {}
         # Config-driven custom languages (.code-review-graph/languages.toml).
         # The built-in tables stay shared module-level constants; only when a
         # repo defines custom languages does this parser switch to merged
@@ -1044,12 +2122,10 @@ class CodeParser:
             # Custom languages map their name onto a packaged grammar.
             custom = self._custom_languages.get(language)
             grammar = custom.grammar if custom is not None else language
-            try:
-                self._parsers[language] = tslp.get_parser(grammar)  # type: ignore[arg-type]
-            except (LookupError, ValueError, ImportError) as exc:
-                # language not packaged, or grammar load failed
-                logger.debug("tree-sitter parser unavailable for %s: %s", language, exc)
+            parser = _load_tree_sitter_parser(grammar)
+            if parser is None:
                 return None
+            self._parsers[language] = parser
         return self._parsers[language]
 
     def detect_language(self, path: Path) -> Optional[str]:
@@ -1066,6 +2142,12 @@ class CodeParser:
             return "blade"
         suffix = path.suffix.lower()
         lang = self._extension_map.get(suffix)
+        if lang == "yaml" and _is_ansible_path(path):
+            return "ansible"
+        if lang in ("properties", "yaml") and is_spring_config_path(path):
+            return "spring_config"
+        if lang == "properties":
+            return None
         if lang is not None:
             return lang
         # Only probe shebang for files without any extension — "README", "LICENSE",
@@ -1186,6 +2268,11 @@ class CodeParser:
             if first_line == b"# Databricks notebook source":
                 return self._parse_databricks_py_notebook(path, source)
 
+        # VB.NET and ReScript use bounded structural fallbacks because the
+        # bundled language pack has no grammar for either language.
+        if language == "vbnet":
+            return self._parse_vbnet(path, source)
+
         # ReScript: regex-based parser (no tree-sitter grammar bundled).
         if language == "rescript":
             return self._parse_rescript(path, source)
@@ -1194,6 +2281,32 @@ class CodeParser:
         # regex fallback for CREATE PROCEDURE (unsupported by the grammar).
         if language == "sql":
             return self._parse_sql(path, source)
+
+        # Ansible YAML: path heuristic promoted to "ansible".
+        if language == "ansible":
+            if _yaml is None:
+                return [], []
+            file_type = _ansible_file_type(path)
+            # Variable and role-metadata files are identified by Ansible's
+            # directory contract. Task/handler paths are not sufficient on
+            # their own: generic YAML repositories commonly contain those
+            # directory names, so require Ansible content evidence there.
+            if file_type in ("vars", "meta") or _is_ansible_content(source):
+                return self._parse_ansible(path, source)
+            return [], []
+
+        # Spring configuration: only conventional application files reach
+        # this branch. Generic YAML and arbitrary .properties files stay out.
+        if language == "spring_config":
+            if _yaml is None:
+                return [], []
+            if path.suffix.lower() in (".yaml", ".yml") and _is_ansible_content(source):
+                return self._parse_ansible(path, source)
+            return self._parse_spring_config(path, source)
+
+        # Generic YAML: no tree-sitter grammar bundled; skip.
+        if language == "yaml":
+            return [], []
 
         parser = self._get_parser(language)
         if not parser:
@@ -1234,6 +2347,14 @@ class CodeParser:
                 tree.root_node, file_path_str, import_map,
             )
 
+        typed_call_targets = self._collect_typed_call_targets(
+            tree.root_node,
+            language,
+            file_path_str,
+            import_map,
+            defined_names,
+        )
+
         # Walk the tree
         self._extract_from_tree(
             tree.root_node, source, language, file_path_str, nodes, edges,
@@ -1246,6 +2367,14 @@ class CodeParser:
                 file_path_str,
                 edges,
             )
+            edges = self._resolve_php_scoped_calls(
+                tree.root_node,
+                nodes,
+                edges,
+                file_path_str,
+            )
+
+        edges = self._apply_typed_call_targets(edges, typed_call_targets)
 
         # Resolve bare call targets to qualified names using same-file definitions
         edges = self._resolve_call_targets(nodes, edges, file_path_str)
@@ -1874,6 +3003,427 @@ class CodeParser:
         return nodes, edges
 
     # ------------------------------------------------------------------
+    # VB.NET: bounded structural fallback (no bundled tree-sitter grammar)
+    # ------------------------------------------------------------------
+
+    def _parse_vbnet(
+        self, path: Path, source: bytes,
+    ) -> tuple[list[NodeInfo], list[EdgeInfo]]:
+        """Parse stable VB structure without pretending to be a full compiler.
+
+        VB is case-insensitive. Symbols are therefore resolved only when an
+        exact case-folded, scope-aware match exists in this file; ambiguous or
+        external targets remain unresolved instead of gaining a false edge.
+        """
+        text = source.decode("utf-8", errors="replace")
+        cleaned = _strip_vbnet_noise(text)
+        statements = _vbnet_logical_lines(cleaned)
+        file_path = str(path)
+        line_count = text.count("\n") + 1
+        test_file = _is_test_file(file_path)
+
+        nodes = [NodeInfo(
+            kind="File",
+            name=file_path,
+            file_path=file_path,
+            line_start=1,
+            line_end=line_count,
+            language="vbnet",
+            is_test=test_file,
+        )]
+        edges: list[EdgeInfo] = []
+        namespace_stack: list[dict] = []
+        type_stack: list[dict] = []
+        member_stack: list[dict] = []
+        member_nodes: dict[tuple[str, str], int] = {}
+
+        def namespace_scope() -> Optional[str]:
+            return namespace_stack[-1]["full"] if namespace_stack else None
+
+        def current_type() -> Optional[dict]:
+            return type_stack[-1] if type_stack else None
+
+        def parent_scope() -> Optional[str]:
+            current = current_type()
+            return current["full"] if current else namespace_scope()
+
+        def container_qn(scope: Optional[str]) -> str:
+            return self._qualify(scope, file_path, None) if scope else file_path
+
+        def close_member(line_no: int) -> None:
+            if not member_stack:
+                return
+            entry = member_stack.pop()
+            node = nodes[entry["node_index"]]
+            node.line_end = max(node.line_end, line_no)
+
+        def close_type(line_no: int, kind: Optional[str] = None) -> None:
+            while member_stack:
+                close_member(line_no)
+            if not type_stack:
+                return
+            if kind is None:
+                entry = type_stack.pop()
+            else:
+                wanted = kind.casefold()
+                index = next(
+                    (
+                        pos for pos in range(len(type_stack) - 1, -1, -1)
+                        if type_stack[pos]["kind"] == wanted
+                    ),
+                    len(type_stack) - 1,
+                )
+                entry = type_stack.pop(index)
+            nodes[entry["node_index"]].line_end = line_no
+
+        def emit_relationships(
+            statement: str, source_qn: str, line_no: int,
+        ) -> None:
+            for pattern, edge_kind in (
+                (_VBNET_INHERITS_RE, "INHERITS"),
+                (_VBNET_IMPLEMENTS_RE, "IMPLEMENTS"),
+            ):
+                match = pattern.search(statement)
+                if match is None:
+                    continue
+                for target in _vbnet_relationship_targets(match.group(1)):
+                    edges.append(EdgeInfo(
+                        kind=edge_kind,
+                        source=source_qn,
+                        target=target,
+                        file_path=file_path,
+                        line=line_no,
+                        extra={"vbnet_unresolved": True},
+                    ))
+
+        def emit_calls(statement: str, source_qn: str, line_no: int) -> None:
+            new_spans: list[tuple[int, int]] = []
+            for match in _VBNET_NEW_RE.finditer(statement):
+                target = _vbnet_normalize_name(match.group("target"))
+                new_spans.append(match.span())
+                edges.append(EdgeInfo(
+                    kind="CALLS",
+                    source=source_qn,
+                    target=target,
+                    file_path=file_path,
+                    line=line_no,
+                    extra={"vbnet_unresolved": True, "constructor": True},
+                ))
+
+            for match in _VBNET_CALL_RE.finditer(statement):
+                if any(start <= match.start() < end for start, end in new_spans):
+                    continue
+                target = _vbnet_normalize_name(match.group("target"))
+                first = target.split(".", 1)[0].casefold()
+                if first in _VBNET_CALL_KEYWORDS:
+                    continue
+                edges.append(EdgeInfo(
+                    kind="CALLS",
+                    source=source_qn,
+                    target=target,
+                    file_path=file_path,
+                    line=line_no,
+                    extra={"vbnet_unresolved": True},
+                ))
+
+        for line_start, line_end, statement in statements:
+            if not statement:
+                continue
+
+            import_match = _VBNET_IMPORT_RE.match(statement)
+            if import_match:
+                for target in _vbnet_relationship_targets(import_match.group(1)):
+                    edges.append(EdgeInfo(
+                        kind="IMPORTS_FROM",
+                        source=file_path,
+                        target=target,
+                        file_path=file_path,
+                        line=line_start,
+                    ))
+                continue
+
+            if _VBNET_END_NAMESPACE_RE.match(statement):
+                while type_stack:
+                    close_type(line_end)
+                if namespace_stack:
+                    entry = namespace_stack.pop()
+                    nodes[entry["node_index"]].line_end = line_end
+                continue
+
+            namespace_match = _VBNET_NAMESPACE_RE.match(statement)
+            if namespace_match:
+                raw_name = _vbnet_normalize_name(namespace_match.group("name"))
+                outer = namespace_scope()
+                full_name = ".".join(filter(None, (outer, raw_name)))
+                node_index = len(nodes)
+                nodes.append(NodeInfo(
+                    kind="Class",
+                    name=raw_name,
+                    file_path=file_path,
+                    line_start=line_start,
+                    line_end=line_end,
+                    language="vbnet",
+                    parent_name=outer,
+                    extra={"vbnet_kind": "namespace"},
+                ))
+                edges.append(EdgeInfo(
+                    kind="CONTAINS",
+                    source=container_qn(outer),
+                    target=self._qualify(raw_name, file_path, outer),
+                    file_path=file_path,
+                    line=line_start,
+                ))
+                namespace_stack.append({
+                    "full": full_name,
+                    "node_index": node_index,
+                })
+                continue
+
+            end_member = _VBNET_END_MEMBER_RE.match(statement)
+            if end_member:
+                close_member(line_end)
+                continue
+
+            end_type = _VBNET_END_TYPE_RE.match(statement)
+            if end_type:
+                close_type(line_end, end_type.group("kind"))
+                continue
+
+            type_match = _VBNET_TYPE_RE.match(statement)
+            if type_match:
+                while member_stack:
+                    close_member(line_start)
+                name = _vbnet_normalize_name(type_match.group("name"))
+                kind = type_match.group("kind").casefold()
+                scope = parent_scope()
+                full_scope = ".".join(filter(None, (scope, name)))
+                type_params, _ = _vbnet_type_parameters(type_match.group("rest"))
+                extra: dict = {"vbnet_kind": kind}
+                if type_params:
+                    extra["vbnet_type_parameters"] = type_params
+                node_index = len(nodes)
+                nodes.append(NodeInfo(
+                    kind="Class",
+                    name=name,
+                    file_path=file_path,
+                    line_start=line_start,
+                    line_end=line_end,
+                    language="vbnet",
+                    parent_name=scope,
+                    extra=extra,
+                ))
+                type_qn = self._qualify(name, file_path, scope)
+                edges.append(EdgeInfo(
+                    kind="CONTAINS",
+                    source=container_qn(scope),
+                    target=type_qn,
+                    file_path=file_path,
+                    line=line_start,
+                ))
+                type_stack.append({
+                    "full": full_scope,
+                    "kind": kind,
+                    "node_index": node_index,
+                })
+                emit_relationships(type_match.group("rest"), type_qn, line_start)
+                continue
+
+            type_entry = current_type()
+            if type_entry and re.match(
+                r"^\s*(?:Inherits|Implements)\b", statement, re.IGNORECASE,
+            ):
+                emit_relationships(
+                    statement,
+                    self._qualify(type_entry["full"], file_path, None),
+                    line_start,
+                )
+                continue
+
+            member_match = (
+                _VBNET_MEMBER_RE.match(statement)
+                or _VBNET_OPERATOR_RE.match(statement)
+            )
+            if member_match:
+                while member_stack:
+                    close_member(line_start)
+                member_kind = member_match.group("kind").casefold()
+                name = _vbnet_normalize_name(member_match.group("name"))
+                if member_kind == "operator":
+                    name = f"operator_{name}"
+                modifiers = re.sub(
+                    r"\s+", " ", member_match.group("mods").strip(),
+                ) or None
+                params, return_type, type_params = _vbnet_signature_parts(
+                    member_match.group("rest"),
+                )
+                scope = parent_scope()
+                qn = self._qualify(name, file_path, scope)
+                key = ((scope or "").casefold(), name.casefold())
+                member_index = member_nodes.get(key)
+                if member_index is None:
+                    is_test = _is_test_function(name, file_path)
+                    extra = {"vbnet_kind": member_kind}
+                    if type_params:
+                        extra["vbnet_type_parameters"] = type_params
+                    member_index = len(nodes)
+                    nodes.append(NodeInfo(
+                        kind="Test" if is_test else "Function",
+                        name=name,
+                        file_path=file_path,
+                        line_start=line_start,
+                        line_end=line_end,
+                        language="vbnet",
+                        parent_name=scope,
+                        params=params,
+                        return_type=return_type,
+                        modifiers=modifiers,
+                        is_test=is_test,
+                        extra=extra,
+                    ))
+                    member_nodes[key] = member_index
+                    edges.append(EdgeInfo(
+                        kind="CONTAINS",
+                        source=container_qn(scope),
+                        target=qn,
+                        file_path=file_path,
+                        line=line_start,
+                    ))
+                else:
+                    existing = nodes[member_index]
+                    overloads = existing.extra.setdefault(
+                        "vbnet_overloads", [existing.params or ""],
+                    )
+                    overloads.append(params or "")
+                    existing.line_end = max(existing.line_end, line_end)
+
+                implements = _VBNET_IMPLEMENTS_RE.search(
+                    member_match.group("rest"),
+                )
+                if implements:
+                    for target in _vbnet_relationship_targets(implements.group(1)):
+                        edges.append(EdgeInfo(
+                            kind="IMPLEMENTS",
+                            source=qn,
+                            target=target,
+                            file_path=file_path,
+                            line=line_start,
+                            extra={"vbnet_unresolved": True},
+                        ))
+
+                modifier_words = {
+                    word.casefold() for word in (modifiers or "").split()
+                }
+                has_body = (
+                    not type_entry or type_entry["kind"] != "interface"
+                ) and not modifier_words.intersection({"mustoverride", "declare"})
+                if has_body:
+                    member_stack.append({
+                        "node_index": member_index,
+                        "qn": qn,
+                    })
+                continue
+
+            if member_stack:
+                emit_calls(statement, member_stack[-1]["qn"], line_start)
+
+        while member_stack:
+            close_member(line_count)
+        while type_stack:
+            close_type(line_count)
+        while namespace_stack:
+            entry = namespace_stack.pop()
+            nodes[entry["node_index"]].line_end = line_count
+
+        edges = self._resolve_vbnet_edges(nodes, edges, file_path)
+        if test_file:
+            test_qnames = {
+                self._qualify(node.name, file_path, node.parent_name)
+                for node in nodes
+                if node.is_test
+            }
+            for edge in list(edges):
+                if edge.kind == "CALLS" and edge.source in test_qnames:
+                    edges.append(EdgeInfo(
+                        kind="TESTED_BY",
+                        source=edge.target,
+                        target=edge.source,
+                        file_path=edge.file_path,
+                        line=edge.line,
+                    ))
+        return nodes, edges
+
+    def _resolve_vbnet_edges(
+        self,
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+        file_path: str,
+    ) -> list[EdgeInfo]:
+        """Resolve only unique case-insensitive same-file VB targets."""
+        prefix = f"{file_path}::"
+        symbols: dict[str, list[str]] = {}
+        bare_symbols: dict[str, list[str]] = {}
+        for node in nodes:
+            if node.kind not in ("Class", "Function", "Test", "Type"):
+                continue
+            qn = self._qualify(node.name, file_path, node.parent_name)
+            tail = qn.removeprefix(prefix)
+            symbols.setdefault(tail.casefold(), []).append(qn)
+            bare_symbols.setdefault(node.name.casefold(), []).append(qn)
+
+        def unique(candidate: str) -> Optional[str]:
+            matches = symbols.get(candidate.casefold(), [])
+            return matches[0] if len(matches) == 1 else None
+
+        def resolve(edge: EdgeInfo) -> Optional[str]:
+            raw = edge.target
+            if "::" in raw:
+                return raw
+            target = _vbnet_normalize_name(raw)
+            source_tail = edge.source.removeprefix(prefix)
+            source_parts = source_tail.split(".") if source_tail else []
+            scope_parts = source_parts[:-1]
+
+            lowered = target.casefold()
+            if lowered.startswith("global."):
+                target = target[7:]
+            elif lowered.startswith("me."):
+                target = target[3:]
+            elif lowered.startswith("myclass."):
+                target = target[8:]
+
+            for size in range(len(scope_parts), -1, -1):
+                candidate = ".".join((*scope_parts[:size], target))
+                found = unique(candidate)
+                if found is not None:
+                    return found
+            found = unique(target)
+            if found is not None:
+                return found
+            bare = bare_symbols.get(target.casefold(), [])
+            return bare[0] if len(bare) == 1 else None
+
+        resolved: list[EdgeInfo] = []
+        for edge in edges:
+            if edge.kind not in ("CALLS", "INHERITS", "IMPLEMENTS"):
+                resolved.append(edge)
+                continue
+            target = resolve(edge)
+            if target is None:
+                resolved.append(edge)
+                continue
+            extra = dict(edge.extra)
+            extra.pop("vbnet_unresolved", None)
+            resolved.append(EdgeInfo(
+                kind=edge.kind,
+                source=edge.source,
+                target=target,
+                file_path=edge.file_path,
+                line=edge.line,
+                extra=extra,
+            ))
+        return resolved
+
+    # ------------------------------------------------------------------
     # ReScript: regex-based structural parser (no tree-sitter grammar
     # is bundled for ReScript, so we extract best-effort structure via
     # comment-stripping + line-anchored regex + brace-counted module scan).
@@ -2450,6 +4000,11 @@ class CodeParser:
 
         External calls (names not defined in this file) remain bare.
         """
+        if any(node.language == "julia" for node in nodes):
+            return self._resolve_julia_call_targets(
+                nodes, edges, file_path,
+            )
+
         # Build symbol table: bare_name -> qualified_name
         symbols: dict[str, str] = {}
         for node in nodes:
@@ -2461,7 +4016,18 @@ class CodeParser:
 
         resolved: list[EdgeInfo] = []
         for edge in edges:
-            if edge.kind in ("CALLS", "REFERENCES") and "::" not in edge.target:
+            if (
+                edge.kind == "REFERENCES"
+                and edge.extra.get("julia_qualified_def")
+            ):
+                resolved.append(edge)
+                continue
+            has_receiver = bool(edge.extra.get("receiver"))
+            if (
+                edge.kind in ("CALLS", "REFERENCES")
+                and "::" not in edge.target
+                and not has_receiver
+            ):
                 if edge.target in symbols:
                     edge = EdgeInfo(
                         kind=edge.kind,
@@ -2471,6 +4037,497 @@ class CodeParser:
                         line=edge.line,
                         extra=edge.extra,
                     )
+            resolved.append(edge)
+        return resolved
+
+    def _resolve_julia_call_targets(
+        self,
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+        file_path: str,
+    ) -> list[EdgeInfo]:
+        """Resolve Julia calls from the nearest lexical scope outward."""
+        prefix = f"{file_path}::"
+
+        # Qualified methods retain their explicit identity path, but that
+        # module qualifier is not a lexical parent. Record the method
+        # boundary and the scope to jump to after searching definitions
+        # nested inside that exact method body.
+        qualified_boundaries: list[tuple[str, str]] = []
+        for node in nodes:
+            qualifier = node.extra.get("julia_module_qualifier")
+            if not isinstance(qualifier, str) or not qualifier:
+                continue
+            identity_parent = node.parent_name or ""
+            parent_parts = identity_parent.split(".") if identity_parent else []
+            qualifier_parts = qualifier.split(".")
+            if parent_parts[-len(qualifier_parts):] != qualifier_parts:
+                continue
+            lexical_parent = ".".join(
+                parent_parts[:-len(qualifier_parts)],
+            )
+            identity_path = ".".join(
+                part for part in (identity_parent, node.name) if part
+            )
+            qualified_boundaries.append((identity_path, lexical_parent))
+        qualified_boundaries.sort(
+            key=lambda item: len(item[0]), reverse=True,
+        )
+
+        symbols: dict[str, str] = {}
+        for node in nodes:
+            if node.kind not in ("Function", "Class", "Type", "Test"):
+                continue
+            qualified = self._qualify(
+                node.name, file_path, node.parent_name,
+            )
+            identity_path = qualified.removeprefix(prefix)
+            symbols[identity_path] = qualified
+
+        def _search_scopes(
+            source_scope: str,
+            seen: frozenset[str] = frozenset(),
+        ):
+            if source_scope in seen:
+                return
+            next_seen = seen | {source_scope}
+            boundary = next(
+                (
+                    item for item in qualified_boundaries
+                    if source_scope == item[0]
+                    or source_scope.startswith(f"{item[0]}.")
+                ),
+                None,
+            )
+            scope_parts = source_scope.split(".") if source_scope else []
+            if boundary is None:
+                for size in range(len(scope_parts), -1, -1):
+                    yield ".".join(scope_parts[:size])
+                return
+
+            identity_boundary, lexical_parent = boundary
+            boundary_depth = len(identity_boundary.split("."))
+            for size in range(len(scope_parts), boundary_depth - 1, -1):
+                yield ".".join(scope_parts[:size])
+            yield from _search_scopes(lexical_parent, next_seen)
+
+        resolved: list[EdgeInfo] = []
+        for edge in edges:
+            if (
+                edge.kind == "REFERENCES"
+                and edge.extra.get("julia_qualified_def")
+            ):
+                resolved.append(edge)
+                continue
+            if (
+                edge.kind not in ("CALLS", "REFERENCES")
+                or "::" in edge.target
+            ):
+                resolved.append(edge)
+                continue
+
+            source_tail = (
+                edge.source.removeprefix(prefix)
+                if edge.source.startswith(prefix)
+                else ""
+            )
+            target = None
+            for scope in _search_scopes(source_tail):
+                candidate = f"{scope}.{edge.target}" if scope else edge.target
+                target = symbols.get(candidate)
+                if target is not None:
+                    break
+            if target is not None:
+                edge = EdgeInfo(
+                    kind=edge.kind,
+                    source=edge.source,
+                    target=target,
+                    file_path=edge.file_path,
+                    line=edge.line,
+                    extra=edge.extra,
+                )
+            resolved.append(edge)
+        return resolved
+
+    _TYPED_CALL_LANGUAGES = frozenset({
+        "python", "kotlin", "java", "javascript", "typescript", "tsx",
+    })
+    _TRANSPARENT_TYPE_WRAPPERS = frozenset({"Annotated", "Optional", "Type"})
+    _NON_RECEIVER_TYPE_NAMES = frozenset({
+        "Array", "Collection", "Dict", "Iterable", "List", "Map", "Mapping",
+        "MutableList", "MutableMap", "MutableMapping", "ReadonlyArray",
+        "Sequence", "Set", "Tuple", "Union", "dict", "frozenset", "list",
+        "set", "tuple",
+    })
+
+    def _collect_typed_call_targets(
+        self,
+        root,
+        language: str,
+        file_path: str,
+        import_map: dict[str, str],
+        defined_names: set[str],
+    ) -> dict[tuple[int, str, str], tuple[str, str, str]]:
+        """Collect evidence-backed targets for calls on typed receivers.
+
+        The result is keyed by source line, receiver, and method so the normal
+        call extractor remains the single producer of CALLS edges. Only
+        repository-local imported types and same-file classes are qualified;
+        unknown or ambiguous types keep their existing bare targets.
+        """
+        if language not in self._TYPED_CALL_LANGUAGES:
+            return {}
+
+        class_types = set(self._class_types.get(language, []))
+        function_types = set(self._function_types.get(language, []))
+        call_types = set(self._call_types.get(language, []))
+        block_types = {
+            "java": {"block"},
+            "kotlin": {"statements"},
+            "javascript": {"statement_block"},
+            "typescript": {"statement_block"},
+            "tsx": {"statement_block"},
+        }.get(language, set())
+        targets: dict[tuple[int, str, str], tuple[str, str, str]] = {}
+
+        def walk(
+            node,
+            bindings: dict[str, str],
+            class_fields: dict[str, str],
+            depth: int = 0,
+        ) -> None:
+            if depth > self._MAX_AST_DEPTH:
+                return
+            if node.type in class_types:
+                fields = self._collect_class_typed_fields(
+                    node, language, function_types, class_types,
+                )
+                class_bindings = dict(bindings)
+                class_bindings.update(fields)
+                for child in node.children:
+                    walk(child, class_bindings, fields, depth + 1)
+                return
+
+            if node.type in function_types:
+                scoped = dict(bindings)
+                scoped.update(class_fields)
+                scoped.update(self._collect_function_typed_parameters(node, language))
+                for child in node.children:
+                    walk(child, scoped, class_fields, depth + 1)
+                return
+
+            if node.type in block_types:
+                scoped = dict(bindings)
+                for child in node.children:
+                    walk(child, scoped, class_fields, depth + 1)
+                return
+
+            new_bindings = self._typed_bindings_from_node(node, language)
+            if new_bindings:
+                # Initializers are evaluated before their declaration becomes
+                # visible, so visit children with the previous environment.
+                for child in node.children:
+                    walk(child, bindings, class_fields, depth + 1)
+                bindings.update(new_bindings)
+                return
+
+            if node.type in call_types:
+                receiver, method = self._get_member_call_receiver_method(
+                    node, language,
+                )
+                if receiver and method:
+                    type_name = bindings.get(receiver)
+                    evidence = "typed_receiver"
+                    if type_name is None and receiver[:1].isupper():
+                        if receiver in import_map or receiver in defined_names:
+                            type_name = receiver
+                            evidence = "class_receiver"
+                    if type_name:
+                        target = self._resolve_typed_method_target(
+                            type_name,
+                            method,
+                            file_path,
+                            language,
+                            import_map,
+                            defined_names,
+                        )
+                        if target:
+                            key = (node.start_point[0] + 1, receiver, method)
+                            targets[key] = (target, type_name, evidence)
+
+            for child in node.children:
+                walk(child, bindings, class_fields, depth + 1)
+
+        walk(root, {}, {})
+        return targets
+
+    def _collect_class_typed_fields(
+        self,
+        class_node,
+        language: str,
+        function_types: set[str],
+        class_types: set[str],
+    ) -> dict[str, str]:
+        """Return declared instance-field types for one class."""
+        fields: dict[str, str] = {}
+
+        def visit(node, depth: int = 0) -> None:
+            if depth > self._MAX_AST_DEPTH:
+                return
+            if node is not class_node and node.type in class_types:
+                return
+            if node is not class_node and node.type in function_types:
+                if language in ("javascript", "typescript", "tsx"):
+                    name = node.child_by_field_name("name")
+                    if name is not None and name.text == b"constructor":
+                        fields.update(self._collect_ts_parameter_properties(node))
+                return
+            fields.update(self._typed_bindings_from_node(node, language))
+            for child in node.children:
+                visit(child, depth + 1)
+
+        visit(class_node)
+        return fields
+
+    def _collect_function_typed_parameters(
+        self,
+        function_node,
+        language: str,
+    ) -> dict[str, str]:
+        """Return typed parameters declared directly by one function."""
+        bindings: dict[str, str] = {}
+        parameter_types = {
+            "python": {"typed_parameter", "typed_default_parameter"},
+            "kotlin": {"parameter"},
+            "java": {"formal_parameter", "spread_parameter"},
+            "javascript": {"required_parameter", "optional_parameter"},
+            "typescript": {"required_parameter", "optional_parameter"},
+            "tsx": {"required_parameter", "optional_parameter"},
+        }.get(language, set())
+
+        def visit(node, depth: int = 0) -> None:
+            if depth > self._MAX_AST_DEPTH:
+                return
+            if node is not function_node and node.type in self._function_types.get(
+                language, []
+            ):
+                return
+            if node.type in parameter_types:
+                bindings.update(self._typed_bindings_from_node(node, language))
+                return
+            # Function bodies cannot contain parameters of this function.
+            if node.type in ("block", "statement_block", "function_body"):
+                return
+            for child in node.children:
+                visit(child, depth + 1)
+
+        visit(function_node)
+        return bindings
+
+    def _collect_ts_parameter_properties(self, constructor_node) -> dict[str, str]:
+        """Return TypeScript constructor parameters that declare fields."""
+        bindings: dict[str, str] = {}
+
+        def visit(node, depth: int = 0) -> None:
+            if depth > self._MAX_AST_DEPTH:
+                return
+            if node.type in ("required_parameter", "optional_parameter"):
+                has_field_modifier = any(
+                    child.type in (
+                        "accessibility_modifier", "override_modifier", "readonly",
+                    )
+                    for child in node.children
+                )
+                if has_field_modifier:
+                    bindings.update(
+                        self._typed_bindings_from_node(node, "typescript"),
+                    )
+                return
+            if node.type == "statement_block":
+                return
+            for child in node.children:
+                visit(child, depth + 1)
+
+        visit(constructor_node)
+        return bindings
+
+    def _typed_bindings_from_node(
+        self,
+        node,
+        language: str,
+    ) -> dict[str, str]:
+        """Extract typed variable declarations from one AST node."""
+        result: dict[str, str] = {}
+
+        if language == "python" and node.type in (
+            "assignment", "typed_parameter", "typed_default_parameter",
+        ):
+            name_node = node.child_by_field_name("left")
+            if name_node is None:
+                name_node = next(
+                    (child for child in node.children if child.type == "identifier"),
+                    None,
+                )
+            type_node = node.child_by_field_name("type")
+            self._store_typed_binding(result, name_node, type_node)
+
+        elif language == "kotlin" and node.type in (
+            "class_parameter", "parameter", "variable_declaration",
+        ):
+            name_node = next(
+                (
+                    child
+                    for child in node.children
+                    if child.type == "simple_identifier"
+                ),
+                None,
+            )
+            type_node = next(
+                (
+                    child
+                    for child in node.children
+                    if child.type in ("user_type", "nullable_type")
+                ),
+                None,
+            )
+            self._store_typed_binding(result, name_node, type_node)
+
+        elif language == "java" and node.type in (
+            "formal_parameter", "spread_parameter",
+        ):
+            self._store_typed_binding(
+                result,
+                node.child_by_field_name("name"),
+                node.child_by_field_name("type"),
+            )
+
+        elif language == "java" and node.type in (
+            "field_declaration", "local_variable_declaration",
+        ):
+            type_node = node.child_by_field_name("type")
+            for child in node.children:
+                if child.type == "variable_declarator":
+                    self._store_typed_binding(
+                        result,
+                        child.child_by_field_name("name"),
+                        type_node,
+                    )
+
+        elif language in ("javascript", "typescript", "tsx") and node.type in (
+            "required_parameter", "optional_parameter", "variable_declarator",
+            "public_field_definition",
+        ):
+            name_node = (
+                node.child_by_field_name("name")
+                or node.child_by_field_name("pattern")
+            )
+            if name_node is None:
+                name_node = next(
+                    (child for child in node.children if child.type == "identifier"),
+                    None,
+                )
+            self._store_typed_binding(
+                result,
+                name_node,
+                node.child_by_field_name("type"),
+            )
+
+        return result
+
+    @classmethod
+    def _store_typed_binding(cls, result: dict[str, str], name_node, type_node) -> None:
+        if name_node is None or type_node is None:
+            return
+        name = name_node.text.decode("utf-8", errors="replace")
+        type_name = cls._base_type_name(
+            type_node.text.decode("utf-8", errors="replace"),
+        )
+        if name and type_name:
+            result[name] = type_name
+
+    @classmethod
+    def _base_type_name(cls, annotation: str) -> Optional[str]:
+        """Return the receiver class from a generic/nullable annotation."""
+        current = annotation.strip()
+        for _ in range(4):
+            match = re.search(r"[\"']?([A-Za-z_][A-Za-z0-9_.]*)", current)
+            if match is None:
+                return None
+            outer = match.group(1).rsplit(".", 1)[-1]
+            remainder = current[match.end():].lstrip()
+            if remainder.startswith("[]"):
+                return None
+            if outer in cls._TRANSPARENT_TYPE_WRAPPERS:
+                openings = [
+                    index for index in (current.find("["), current.find("<"))
+                    if index >= 0
+                ]
+                if not openings:
+                    return None
+                current = current[min(openings) + 1:].lstrip()
+                continue
+            if outer in cls._NON_RECEIVER_TYPE_NAMES:
+                return None
+            if outer in (
+                "None", "bool", "boolean", "float", "int", "number", "str",
+                "string", "unknown", "void",
+            ):
+                return None
+            return outer
+        return None
+
+    def _resolve_typed_method_target(
+        self,
+        type_name: str,
+        method: str,
+        file_path: str,
+        language: str,
+        import_map: dict[str, str],
+        defined_names: set[str],
+    ) -> Optional[str]:
+        base_type = self._base_type_name(type_name)
+        if not base_type:
+            return None
+        if base_type in import_map:
+            resolved = self._resolve_imported_symbol(
+                base_type,
+                import_map[base_type],
+                file_path,
+                language,
+            )
+            if resolved:
+                return f"{resolved}.{method}"
+        if base_type in defined_names:
+            return f"{file_path}::{base_type}.{method}"
+        return None
+
+    @staticmethod
+    def _apply_typed_call_targets(
+        edges: list[EdgeInfo],
+        targets: dict[tuple[int, str, str], tuple[str, str, str]],
+    ) -> list[EdgeInfo]:
+        if not targets:
+            return edges
+        resolved: list[EdgeInfo] = []
+        for edge in edges:
+            receiver = edge.extra.get("receiver")
+            method = edge.target.rsplit(".", 1)[-1].rsplit("::", 1)[-1]
+            evidence = targets.get((edge.line, receiver, method)) if receiver else None
+            if edge.kind == "CALLS" and evidence:
+                target, type_name, evidence_kind = evidence
+                extra = dict(edge.extra)
+                extra.update({
+                    "receiver_type": type_name,
+                    "receiver_resolution": evidence_kind,
+                })
+                edge = EdgeInfo(
+                    kind=edge.kind,
+                    source=edge.source,
+                    target=target,
+                    file_path=edge.file_path,
+                    line=edge.line,
+                    extra=extra,
+                )
             resolved.append(edge)
         return resolved
 
@@ -2489,6 +4546,683 @@ class CodeParser:
                         if len(normalized) > self._MAX_TEST_DESCRIPTION_LEN:
                             normalized = normalized[: self._MAX_TEST_DESCRIPTION_LEN]
                         return normalized
+        return None
+
+    # -----------------------------------------------------------------------
+    # Spring application configuration parser
+    # -----------------------------------------------------------------------
+
+    @staticmethod
+    def _spring_config_file_node(path: Path, source: bytes, language: str) -> NodeInfo:
+        file_path = str(path)
+        return NodeInfo(
+            kind="File",
+            name=file_path,
+            file_path=file_path,
+            line_start=1,
+            line_end=source.count(b"\n") + 1,
+            language=language,
+            extra={"config_format": path.suffix.lower().lstrip(".")},
+        )
+
+    def _parse_spring_config(
+        self,
+        path: Path,
+        source: bytes,
+    ) -> tuple[list[NodeInfo], list[EdgeInfo]]:
+        """Index Spring property names while deliberately discarding values."""
+        if path.suffix.lower() == ".properties":
+            return self._parse_spring_properties(path, source)
+        return self._parse_spring_yaml(path, source)
+
+    def _parse_spring_yaml(
+        self,
+        path: Path,
+        source: bytes,
+    ) -> tuple[list[NodeInfo], list[EdgeInfo]]:
+        """Flatten Spring YAML keys using PyYAML's syntax tree, never values."""
+        try:
+            documents = list(_yaml.compose_all(source.decode("utf-8", errors="replace")))
+        except _yaml.YAMLError as exc:
+            logger.debug("Spring YAML parse error in %s: %s", path, exc)
+            return [], []
+
+        if self._is_non_spring_yaml(documents):
+            return [], []
+
+        file_path = str(path)
+        nodes = [self._spring_config_file_node(path, source, "yaml")]
+        emitted: set[str] = set()
+
+        def emit(raw_key: str, value_node: object, document_index: int) -> None:
+            key = normalize_spring_config_key(raw_key)
+            if not key or key in emitted:
+                return
+            emitted.add(key)
+            tag = str(getattr(value_node, "tag", ""))
+            value_type = tag.rsplit(":", 1)[-1]
+            if value_type not in {"bool", "float", "int", "null", "str", "timestamp"}:
+                value_type = "scalar"
+            nodes.append(NodeInfo(
+                kind="ConfigProperty",
+                name=key,
+                file_path=file_path,
+                line_start=_yaml_line(value_node),
+                line_end=_yaml_end_line(value_node),
+                language="yaml",
+                extra={
+                    "document_index": document_index,
+                    "raw_key": raw_key,
+                    "source_file": path.name,
+                    "value_type": value_type,
+                },
+            ))
+
+        def visit(
+            node: object,
+            prefix: str,
+            document_index: int,
+            ancestors: frozenset[int],
+        ) -> None:
+            node_id = id(node)
+            if node_id in ancestors:
+                return
+            nested_ancestors = ancestors | {node_id}
+            if isinstance(node, _YamlMapping):
+                for key_node, value_node in node.value:
+                    raw_segment = _yaml_scalar(key_node)
+                    if not raw_segment or raw_segment == "<<":
+                        continue
+                    raw_key = f"{prefix}.{raw_segment}" if prefix else raw_segment
+                    if isinstance(value_node, _YamlScalar):
+                        emit(raw_key, value_node, document_index)
+                    else:
+                        visit(value_node, raw_key, document_index, nested_ancestors)
+            elif isinstance(node, _YamlSequence):
+                for index, item in enumerate(node.value):
+                    raw_key = f"{prefix}[{index}]"
+                    if isinstance(item, _YamlScalar):
+                        emit(raw_key, item, document_index)
+                    else:
+                        visit(item, raw_key, document_index, nested_ancestors)
+
+        for document_index, document in enumerate(documents):
+            if document is not None:
+                visit(document, "", document_index, frozenset())
+        return nodes, []
+
+    @staticmethod
+    def _is_non_spring_yaml(documents: list[object]) -> bool:
+        """Reject clear CI, deployment, and API manifests despite their filename."""
+        signatures = (
+            frozenset({"apiVersion", "kind"}),
+            frozenset({"jobs", "on"}),
+            frozenset({"openapi", "paths"}),
+            frozenset({"paths", "swagger"}),
+            frozenset({"services", "version"}),
+            frozenset({"AWSTemplateFormatVersion", "Resources"}),
+        )
+        for document in documents:
+            if document is None:
+                continue
+            if not isinstance(document, _YamlMapping):
+                return True
+            top_level_keys = {
+                key
+                for key_node, _ in document.value
+                if (key := _yaml_scalar(key_node)) is not None
+            }
+            if any(signature <= top_level_keys for signature in signatures):
+                return True
+        return False
+
+    @staticmethod
+    def _spring_property_logical_lines(text: str) -> list[tuple[int, str]]:
+        """Join Java-properties continuation lines while retaining start lines."""
+        logical: list[tuple[int, str]] = []
+        buffer = ""
+        start_line = 1
+        for line_number, physical in enumerate(text.splitlines(), start=1):
+            if not buffer:
+                start_line = line_number
+            buffer += physical.lstrip() if buffer else physical
+            backslashes = len(buffer) - len(buffer.rstrip("\\"))
+            if backslashes % 2:
+                buffer = buffer[:-1]
+                continue
+            logical.append((start_line, buffer))
+            buffer = ""
+        if buffer:
+            logical.append((start_line, buffer))
+        return logical
+
+    @staticmethod
+    def _spring_property_key(line: str) -> Optional[str]:
+        """Extract the unescaped key portion of one Java-properties entry."""
+        stripped = line.lstrip()
+        if not stripped or stripped.startswith(("#", "!")):
+            return None
+        escaped = False
+        boundary = len(stripped)
+        for index, char in enumerate(stripped):
+            if char == "\\":
+                escaped = not escaped
+                continue
+            if not escaped and (char in "=:" or char.isspace()):
+                boundary = index
+                break
+            escaped = False
+        key = stripped[:boundary]
+        for escaped_char in (" ", ":", "=", "#", "!"):
+            key = key.replace(f"\\{escaped_char}", escaped_char)
+        return key or None
+
+    def _parse_spring_properties(
+        self,
+        path: Path,
+        source: bytes,
+    ) -> tuple[list[NodeInfo], list[EdgeInfo]]:
+        """Index Spring .properties keys without retaining their values."""
+        text = source.decode("utf-8", errors="replace")
+        file_path = str(path)
+        nodes = [self._spring_config_file_node(path, source, "properties")]
+        emitted: set[str] = set()
+        for line_number, line in self._spring_property_logical_lines(text):
+            raw_key = self._spring_property_key(line)
+            if raw_key is None:
+                continue
+            key = normalize_spring_config_key(raw_key)
+            if not key or key in emitted:
+                continue
+            emitted.add(key)
+            nodes.append(NodeInfo(
+                kind="ConfigProperty",
+                name=key,
+                file_path=file_path,
+                line_start=line_number,
+                line_end=line_number,
+                language="properties",
+                extra={
+                    "raw_key": raw_key,
+                    "source_file": path.name,
+                    "value_type": "scalar",
+                },
+            ))
+        return nodes, []
+
+    # -----------------------------------------------------------------------
+    # Ansible YAML parser
+    # -----------------------------------------------------------------------
+
+    def _parse_ansible(
+        self, path: Path, source: bytes,
+    ) -> tuple[list[NodeInfo], list[EdgeInfo]]:
+        """Parse an Ansible YAML file using PyYAML's compose() node tree.
+
+        Dispatches to sub-parsers based on the file's classified role:
+        playbook, tasks, handlers, meta, or vars (vars emits File node only).
+        """
+        try:
+            root = _yaml.compose(source.decode("utf-8", errors="replace"))
+        except _yaml.YAMLError as exc:
+            logger.debug("Ansible YAML parse error in %s: %s", path, exc)
+            return [], []
+        if root is None:
+            return [], []
+
+        file_path_str = str(path)
+        line_count = source.count(b"\n") + 1
+        nodes: list[NodeInfo] = [NodeInfo(
+            kind="File",
+            name=file_path_str,
+            file_path=file_path_str,
+            line_start=1,
+            line_end=line_count,
+            language="ansible",
+        )]
+        edges: list[EdgeInfo] = []
+
+        file_type = _ansible_file_type(path)
+        if file_type == "vars":
+            return nodes, edges
+
+        # Content-based override: require strong evidence for "playbook" vs "tasks".
+        # hosts: alone is not sufficient — require at least one _ANSIBLE_PLAY_KEYS member
+        # or an import_playbook: key (which is unambiguously Ansible).
+        if file_type in ("unknown", "playbook"):
+            if isinstance(root, _YamlSequence) and root.value:
+                is_pb = any(_ansible_is_play_item(item) for item in root.value)
+                file_type = "playbook" if is_pb else "tasks"
+            else:
+                file_type = "unknown"
+
+        if file_type == "playbook":
+            self._parse_ansible_playbook(root, file_path_str, nodes, edges)
+        elif file_type in ("tasks", "handlers"):
+            self._parse_ansible_tasks(
+                root, file_path_str, nodes, edges,
+                is_handler=(file_type == "handlers"),
+                parent_play=None,
+            )
+        elif file_type == "meta":
+            self._parse_ansible_meta(root, file_path_str, nodes, edges)
+
+        return nodes, self._resolve_ansible_notify_targets(nodes, edges)
+
+    @staticmethod
+    def _ansible_unique_name(
+        nodes: list[NodeInfo],
+        file_path: str,
+        parent_name: Optional[str],
+        requested: str,
+        line: int,
+    ) -> str:
+        """Return a stable node name without collapsing repeated task labels."""
+        used = {
+            node.name
+            for node in nodes
+            if node.file_path == file_path and node.parent_name == parent_name
+        }
+        if requested not in used:
+            return requested
+        candidate = f"{requested}@line{line}"
+        suffix = 2
+        while candidate in used:
+            candidate = f"{requested}@line{line}.{suffix}"
+            suffix += 1
+        return candidate
+
+    def _resolve_ansible_notify_targets(
+        self,
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+    ) -> list[EdgeInfo]:
+        """Qualify notify targets when one same-scope handler matches."""
+        node_by_qn = {
+            self._qualify(node.name, node.file_path, node.parent_name): node
+            for node in nodes
+        }
+        handlers: dict[tuple[Optional[str], str], list[str]] = {}
+        for node in nodes:
+            if node.extra.get("ansible_kind") != "handler":
+                continue
+            qn = self._qualify(node.name, node.file_path, node.parent_name)
+            labels = {
+                node.name,
+                str(node.extra.get("ansible_name") or node.name),
+            }
+            listen = node.extra.get("ansible_listen")
+            if isinstance(listen, str) and listen:
+                labels.add(listen)
+            for label in labels:
+                handlers.setdefault((node.parent_name, label), []).append(qn)
+
+        resolved: list[EdgeInfo] = []
+        for edge in edges:
+            if edge.extra.get("ansible_kind") != "notify" or "::" in edge.target:
+                resolved.append(edge)
+                continue
+            source = node_by_qn.get(edge.source)
+            scope = source.parent_name if source is not None else None
+            candidates = handlers.get((scope, edge.target), [])
+            if len(candidates) != 1:
+                resolved.append(edge)
+                continue
+            resolved.append(EdgeInfo(
+                kind=edge.kind,
+                source=edge.source,
+                target=candidates[0],
+                file_path=edge.file_path,
+                line=edge.line,
+                extra=edge.extra,
+            ))
+        return resolved
+
+    def _parse_ansible_playbook(
+        self,
+        root: object,
+        file_path: str,
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+    ) -> None:
+        """Extract plays and import_playbook references from a top-level SequenceNode."""
+        if not isinstance(root, _YamlSequence):
+            return
+
+        for item in root.value:
+            if not isinstance(item, _YamlMapping):
+                continue
+
+            # import_playbook: is unambiguously Ansible; emit IMPORTS_FROM and skip
+            import_pb_node = _yaml_get_key(item, "import_playbook")
+            if import_pb_node is not None:
+                target = _yaml_scalar(import_pb_node)
+                if target:
+                    edges.append(EdgeInfo(
+                        kind="IMPORTS_FROM",
+                        source=file_path,
+                        target=target,
+                        file_path=file_path,
+                        line=_yaml_line(item),
+                        extra={"ansible_kind": "import_playbook"},
+                    ))
+                continue
+
+            if not _ansible_is_play_item(item):
+                continue
+
+            # Derive play name
+            name_node = _yaml_get_key(item, "name")
+            hosts_node = _yaml_get_key(item, "hosts")
+            if name_node and _yaml_scalar(name_node):
+                play_name = _yaml_scalar(name_node)
+            elif hosts_node and _yaml_scalar(hosts_node):
+                play_name = f"play[{_yaml_scalar(hosts_node)}]"
+            else:
+                play_name = f"play@line{_yaml_line(item)}"
+
+            play_line_start = _yaml_line(item)
+            play_line_end = _yaml_end_line(item)
+            play_name = self._ansible_unique_name(
+                nodes,
+                file_path,
+                None,
+                str(play_name),
+                play_line_start,
+            )
+            play_qn = self._qualify(play_name, file_path, None)
+
+            nodes.append(NodeInfo(
+                kind="Class",
+                name=play_name,
+                file_path=file_path,
+                line_start=play_line_start,
+                line_end=play_line_end,
+                language="ansible",
+                extra={"ansible_kind": "play"},
+            ))
+            edges.append(EdgeInfo(
+                kind="CONTAINS",
+                source=file_path,
+                target=play_qn,
+                file_path=file_path,
+                line=play_line_start,
+            ))
+
+            # vars_files: → IMPORTS_FROM
+            vars_files_node = _yaml_get_key(item, "vars_files")
+            if isinstance(vars_files_node, _YamlSequence):
+                for vf in vars_files_node.value:
+                    vf_path = _yaml_scalar(vf)
+                    if vf_path:
+                        edges.append(EdgeInfo(
+                            kind="IMPORTS_FROM",
+                            source=play_qn,
+                            target=vf_path,
+                            file_path=file_path,
+                            line=_yaml_line(vf),
+                            extra={"ansible_kind": "vars_files"},
+                        ))
+
+            # roles: list → IMPORTS_FROM (roles are not tasks)
+            roles_node = _yaml_get_key(item, "roles")
+            if isinstance(roles_node, _YamlSequence):
+                for role_item in roles_node.value:
+                    role_name = self._ansible_extract_role_name(role_item)
+                    if role_name:
+                        edges.append(EdgeInfo(
+                            kind="IMPORTS_FROM",
+                            source=play_qn,
+                            target=role_name,
+                            file_path=file_path,
+                            line=_yaml_line(role_item),
+                            extra={"ansible_kind": "role_reference"},
+                        ))
+
+            # pre_tasks, tasks, post_tasks, handlers → task extraction
+            for section_key, is_handler in (
+                ("pre_tasks", False),
+                ("tasks", False),
+                ("post_tasks", False),
+                ("handlers", True),
+            ):
+                section_node = _yaml_get_key(item, section_key)
+                if isinstance(section_node, _YamlSequence):
+                    self._parse_ansible_tasks(
+                        section_node, file_path, nodes, edges,
+                        is_handler=is_handler,
+                        parent_play=play_name,
+                    )
+
+    def _parse_ansible_tasks(
+        self,
+        tasks_node: object,
+        file_path: str,
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+        is_handler: bool,
+        parent_play: Optional[str],
+    ) -> None:
+        """Extract task/handler Function nodes from a SequenceNode of task mappings."""
+        if not isinstance(tasks_node, _YamlSequence):
+            return
+
+        for task_node in tasks_node.value:
+            if not isinstance(task_node, _YamlMapping):
+                continue
+
+            # Find the module key: first key that is not task metadata or a with_* loop
+            module_key: Optional[str] = None
+            module_short: Optional[str] = None
+            module_args_node: Optional[object] = None
+            for k_node, v_node in task_node.value:
+                k_str = _yaml_scalar(k_node)
+                if not k_str:
+                    continue
+                if k_str in _TASK_META_KEYS or k_str.startswith("with_"):
+                    continue
+                module_key = k_str
+                module_short = _ansible_fqcn_short(k_str)
+                module_args_node = v_node
+                break
+
+            # Derive task name with fallback chain
+            name_node = _yaml_get_key(task_node, "name")
+            name_raw = _yaml_scalar(name_node) if name_node is not None else None
+            if name_raw:
+                requested_name = name_raw
+            elif module_short or module_key:
+                requested_name = f"{module_short or module_key}@line{_yaml_line(task_node)}"
+            else:
+                requested_name = f"task@line{_yaml_line(task_node)}"
+
+            task_name = self._ansible_unique_name(
+                nodes,
+                file_path,
+                parent_play,
+                requested_name,
+                _yaml_line(task_node),
+            )
+            task_qn = self._qualify(task_name, file_path, parent_play)
+
+            task_extra: dict = {
+                "ansible_kind": "handler" if is_handler else "task",
+                "ansible_module": module_key or "",
+                "ansible_name": requested_name,
+            }
+
+            # handler listen: alias
+            if is_handler:
+                listen_node = _yaml_get_key(task_node, "listen")
+                listen_val = _yaml_scalar(listen_node) if listen_node is not None else None
+                if listen_val:
+                    task_extra["ansible_listen"] = listen_val
+
+            nodes.append(NodeInfo(
+                kind="Function",
+                name=task_name,
+                file_path=file_path,
+                line_start=_yaml_line(task_node),
+                line_end=_yaml_end_line(task_node),
+                language="ansible",
+                parent_name=parent_play,
+                extra=task_extra,
+            ))
+
+            # CONTAINS edge: parent play → task, or file → task for standalone files
+            edges.append(EdgeInfo(
+                kind="CONTAINS",
+                source=(
+                    self._qualify(parent_play, file_path, None)
+                    if parent_play is not None
+                    else file_path
+                ),
+                target=task_qn,
+                file_path=file_path,
+                line=_yaml_line(task_node),
+            ))
+
+            # notify: → CALLS
+            notify_node = _yaml_get_key(task_node, "notify")
+            if notify_node is not None:
+                for handler_name in self._ansible_extract_notify_targets(notify_node):
+                    edges.append(EdgeInfo(
+                        kind="CALLS",
+                        source=task_qn,
+                        target=handler_name,
+                        file_path=file_path,
+                        line=_yaml_line(notify_node),
+                        extra={"ansible_kind": "notify"},
+                    ))
+
+            # include_tasks / import_tasks → IMPORTS_FROM (filename)
+            if module_short in ("include_tasks", "import_tasks"):
+                target_file = self._ansible_module_arg_str(module_args_node)
+                if target_file:
+                    edges.append(EdgeInfo(
+                        kind="IMPORTS_FROM",
+                        source=task_qn,
+                        target=target_file,
+                        file_path=file_path,
+                        line=_yaml_line(task_node),
+                        extra={"ansible_kind": module_short},
+                    ))
+
+            # include_role / import_role → IMPORTS_FROM (role name)
+            if module_short in ("include_role", "import_role"):
+                role_name = self._ansible_role_from_module_args(module_args_node)
+                if role_name:
+                    edges.append(EdgeInfo(
+                        kind="IMPORTS_FROM",
+                        source=task_qn,
+                        target=role_name,
+                        file_path=file_path,
+                        line=_yaml_line(task_node),
+                        extra={"ansible_kind": module_short},
+                    ))
+
+            # include_vars → IMPORTS_FROM (file or dir)
+            if module_short == "include_vars":
+                var_target = self._ansible_module_arg_str(module_args_node)
+                if var_target:
+                    edges.append(EdgeInfo(
+                        kind="IMPORTS_FROM",
+                        source=task_qn,
+                        target=var_target,
+                        file_path=file_path,
+                        line=_yaml_line(task_node),
+                        extra={"ansible_kind": "include_vars"},
+                    ))
+
+            # block / rescue / always → recurse with same parent
+            for block_key in ("block", "rescue", "always"):
+                block_node = _yaml_get_key(task_node, block_key)
+                if block_node is not None:
+                    self._parse_ansible_tasks(
+                        block_node, file_path, nodes, edges,
+                        is_handler=is_handler,
+                        parent_play=parent_play,
+                    )
+
+    def _parse_ansible_meta(
+        self,
+        root: object,
+        file_path: str,
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+    ) -> None:
+        """Extract role dependencies from a role meta/main.yml."""
+        if not isinstance(root, _YamlMapping):
+            return
+        deps_node = _yaml_get_key(root, "dependencies")
+        if not isinstance(deps_node, _YamlSequence):
+            return
+        for dep_item in deps_node.value:
+            dep_name = self._ansible_extract_role_name(dep_item)
+            if dep_name:
+                edges.append(EdgeInfo(
+                    kind="DEPENDS_ON",
+                    source=file_path,
+                    target=dep_name,
+                    file_path=file_path,
+                    line=_yaml_line(dep_item),
+                    extra={"ansible_kind": "role_dependency"},
+                ))
+
+    def _ansible_extract_role_name(self, item: object) -> Optional[str]:
+        """Extract a role name from a roles-list item.
+
+        Handles: plain string, ``{role: name}`` dict, ``{name: ns.role}`` dict.
+        """
+        if isinstance(item, _YamlScalar):
+            return item.value or None  # type: ignore[attr-defined]
+        if isinstance(item, _YamlMapping):
+            for key in ("role", "name"):
+                v = _yaml_get_key(item, key)
+                val = _yaml_scalar(v)
+                if val:
+                    return val
+        return None
+
+    def _ansible_extract_notify_targets(self, notify_node: object) -> list[str]:
+        """Extract handler names from a notify: value (scalar or sequence)."""
+        if isinstance(notify_node, _YamlScalar):
+            return [notify_node.value] if notify_node.value else []  # type: ignore[attr-defined]
+        if isinstance(notify_node, _YamlSequence):
+            return [
+                item.value  # type: ignore[attr-defined]
+                for item in notify_node.value  # type: ignore[attr-defined]
+                if isinstance(item, _YamlScalar) and item.value  # type: ignore[attr-defined]
+            ]
+        return []
+
+    def _ansible_module_arg_str(self, args_node: Optional[object]) -> Optional[str]:
+        """Extract a simple string argument from a module args node.
+
+        Handles: bare scalar (``include_tasks: db.yml``) or mapping with ``file:`` key.
+        Jinja2 expressions are returned as-is.
+        """
+        if args_node is None:
+            return None
+        if isinstance(args_node, _YamlScalar):
+            return args_node.value or None  # type: ignore[attr-defined]
+        if isinstance(args_node, _YamlMapping):
+            for key in ("file", "_raw_params"):
+                v = _yaml_get_key(args_node, key)
+                val = _yaml_scalar(v)
+                if val:
+                    return val
+        return None
+
+    def _ansible_role_from_module_args(self, args_node: Optional[object]) -> Optional[str]:
+        """Extract role name from include_role/import_role module args."""
+        if args_node is None:
+            return None
+        if isinstance(args_node, _YamlScalar):
+            return args_node.value or None  # type: ignore[attr-defined]
+        if isinstance(args_node, _YamlMapping):
+            v = _yaml_get_key(args_node, "name")
+            return _yaml_scalar(v)
         return None
 
     def _extract_from_tree(
@@ -2584,6 +5318,18 @@ class CodeParser:
                 ):
                     continue
 
+            # --- HCL/Terraform-specific constructs ---
+            # All Terraform top-level constructs are ``block`` nodes whose
+            # first identifier child labels the block type (resource, module,
+            # variable, data, output, locals, provider, terraform).  Dispatch
+            # via _extract_hcl_constructs to produce Class, Function, and
+            # IMPORTS_FROM/REFERENCES edges.  See issue #199.
+            if language == "hcl" and node_type == "block":
+                if self._extract_hcl_constructs(
+                    child, file_path, nodes, edges,
+                ):
+                    continue
+
             # --- Julia-specific constructs ---
             # Short-form functions (`f(x) = expr`) parse as ``assignment``,
             # ``include("file.jl")`` as a call_expression, exports as
@@ -2597,6 +5343,31 @@ class CodeParser:
             ):
                 continue
 
+            # --- Verilog/SystemVerilog structural declarations ---
+            if language == "verilog" and self._extract_verilog_constructs(
+                child,
+                node_type,
+                file_path,
+                nodes,
+                edges,
+                enclosing_class,
+                enclosing_func,
+            ):
+                continue
+
+            if language == "rust" and node_type == "impl_item":
+                self._extract_rust_impl(
+                    child,
+                    source,
+                    file_path,
+                    nodes,
+                    edges,
+                    import_map or {},
+                    defined_names or set(),
+                    _depth,
+                )
+                continue
+
             # --- Dart call detection (see #87) ---
             # tree-sitter-dart does not wrap calls in a single
             # ``call_expression`` node; instead the pattern is
@@ -2608,6 +5379,16 @@ class CodeParser:
                     child, source, file_path, edges,
                     enclosing_class, enclosing_func,
                 )
+
+            # --- JS/TS static CommonJS and dynamic imports ---
+            # Treat only literal module specifiers as definite dependencies.
+            # Dynamic templates and path.join/path.resolve expressions are
+            # intentionally left unresolved rather than guessed.
+            if (
+                language in ("javascript", "typescript", "tsx")
+                and node_type == "call_expression"
+            ):
+                self._extract_js_module_call(child, file_path, language, edges)
 
             # --- JS/TS variable-assigned functions (const foo = () => {}) ---
             if (
@@ -3214,6 +5995,178 @@ class CodeParser:
         )
         return True
 
+    # ------------------------------------------------------------------
+    # HCL / Terraform constructs
+    # ------------------------------------------------------------------
+
+    def _extract_hcl_constructs(
+        self,
+        node,
+        file_path: str,
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+    ) -> bool:
+        """Handle an HCL ``block`` node and emit Class/Function/edge data.
+
+        Mapping (see ``_HCL_BLOCK_CFG`` for the dispatch table):
+        - ``resource/data``        → Class  ``resource.type.name`` / ``data.type.name``
+        - ``module``               → Class  ``module.name`` + IMPORTS_FROM (source attr)
+        - ``variable/output/provider`` → Function  ``var|output|provider.name``
+        - ``locals``               → Function ``local.<key>`` per attribute
+        - ``terraform`` / unknown  → skipped
+
+        Returns True unconditionally so the main walker skips the subtree.
+        """
+        children = node.children
+        if not children or children[0].type != "identifier":
+            return False
+
+        block_type = _hcl_text(children[0])
+        labels = [
+            _hcl_text(tmpl)
+            for child in children[1:]
+            if child.type == "string_lit"
+            if (tmpl := _hcl_child(child, "template_literal")) is not None
+        ]
+        body_node = _hcl_child(node, "body")
+        line_start = node.start_point[0] + 1
+
+        if block_type == "locals":
+            return self._emit_hcl_locals(body_node, file_path, nodes, edges)
+
+        cfg = _HCL_BLOCK_CFG.get(block_type)
+        if cfg is None:  # "terraform" and unknown blocks silently skipped
+            return True
+
+        kind, prefix, n_labels, emit_refs = cfg
+        name = _hcl_block_name(prefix, labels, n_labels)
+        if name is None:
+            return True
+
+        qualified = self._qualify(name, file_path, None)
+        nodes.append(NodeInfo(
+            kind=kind, name=name, file_path=file_path,
+            line_start=line_start, line_end=node.end_point[0] + 1,
+            language="hcl", extra={"hcl_type": block_type},
+        ))
+        edges.append(EdgeInfo(
+            kind="CONTAINS", source=file_path, target=qualified,
+            file_path=file_path, line=line_start,
+        ))
+
+        if body_node is None:
+            return True
+
+        if block_type == "module":
+            src = self._hcl_get_attribute_string(body_node, "source")
+            if src:
+                resolved = self._resolve_module_to_file(src, file_path, "hcl")
+                edges.append(EdgeInfo(
+                    kind="IMPORTS_FROM", source=file_path, target=resolved or src,
+                    file_path=file_path, line=line_start,
+                ))
+
+        if emit_refs:
+            self._walk_hcl_expressions(body_node, file_path, edges, name)
+
+        return True
+
+    def _emit_hcl_locals(
+        self,
+        body_node,
+        file_path: str,
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+    ) -> bool:
+        """Emit one Function node per binding in a ``locals { ... }`` block."""
+        if body_node is None:
+            return True
+        for attr in body_node.children:
+            if attr.type != "attribute":
+                continue
+            key = _hcl_child(attr, "identifier")
+            if key is None:
+                continue
+            lname = f"local.{_hcl_text(key)}"
+            lline = attr.start_point[0] + 1
+            nodes.append(NodeInfo(
+                kind="Function", name=lname, file_path=file_path,
+                line_start=lline, line_end=attr.end_point[0] + 1,
+                language="hcl", extra={"hcl_type": "local"},
+            ))
+            edges.append(EdgeInfo(
+                kind="CONTAINS", source=file_path,
+                target=self._qualify(lname, file_path, None),
+                file_path=file_path, line=lline,
+            ))
+            self._walk_hcl_expressions(attr, file_path, edges, lname)
+        return True
+
+    def _hcl_get_attribute_string(self, body_node, attr_name: str) -> Optional[str]:
+        """Return the string value of a named attribute in an HCL body, or None."""
+        for attr in body_node.children:
+            if attr.type != "attribute":
+                continue
+            key = _hcl_child(attr, "identifier")
+            expr = _hcl_child(attr, "expression")
+            if key is None or expr is None or _hcl_text(key) != attr_name:
+                continue
+            # Navigate: expression > literal_value > string_lit > template_literal
+            lit = _hcl_child(expr, "literal_value")
+            if lit is None:
+                continue
+            str_lit = _hcl_child(lit, "string_lit")
+            if str_lit is None:
+                continue
+            tmpl = _hcl_child(str_lit, "template_literal")
+            if tmpl is not None:
+                return _hcl_text(tmpl)
+        return None
+
+    def _walk_hcl_expressions(
+        self,
+        node,
+        file_path: str,
+        edges: list[EdgeInfo],
+        enclosing_name: str,
+        local_names: frozenset[str] = frozenset(),
+    ) -> None:
+        """Emit REFERENCES edges for every HCL variable reference under *node*.
+
+        *local_names* accumulates iterator symbols introduced by enclosing
+        ``dynamic`` blocks.  Any reference whose root matches a name in this
+        set is suppressed, preventing spurious ``resource.<iterator>.*``
+        edges from expressions like ``setting.value[...]`` or
+        ``origin_group.key``.
+        """
+        if node.type in ("expression", "body"):
+            for root, attrs, line in _hcl_variable_refs(node):
+                if root in local_names:
+                    continue
+                ref = _hcl_ref_target(root, attrs)
+                if ref:
+                    edges.append(EdgeInfo(
+                        kind="REFERENCES",
+                        source=self._qualify(enclosing_name, file_path, None),
+                        target=self._qualify(ref, file_path, None),
+                        file_path=file_path,
+                        line=line,
+                    ))
+        for child in node.children:
+            if child.type not in _HCL_RECURSE_TYPES:
+                continue
+            child_local_names = local_names
+            if child.type == "block":
+                iter_name = _hcl_dynamic_iterator_name(child)
+                if iter_name:
+                    child_local_names = local_names | {iter_name}
+            elif child.type == "for_expr":
+                child_local_names = (
+                    local_names | _hcl_for_iterator_names(child)
+                )
+            self._walk_hcl_expressions(child, file_path, edges, enclosing_name, child_local_names)
+
+
     def _extract_bash_source_command(
         self,
         node,
@@ -3373,6 +6326,175 @@ class CodeParser:
     # Julia-specific helpers
     # ------------------------------------------------------------------
 
+    @staticmethod
+    def _julia_component_name(node) -> Optional[str]:
+        """Return an identifier or quoted operator component name."""
+        if node.type in ("identifier", "operator"):
+            return node.text.decode("utf-8", errors="replace")
+        if node.type in ("quote_expression", "parenthesized_expression"):
+            for child in node.children:
+                name = CodeParser._julia_component_name(child)
+                if name is not None:
+                    return name
+        return None
+
+    def _julia_field_parts(self, field_expr) -> list[str]:
+        """Flatten the identifier prefix of a Julia field expression."""
+        parts: list[str] = []
+        for child in field_expr.children:
+            if child.type == "field_expression":
+                parts.extend(self._julia_field_parts(child))
+            elif child.type == "identifier":
+                parts.append(
+                    child.text.decode("utf-8", errors="replace"),
+                )
+        return parts
+
+    def _julia_field_info(
+        self, field_expr,
+    ) -> tuple[Optional[str], Optional[str]]:
+        """Return ``(qualifier, leaf)`` for a Julia field expression."""
+        semantic_children = [
+            child for child in field_expr.children
+            if child.type in (
+                "field_expression",
+                "identifier",
+                "quote_expression",
+            )
+        ]
+        if not semantic_children:
+            return None, None
+        name = self._julia_component_name(semantic_children[-1])
+        qualifier_parts: list[str] = []
+        for child in semantic_children[:-1]:
+            if child.type == "field_expression":
+                qualifier_parts.extend(self._julia_field_parts(child))
+            elif child.type == "identifier":
+                qualifier_parts.append(
+                    child.text.decode("utf-8", errors="replace"),
+                )
+        qualifier = ".".join(qualifier_parts) or None
+        return qualifier, name
+
+    @staticmethod
+    def _julia_scope_join(
+        outer: Optional[str], inner: Optional[str],
+    ) -> Optional[str]:
+        """Join Julia scope paths without repeating an existing prefix."""
+        if not outer:
+            return inner
+        if not inner:
+            return outer
+        if inner == outer or inner.startswith(f"{outer}."):
+            return inner
+        return f"{outer}.{inner}"
+
+    def _julia_signature_call(self, function_node):
+        """Return the outer definition call inside a Julia signature."""
+        signature = next(
+            (
+                child for child in function_node.children
+                if child.type == "signature"
+            ),
+            None,
+        )
+        if signature is None:
+            return None
+        scope = signature
+        for _ in range(4):
+            call = next(
+                (
+                    child for child in scope.children
+                    if child.type == "call_expression"
+                ),
+                None,
+            )
+            if call is not None:
+                return call
+            wrapper = next(
+                (
+                    child for child in scope.children
+                    if child.type in (
+                        "where_expression", "typed_expression",
+                    )
+                ),
+                None,
+            )
+            if wrapper is None:
+                break
+            scope = wrapper
+        return None
+
+    def _julia_signature_callee(self, function_node):
+        """Return the definition target inside a Julia signature."""
+        call = self._julia_signature_call(function_node)
+        if call is not None:
+            return call.children[0] if call.children else None
+        signature = next(
+            (
+                child for child in function_node.children
+                if child.type == "signature"
+            ),
+            None,
+        )
+        if signature is None:
+            return None
+        return next(
+            (
+                child for child in signature.children
+                if child.type in (
+                    "field_expression", "identifier", "operator",
+                )
+            ),
+            None,
+        )
+
+    def _julia_definition_qualifier(
+        self, function_node,
+    ) -> Optional[str]:
+        callee = self._julia_signature_callee(function_node)
+        if callee is None or callee.type != "field_expression":
+            return None
+        qualifier, _ = self._julia_field_info(callee)
+        return qualifier
+
+    def _julia_short_qualifier(self, call_expr) -> Optional[str]:
+        if not call_expr.children:
+            return None
+        callee = call_expr.children[0]
+        if callee.type != "field_expression":
+            return None
+        qualifier, _ = self._julia_field_info(callee)
+        return qualifier
+
+    def _resolve_julia_import_alias(
+        self,
+        alias: str,
+        enclosing_class: Optional[str],
+        enclosing_func: Optional[str],
+        import_map: dict[str, str],
+    ) -> Optional[str]:
+        """Resolve a Julia import alias from the nearest lexical scope."""
+        scope = self._julia_scope_join(enclosing_class, enclosing_func)
+        scope_parts = scope.split(".") if scope else []
+        for size in range(len(scope_parts), -1, -1):
+            prefix = ".".join(scope_parts[:size])
+            key = f"{prefix}.{alias}" if prefix else alias
+            if key in import_map:
+                return import_map[key]
+        return None
+
+    def _julia_call_is_in_signature(self, call_node) -> bool:
+        """Return whether this is the signature's definition call."""
+        parent = call_node.parent
+        while parent is not None:
+            if parent.type in ("function_definition", "macro_definition"):
+                return self._julia_signature_call(parent) == call_node
+            if parent.type == "source_file":
+                break
+            parent = parent.parent
+        return False
+
     def _julia_short_func_name(self, call_expr) -> Optional[str]:
         """Extract the name from a ``call_expression`` that is the LHS of
         a short-form function ``f(x) = expr`` or ``Base.f(x) = expr`` or
@@ -3381,11 +6503,11 @@ class CodeParser:
         for child in call_expr.children:
             if child.type == "identifier":
                 return child.text.decode("utf-8", errors="replace")
+            if child.type == "operator":
+                return child.text.decode("utf-8", errors="replace")
             if child.type == "field_expression":
-                for ident in reversed(child.children):
-                    if ident.type == "identifier":
-                        return ident.text.decode("utf-8", errors="replace")
-                return None
+                _, name = self._julia_field_info(child)
+                return name
             if child.type == "parametrized_type_expression":
                 for ident in child.children:
                     if ident.type == "identifier":
@@ -3436,6 +6558,55 @@ class CodeParser:
         Returns True if the child was fully handled and should be skipped
         by the main dispatch loop.
         """
+        # Parameterized const aliases are type declarations. Ordinary value
+        # constants stay on the generic path.
+        if node_type == "const_statement":
+            assignment = next(
+                (
+                    sub for sub in child.children
+                    if sub.type == "assignment"
+                ),
+                None,
+            )
+            if assignment is not None and len(assignment.children) >= 3:
+                name_node = assignment.children[0]
+                value_node = assignment.children[-1]
+                if (
+                    name_node.type == "identifier"
+                    and value_node.type in (
+                        "parametrized_type_expression",
+                        "curly_expression",
+                    )
+                ):
+                    name = name_node.text.decode(
+                        "utf-8", errors="replace",
+                    )
+                    qualified = self._qualify(
+                        name, file_path, enclosing_class,
+                    )
+                    nodes.append(NodeInfo(
+                        kind="Type",
+                        name=name,
+                        file_path=file_path,
+                        line_start=child.start_point[0] + 1,
+                        line_end=child.end_point[0] + 1,
+                        language=language,
+                        parent_name=enclosing_class,
+                    ))
+                    container = (
+                        self._qualify(enclosing_class, file_path, None)
+                        if enclosing_class
+                        else file_path
+                    )
+                    edges.append(EdgeInfo(
+                        kind="CONTAINS",
+                        source=container,
+                        target=qualified,
+                        file_path=file_path,
+                        line=child.start_point[0] + 1,
+                    ))
+                    return True
+
         # --- Short-form function: assignment with call_expression LHS ---
         # ``f(x) = expr`` or ``Base.f(x) = expr``.  Anything else with an
         # ``=`` (plain variable, const) is left to the generic path.
@@ -3453,9 +6624,19 @@ class CodeParser:
                 if name:
                     is_test = _is_test_function(name, file_path, ())
                     kind = "Test" if is_test else "Function"
-                    qualified = self._qualify(
-                        name, file_path, enclosing_class,
+                    lexical_parent = self._julia_scope_join(
+                        enclosing_class, enclosing_func,
                     )
+                    qualifier = self._julia_short_qualifier(lhs)
+                    identity_parent = self._julia_scope_join(
+                        lexical_parent, qualifier,
+                    )
+                    qualified = self._qualify(
+                        name, file_path, identity_parent,
+                    )
+                    extra = {}
+                    if qualifier:
+                        extra["julia_module_qualifier"] = qualifier
                     nodes.append(NodeInfo(
                         kind=kind,
                         name=name,
@@ -3463,12 +6644,13 @@ class CodeParser:
                         line_start=child.start_point[0] + 1,
                         line_end=child.end_point[0] + 1,
                         language=language,
-                        parent_name=enclosing_class,
+                        parent_name=identity_parent,
                         is_test=is_test,
+                        extra=extra,
                     ))
                     container = (
-                        self._qualify(enclosing_class, file_path, None)
-                        if enclosing_class
+                        self._qualify(lexical_parent, file_path, None)
+                        if lexical_parent
                         else file_path
                     )
                     edges.append(EdgeInfo(
@@ -3478,20 +6660,38 @@ class CodeParser:
                         file_path=file_path,
                         line=child.start_point[0] + 1,
                     ))
+                    if qualifier:
+                        edges.append(EdgeInfo(
+                            kind="REFERENCES",
+                            source=qualified,
+                            target=qualifier,
+                            file_path=file_path,
+                            line=child.start_point[0] + 1,
+                            extra={"julia_qualified_def": True},
+                        ))
                     # Recurse into the RHS only (children after the ``=``
                     # operator) with this function as the enclosing scope
                     # so internal calls wire up correctly. Visiting the
                     # whole assignment would re-treat the LHS
                     # ``call_expression`` as a self-call.
+                    call_types = set(_CALL_TYPES.get(language, []))
                     seen_op = False
                     for sub in child.children:
                         if not seen_op:
                             if sub.type == "operator":
                                 seen_op = True
                             continue
+                        # The RHS call itself sits at this level, while the
+                        # generic walker only visits a node's children.
+                        if sub.type in call_types:
+                            self._extract_calls(
+                                sub, source, language, file_path,
+                                nodes, edges, identity_parent, name,
+                                import_map, defined_names, _depth + 1,
+                            )
                         self._extract_from_tree(
                             sub, source, language, file_path, nodes, edges,
-                            enclosing_class=enclosing_class,
+                            enclosing_class=identity_parent,
                             enclosing_func=name,
                             import_map=import_map,
                             defined_names=defined_names,
@@ -3502,10 +6702,11 @@ class CodeParser:
         # --- Skip call_expression nodes that are actually function
         # signatures (``function foo(x) ... end`` has a ``signature >
         # call_expression`` that describes the definition, not a call).
-        if node_type == "call_expression":
-            parent = child.parent
-            if parent is not None and parent.type == "signature":
-                return True
+        if (
+            node_type == "call_expression"
+            and self._julia_call_is_in_signature(child)
+        ):
+            return True
 
         # --- include("file.jl") -> IMPORTS_FROM edge ---
         if node_type == "call_expression":
@@ -3621,8 +6822,11 @@ class CodeParser:
                         vname = variant.text.decode(
                             "utf-8", errors="replace",
                         )
+                        variant_parent = self._julia_scope_join(
+                            enclosing_class, type_name,
+                        )
                         qualified_v = self._qualify(
-                            vname, file_path, type_name,
+                            vname, file_path, variant_parent,
                         )
                         nodes.append(NodeInfo(
                             kind="Function",
@@ -3631,7 +6835,7 @@ class CodeParser:
                             line_start=variant.start_point[0] + 1,
                             line_end=variant.end_point[0] + 1,
                             language=language,
-                            parent_name=type_name,
+                            parent_name=variant_parent,
                             extra={"julia_kind": "enum_variant"},
                         ))
                         edges.append(EdgeInfo(
@@ -3663,8 +6867,11 @@ class CodeParser:
                 line_no = child.start_point[0] + 1
                 synth_base = f"testset:{desc}" if desc else "testset"
                 synth_name = f"{synth_base}@L{line_no}"
+                lexical_parent = self._julia_scope_join(
+                    enclosing_class, enclosing_func,
+                )
                 qualified = self._qualify(
-                    synth_name, file_path, enclosing_class,
+                    synth_name, file_path, lexical_parent,
                 )
                 nodes.append(NodeInfo(
                     kind="Test",
@@ -3673,14 +6880,12 @@ class CodeParser:
                     line_start=child.start_point[0] + 1,
                     line_end=child.end_point[0] + 1,
                     language=language,
-                    parent_name=enclosing_class,
+                    parent_name=lexical_parent,
                     is_test=True,
                 ))
                 container = (
-                    self._qualify(
-                        enclosing_func, file_path, enclosing_class,
-                    )
-                    if enclosing_func
+                    self._qualify(lexical_parent, file_path, None)
+                    if lexical_parent
                     else file_path
                 )
                 edges.append(EdgeInfo(
@@ -3693,7 +6898,7 @@ class CodeParser:
                 if body_parent is not None:
                     self._extract_from_tree(
                         body_parent, source, language, file_path, nodes, edges,
-                        enclosing_class=enclosing_class,
+                        enclosing_class=lexical_parent,
                         enclosing_func=synth_name,
                         import_map=import_map, defined_names=defined_names,
                         _depth=_depth + 1,
@@ -4535,6 +7740,121 @@ class CodeParser:
                             break
         return names
 
+    @staticmethod
+    def _spring_config_annotation_name(annotation_node) -> Optional[str]:
+        """Return the simple name of a Java annotation node."""
+        for child in annotation_node.children:
+            if child.type == "identifier":
+                return child.text.decode("utf-8", errors="replace")
+            if child.type in ("scoped_identifier", "qualified_name"):
+                return child.text.decode("utf-8", errors="replace").rsplit(".", 1)[-1]
+        return None
+
+    @staticmethod
+    def _spring_config_string_literals(node) -> list[str]:
+        values: list[str] = []
+        if node.type == "string_literal":
+            text = node.text.decode("utf-8", errors="replace")
+            if len(text) >= 2:
+                values.append(text[1:-1])
+            return values
+        for child in node.children:
+            values.extend(CodeParser._spring_config_string_literals(child))
+        return values
+
+    def _spring_config_annotation_values(
+        self,
+        annotation_node,
+        accepted_keys: frozenset[str],
+    ) -> list[str]:
+        """Read selected string arguments from a parsed Java annotation."""
+        values: list[str] = []
+        for child in annotation_node.children:
+            if child.type != "annotation_argument_list":
+                continue
+            for argument in child.children:
+                if argument.type == "element_value_pair":
+                    named = [part for part in argument.children if part.is_named]
+                    if len(named) < 2:
+                        continue
+                    key = named[0].text.decode("utf-8", errors="replace")
+                    if key in accepted_keys:
+                        values.extend(self._spring_config_string_literals(named[-1]))
+                elif argument.is_named and "value" in accepted_keys:
+                    values.extend(self._spring_config_string_literals(argument))
+        return values
+
+    def _emit_spring_config_edges(
+        self,
+        class_node,
+        class_name: str,
+        enclosing_class: Optional[str],
+        file_path: str,
+        edges: list[EdgeInfo],
+    ) -> None:
+        """Emit Spring config dependencies while retaining no literal values."""
+        source = self._qualify(class_name, file_path, enclosing_class)
+
+        for child in class_node.children:
+            if child.type != "modifiers":
+                continue
+            for annotation in child.children:
+                if self._spring_config_annotation_name(annotation) != "ConfigurationProperties":
+                    continue
+                prefixes = self._spring_config_annotation_values(
+                    annotation,
+                    frozenset({"prefix", "value"}),
+                )
+                for prefix in prefixes:
+                    key = normalize_spring_config_key(prefix)
+                    if not key:
+                        continue
+                    edges.append(EdgeInfo(
+                        kind="DEPENDS_ON_CONFIG",
+                        source=source,
+                        target=f"config:{key}.*",
+                        file_path=file_path,
+                        line=annotation.start_point[0] + 1,
+                        extra={
+                            "config_key": key,
+                            "resolution": "configuration_properties",
+                        },
+                    ))
+
+        for child in class_node.children:
+            if child.type != "class_body":
+                continue
+            for member in child.children:
+                if member.type != "field_declaration":
+                    continue
+                for modifiers in member.children:
+                    if modifiers.type != "modifiers":
+                        continue
+                    for annotation in modifiers.children:
+                        if self._spring_config_annotation_name(annotation) != "Value":
+                            continue
+                        expressions = self._spring_config_annotation_values(
+                            annotation,
+                            frozenset({"value"}),
+                        )
+                        for expression in expressions:
+                            for match in _SPRING_PLACEHOLDER_RE.finditer(expression):
+                                raw_key = match.group(1).split(":", 1)[0].strip()
+                                key = normalize_spring_config_key(raw_key)
+                                if not key:
+                                    continue
+                                edges.append(EdgeInfo(
+                                    kind="DEPENDS_ON_CONFIG",
+                                    source=source,
+                                    target=f"config:{key}",
+                                    file_path=file_path,
+                                    line=annotation.start_point[0] + 1,
+                                    extra={
+                                        "config_key": key,
+                                        "resolution": "value_annotation",
+                                    },
+                                ))
+
     def _emit_spring_injections(
         self,
         class_node,
@@ -4546,17 +7866,17 @@ class CodeParser:
     ) -> None:
         """Emit INJECTS edges for Spring DI injection points in a Java class.
 
-        Handles three patterns:
+        Handles four patterns:
         - @Autowired / @Inject / @Resource field injection
         - @Autowired constructor injection
-        - Lombok @RequiredArgsConstructor / @AllArgsConstructor with final fields
+        - Lombok @RequiredArgsConstructor with uninitialized final / @NonNull fields
+        - Lombok @AllArgsConstructor with every non-static field
         """
         if language != "java":
             return
 
-        has_lombok_constructor = any(
-            a in _LOMBOK_CONSTRUCTOR_ANNOTATIONS for a in class_annotations
-        )
+        has_required_args = "RequiredArgsConstructor" in class_annotations
+        has_all_args = "AllArgsConstructor" in class_annotations
         qualified_source = self._qualify(class_name, file_path, None)
 
         # Find the class body
@@ -4567,7 +7887,7 @@ class CodeParser:
                 if member.type == "field_declaration":
                     self._emit_spring_field_injection(
                         member, qualified_source, file_path,
-                        edges, has_lombok_constructor,
+                        edges, has_required_args, has_all_args,
                     )
                 elif member.type == "constructor_declaration":
                     self._emit_spring_constructor_injection(
@@ -4580,14 +7900,15 @@ class CodeParser:
         qualified_source: str,
         file_path: str,
         edges: list[EdgeInfo],
-        has_lombok_constructor: bool,
+        has_required_args: bool,
+        has_all_args: bool,
     ) -> None:
-        """Emit an INJECTS edge for a single field_declaration if injection applies."""
+        """Emit one INJECTS edge per field selected by Spring/Lombok."""
         field_annotations: list[str] = []
         has_final = False
         has_static = False
         field_type: Optional[str] = None
-        field_name: Optional[str] = None
+        declarators: list[tuple[str, bool]] = []
 
         for child in field_node.children:
             if child.type == "modifiers":
@@ -4619,32 +7940,42 @@ class CodeParser:
                             field_type = sub.text.decode("utf-8", errors="replace")
                             break
             elif child.type == "variable_declarator":
+                field_name: Optional[str] = None
                 for sub in child.children:
                     if sub.type == "identifier":
                         field_name = sub.text.decode("utf-8", errors="replace")
                         break
+                if field_name:
+                    has_initializer = child.child_by_field_name("value") is not None
+                    declarators.append((field_name, has_initializer))
 
-        if not field_type or has_static:
+        if not field_type or has_static or not declarators:
             return
 
         has_inject_annotation = any(a in _SPRING_INJECT_ANNOTATIONS for a in field_annotations)
-        is_lombok_injected = has_lombok_constructor and has_final
+        has_non_null = "NonNull" in field_annotations
 
-        if not has_inject_annotation and not is_lombok_injected:
-            return
+        for field_name, has_initializer in declarators:
+            if has_inject_annotation:
+                injection_type = "field"
+            elif has_all_args:
+                injection_type = "constructor_lombok_all"
+            elif has_required_args and not has_initializer and (has_final or has_non_null):
+                injection_type = "constructor_lombok"
+            else:
+                continue
 
-        injection_type = "field" if has_inject_annotation else "constructor_lombok"
-        extra: dict = {"injection_type": injection_type}
-        if field_name:
-            extra["field_name"] = field_name
-        edges.append(EdgeInfo(
-            kind="INJECTS",
-            source=qualified_source,
-            target=field_type,
-            file_path=file_path,
-            line=field_node.start_point[0] + 1,
-            extra=extra,
-        ))
+            edges.append(EdgeInfo(
+                kind="INJECTS",
+                source=qualified_source,
+                target=field_type,
+                file_path=file_path,
+                line=field_node.start_point[0] + 1,
+                extra={
+                    "injection_type": injection_type,
+                    "field_name": field_name,
+                },
+            ))
 
     def _emit_spring_constructor_injection(
         self,
@@ -4683,6 +8014,615 @@ class CodeParser:
                         line=param.start_point[0] + 1,
                         extra=extra,
                     ))
+
+    @staticmethod
+    def _java_annotation_name(annotation_node) -> Optional[str]:
+        """Return the simple name of a Java annotation AST node."""
+        for child in annotation_node.children:
+            if child.type == "identifier":
+                return child.text.decode("utf-8", errors="replace")
+            if child.type in ("scoped_identifier", "qualified_name"):
+                return child.text.decode("utf-8", errors="replace").rsplit(".", 1)[-1]
+        return None
+
+    def _scheduled_annotations(self, method_node) -> list:
+        """Collect direct and ``@Schedules``-contained ``@Scheduled`` nodes."""
+        found: list = []
+
+        def visit(node) -> None:
+            if node.type == "annotation":
+                name = self._java_annotation_name(node)
+                if name == "Scheduled":
+                    found.append(node)
+                    return
+                if name != "Schedules":
+                    return
+            for child in node.children:
+                visit(child)
+
+        for child in method_node.children:
+            if child.type == "modifiers":
+                visit(child)
+        return found
+
+    @staticmethod
+    def _java_annotation_attributes(annotation_node) -> dict[str, str]:
+        """Extract named Java annotation arguments without evaluating them."""
+        attributes: dict[str, str] = {}
+        for child in annotation_node.children:
+            if child.type != "annotation_argument_list":
+                continue
+            for pair in child.children:
+                if pair.type != "element_value_pair":
+                    continue
+                named = [part for part in pair.children if part.is_named]
+                if len(named) < 2 or named[0].type != "identifier":
+                    continue
+                key = named[0].text.decode("utf-8", errors="replace")
+                value_node = named[-1]
+                value = value_node.text.decode("utf-8", errors="replace")
+                if value_node.type == "string_literal" and len(value) >= 2:
+                    value = value[1:-1]
+                attributes[key] = value
+        return attributes
+
+    @staticmethod
+    def _java_string_literal_values(node) -> list[str]:
+        """Return string values nested below one Java annotation argument."""
+        values: list[str] = []
+        if node.type == "string_literal":
+            value = node.text.decode("utf-8", errors="replace")
+            if len(value) >= 2:
+                values.append(value[1:-1])
+            return values
+        for child in node.children:
+            values.extend(CodeParser._java_string_literal_values(child))
+        return values
+
+    def _spring_mapping_paths(self, annotation_node) -> list[str]:
+        """Extract only ``value``/``path`` route arguments from a mapping."""
+        paths: list[str] = []
+        for child in annotation_node.children:
+            if child.type != "annotation_argument_list":
+                continue
+            for argument in child.children:
+                if argument.type == "element_value_pair":
+                    named = [part for part in argument.children if part.is_named]
+                    if len(named) < 2:
+                        continue
+                    key = named[0].text.decode("utf-8", errors="replace")
+                    if key not in ("path", "value"):
+                        continue
+                    paths.extend(self._java_string_literal_values(named[-1]))
+                elif argument.is_named:
+                    paths.extend(self._java_string_literal_values(argument))
+        return paths or [""]
+
+    def _spring_mapping_methods(self, annotation_node, name: str) -> list[str]:
+        """Extract HTTP verbs from composed mappings or RequestMethod values."""
+        composed = _SPRING_REQUEST_MAPPINGS[name]
+        if composed:
+            return list(composed)
+
+        methods: list[str] = []
+        for child in annotation_node.children:
+            if child.type != "annotation_argument_list":
+                continue
+            for argument in child.children:
+                if argument.type != "element_value_pair":
+                    continue
+                named = [part for part in argument.children if part.is_named]
+                if len(named) < 2:
+                    continue
+                key = named[0].text.decode("utf-8", errors="replace")
+                if key != "method":
+                    continue
+                value_node = named[-1]
+                for value in self._descendants_of_type(value_node, "identifier"):
+                    method = value.text.decode("utf-8", errors="replace")
+                    if method in _HTTP_REQUEST_METHODS and method not in methods:
+                        methods.append(method)
+        return methods or ["ANY"]
+
+    @staticmethod
+    def _join_spring_route(prefix: str, path: str) -> str:
+        """Join class and method mappings into one normalized route."""
+        parts = [part.strip("/") for part in (prefix, path) if part.strip("/")]
+        return "/" + "/".join(parts) if parts else "/"
+
+    def _emit_spring_endpoint_nodes(
+        self,
+        method_node,
+        method_name: str,
+        class_name: Optional[str],
+        file_path: str,
+        import_map: dict[str, str],
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+    ) -> int:
+        """Emit addressable endpoints and HANDLES edges for Spring mappings."""
+        annotations = self._java_annotations_named(
+            method_node,
+            frozenset(_SPRING_REQUEST_MAPPINGS),
+        )
+        if not annotations:
+            return 0
+
+        prefixes = [""]
+        encoded_prefixes = import_map.get(
+            f"{_SPRING_REQUEST_PREFIX_KEY}{class_name or ''}",
+        )
+        if encoded_prefixes:
+            try:
+                parsed_prefixes = json.loads(encoded_prefixes)
+            except (TypeError, ValueError):
+                parsed_prefixes = None
+            if isinstance(parsed_prefixes, list) and all(
+                isinstance(prefix, str) for prefix in parsed_prefixes
+            ):
+                prefixes = parsed_prefixes or [""]
+
+        source = self._qualify(method_name, file_path, class_name)
+        emitted = 0
+        for annotation_index, annotation in enumerate(annotations):
+            annotation_name = self._java_annotation_name(annotation)
+            if annotation_name is None:
+                continue
+            paths = self._spring_mapping_paths(annotation)
+            methods = self._spring_mapping_methods(annotation, annotation_name)
+            for prefix in prefixes:
+                for path in paths:
+                    route = self._join_spring_route(prefix, path)
+                    for method in methods:
+                        endpoint_name = (
+                            f"{method_name}@{annotation_name}"
+                            f"[{annotation_index}:{emitted}] {method} {route}"
+                        )
+                        metadata = {
+                            "annotation": annotation_name,
+                            "handler": method_name,
+                            "http_method": method,
+                            "route": route,
+                        }
+                        nodes.append(NodeInfo(
+                            kind="Endpoint",
+                            name=endpoint_name,
+                            file_path=file_path,
+                            line_start=annotation.start_point[0] + 1,
+                            line_end=annotation.end_point[0] + 1,
+                            language="java",
+                            parent_name=class_name,
+                            extra=metadata,
+                        ))
+                        edges.append(EdgeInfo(
+                            kind="HANDLES",
+                            source=source,
+                            target=self._qualify(endpoint_name, file_path, class_name),
+                            file_path=file_path,
+                            line=annotation.start_point[0] + 1,
+                            extra=metadata,
+                        ))
+                        emitted += 1
+        return emitted
+
+    def _java_invocation_chain_has_route(self, invocation) -> bool:
+        """Return whether a fluent Java invocation is rooted at ``route()``."""
+        current = invocation
+        for _ in range(32):
+            if current.type != "method_invocation":
+                return False
+            method, _ = self._get_java_method_and_receiver(current)
+            if method == "route":
+                return True
+            current = next(
+                (
+                    child for child in current.children
+                    if child.type == "method_invocation"
+                ),
+                None,
+            )
+            if current is None:
+                return False
+        return False
+
+    @staticmethod
+    def _webflux_route_arguments(invocation) -> tuple[Optional[str], Optional[object]]:
+        """Return a literal route and method-reference handler from one call."""
+        arguments = next(
+            (
+                child for child in invocation.children
+                if child.type == "argument_list"
+            ),
+            None,
+        )
+        if arguments is None:
+            return None, None
+        named = [child for child in arguments.children if child.is_named]
+        if len(named) < 2 or named[0].type != "string_literal":
+            return None, None
+        route_literal = named[0].text.decode("utf-8", errors="replace")
+        if len(route_literal) < 2:
+            return None, None
+        route = route_literal[1:-1]
+        if not route.startswith("/"):
+            return None, None
+        handler = next(
+            (child for child in named[1:] if child.type == "method_reference"),
+            None,
+        )
+        return route, handler
+
+    def _resolve_java_method_reference_target(
+        self,
+        reference,
+        file_path: str,
+        enclosing_class: Optional[str],
+        import_map: dict[str, str],
+        defined_names: set[str],
+    ) -> Optional[str]:
+        """Resolve a WebFlux handler reference from lexical Java type evidence."""
+        receiver, method = self._get_member_call_receiver_method(reference, "java")
+        if not receiver or not method:
+            return None
+        if receiver == "this" and enclosing_class:
+            return self._qualify(method, file_path, enclosing_class)
+
+        function_types = set(self._function_types.get("java", []))
+        class_types = set(self._class_types.get("java", []))
+        bindings: dict[str, str] = {}
+        function_node = None
+        class_node = None
+        ancestor = reference.parent
+        while ancestor is not None:
+            if function_node is None and ancestor.type in function_types:
+                function_node = ancestor
+            if ancestor.type in class_types:
+                class_node = ancestor
+                break
+            ancestor = ancestor.parent
+        if function_node is not None:
+            bindings.update(
+                self._collect_function_typed_parameters(function_node, "java"),
+            )
+        if class_node is not None:
+            bindings.update(
+                self._collect_class_typed_fields(
+                    class_node,
+                    "java",
+                    function_types,
+                    class_types,
+                ),
+            )
+
+        type_name = bindings.get(receiver)
+        if type_name is None and receiver[:1].isupper():
+            if receiver in import_map or receiver in defined_names:
+                type_name = receiver
+        if type_name is None:
+            return None
+        return self._resolve_typed_method_target(
+            type_name,
+            method,
+            file_path,
+            "java",
+            import_map,
+            defined_names,
+        )
+
+    def _emit_spring_webflux_endpoint(
+        self,
+        invocation,
+        source: bytes,
+        method: str,
+        file_path: str,
+        enclosing_class: Optional[str],
+        import_map: dict[str, str],
+        defined_names: set[str],
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+    ) -> bool:
+        """Link a direct functional WebFlux route to its actual handler."""
+        if (
+            method not in _SPRING_WEBFLUX_HTTP_VERBS
+            or b"org.springframework.web.reactive.function.server" not in source
+            or not self._java_invocation_chain_has_route(invocation)
+        ):
+            return False
+
+        ancestor = invocation.parent
+        while ancestor is not None and ancestor.type not in self._function_types.get(
+            "java", []
+        ):
+            if ancestor.type == "lambda_expression":
+                return False
+            ancestor = ancestor.parent
+
+        route, handler_reference = self._webflux_route_arguments(invocation)
+        if route is None or handler_reference is None:
+            return False
+        handler_target = self._resolve_java_method_reference_target(
+            handler_reference,
+            file_path,
+            enclosing_class,
+            import_map,
+            defined_names,
+        )
+        if handler_target is None:
+            return False
+        _, handler_method = self._get_member_call_receiver_method(
+            handler_reference,
+            "java",
+        )
+        if handler_method is None:
+            return False
+
+        line = invocation.start_point[0] + 1
+        endpoint_name = f"{handler_method}@WebFlux[{line}] {method} {route}"
+        endpoint_target = self._qualify(endpoint_name, file_path, enclosing_class)
+        metadata = {
+            "handler": handler_method,
+            "handler_qualified": handler_target,
+            "http_method": method,
+            "mapping_style": "webflux_functional",
+            "route": route,
+        }
+        nodes.append(NodeInfo(
+            kind="Endpoint",
+            name=endpoint_name,
+            file_path=file_path,
+            line_start=line,
+            line_end=invocation.end_point[0] + 1,
+            language="java",
+            parent_name=enclosing_class,
+            extra=metadata,
+        ))
+        edges.append(EdgeInfo(
+            kind="HANDLES",
+            source=handler_target,
+            target=endpoint_target,
+            file_path=file_path,
+            line=line,
+            extra=metadata,
+        ))
+        return True
+
+    @staticmethod
+    def _spring_schedule_kind(attributes: dict[str, str]) -> str:
+        """Classify one Spring schedule by the trigger attribute it uses."""
+        for key, kind in (
+            ("cron", "cron"),
+            ("fixedRate", "fixedRate"),
+            ("fixedRateString", "fixedRate"),
+            ("fixedDelay", "fixedDelay"),
+            ("fixedDelayString", "fixedDelay"),
+            ("initialDelay", "initialDelay"),
+            ("initialDelayString", "initialDelay"),
+        ):
+            if key in attributes:
+                return kind
+        return "scheduled"
+
+    def _emit_scheduled_nodes_from_method(
+        self,
+        method_node,
+        method_name: str,
+        class_name: Optional[str],
+        file_path: str,
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+    ) -> int:
+        """Emit one addressable Scheduler node and TRIGGERS edge per schedule."""
+        annotations = self._scheduled_annotations(method_node)
+        target = self._qualify(method_name, file_path, class_name)
+        for index, annotation in enumerate(annotations):
+            attributes = self._java_annotation_attributes(annotation)
+            schedule_kind = self._spring_schedule_kind(attributes)
+            schedule_name = f"{method_name}@Scheduled[{index}]:{schedule_kind}"
+            metadata = {
+                "annotation": "Scheduled",
+                "schedule_kind": schedule_kind,
+                **attributes,
+            }
+            nodes.append(NodeInfo(
+                kind="Scheduler",
+                name=schedule_name,
+                file_path=file_path,
+                line_start=annotation.start_point[0] + 1,
+                line_end=annotation.end_point[0] + 1,
+                language="java",
+                parent_name=class_name,
+                extra=metadata,
+            ))
+            edges.append(EdgeInfo(
+                kind="TRIGGERS",
+                source=self._qualify(schedule_name, file_path, class_name),
+                target=target,
+                file_path=file_path,
+                line=annotation.start_point[0] + 1,
+                extra=metadata,
+            ))
+        return len(annotations)
+
+    def _java_annotations_named(self, method_node, names: frozenset[str]) -> list:
+        """Return direct Java method annotations whose simple names match."""
+        matches: list = []
+        for child in method_node.children:
+            if child.type != "modifiers":
+                continue
+            for annotation in child.children:
+                if annotation.type not in ("annotation", "marker_annotation"):
+                    continue
+                if self._java_annotation_name(annotation) in names:
+                    matches.append(annotation)
+        return matches
+
+    @staticmethod
+    def _java_type_name(node) -> Optional[str]:
+        """Extract the outer Java reference type from a type-bearing AST node."""
+        if node.type in ("type_identifier", "scoped_type_identifier"):
+            return node.text.decode("utf-8", errors="replace")
+        for child in node.children:
+            found = CodeParser._java_type_name(child)
+            if found:
+                return found
+        return None
+
+    @staticmethod
+    def _resolve_java_type_identity(
+        type_name: str,
+        import_map: dict[str, str],
+    ) -> str:
+        """Resolve a Java type to a stable package-qualified identity."""
+        normalized = type_name.strip()
+        if not normalized:
+            return normalized
+        head, separator, tail = normalized.partition(".")
+        imported = import_map.get(head)
+        if imported:
+            return f"{imported}.{tail}" if separator else imported
+        if separator and head[:1].islower():
+            return normalized
+        package = import_map.get(_JAVA_PACKAGE_KEY, "")
+        return f"{package}.{normalized}" if package else normalized
+
+    @staticmethod
+    def _descendants_of_type(node, node_type: str) -> list:
+        matches: list = []
+        if node.type == node_type:
+            matches.append(node)
+        for child in node.children:
+            matches.extend(CodeParser._descendants_of_type(child, node_type))
+        return matches
+
+    def _emit_spring_event_listener_edges(
+        self,
+        method_node,
+        method_name: str,
+        class_name: Optional[str],
+        file_path: str,
+        import_map: dict[str, str],
+        edges: list[EdgeInfo],
+    ) -> int:
+        """Emit package-qualified HANDLES edges for ``@EventListener``."""
+        emitted = 0
+        source = self._qualify(method_name, file_path, class_name)
+        for annotation in self._java_annotations_named(
+            method_node,
+            _SPRING_EVENT_LISTENER_ANNOTATIONS,
+        ):
+            type_names: list[str] = []
+            for class_literal in self._descendants_of_type(annotation, "class_literal"):
+                type_name = self._java_type_name(class_literal)
+                if type_name:
+                    type_names.append(type_name)
+
+            if not type_names:
+                parameters = next(
+                    (
+                        child for child in method_node.children
+                        if child.type == "formal_parameters"
+                    ),
+                    None,
+                )
+                if parameters is not None:
+                    parameter = next(
+                        (
+                            child for child in parameters.children
+                            if child.type == "formal_parameter"
+                        ),
+                        None,
+                    )
+                    if parameter is not None:
+                        type_name = self._java_type_name(parameter)
+                        if type_name:
+                            type_names.append(type_name)
+
+            attributes = self._java_annotation_attributes(annotation)
+            seen: set[str] = set()
+            for type_name in type_names:
+                identity = self._resolve_java_type_identity(type_name, import_map)
+                if not identity or identity in seen:
+                    continue
+                seen.add(identity)
+                extra = {
+                    "event_type": identity,
+                    "resolution": "spring_event_listener",
+                }
+                for key in ("condition", "id", "defaultExecution"):
+                    if key in attributes:
+                        extra[key] = attributes[key]
+                edges.append(EdgeInfo(
+                    kind="HANDLES",
+                    source=source,
+                    target=f"event::{identity}",
+                    file_path=file_path,
+                    line=annotation.start_point[0] + 1,
+                    extra=extra,
+                ))
+                emitted += 1
+        return emitted
+
+    def _emit_spring_event_publish_edges(
+        self,
+        method_node,
+        method_name: str,
+        class_name: Optional[str],
+        file_path: str,
+        import_map: dict[str, str],
+        edges: list[EdgeInfo],
+    ) -> int:
+        """Emit PUBLISHES edges for direct ``publishEvent(new Event())`` calls."""
+        source = self._qualify(method_name, file_path, class_name)
+        emitted = 0
+
+        def visit(node) -> None:
+            nonlocal emitted
+            if node.type == "method_invocation":
+                receiver, invoked = self._get_member_call_receiver_method(node, "java")
+                if invoked in _SPRING_EVENT_PUBLISH_METHODS:
+                    arguments = next(
+                        (
+                            child for child in node.children
+                            if child.type == "argument_list"
+                        ),
+                        None,
+                    )
+                    if arguments is not None:
+                        for argument in arguments.children:
+                            if argument.type != "object_creation_expression":
+                                continue
+                            type_name = self._java_type_name(argument)
+                            if not type_name:
+                                continue
+                            identity = self._resolve_java_type_identity(
+                                type_name,
+                                import_map,
+                            )
+                            extra = {
+                                "event_type": identity,
+                                "resolution": "spring_publish_event",
+                            }
+                            if receiver:
+                                extra["receiver"] = receiver
+                            edges.append(EdgeInfo(
+                                kind="PUBLISHES",
+                                source=source,
+                                target=f"event::{identity}",
+                                file_path=file_path,
+                                line=node.start_point[0] + 1,
+                                extra=extra,
+                            ))
+                            emitted += 1
+            for child in node.children:
+                visit(child)
+
+        body = next(
+            (child for child in method_node.children if child.type == "block"),
+            None,
+        )
+        if body is not None:
+            visit(body)
+        return emitted
 
     def _emit_temporal_stub_fields(
         self,
@@ -4901,6 +8841,124 @@ class CodeParser:
                         extra={"kafka_type": ann_name},
                     ))
 
+    def _get_docstring_summary(self, node, language: str) -> Optional[str]:
+        """Extract a bounded documentation summary for a definition node."""
+        if language == "python":
+            raw = self._python_docstring_value(node)
+        else:
+            raw = self._preceding_doc_comment(node, language)
+        if not raw:
+            return None
+        return _clean_docstring_summary(raw, language) or None
+
+    @staticmethod
+    def _python_docstring_value(node) -> Optional[str]:
+        """Return Python's actual string value for the first body statement.
+
+        ``ast.literal_eval`` gives us CPython-compatible escape handling and
+        implicit literal concatenation while naturally rejecting f-strings.
+        A bytes literal evaluates successfully but is rejected by the final
+        type check, matching ``__doc__`` semantics.
+        """
+        body = node.child_by_field_name("body")
+        if body is None:
+            return None
+        statement = next(
+            (child for child in body.named_children if child.type != "comment"),
+            None,
+        )
+        if statement is None:
+            return None
+        expression = statement
+        if expression.type == "expression_statement":
+            named = expression.named_children
+            if len(named) != 1:
+                return None
+            expression = named[0]
+        if expression.type not in (
+            "string",
+            "concatenated_string",
+            "parenthesized_expression",
+        ):
+            return None
+        try:
+            value = ast.literal_eval(
+                expression.text.decode("utf-8", errors="strict"),
+            )
+        except (SyntaxError, ValueError, UnicodeDecodeError):
+            return None
+        return value if isinstance(value, str) else None
+
+    @staticmethod
+    def _line_doc_payload(text: str, language: str) -> Optional[str]:
+        """Return one documentation-line payload, or ``None`` if not docs."""
+        stripped = text.strip()
+        if language == "go":
+            if not stripped.startswith("//"):
+                return None
+            return stripped[2:].lstrip()
+        if language == "rust":
+            # Rust ``//!`` is inner module/crate documentation; ``////`` is
+            # an ordinary comment, not an outer item doc comment.
+            if not stripped.startswith("///") or stripped.startswith("////"):
+                return None
+            return stripped[3:].lstrip()
+        if stripped.startswith(("///", "//!")):
+            return stripped[3:].lstrip()
+        return None
+
+    def _preceding_doc_comment(self, node, language: str) -> Optional[str]:
+        """Return documentation directly attached above a definition."""
+        anchor = node
+        while (
+            anchor.parent is not None
+            and anchor.parent.type in _DOC_COMMENT_WRAPPER_TYPES
+        ):
+            anchor = anchor.parent
+
+        siblings: list = []
+        current_line = anchor.start_point[0]
+        sibling = anchor.prev_sibling
+        while sibling is not None:
+            if sibling.end_point[0] < current_line - 1:
+                break
+            if sibling.type in _DOC_COMMENT_SKIP_TYPES:
+                current_line = sibling.start_point[0]
+                sibling = sibling.prev_sibling
+                continue
+            if sibling.type not in _DOC_COMMENT_NODE_TYPES:
+                break
+            siblings.append(sibling)
+            current_line = sibling.start_point[0]
+            sibling = sibling.prev_sibling
+
+        if not siblings:
+            return None
+
+        nearest = siblings[0].text.decode("utf-8", errors="replace").strip()
+        if nearest.startswith("/*"):
+            allowed = ("/**",) if language == "rust" else ("/**", "/*!")
+            if not nearest.startswith(allowed):
+                return None
+            return _strip_block_doc_comment(nearest)
+
+        # Work from the definition upward and stop at the first adjacent
+        # ordinary comment.  This attaches only the nearest documentation
+        # block and avoids hoovering unrelated implementation notes into it.
+        payloads: list[str] = []
+        for comment in siblings:
+            text = comment.text.decode("utf-8", errors="replace")
+            payload = self._line_doc_payload(text, language)
+            if payload is None:
+                break
+            if language == "go" and payload.startswith(("go:", "line ")):
+                continue
+            payloads.append(payload)
+        if not payloads:
+            return None
+        payloads.reverse()
+        return "\n".join(payloads)
+
     def _extract_classes(
         self,
         child,
@@ -4956,6 +9014,17 @@ class CodeParser:
                 is_wf = "WorkflowInterface" in temporal_roles
                 role = "workflow_interface" if is_wf else "activity_interface"
                 extra["temporal_role"] = role
+            if import_map is not None:
+                request_prefixes: list[str] = []
+                for annotation in self._java_annotations_named(
+                    child,
+                    frozenset({"RequestMapping"}),
+                ):
+                    request_prefixes.extend(self._spring_mapping_paths(annotation))
+                if request_prefixes:
+                    import_map[f"{_SPRING_REQUEST_PREFIX_KEY}{name}"] = json.dumps(
+                        request_prefixes,
+                    )
 
         # Class-level annotation persistence for all annotation-bearing
         # languages.  Kotlin (@HiltViewModel, @AndroidEntryPoint) and C#
@@ -4976,6 +9045,10 @@ class CodeParser:
         if class_decorators and "decorators" not in extra:
             extra["decorators"] = class_decorators
 
+        docstring = self._get_docstring_summary(child, language)
+        if docstring:
+            extra["docstring"] = docstring
+
         node = NodeInfo(
             kind="Class",
             name=name,
@@ -4990,9 +9063,14 @@ class CodeParser:
         nodes.append(node)
 
         # CONTAINS edge
+        class_container = (
+            self._qualify(enclosing_class, file_path, None)
+            if language == "julia" and enclosing_class
+            else file_path
+        )
         edges.append(EdgeInfo(
             kind="CONTAINS",
-            source=file_path,
+            source=class_container,
             target=self._qualify(name, file_path, enclosing_class),
             file_path=file_path,
             line=child.start_point[0] + 1,
@@ -5016,15 +9094,23 @@ class CodeParser:
             self._emit_spring_injections(
                 child, name, class_annotations, language, file_path, edges,
             )
+            self._emit_spring_config_edges(
+                child, name, enclosing_class, file_path, edges,
+            )
             # Temporal: emit TEMPORAL_STUB edges for activity/workflow stub fields
             self._emit_temporal_stub_fields(child, name, file_path, edges)
             # Kafka: emit CONSUMES/PRODUCES edges for Kafka field declarations
             self._emit_kafka_edges_from_class(child, name, file_path, edges)
 
         # Recurse into class body
+        recursive_class = (
+            self._julia_scope_join(enclosing_class, name)
+            if language == "julia"
+            else name
+        )
         self._extract_from_tree(
             child, source, language, file_path, nodes, edges,
-            enclosing_class=name, enclosing_func=None,
+            enclosing_class=recursive_class, enclosing_func=None,
             import_map=import_map, defined_names=defined_names,
             _depth=_depth + 1,
         )
@@ -5105,14 +9191,18 @@ class CodeParser:
         is_test = _is_test_function(name, file_path, decorators)
         kind = "Test" if is_test else "Function"
 
-        # Julia: nested functions (``function inner`` inside another
-        # ``function outer``) should wire up to their enclosing function,
-        # not skip past it to the enclosing class/module.
         parent_name = enclosing_class
         container_scope = enclosing_class
-        if language == "julia" and enclosing_func:
-            parent_name = enclosing_func
-            container_scope = enclosing_func
+        julia_qualifier: Optional[str] = None
+        if language == "julia":
+            lexical_parent = self._julia_scope_join(
+                enclosing_class, enclosing_func,
+            )
+            julia_qualifier = self._julia_definition_qualifier(child)
+            parent_name = self._julia_scope_join(
+                lexical_parent, julia_qualifier,
+            )
+            container_scope = lexical_parent
 
         qualified = self._qualify(name, file_path, parent_name)
         params = self._get_params(child, language, source)
@@ -5120,7 +9210,21 @@ class CodeParser:
 
         # Java: detect Temporal method-level annotations and Kafka listeners
         method_extra: dict = {}
+        if julia_qualifier:
+            method_extra["julia_module_qualifier"] = julia_qualifier
         if language == "java" and deco_list:
+            endpoint_count = self._emit_spring_endpoint_nodes(
+                child,
+                name,
+                enclosing_class,
+                file_path,
+                import_map or {},
+                nodes,
+                edges,
+            )
+            if endpoint_count:
+                method_extra["spring_endpoint"] = True
+                method_extra["spring_endpoint_count"] = endpoint_count
             temporal_method_annots = [
                 a for a in deco_list if a in _TEMPORAL_METHOD_ANNOTATIONS
             ]
@@ -5131,6 +9235,56 @@ class CodeParser:
                 self._emit_kafka_edges_from_method(
                     child, name, enclosing_class, file_path, edges,
                 )
+            if any(
+                annotation.split("(", 1)[0] in _SPRING_SCHEDULED_ANNOTATIONS
+                for annotation in deco_list
+            ):
+                schedule_count = self._emit_scheduled_nodes_from_method(
+                    child,
+                    name,
+                    enclosing_class,
+                    file_path,
+                    nodes,
+                    edges,
+                )
+                if schedule_count:
+                    method_extra["scheduled"] = True
+                    method_extra["schedule_count"] = schedule_count
+            listener_count = self._emit_spring_event_listener_edges(
+                child,
+                name,
+                enclosing_class,
+                file_path,
+                import_map or {},
+                edges,
+            )
+            if listener_count:
+                method_extra["spring_event_listener"] = True
+                method_extra["spring_event_type_count"] = listener_count
+
+            publish_count = self._emit_spring_event_publish_edges(
+                child,
+                name,
+                enclosing_class,
+                file_path,
+                import_map or {},
+                edges,
+            )
+            if publish_count:
+                method_extra["spring_event_publisher"] = True
+                method_extra["spring_event_publish_count"] = publish_count
+        elif language == "java":
+            publish_count = self._emit_spring_event_publish_edges(
+                child,
+                name,
+                enclosing_class,
+                file_path,
+                import_map or {},
+                edges,
+            )
+            if publish_count:
+                method_extra["spring_event_publisher"] = True
+                method_extra["spring_event_publish_count"] = publish_count
 
         # Persist annotations/decorators so consumers can filter on them
         # (e.g. "show me all @Composable functions").  Stored in BOTH
@@ -5140,6 +9294,10 @@ class CodeParser:
         modifiers_str: Optional[str] = ",".join(deco_list) if deco_list else None
         if deco_list:
             method_extra["decorators"] = list(deco_list)
+
+        docstring = self._get_docstring_summary(child, language)
+        if docstring:
+            method_extra["docstring"] = docstring
 
         node = NodeInfo(
             kind=kind,
@@ -5171,57 +9329,17 @@ class CodeParser:
             line=child.start_point[0] + 1,
         ))
 
-        # Julia: ``function Base.show(io, x)`` extends a foreign module's
-        # method. Record a REFERENCES edge from the function to the
-        # qualifier module so cross-module links stay visible even though
-        # the function's local name is just the method name.
-        if language == "julia" and child.type == "function_definition":
-            for sub in child.children:
-                if sub.type != "signature":
-                    continue
-                call_expr = None
-                scope = sub
-                # Peel where_expression / typed_expression wrappers so we
-                # land on the inner call_expression regardless of
-                # ``func(x) where T`` or ``func(x)::T`` sugar.
-                for _ in range(2):
-                    found_wrapper = False
-                    for inner in scope.children:
-                        if inner.type in (
-                            "where_expression", "typed_expression",
-                        ):
-                            scope = inner
-                            found_wrapper = True
-                            break
-                    if not found_wrapper:
-                        break
-                for inner in scope.children:
-                    if inner.type == "call_expression":
-                        call_expr = inner
-                        break
-                if call_expr is None:
-                    break
-                if call_expr.children and call_expr.children[0].type == "field_expression":
-                    field_expr = call_expr.children[0]
-                    parts: list[str] = []
-                    for ident in field_expr.children:
-                        if ident.type == "identifier":
-                            parts.append(
-                                ident.text.decode("utf-8", errors="replace"),
-                            )
-                    # Module qualifier = everything except the final method
-                    # name.
-                    if len(parts) >= 2:
-                        qualifier = ".".join(parts[:-1])
-                        edges.append(EdgeInfo(
-                            kind="REFERENCES",
-                            source=qualified,
-                            target=qualifier,
-                            file_path=file_path,
-                            line=child.start_point[0] + 1,
-                            extra={"julia_qualified_def": True},
-                        ))
-                break
+        # Qualified Julia methods extend a foreign module while remaining
+        # structurally contained by their lexical module.
+        if julia_qualifier:
+            edges.append(EdgeInfo(
+                kind="REFERENCES",
+                source=qualified,
+                target=julia_qualifier,
+                file_path=file_path,
+                line=child.start_point[0] + 1,
+                extra={"julia_qualified_def": True},
+            ))
 
         # Solidity: modifier invocations on functions -> CALLS edges
         if language == "solidity":
@@ -5241,9 +9359,12 @@ class CodeParser:
                             break
 
         # Recurse to find calls inside the function
+        recursive_class = (
+            parent_name if language == "julia" else enclosing_class
+        )
         self._extract_from_tree(
             child, source, language, file_path, nodes, edges,
-            enclosing_class=enclosing_class, enclosing_func=name,
+            enclosing_class=recursive_class, enclosing_func=name,
             import_map=import_map, defined_names=defined_names,
             _depth=_depth + 1,
         )
@@ -5287,10 +9408,18 @@ class CodeParser:
     ) -> bool:
         """Extract call expressions, including test runner special cases.
 
-        Returns True if the child was fully handled (test runner call that
-        should skip default recursion). Returns False if the caller should
-        continue to Solidity handling and default recursion.
+        Returns True if the child was fully handled (a test runner call or a
+        statically unreachable Python call that should skip default
+        recursion). Returns False if the caller should continue to Solidity
+        handling and default recursion.
         """
+        if (
+            language == "python"
+            and (child.start_point[0] + 1, child.start_point[1])
+            in _python_unreachable_call_positions(source)
+        ):
+            return True
+
         call_name = self._get_call_name(child, language, source)
 
         # For member expressions like describe.only / it.skip / test.each,
@@ -5369,34 +9498,93 @@ class CodeParser:
             # any function called only from top-level script glue, CLI
             # entrypoints, or Jupyter/Databricks notebook cells is flagged
             # as dead by find_dead_code.
-            # For Verilog module instantiations, create CALLS edges from the
-            # enclosing module (enclosing_class), not just from functions.
+            # For Verilog module instantiations and Julia module-level calls,
+            # create CALLS edges from the enclosing module. Julia needs this
+            # lexical source so same-file resolution can find module members.
             if enclosing_func:
                 caller = self._qualify(
                     enclosing_func, file_path, enclosing_class,
                 )
-            elif language == "verilog" and enclosing_class:
-                # Verilog module instantiation happen at module level
+            elif language in ("verilog", "julia") and enclosing_class:
                 caller = self._qualify(
                     enclosing_class, file_path, None
                 )
             else:
                 caller = file_path
 
-            # Java method_invocation: extract actual method name and receiver
-            # separately so the Spring DI resolver can rewrite the target.
+            # Preserve simple member-call receivers. Typed-receiver resolution
+            # uses this evidence during parsing, and the Spring DI resolver
+            # consumes the same metadata for Java injected fields.
             call_extra: dict = {}
-            if language == "java" and child.type == "method_invocation":
-                method_name, receiver = self._get_java_method_and_receiver(child)
+            if language in self._TYPED_CALL_LANGUAGES or language == "rust":
+                receiver, method_name = self._get_member_call_receiver_method(
+                    child, language,
+                )
                 if method_name:
                     call_name = method_name
                 if receiver:
                     call_extra["receiver"] = receiver
+                if language == "java" and child.type == "method_reference":
+                    call_extra["call_syntax"] = "method_reference"
+
+            if language == "java" and child.type == "method_invocation":
+                self._emit_spring_webflux_endpoint(
+                    child,
+                    source,
+                    call_name,
+                    file_path,
+                    enclosing_class,
+                    import_map or {},
+                    defined_names or set(),
+                    nodes,
+                    edges,
+                )
+
+            # Keep Julia module qualification in the canonical target. The
+            # same-file resolver can then distinguish ``run`` from ``A.B.run``.
+            if (
+                language == "julia"
+                and child.children
+                and child.children[0].type == "field_expression"
+            ):
+                qualifier, qualified_name = self._julia_field_info(
+                    child.children[0],
+                )
+                if qualifier and qualified_name:
+                    module_parts = qualifier.split(".")
+                    imported_module = self._resolve_julia_import_alias(
+                        module_parts[0], enclosing_class, enclosing_func,
+                        import_map or {},
+                    )
+                    if imported_module:
+                        module_parts[0] = imported_module
+                    resolved_qualifier = ".".join(module_parts)
+                    call_name = f"{resolved_qualifier}.{qualified_name}"
+                    call_extra["julia_call_module"] = resolved_qualifier
+
+            if language == "julia" and "." not in call_name:
+                imported_symbol = self._resolve_julia_import_alias(
+                    call_name, enclosing_class, enclosing_func,
+                    import_map or {},
+                )
+                if imported_symbol:
+                    call_name = imported_symbol
 
             # When a receiver is present, skip scope-based resolution: the method
             # lives on the receiver's type, not in the current file's scope.
             # The spring_resolver post-pass will do the correct cross-type lookup.
-            if call_extra.get("receiver"):
+            receiver_name = call_extra.get("receiver")
+            if receiver_name in ("self", "cls", "this") and enclosing_class:
+                target = self._qualify(call_name, file_path, enclosing_class)
+            elif (
+                language == "rust"
+                and call_name.startswith("Self::")
+                and enclosing_class
+            ):
+                target = self._qualify(
+                    call_name.rsplit("::", 1)[-1], file_path, enclosing_class,
+                )
+            elif receiver_name:
                 target = call_name
             else:
                 target = self._resolve_call_target(
@@ -5414,9 +9602,337 @@ class CodeParser:
 
         return False
 
+    def _get_member_call_receiver_method(
+        self,
+        node,
+        language: str,
+    ) -> tuple[Optional[str], Optional[str]]:
+        """Return a simple receiver name and method for a member call.
+
+        ``self.field.save()`` and ``this.field.save()`` use ``field`` as the
+        receiver so class-field annotations can resolve them. More complex
+        receiver expressions are deliberately left unresolved.
+        """
+        if language == "rust" and node.type == "call_expression":
+            callee = node.child_by_field_name("function")
+            while callee is not None and callee.type == "generic_function":
+                callee = callee.child_by_field_name("function")
+            if callee is None or callee.type != "field_expression":
+                return None, None
+            receiver = callee.child_by_field_name("value")
+            method = callee.child_by_field_name("field")
+            if receiver is None or method is None:
+                return None, None
+            return (
+                receiver.text.decode("utf-8", errors="replace"),
+                method.text.decode("utf-8", errors="replace"),
+            )
+
+        if language == "java" and node.type == "method_invocation":
+            method, receiver = self._get_java_method_and_receiver(node)
+            return receiver, method
+
+        if language == "java" and node.type == "method_reference":
+            named = [child for child in node.children if child.is_named]
+            if len(named) < 2:
+                return None, None
+            receiver_node = named[0]
+            method_node = named[-1]
+            if method_node.type not in ("identifier", "type_identifier"):
+                return None, None
+            receiver = receiver_node.text.decode("utf-8", errors="replace")
+            method = method_node.text.decode("utf-8", errors="replace")
+            return receiver, method
+
+        callee = node.child_by_field_name("function")
+        if callee is None and node.children:
+            callee = node.children[0]
+        if callee is None:
+            return None, None
+
+        if language == "kotlin" and callee.type == "navigation_expression":
+            receiver = next(
+                (
+                    child.text.decode("utf-8", errors="replace")
+                    for child in callee.children
+                    if child.type == "simple_identifier"
+                ),
+                None,
+            )
+            method = None
+            for child in callee.children:
+                if child.type != "navigation_suffix":
+                    continue
+                method = next(
+                    (
+                        part.text.decode("utf-8", errors="replace")
+                        for part in child.children
+                        if part.type == "simple_identifier"
+                    ),
+                    None,
+                )
+            return receiver, method
+
+        if callee.type not in ("attribute", "member_expression"):
+            return None, None
+        object_node = callee.child_by_field_name("object")
+        property_node = (
+            callee.child_by_field_name("attribute")
+            or callee.child_by_field_name("property")
+        )
+        if object_node is None or property_node is None:
+            return None, None
+
+        method = property_node.text.decode("utf-8", errors="replace")
+        if object_node.type in ("identifier", "simple_identifier", "self", "this"):
+            return (
+                object_node.text.decode("utf-8", errors="replace"),
+                method,
+            )
+
+        if object_node.type in ("attribute", "member_expression"):
+            root = object_node.child_by_field_name("object")
+            field_node = (
+                object_node.child_by_field_name("attribute")
+                or object_node.child_by_field_name("property")
+            )
+            if (
+                root is not None
+                and field_node is not None
+                and root.type in ("identifier", "self", "this")
+                and root.text in (b"self", b"this")
+            ):
+                return (
+                    field_node.text.decode("utf-8", errors="replace"),
+                    method,
+                )
+
+        return None, method
+
     # ------------------------------------------------------------------
     # PHP / Laravel semantic constructs
     # ------------------------------------------------------------------
+
+    def _resolve_php_scoped_calls(
+        self,
+        root,
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+        file_path: str,
+    ) -> list[EdgeInfo]:
+        """Resolve PHP ``Class::method`` calls from lexical file evidence.
+
+        Resolution happens during parsing, so incremental updates touch only
+        the changed file. Bare cross-file class names are deliberately left
+        unresolved; accepted evidence is a same-file method, ``self``/``static``,
+        an explicit import, a qualified name, or the current PHP namespace.
+        """
+        methods: dict[tuple[str, str], list[str]] = {}
+        for node in nodes:
+            if (
+                node.language != "php"
+                or node.kind not in ("Function", "Test")
+                or not node.parent_name
+            ):
+                continue
+            key = (node.parent_name.casefold(), node.name.casefold())
+            methods.setdefault(key, []).append(
+                self._qualify(node.name, file_path, node.parent_name),
+            )
+
+        def same_file_target(class_name: str, method: str) -> Optional[str]:
+            candidates = methods.get(
+                (class_name.casefold(), method.casefold()),
+                [],
+            )
+            return candidates[0] if len(candidates) == 1 else None
+
+        def resolve_target(
+            scope: str,
+            method: str,
+            namespace: str,
+            imports: dict[str, str],
+            enclosing_class: Optional[str],
+        ) -> tuple[Optional[str], Optional[str]]:
+            normalized = scope.strip("\\")
+            lowered = normalized.casefold()
+            if lowered in ("self", "static"):
+                if not enclosing_class:
+                    return None, None
+                return (
+                    same_file_target(enclosing_class, method),
+                    "enclosing_class",
+                )
+            if lowered == "parent":
+                return None, None
+
+            if "\\" not in normalized:
+                local = same_file_target(normalized, method)
+                if local is not None:
+                    return local, "same_file"
+
+            head = normalized.partition("\\")[0]
+            imported = imports.get(head.casefold())
+            absolute = scope.startswith("\\")
+            if imported:
+                qualified = self._php_resolve_class_reference(
+                    scope, namespace, imports,
+                )
+                evidence = "import"
+            elif absolute:
+                qualified = normalized
+                evidence = "fully_qualified"
+            elif "\\" in normalized:
+                qualified = self._php_resolve_class_reference(
+                    scope, namespace, imports,
+                )
+                evidence = "qualified"
+            elif namespace:
+                qualified = f"{namespace}\\{normalized}"
+                evidence = "same_namespace"
+            else:
+                return None, None
+
+            resolved_file = self._resolve_module_to_file(
+                qualified, file_path, "php",
+            )
+            if resolved_file is None:
+                return None, None
+            class_name = qualified.rsplit("\\", 1)[-1]
+            return (
+                f"{self._qualify(class_name, resolved_file, None)}.{method}",
+                evidence,
+            )
+
+        resolutions: dict[tuple[int, str, str], tuple[str, str]] = {}
+
+        def walk_node(
+            node,
+            namespace: str,
+            imports: dict[str, str],
+            enclosing_class: Optional[str],
+            enclosing_func: Optional[str],
+            depth: int = 0,
+        ) -> None:
+            if depth > self._MAX_AST_DEPTH:
+                return
+            if node.type in self._class_types["php"]:
+                class_name = self._get_name(node, "php", "class")
+                for child in node.children:
+                    walk_node(
+                        child,
+                        namespace,
+                        imports,
+                        class_name or enclosing_class,
+                        None,
+                        depth + 1,
+                    )
+                return
+
+            if node.type in self._function_types["php"]:
+                function_name = self._get_name(node, "php", "function")
+                for child in node.children:
+                    walk_node(
+                        child,
+                        namespace,
+                        imports,
+                        enclosing_class,
+                        function_name or enclosing_func,
+                        depth + 1,
+                    )
+                return
+
+            scope, method = self._php_scoped_call_parts(node)
+            if scope and method:
+                target, evidence = resolve_target(
+                    scope,
+                    method,
+                    namespace,
+                    imports,
+                    enclosing_class,
+                )
+                if target is not None and evidence is not None:
+                    stable_scope = scope.lstrip("\\")
+                    source_name = (
+                        self._qualify(
+                            enclosing_func, file_path, enclosing_class,
+                        )
+                        if enclosing_func
+                        else file_path
+                    )
+                    resolutions[(
+                        node.start_point[0] + 1,
+                        source_name,
+                        f"{stable_scope}::{method}",
+                    )] = (target, evidence)
+
+            for child in node.children:
+                walk_node(
+                    child,
+                    namespace,
+                    imports,
+                    enclosing_class,
+                    enclosing_func,
+                    depth + 1,
+                )
+
+        def walk_sequence(
+            container, namespace: str = "", depth: int = 0,
+        ) -> None:
+            if depth > self._MAX_AST_DEPTH:
+                return
+            current_namespace = namespace
+            imports: dict[str, str] = {}
+            for child in container.children:
+                if child.type == "namespace_definition":
+                    child_namespace = self._php_namespace_name(child)
+                    block = next(
+                        (
+                            part for part in child.children
+                            if part.type == "compound_statement"
+                        ),
+                        None,
+                    )
+                    if block is not None:
+                        walk_sequence(block, child_namespace, depth + 1)
+                    else:
+                        current_namespace = child_namespace
+                        imports = {}
+                    continue
+                if child.type == "namespace_use_declaration":
+                    imports.update(self._php_import_bindings(child))
+                    continue
+                walk_node(
+                    child,
+                    current_namespace,
+                    imports,
+                    enclosing_class=None,
+                    enclosing_func=None,
+                    depth=depth + 1,
+                )
+
+        walk_sequence(root)
+        if not resolutions:
+            return edges
+
+        resolved: list[EdgeInfo] = []
+        for edge in edges:
+            resolution = resolutions.get((edge.line, edge.source, edge.target))
+            if edge.kind != "CALLS" or resolution is None:
+                resolved.append(edge)
+                continue
+            target, evidence = resolution
+            extra = dict(edge.extra)
+            extra["scoped_resolution"] = evidence
+            resolved.append(EdgeInfo(
+                kind=edge.kind,
+                source=edge.source,
+                target=target,
+                file_path=edge.file_path,
+                line=edge.line,
+                extra=extra,
+            ))
+        return resolved
 
     def _extract_php_laravel_edges(
         self,
@@ -5670,15 +10186,16 @@ class CodeParser:
 
     @staticmethod
     def _php_scoped_call_parts(node) -> tuple[Optional[str], Optional[str]]:
-        named = [
-            child for child in node.children
-            if child.type in ("name", "qualified_name")
-        ]
-        if len(named) < 2:
+        """Return the static receiver and method for a PHP scoped call."""
+        if node.type != "scoped_call_expression":
             return None, None
-        receiver = named[0].text.decode("utf-8", errors="replace")
-        method = named[-1].text.decode("utf-8", errors="replace")
-        return receiver, method
+        scope = node.child_by_field_name("scope")
+        name = node.child_by_field_name("name")
+        if scope is None or name is None:
+            return None, None
+        receiver = scope.text.decode("utf-8", errors="replace")
+        method = name.text.decode("utf-8", errors="replace")
+        return receiver or None, method or None
 
     @staticmethod
     def _php_class_constant_reference(node) -> Optional[str]:
@@ -5936,6 +10453,15 @@ class CodeParser:
         Returns (None, None) for unrecognised shapes.
         """
         children = node.children
+        if (
+            len(children) == 2
+            and children[0].type == "identifier"
+            and children[-1].type == "argument_list"
+        ):
+            return (
+                children[0].text.decode("utf-8", errors="replace"),
+                None,
+            )
         if len(children) < 3:
             return None, None
 
@@ -6437,6 +10963,502 @@ class CodeParser:
 
         return False
 
+    def _rust_path_segments(self, node) -> list[str]:
+        """Return semantic Rust path segments while discarding type arguments."""
+        if node is None:
+            return []
+        if node.type in (
+            "identifier", "type_identifier", "crate", "self", "super",
+        ):
+            return [node.text.decode("utf-8", errors="replace")]
+        if node.type in (
+            "scoped_identifier", "scoped_type_identifier",
+        ):
+            path = node.child_by_field_name("path")
+            name = node.child_by_field_name("name")
+            return self._rust_path_segments(path) + self._rust_path_segments(name)
+        if node.type == "generic_type":
+            return self._rust_path_segments(node.child_by_field_name("type"))
+        if node.type == "generic_function":
+            return self._rust_path_segments(node.child_by_field_name("function"))
+        return []
+
+    def _parse_rust_use_node(
+        self, node, prefix: tuple[str, ...] = (),
+    ) -> list[tuple[str, str]]:
+        """Flatten nested Rust use trees into local-name/original-path pairs."""
+        if node.type == "use_declaration":
+            argument = node.child_by_field_name("argument")
+            return self._parse_rust_use_node(argument, prefix) if argument else []
+
+        if node.type in ("identifier", "type_identifier"):
+            name = node.text.decode("utf-8", errors="replace")
+            full = (*prefix, name)
+            return [(name, "::".join(full))]
+
+        if node.type == "self":
+            if not prefix:
+                return []
+            return [(prefix[-1], "::".join(prefix))]
+
+        if node.type in ("scoped_identifier", "scoped_type_identifier"):
+            segments = tuple(self._rust_path_segments(node))
+            if not segments:
+                return []
+            full = (*prefix, *segments)
+            return [(segments[-1], "::".join(full))]
+
+        if node.type == "use_as_clause":
+            path = node.child_by_field_name("path")
+            alias = node.child_by_field_name("alias")
+            segments = tuple(self._rust_path_segments(path))
+            if not segments or alias is None:
+                return []
+            local_name = alias.text.decode("utf-8", errors="replace")
+            return [(local_name, "::".join((*prefix, *segments)))]
+
+        if node.type == "scoped_use_list":
+            path = node.child_by_field_name("path")
+            use_list = node.child_by_field_name("list")
+            path_segments = tuple(self._rust_path_segments(path))
+            if use_list is None:
+                return []
+            return self._parse_rust_use_node(
+                use_list, (*prefix, *path_segments),
+            )
+
+        if node.type == "use_list":
+            results: list[tuple[str, str]] = []
+            for child in node.children:
+                if child.is_named:
+                    results.extend(self._parse_rust_use_node(child, prefix))
+            return results
+
+        if node.type == "use_wildcard":
+            path = node.child_by_field_name("path")
+            segments = tuple(self._rust_path_segments(path))
+            full = (*prefix, *segments)
+            return [("*", "::".join(full))] if full else []
+
+        return []
+
+    def _resolve_rust_type_target(
+        self,
+        segments: list[str],
+        file_path: str,
+        import_map: dict[str, str],
+        defined_names: set[str],
+    ) -> str:
+        """Resolve a Rust type path only when file evidence is available."""
+        if not segments:
+            return ""
+        local_name = segments[-1]
+        if len(segments) == 1 and local_name in defined_names:
+            return self._qualify(local_name, file_path, None)
+
+        first = segments[0]
+        if first in import_map:
+            imported = import_map[first].split("::") + segments[1:]
+            original_name = imported[-1]
+            resolved = self._resolve_module_to_file(
+                "::".join(imported), file_path, "rust",
+            )
+            if resolved:
+                return self._qualify(original_name, resolved, None)
+
+        resolved = self._resolve_module_to_file(
+            "::".join(segments), file_path, "rust",
+        )
+        if resolved:
+            return self._qualify(local_name, resolved, None)
+        return "::".join(segments)
+
+    def _extract_rust_impl(
+        self,
+        impl_node,
+        source: bytes,
+        file_path: str,
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+        import_map: dict[str, str],
+        defined_names: set[str],
+        depth: int,
+    ) -> None:
+        """Use impl blocks as method scopes without emitting duplicate types."""
+        type_node = impl_node.child_by_field_name("type")
+        target_segments = self._rust_path_segments(type_node)
+        if not target_segments:
+            return
+        target_name = target_segments[-1]
+        trait_node = impl_node.child_by_field_name("trait")
+        if trait_node is not None:
+            trait_segments = self._rust_path_segments(trait_node)
+            trait_target = self._resolve_rust_type_target(
+                trait_segments, file_path, import_map, defined_names,
+            )
+            if trait_target:
+                edges.append(EdgeInfo(
+                    kind="IMPLEMENTS",
+                    source=self._qualify(target_name, file_path, None),
+                    target=trait_target,
+                    file_path=file_path,
+                    line=impl_node.start_point[0] + 1,
+                ))
+
+        self._extract_from_tree(
+            impl_node,
+            source,
+            "rust",
+            file_path,
+            nodes,
+            edges,
+            enclosing_class=target_name,
+            import_map=import_map,
+            defined_names=defined_names,
+            _depth=depth + 1,
+        )
+
+    def _extract_verilog_constructs(
+        self,
+        child,
+        node_type: str,
+        file_path: str,
+        nodes: list[NodeInfo],
+        edges: list[EdgeInfo],
+        enclosing_class: Optional[str],
+        enclosing_func: Optional[str],
+    ) -> bool:
+        """Index module-level RTL declarations without inventing local globals.
+
+        Signal-like declarations use Function nodes for backward-compatible
+        storage, but carry ``extra["verilog_kind"]`` so function-oriented
+        analyses can exclude them. Function/task-local declarations are
+        intentionally consumed without emission because the graph has no
+        variable-scope identity model.
+        """
+
+        def decode(node) -> str:
+            return node.text.decode("utf-8", errors="replace")
+
+        def find_simple_identifier(node) -> Optional[str]:
+            if node.type == "simple_identifier":
+                return decode(node)
+            for sub in node.children:
+                found = find_simple_identifier(sub)
+                if found:
+                    return found
+            return None
+
+        def emit(
+            name: Optional[str],
+            source_node,
+            kind: str,
+            modifiers: Optional[str] = None,
+            return_type: Optional[str] = None,
+            default: Optional[str] = None,
+        ) -> None:
+            if not name:
+                return
+            if any(
+                node.name == name
+                and node.parent_name == enclosing_class
+                and node.extra.get("verilog_kind") == kind
+                for node in nodes
+            ):
+                return
+            extra: dict = {"verilog_kind": kind}
+            if default is not None:
+                extra["default"] = default
+            qualified = self._qualify(name, file_path, enclosing_class)
+            nodes.append(NodeInfo(
+                kind="Function",
+                name=name,
+                file_path=file_path,
+                line_start=source_node.start_point[0] + 1,
+                line_end=source_node.end_point[0] + 1,
+                language="verilog",
+                parent_name=enclosing_class,
+                return_type=return_type,
+                modifiers=modifiers,
+                extra=extra,
+            ))
+            container = (
+                self._qualify(enclosing_class, file_path, None)
+                if enclosing_class
+                else file_path
+            )
+            edges.append(EdgeInfo(
+                kind="CONTAINS",
+                source=container,
+                target=qualified,
+                file_path=file_path,
+                line=source_node.start_point[0] + 1,
+            ))
+
+        local_declarations = {
+            "data_declaration",
+            "input_declaration",
+            "output_declaration",
+            "inout_declaration",
+            "net_declaration",
+            "parameter_declaration",
+            "local_parameter_declaration",
+            "type_declaration",
+        }
+        if enclosing_func is not None and node_type in local_declarations:
+            return True
+
+        if node_type == "list_of_port_declarations":
+            last_direction: Optional[str] = None
+            last_type: Optional[str] = None
+            for port in child.children:
+                if port.type != "ansi_port_declaration":
+                    continue
+                direction = last_direction
+                data_type = last_type
+                name = None
+                for sub in port.children:
+                    if sub.type in (
+                        "variable_port_header",
+                        "net_port_header",
+                        "net_port_header1",
+                        "interface_port_header",
+                    ):
+                        for header_part in sub.children:
+                            if header_part.type == "port_direction":
+                                direction = decode(header_part).strip() or direction
+                            elif header_part.type in (
+                                "data_type",
+                                "net_port_type1",
+                                "variable_port_type",
+                                "data_type_or_implicit1",
+                            ):
+                                data_type = decode(header_part)
+                    elif sub.type == "port_identifier":
+                        name = find_simple_identifier(sub)
+                if name:
+                    last_direction = direction
+                    last_type = data_type
+                    emit(name, port, "port", direction, data_type)
+            return True
+
+        if node_type in (
+            "input_declaration", "output_declaration", "inout_declaration",
+        ):
+            direction = node_type.split("_", 1)[0]
+            data_type = None
+            for sub in child.children:
+                if sub.type in ("data_type", "data_type_or_implicit1"):
+                    data_type = decode(sub)
+            for sub in child.children:
+                if sub.type not in (
+                    "list_of_port_identifiers",
+                    "list_of_variable_identifiers",
+                    "list_of_variable_port_identifiers",
+                ):
+                    continue
+                for identifier in sub.children:
+                    if identifier.type == "port_identifier":
+                        emit(
+                            find_simple_identifier(identifier),
+                            identifier,
+                            "port",
+                            direction,
+                            data_type,
+                        )
+                    elif identifier.type == "simple_identifier":
+                        emit(
+                            decode(identifier),
+                            identifier,
+                            "port",
+                            direction,
+                            data_type,
+                        )
+            return True
+
+        if node_type in (
+            "parameter_declaration", "local_parameter_declaration",
+        ):
+            kind = (
+                "localparam"
+                if node_type == "local_parameter_declaration"
+                else "parameter"
+            )
+            data_type = None
+            for sub in child.children:
+                if sub.type in ("data_type_or_implicit1", "data_type"):
+                    data_type = decode(sub)
+                elif sub.type == "list_of_param_assignments":
+                    for assignment in sub.children:
+                        if assignment.type != "param_assignment":
+                            continue
+                        name = None
+                        default = None
+                        for part in assignment.children:
+                            if part.type in (
+                                "parameter_identifier", "simple_identifier",
+                            ):
+                                name = find_simple_identifier(part)
+                            elif part.type == "constant_param_expression":
+                                default = decode(part)
+                        emit(
+                            name,
+                            assignment,
+                            kind,
+                            return_type=data_type,
+                            default=default,
+                        )
+            return True
+
+        if node_type == "net_declaration":
+            keyword = None
+            for sub in child.children:
+                if sub.type == "net_type":
+                    keyword = decode(sub).strip()
+            for sub in child.children:
+                if sub.type != "list_of_net_decl_assignments":
+                    continue
+                for assignment in sub.children:
+                    if assignment.type == "net_decl_assignment":
+                        emit(
+                            find_simple_identifier(assignment),
+                            assignment,
+                            "net",
+                            keyword,
+                            keyword,
+                        )
+            return True
+
+        if node_type == "data_declaration":
+            if any(
+                sub.type in ("package_import_declaration", "type_declaration")
+                for sub in child.children
+            ):
+                return False
+            data_type = None
+            for sub in child.children:
+                if sub.type == "data_type_or_implicit1":
+                    data_type = decode(sub)
+            keyword = data_type.split()[0] if data_type else None
+            for sub in child.children:
+                if sub.type != "list_of_variable_decl_assignments":
+                    continue
+                for assignment in sub.children:
+                    if assignment.type == "variable_decl_assignment":
+                        emit(
+                            find_simple_identifier(assignment),
+                            assignment,
+                            "net",
+                            keyword,
+                            data_type,
+                        )
+            return True
+
+        if node_type == "type_declaration":
+            name = None
+            data_type = None
+            for sub in child.children:
+                if sub.type == "simple_identifier":
+                    name = decode(sub)
+                elif sub.type == "data_type":
+                    data_type = decode(sub)
+            emit(name, child, "typedef", return_type=data_type)
+            return True
+
+        if node_type == "modport_declaration":
+            for item in child.children:
+                if item.type != "modport_item":
+                    continue
+                name = next(
+                    (
+                        find_simple_identifier(sub)
+                        for sub in item.children
+                        if sub.type == "modport_identifier"
+                    ),
+                    None,
+                )
+                emit(name, item, "modport")
+            return True
+
+        if node_type == "named_port_connection":
+            expression = next(
+                (sub for sub in child.children if sub.type == "expression"),
+                None,
+            )
+            if expression is None:
+                return True
+            roots: set[str] = set()
+
+            def collect_roots(node) -> None:
+                if node.type == "simple_identifier":
+                    roots.add(decode(node))
+                    return
+                for sub in node.children:
+                    if sub.type in (
+                        "select1",
+                        "select",
+                        "bit_select",
+                        "constant_range",
+                        "constant_expression",
+                    ):
+                        continue
+                    collect_roots(sub)
+
+            collect_roots(expression)
+            known_signals = {
+                node.name
+                for node in nodes
+                if node.parent_name == enclosing_class
+                and node.extra.get("verilog_kind") in {
+                    "port", "net", "parameter", "localparam",
+                }
+            }
+            source_name = (
+                self._qualify(enclosing_class, file_path, None)
+                if enclosing_class
+                else file_path
+            )
+            for signal in sorted(roots & known_signals):
+                edges.append(EdgeInfo(
+                    kind="REFERENCES",
+                    source=source_name,
+                    target=self._qualify(signal, file_path, enclosing_class),
+                    file_path=file_path,
+                    line=child.start_point[0] + 1,
+                ))
+            return True
+
+        if node_type in ("covergroup_declaration", "property_declaration"):
+            identifier_type = (
+                "covergroup_identifier"
+                if node_type == "covergroup_declaration"
+                else "property_identifier"
+            )
+            name = next(
+                (
+                    find_simple_identifier(sub)
+                    for sub in child.children
+                    if sub.type == identifier_type
+                ),
+                None,
+            )
+            emit(name, child, node_type.split("_", 1)[0])
+            return True
+
+        if node_type == "sequence_declaration":
+            name = next(
+                (
+                    decode(sub)
+                    for sub in child.children
+                    if sub.type == "simple_identifier"
+                ),
+                None,
+            )
+            emit(name, child, "sequence")
+            return True
+
+        return False
+
     def _collect_file_scope(
         self, root, language: str, source: bytes,
     ) -> tuple[dict[str, str], set[str]]:
@@ -6459,6 +11481,23 @@ class CodeParser:
 
         for child in root.children:
             node_type = child.type
+
+            if language == "java" and node_type == "package_declaration":
+                package = child.text.decode("utf-8", errors="replace").strip()
+                package = package.removeprefix("package ").removesuffix(";").strip()
+                if package:
+                    import_map[_JAVA_PACKAGE_KEY] = package
+                continue
+
+            # Kotlin groups top-level imports under an ``import_list`` node,
+            # while the generic import table contains ``import_header``.
+            if language == "kotlin" and node_type == "import_list":
+                for import_node in child.children:
+                    if import_node.type == "import_header":
+                        self._collect_import_names(
+                            import_node, language, source, import_map,
+                        )
+                continue
 
             # Unwrap decorator wrappers to reach the inner definition
             target = child
@@ -6508,7 +11547,53 @@ class CodeParser:
             if node_type in import_types:
                 self._collect_import_names(child, language, source, import_map)
 
+            if (
+                language in ("javascript", "typescript", "tsx")
+                and node_type in ("lexical_declaration", "variable_declaration")
+            ):
+                self._collect_js_require_names(child, import_map)
+
+        if language == "julia":
+            self._collect_julia_scoped_import_names(
+                root, source, import_map,
+            )
+
         return import_map, defined_names
+
+    def _collect_julia_scoped_import_names(
+        self,
+        node,
+        source: bytes,
+        import_map: dict[str, str],
+        scope: Optional[str] = None,
+    ) -> None:
+        """Collect Julia aliases without leaking them across modules."""
+        current_scope = scope
+        if node.type == "module_definition":
+            name_node = node.child_by_field_name("name")
+            if name_node is not None:
+                module_name = name_node.text.decode(
+                    "utf-8", errors="replace",
+                )
+                current_scope = self._julia_scope_join(
+                    current_scope, module_name,
+                )
+
+        import_types = set(self._import_types.get("julia", []))
+        for child in node.children:
+            if child.type in import_types:
+                local_imports: dict[str, str] = {}
+                self._collect_import_names(
+                    child, "julia", source, local_imports,
+                )
+                for alias, target in local_imports.items():
+                    key = self._julia_scope_join(current_scope, alias)
+                    if key:
+                        import_map[key] = target
+                continue
+            self._collect_julia_scoped_import_names(
+                child, source, import_map, current_scope,
+            )
 
     def _expand_python_star_imports(
         self,
@@ -6721,6 +11806,100 @@ class CodeParser:
                                 )
                                 break
 
+    @staticmethod
+    def _js_static_module_target(call_node) -> Optional[str]:
+        """Return a literal module target from ``require``/``import``.
+
+        Only direct calls with exactly one non-empty string (or a template
+        literal without substitutions) are accepted. Expressions such as
+        ``path.join(...)`` and interpolated templates are deliberately
+        ignored because reducing them to a path prefix creates false edges.
+        """
+        function = call_node.child_by_field_name("function")
+        if function is None:
+            function = next(iter(call_node.named_children), None)
+        if function is None:
+            return None
+        function_text = function.text.decode("utf-8", errors="replace")
+        if function_text not in ("require", "import"):
+            return None
+
+        arguments = call_node.child_by_field_name("arguments")
+        if arguments is None:
+            arguments = next(
+                (child for child in call_node.children if child.type == "arguments"),
+                None,
+            )
+        if arguments is None or len(arguments.named_children) != 1:
+            return None
+
+        argument = arguments.named_children[0]
+        raw = argument.text.decode("utf-8", errors="replace")
+        if argument.type == "string":
+            target = raw[1:-1] if len(raw) >= 2 else ""
+            return target or None
+        if argument.type == "template_string":
+            if any(child.type == "template_substitution" for child in argument.children):
+                return None
+            target = raw[1:-1] if len(raw) >= 2 else ""
+            return target or None
+        return None
+
+    def _extract_js_module_call(
+        self,
+        call_node,
+        file_path: str,
+        language: str,
+        edges: list[EdgeInfo],
+    ) -> None:
+        """Emit one file-level IMPORTS_FROM edge for a static module call."""
+        module = self._js_static_module_target(call_node)
+        if not module:
+            return
+        target = self._resolve_module_to_file(module, file_path, language) or module
+        if any(
+            edge.kind == "IMPORTS_FROM"
+            and edge.source == file_path
+            and edge.target == target
+            for edge in edges
+        ):
+            return
+        edges.append(EdgeInfo(
+            kind="IMPORTS_FROM",
+            source=file_path,
+            target=target,
+            file_path=file_path,
+            line=call_node.start_point[0] + 1,
+        ))
+
+    def _collect_js_require_names(
+        self,
+        declaration,
+        import_map: dict[str, str],
+    ) -> None:
+        """Collect direct and shorthand-destructured CommonJS bindings."""
+        for declarator in declaration.named_children:
+            if declarator.type != "variable_declarator":
+                continue
+            value = declarator.child_by_field_name("value")
+            if value is None or value.type != "call_expression":
+                continue
+            module = self._js_static_module_target(value)
+            if not module:
+                continue
+            name = declarator.child_by_field_name("name")
+            if name is None:
+                continue
+            if name.type == "identifier":
+                import_map[name.text.decode("utf-8", errors="replace")] = module
+                continue
+            if name.type != "object_pattern":
+                continue
+            for child in name.named_children:
+                if child.type == "shorthand_property_identifier_pattern":
+                    local_name = child.text.decode("utf-8", errors="replace")
+                    import_map[local_name] = module
+
     def _collect_import_names(
         self, node, language: str, source: bytes, import_map: dict[str, str],
     ) -> None:
@@ -6760,6 +11939,75 @@ class CodeParser:
                 for child in node.children:
                     if child.type == "import_clause":
                         self._collect_js_import_names(child, module, import_map)
+
+        elif language == "rust":
+            for local_name, original_path in self._parse_rust_use_node(node):
+                if local_name != "*":
+                    import_map[local_name] = original_path
+
+        elif language == "julia":
+            def _alias_parts(alias_node) -> tuple[Optional[str], Optional[str]]:
+                names: list[str] = []
+                for part in alias_node.children:
+                    if part.type == "identifier":
+                        names.append(
+                            part.text.decode("utf-8", errors="replace"),
+                        )
+                    elif part.type == "import_path":
+                        names.append(
+                            ".".join(
+                                child.text.decode(
+                                    "utf-8", errors="replace",
+                                )
+                                for child in part.children
+                                if child.type == "identifier"
+                            ),
+                        )
+                if len(names) < 2:
+                    return None, None
+                return names[0], names[-1]
+
+            for child in node.children:
+                if child.type == "import_alias":
+                    real_name, alias = _alias_parts(child)
+                    if real_name and alias:
+                        import_map[alias] = real_name
+                    continue
+                if child.type != "selected_import":
+                    continue
+                module_name: Optional[str] = None
+                seen_colon = False
+                for part in child.children:
+                    if part.type == ":":
+                        seen_colon = True
+                    elif not seen_colon and part.type == "identifier":
+                        module_name = part.text.decode(
+                            "utf-8", errors="replace",
+                        )
+                    elif not seen_colon and part.type == "import_path":
+                        module_name = ".".join(
+                            component.text.decode(
+                                "utf-8", errors="replace",
+                            )
+                            for component in part.children
+                            if component.type == "identifier"
+                        )
+                    elif seen_colon and part.type == "import_alias":
+                        real_name, alias = _alias_parts(part)
+                        if module_name and real_name and alias:
+                            import_map[alias] = f"{module_name}.{real_name}"
+
+        elif language in ("java", "kotlin"):
+            text = node.text.decode("utf-8", errors="replace").strip()
+            if not text.startswith("import "):
+                return
+            imported = text[len("import "):].rstrip(";").strip()
+            if imported.startswith("static ") or imported.endswith(".*"):
+                return
+            original, separator, alias = imported.partition(" as ")
+            local_name = alias.strip() if separator else original.rsplit(".", 1)[-1]
+            if local_name:
+                import_map[local_name] = original.strip()
 
     def _collect_js_import_names(
         self, clause_node, module: str, import_map: dict[str, str],
@@ -6918,6 +12166,9 @@ class CodeParser:
             # ``dart:core`` / ``dart:async`` etc. are SDK libraries we do
             # not track; fall through to return None.
 
+        elif language == "rust":
+            return self._resolve_rust_module_file(module, file_path)
+
         elif language == "java":
             # ``import com.example.pkg.ClassName;`` — convert dot-notation
             # to a relative path and walk up from the caller's directory to
@@ -6949,6 +12200,20 @@ class CodeParser:
                     if current == current.parent:
                         break
                     current = current.parent
+
+        elif language == "kotlin":
+            if module.endswith(".*"):
+                return None
+            relative = module.replace(".", "/")
+            current = caller_dir
+            while True:
+                for suffix in (".kt", ".kts"):
+                    target = current / f"{relative}{suffix}"
+                    if target.is_file():
+                        return str(target.resolve())
+                if current == current.parent:
+                    break
+                current = current.parent
 
         elif language == "php":
             composer_resolved = self._resolve_php_composer_module(
@@ -6989,6 +12254,248 @@ class CodeParser:
                 current = current.parent
 
         return None
+
+    @staticmethod
+    def _rust_dependency_specs(manifest: dict[str, Any]) -> dict[str, Any]:
+        """Collect Cargo dependency tables, including target-specific ones."""
+        specs: dict[str, Any] = {}
+        for section in ("dependencies", "dev-dependencies", "build-dependencies"):
+            table = manifest.get(section)
+            if isinstance(table, dict):
+                specs.update(table)
+        target_tables = manifest.get("target")
+        if isinstance(target_tables, dict):
+            for target in target_tables.values():
+                if not isinstance(target, dict):
+                    continue
+                for section in (
+                    "dependencies", "dev-dependencies", "build-dependencies",
+                ):
+                    table = target.get(section)
+                    if isinstance(table, dict):
+                        specs.update(table)
+        return specs
+
+    @staticmethod
+    def _rust_crate_layout(crate_root: Path) -> Optional[tuple[Path, Path]]:
+        """Return ``(source root, crate root module)`` for a local crate."""
+        manifest = _load_cargo_manifest(crate_root / "Cargo.toml")
+        if not isinstance(manifest.get("package"), dict):
+            return None
+        lib = manifest.get("lib")
+        explicit_lib = lib.get("path") if isinstance(lib, dict) else None
+        if isinstance(explicit_lib, str):
+            root_file = crate_root / explicit_lib
+            if root_file.is_file():
+                return root_file.parent, root_file
+
+        source_root = crate_root / "src"
+        for name in ("lib.rs", "main.rs"):
+            candidate = source_root / name
+            if candidate.is_file():
+                return source_root, candidate
+        return None
+
+    def _rust_project_context(
+        self, file_path: str,
+    ) -> Optional[tuple[Path, Path, Path, dict[str, Path], Path]]:
+        """Discover a bounded Cargo crate/workspace once per source directory."""
+        try:
+            caller_dir = Path(file_path).resolve().parent
+        except (OSError, RuntimeError, ValueError):
+            return None
+        if self._repo_root is not None and not _path_is_within(
+            caller_dir, self._repo_root,
+        ):
+            return None
+        key = str(caller_dir)
+        if key in self._rust_project_cache:
+            return self._rust_project_cache[key]
+
+        manifests: list[tuple[Path, dict[str, Any]]] = []
+        current = caller_dir
+        for _ in range(64):
+            manifest_path = current / "Cargo.toml"
+            if manifest_path.is_file():
+                manifests.append((manifest_path, _load_cargo_manifest(manifest_path)))
+            if self._repo_root is not None and current == self._repo_root:
+                break
+            if current == current.parent:
+                break
+            current = current.parent
+
+        crate_entry = next(
+            (
+                entry for entry in manifests
+                if isinstance(entry[1].get("package"), dict)
+            ),
+            None,
+        )
+        if crate_entry is None:
+            return None
+        crate_manifest, crate_data = crate_entry
+        crate_root = crate_manifest.parent
+        workspace_entry = next(
+            (
+                entry for entry in manifests
+                if isinstance(entry[1].get("workspace"), dict)
+            ),
+            None,
+        )
+        workspace_root = (
+            workspace_entry[0].parent if workspace_entry else crate_root
+        )
+        boundary = self._repo_root or workspace_root
+        try:
+            boundary = boundary.resolve()
+            crate_root = crate_root.resolve()
+        except (OSError, RuntimeError, ValueError):
+            return None
+        if not _path_is_within(crate_root, boundary):
+            return None
+
+        layout = self._rust_crate_layout(crate_root)
+        if layout is None:
+            return None
+        source_root, root_file = layout
+
+        workspace_specs: dict[str, Any] = {}
+        workspace_base = workspace_root
+        if workspace_entry:
+            workspace_table = workspace_entry[1].get("workspace")
+            if isinstance(workspace_table, dict):
+                raw_specs = workspace_table.get("dependencies")
+                if isinstance(raw_specs, dict):
+                    workspace_specs = raw_specs
+
+        dependencies: dict[str, Path] = {}
+        for alias, raw_spec in self._rust_dependency_specs(crate_data).items():
+            if not isinstance(alias, str) or not isinstance(raw_spec, dict):
+                continue
+            spec = raw_spec
+            base = crate_root
+            if raw_spec.get("workspace") is True:
+                inherited = workspace_specs.get(alias)
+                if not isinstance(inherited, dict):
+                    continue
+                spec = inherited
+                base = workspace_base
+            raw_path = spec.get("path")
+            if not isinstance(raw_path, str):
+                continue
+            try:
+                dependency_root = (base / raw_path).resolve()
+            except (OSError, RuntimeError, ValueError):
+                continue
+            if not _path_is_within(dependency_root, boundary):
+                continue
+            if self._rust_crate_layout(dependency_root) is None:
+                continue
+            dependencies[alias] = dependency_root
+            dependencies[alias.replace("-", "_")] = dependency_root
+
+        context = (crate_root, source_root, root_file, dependencies, boundary)
+        self._rust_project_cache[key] = context
+        return context
+
+    @staticmethod
+    def _rust_current_module_parts(file_path: Path, source_root: Path) -> list[str]:
+        try:
+            relative = file_path.resolve().relative_to(source_root.resolve())
+        except (OSError, RuntimeError, ValueError):
+            return []
+        parts = list(relative.parts)
+        if not parts:
+            return []
+        filename = parts.pop()
+        if filename not in ("lib.rs", "main.rs", "mod.rs"):
+            parts.append(Path(filename).stem)
+        return parts
+
+    @staticmethod
+    def _rust_module_file_for_parts(
+        source_root: Path, root_file: Path, parts: list[str],
+    ) -> Optional[Path]:
+        if not parts:
+            return root_file
+        relative = Path(*parts)
+        flat = source_root / relative.with_suffix(".rs")
+        nested = source_root / relative / "mod.rs"
+        if flat.is_file():
+            return flat
+        if nested.is_file():
+            return nested
+        return None
+
+    def _resolve_rust_module_file(
+        self, module: str, file_path: str,
+    ) -> Optional[str]:
+        """Resolve crate/self/super and local path dependencies to source files."""
+        context = self._rust_project_context(file_path)
+        if context is None:
+            return None
+        _, source_root, root_file, dependencies, boundary = context
+        segments = [segment for segment in module.split("::") if segment]
+        if not segments:
+            return None
+
+        current_parts: list[str] = []
+        current_file = root_file
+        remaining = list(segments)
+        first = remaining[0]
+        if first == "crate":
+            remaining.pop(0)
+        elif first == "self":
+            remaining.pop(0)
+            current_parts = self._rust_current_module_parts(
+                Path(file_path), source_root,
+            )
+            current_file = Path(file_path)
+        elif first == "super":
+            current_parts = self._rust_current_module_parts(
+                Path(file_path), source_root,
+            )
+            while remaining and remaining[0] == "super":
+                remaining.pop(0)
+                if current_parts:
+                    current_parts.pop()
+            parent_file = self._rust_module_file_for_parts(
+                source_root, root_file, current_parts,
+            )
+            if parent_file is None:
+                return None
+            current_file = parent_file
+        elif first in dependencies:
+            dependency_root = dependencies[first]
+            remaining.pop(0)
+            layout = self._rust_crate_layout(dependency_root)
+            if layout is None:
+                return None
+            source_root, current_file = layout
+            current_parts = []
+
+        for index, segment in enumerate(remaining):
+            candidate_parts = [*current_parts, segment]
+            candidate = self._rust_module_file_for_parts(
+                source_root, current_file if not current_parts else root_file,
+                candidate_parts,
+            )
+            if candidate is not None:
+                current_parts = candidate_parts
+                current_file = candidate
+                continue
+            # The final segment can be an item exported by the current module.
+            if index != len(remaining) - 1:
+                return None
+            break
+
+        try:
+            resolved = current_file.resolve()
+        except (OSError, RuntimeError, ValueError):
+            return None
+        if not _path_is_within(resolved, boundary):
+            return None
+        return str(resolved)
 
     def _resolve_php_composer_module(
         self,
@@ -7107,6 +12614,43 @@ class CodeParser:
         self._dart_pubspec_cache[cache_key] = None
         return None
 
+    def _resolve_rust_scoped_call(
+        self,
+        call_name: str,
+        file_path: str,
+        import_map: dict[str, str],
+        defined_names: set[str],
+    ) -> Optional[str]:
+        """Resolve associated/module Rust calls with alias provenance."""
+        parts = [part for part in call_name.split("::") if part]
+        if len(parts) < 2:
+            return None
+        method = parts[-1]
+        prefix = parts[:-1]
+        if prefix == ["Self"]:
+            return None
+        if len(prefix) == 1 and prefix[0] in defined_names:
+            return f"{self._qualify(prefix[0], file_path, None)}.{method}"
+
+        if prefix[0] in import_map:
+            prefix = import_map[prefix[0]].split("::") + prefix[1:]
+
+        resolved = self._resolve_module_to_file(
+            "::".join(prefix), file_path, "rust",
+        )
+        if resolved is None:
+            return None
+        parent_resolved = None
+        if len(prefix) > 1:
+            parent_resolved = self._resolve_module_to_file(
+                "::".join(prefix[:-1]), file_path, "rust",
+            )
+        if parent_resolved == resolved and prefix[-1] not in {
+            "crate", "self", "super",
+        }:
+            return f"{self._qualify(prefix[-1], resolved, None)}.{method}"
+        return self._qualify(method, resolved, None)
+
     def _resolve_call_target(
         self,
         call_name: str,
@@ -7116,9 +12660,17 @@ class CodeParser:
         defined_names: set[str],
     ) -> str:
         """Resolve a bare call name to a qualified target, with fallback."""
+        if language == "rust" and "::" in call_name:
+            resolved_rust = self._resolve_rust_scoped_call(
+                call_name, file_path, import_map, defined_names,
+            )
+            if resolved_rust:
+                return resolved_rust
         if call_name in defined_names:
             return self._qualify(call_name, file_path, None)
         if call_name in import_map:
+            if language == "julia":
+                return import_map[call_name]
             resolved = self._resolve_imported_symbol(
                 call_name, import_map[call_name], file_path, language,
             )
@@ -7411,6 +12963,12 @@ class CodeParser:
                             return sub.text.decode("utf-8", errors="replace")
         # Verilog/SystemVerilog: names are nested differently per construct type.
         if language == "verilog":
+            if node.type == "package_declaration":
+                for child in node.children:
+                    if child.type == "package_identifier":
+                        for sub in child.children:
+                            if sub.type == "simple_identifier":
+                                return sub.text.decode("utf-8", errors="replace")
             # module_declaration: name is in module_header > simple_identifier
             if node.type == "module_declaration":
                 for child in node.children:
@@ -7455,43 +13013,21 @@ class CodeParser:
         # ``parametrized_type_expression`` (``{T}``).
         if language == "julia":
             if node.type in ("function_definition", "macro_definition"):
-                for child in node.children:
-                    if child.type == "signature":
-                        call = child
-                        # Unwrap where_expression: signature > where_expression > call_expression
-                        for sub in call.children:
-                            if sub.type == "where_expression":
-                                call = sub
-                                break
-                        # Unwrap typed_expression: signature > typed_expression > call_expression
-                        # (``function foo(x)::ReturnType``)
-                        for sub in call.children:
-                            if sub.type == "typed_expression":
-                                call = sub
-                                break
-                        for sub in call.children:
-                            if sub.type == "call_expression":
-                                for target in sub.children:
-                                    if target.type == "identifier":
-                                        return target.text.decode(
-                                            "utf-8", errors="replace",
-                                        )
-                                    if target.type == "field_expression":
-                                        # Qualified: last identifier is method name
-                                        for ident in reversed(target.children):
-                                            if ident.type == "identifier":
-                                                return ident.text.decode(
-                                                    "utf-8", errors="replace",
-                                                )
-                                    if target.type == "parametrized_type_expression":
-                                        # Parametric constructor: Foo{T}(x) = ...
-                                        for p in target.children:
-                                            if p.type == "identifier":
-                                                return p.text.decode(
-                                                    "utf-8", errors="replace",
-                                                )
-                                return None
-                return None
+                callee = self._julia_signature_callee(node)
+                if callee is None:
+                    return None
+                if callee.type == "field_expression":
+                    _, name = self._julia_field_info(callee)
+                    return name
+                if callee.type == "parametrized_type_expression":
+                    # Parametric constructor: ``Foo{T}(x)``.
+                    for part in callee.children:
+                        if part.type == "identifier":
+                            return part.text.decode(
+                                "utf-8", errors="replace",
+                            )
+                    return None
+                return self._julia_component_name(callee)
             if node.type in ("struct_definition", "abstract_definition"):
                 for child in node.children:
                     if child.type == "type_head":
@@ -7841,8 +13377,10 @@ class CodeParser:
                             val = s.text.decode("utf-8", errors="replace")
                             imports.append(val.strip('"'))
         elif language == "rust":
-            # use crate::module::item
-            imports.append(text.replace("use ", "").rstrip(";").strip())
+            imports.extend(
+                original_path
+                for _, original_path in self._parse_rust_use_node(node)
+            )
         elif language in ("c", "cpp"):
             # #include <header> or #include "header"
             for child in node.children:
@@ -7937,6 +13475,19 @@ class CodeParser:
                         parts.append(sub.text.decode("utf-8", errors="replace"))
                 return ".".join(parts)
 
+            def _alias_real_name(alias_node) -> Optional[str]:
+                for sub in alias_node.children:
+                    if sub.type == "as":
+                        break
+                    if sub.type == "identifier":
+                        return sub.text.decode(
+                            "utf-8", errors="replace",
+                        )
+                    if sub.type == "import_path":
+                        path = _import_path_text(sub)
+                        return path or None
+                return None
+
             for child in node.children:
                 if child.type == "identifier":
                     imports.append(
@@ -7946,6 +13497,10 @@ class CodeParser:
                     path = _import_path_text(child)
                     if path:
                         imports.append(path)
+                elif child.type == "import_alias":
+                    real_name = _alias_real_name(child)
+                    if real_name:
+                        imports.append(real_name)
                 elif child.type == "selected_import":
                     module_name: Optional[str] = None
                     seen_colon = False
@@ -7968,6 +13523,12 @@ class CodeParser:
                                     "utf-8", errors="replace",
                                 )
                                 imports.append(f"{module_name}.{imported}")
+                            elif sub.type == "import_alias" and module_name:
+                                real_name = _alias_real_name(sub)
+                                if real_name:
+                                    imports.append(
+                                        f"{module_name}.{real_name}",
+                                    )
         elif language == "gdscript":
             # ``extends Node`` → type > identifier("Node")
             # ``extends "res://path.gd"`` → string literal
@@ -8056,6 +13617,28 @@ class CodeParser:
 
         first = node.children[0]
 
+        if language == "rust" and node.type == "call_expression":
+            callee = node.child_by_field_name("function")
+            segments = self._rust_path_segments(callee)
+            if segments:
+                return "::".join(segments)
+            while callee is not None and callee.type == "generic_function":
+                callee = callee.child_by_field_name("function")
+            if callee is not None and callee.type == "field_expression":
+                field = callee.child_by_field_name("field")
+                if field is not None:
+                    return field.text.decode("utf-8", errors="replace")
+
+        if language == "java":
+            if node.type == "method_invocation":
+                method, _ = self._get_java_method_and_receiver(node)
+                return method
+            if node.type == "method_reference":
+                _, method = self._get_member_call_receiver_method(node, language)
+                return method
+            if node.type == "object_creation_expression":
+                return self._java_type_name(node)
+
         # Julia macrocall: ``@test expr`` — name is inside
         # ``macro_identifier > identifier``. Prefix with ``@`` to distinguish
         # from ordinary calls.
@@ -8094,16 +13677,10 @@ class CodeParser:
                 return None
 
             if node.type == "scoped_call_expression":
-                parts = []
-                for child in node.children:
-                    if child.type in ("name", "qualified_name"):
-                        raw = child.text.decode("utf-8", errors="replace")
-                        parts.append(_normalize_php_name(raw))
-                if len(parts) >= 2:
-                    return f"{parts[0]}::{parts[-1]}"
-                if parts:
-                    return parts[0]
-                return None
+                scope, method = self._php_scoped_call_parts(node)
+                if not scope or not method:
+                    return None
+                return f"{_normalize_php_name(scope)}::{method}"
 
             if node.type == "object_creation_expression":
                 for child in node.children:
@@ -8146,8 +13723,10 @@ class CodeParser:
                     return txt or None
             return None
 
-        # Verilog/SystemVerilog: module_instantiation's first child is the module name
-        if language == "verilog" and node.type == "module_instantiation":
+        # Verilog/SystemVerilog: the first child is the instantiated type.
+        if language == "verilog" and node.type in (
+            "module_instantiation", "interface_instantiation",
+        ):
             if first.type == "simple_identifier":
                 return first.text.decode("utf-8", errors="replace")
             return None

@@ -2,8 +2,69 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added Terraform/OpenTofu structural parsing for resources, data sources,
+  modules, variables, outputs, locals, providers, and expression references.
+  References resolve across sibling files in a Terraform module, and local
+  module sources connect to parsed target files (PR #514; Terraform portion of
+  #199).
+- Added Ansible playbook, role, task, handler, notification, include, and role
+  dependency extraction with qualified graph relationships, duplicate-task
+  disambiguation, and ordinary-YAML false-positive guards (PR #415).
+- Added bounded VB.NET structural parsing for namespaces, types, generics,
+  multiline members, properties, calls, inheritance, and interfaces. Same-file
+  targets resolve case-insensitively only when scope evidence is unique, and
+  overloads share one stable graph symbol (replacing PR #517).
+- Expanded SystemVerilog structure with ports, nets, parameters, packages,
+  typedefs, modports, port references, and verification declarations. Function
+  locals are excluded rather than promoted to module globals, and signal nodes
+  no longer pollute function risk, flow, dead-code, or size analyses (PR #522).
+- Corrected Rust trait and `impl` identity, preserving one concrete type across
+  repeated implementation blocks. Nested/aliased `use` trees, `Self` and
+  turbofish calls, and bounded cached Cargo path/workspace dependency resolution
+  now retain their original graph targets (replacing PR #526).
+- Added an explicit local JSON visualization export. The output is written
+  atomically inside the ignored graph data directory and is documented as
+  potentially containing absolute paths and code-structure metadata (PR #449).
+- Functions and classes now retain a bounded, first-paragraph documentation
+  summary in backward-compatible node metadata across Python, JSDoc/Javadoc,
+  C# XML docs, Doxygen, Rust, and Go. Semantic embedding text includes the
+  normalized summary, so behavior-oriented queries no longer depend only on
+  identifier overlap (replacing PR #602, with Stefan Hudici attribution).
+- Explicit provider-and-model-scoped embedding refresh is available on build,
+  update, postprocess, and watch paths. It is default-off, refuses silent
+  provider/model/endpoint migration, remains fail-soft, and purges vectors for
+  deleted or renamed nodes; manual `embed` also purges orphans (replacing PR
+  #599, with Stefan Hudici attribution).
+- Added `code-review-graph uninstall` as a safe, symmetric counterpart to
+  `install` (#482, replacing PR #491). It derives MCP cleanup from the live
+  platform specifications, preserves unrelated shared configuration and JSONC
+  comments, commits shared-file edits with atomic replacement, removes only
+  CRG-owned hook/skill files, requires and normalizes Git/SVN repository roots,
+  enforces repository/home boundaries, and supports dry-run,
+  registered-repository, data-retention, and user-config-retention modes.
+
 ### Fixed
 
+- Serialized first-use local embedding dependency imports and model construction
+  across MCP worker threads. POSIX startup remains lazy, failed loads are not
+  cached, and Windows retains its main-thread prewarm (#610, replacing PR #611).
+- PHP scoped/static calls now resolve during parsing when backed by same-file,
+  enclosing-class, import, qualified-name, or namespace evidence. This keeps
+  incremental work bounded to changed files and leaves unrelated globally
+  unique `Class::method` names unresolved (safe subset of PR #568).
+- Incremental Git change discovery now reads NUL-delimited byte output, so
+  Unicode, whitespace, newline, and literal arrow paths are preserved while
+  rename/copy records keep destination-only semantics (PR #618).
+- MCP stdio servers now use thread-based parallel parsing on every platform,
+  preventing inherited transport descriptors from keeping Unix servers and
+  workers alive after host disconnects, while normal non-interactive CLI/CI
+  builds retain the faster process-pool default (PR #615).
+- Bare CALLS targets and TESTED_BY sources are qualified during postprocessing
+  only when same-file or import evidence identifies exactly one node. Query-time
+  fallbacks apply the same rule, preventing unrelated same-named functions from
+  inheriting tests (replacing the unsound subset of PR #601).
 - Corrected TESTED_BY edge direction across graph, refactor, and transitive-test
   consumers, with a parser-to-store-to-query regression (#527/#559/#598 class).
 - C# receiver calls now capture bare, chained, member, and null-conditional

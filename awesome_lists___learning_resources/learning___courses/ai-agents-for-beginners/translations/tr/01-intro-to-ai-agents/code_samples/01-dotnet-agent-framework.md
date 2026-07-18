@@ -1,40 +1,40 @@
-# 🌍 Microsoft Agent Framework (.NET) ile AI Seyahat Acentesi
+# 🌍 Microsoft Agent Framework ile AI Seyahat Acentesi (.NET)
 
 ## 📋 Senaryo Özeti
 
-Bu örnek, Microsoft Agent Framework for .NET kullanarak akıllı bir seyahat planlama acentesi oluşturmayı gösterir. Acenta, dünya çapında rastgele destinasyonlar için kişiselleştirilmiş günlük gezi planları otomatik olarak oluşturabilir.
+Bu örnek, Microsoft Agent Framework for .NET kullanarak nasıl zeki bir seyahat planlama acentesi oluşturulacağını göstermektedir. Acenta, dünyadaki rastgele destinasyonlar için otomatik olarak kişiselleştirilmiş günlük gezi planları oluşturabilir.
 
-### Temel Özellikler:
+### Temel Yetenekler:
 
 - 🎲 **Rastgele Destinasyon Seçimi**: Tatil yerlerini seçmek için özel bir araç kullanır
-- 🗺️ **Akıllı Gezi Planlama**: Ayrıntılı günlük planlar oluşturur
-- 🔄 **Gerçek Zamanlı Akış**: Hem anlık hem de akış yanıtlarını destekler
-- 🛠️ **Özel Araç Entegrasyonu**: Acenta yeteneklerini genişletmeyi gösterir
+- 🗺️ **Zeki Seyahat Planlama**: Gün gün detaylı gezi planları oluşturur
+- 🔄 **Gerçek Zamanlı Akış**: Hem anlık hem de akışlı yanıtları destekler
+- 🛠️ **Özel Araç Entegrasyonu**: Acenta yeteneklerinin nasıl genişletileceğini gösterir
 
 ## 🔧 Teknik Mimari
 
 ### Temel Teknolojiler
 
 - **Microsoft Agent Framework**: AI acente geliştirme için en son .NET uygulaması
-- **GitHub Modelleri Entegrasyonu**: GitHub'ın AI model çıkarım hizmetini kullanır
-- **OpenAI API Uyumluluğu**: Özel uç noktalarla OpenAI istemci kütüphanelerinden yararlanır
-- **Güvenli Yapılandırma**: Çevreye dayalı API anahtarı yönetimi
+- **Azure OpenAI (Yanıtlar API'si)**: Model çıkarımı için Azure OpenAI Yanıtlar API'si kullanılır
+- **Azure Identity**: `AzureCliCredential` (`az login`) ile güvenli oturum açma
+- **Güvenli Yapılandırma**: Ortama dayalı uç nokta yönetimi
 
 ### Ana Bileşenler
 
-1. **AIAgent**: Konuşma akışını yöneten ana acente düzenleyicisi
-2. **Özel Araçlar**: Acenta için kullanılabilir `GetRandomDestination()` fonksiyonu
-3. **Sohbet İstemcisi**: GitHub Modelleri destekli konuşma arayüzü
+1. **AIAgent**: Konuşma akışını yöneten ana acente orkestratörü
+2. **Özel Araçlar**: Acentanın kullanımına açık `GetRandomDestination()` fonksiyonu
+3. **Yanıt İstemcisi**: Azure OpenAI Yanıtlar tabanlı konuşma arayüzü
 4. **Akış Desteği**: Gerçek zamanlı yanıt oluşturma yetenekleri
 
-### Entegrasyon Modeli
+### Entegrasyon Deseni
 
 ```mermaid
 graph LR
-    A[User Request] --> B[AI Agent]
-    B --> C[GitHub Models API]
-    B --> D[GetRandomDestination Tool]
-    C --> E[Travel Itinerary]
+    A[Kullanıcı Talebi] --> B[AI Ajanı]
+    B --> C[Azure OpenAI (Yanıtlar API'si)]
+    B --> D[RastgeleHedefAl Aracı]
+    C --> E[Seyahat Programı]
     D --> E
 ```
 
@@ -42,28 +42,31 @@ graph LR
 
 ### Ön Koşullar
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) veya üstü
-- [GitHub Modelleri API erişim anahtarı](https://docs.github.com/github-models/github-models-at-scale/using-your-own-api-keys-in-github-models)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) veya üzeri
+- Azure OpenAI kaynağı ve model dağıtımı olan bir [Azure aboneliği](https://azure.microsoft.com/free/)
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` ile oturum açın
 
-### Gerekli Çevre Değişkenleri
+### Gerekli Ortam Değişkenleri
 
 ```bash
 # zsh/bash
-export GH_TOKEN=<your_github_token>
-export GH_ENDPOINT=https://models.github.ai/inference
-export GH_MODEL_ID=openai/gpt-5-mini
+export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+# AzureCliCredential bir jeton alabilmesi için giriş yapın
+az login
 ```
 
 ```powershell
 # PowerShell
-$env:GH_TOKEN = "<your_github_token>"
-$env:GH_ENDPOINT = "https://models.github.ai/inference"
-$env:GH_MODEL_ID = "openai/gpt-5-mini"
+$env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+# Daha sonra AzureCliCredential bir belirteç alabilmesi için oturum açın
+az login
 ```
 
 ### Örnek Kod
 
-Kod örneğini çalıştırmak için,
+Örnek kodu çalıştırmak için,
 
 ```bash
 # zsh/bash
@@ -82,16 +85,18 @@ Tam kod için [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents
 ```csharp
 #!/usr/bin/dotnet run
 
-#:package Microsoft.Extensions.AI@9.*
-#:package Microsoft.Agents.AI.OpenAI@1.*-*
+#:package Microsoft.Extensions.AI@10.4.1
+#:package Microsoft.Agents.AI.OpenAI@1.1.0
+#:package Azure.AI.OpenAI@2.1.0
+#:package Azure.Identity@1.13.1
 
-using System.ClientModel;
 using System.ComponentModel;
 
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
-using OpenAI;
+using Azure.AI.OpenAI;
+using Azure.Identity;
 
 // Tool Function: Random Destination Generator
 // This static method will be available to the agent as a callable tool
@@ -123,34 +128,20 @@ static string GetRandomDestination()
     return destinations[index];
 }
 
-// Extract configuration from environment variables
-// Retrieve the GitHub Models API endpoint, defaults to https://models.github.ai/inference if not specified
-// Retrieve the model ID, defaults to openai/gpt-5-mini if not specified
-// Retrieve the GitHub token for authentication, throws exception if not specified
-var github_endpoint = Environment.GetEnvironmentVariable("GH_ENDPOINT") ?? "https://models.github.ai/inference";
-var github_model_id = Environment.GetEnvironmentVariable("GH_MODEL_ID") ?? "openai/gpt-5-mini";
-var github_token = Environment.GetEnvironmentVariable("GH_TOKEN") ?? throw new InvalidOperationException("GH_TOKEN is not set.");
+// Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
+var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
+    ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
 
-// Configure OpenAI Client Options
-// Create configuration options to point to GitHub Models endpoint
-// This redirects OpenAI client calls to GitHub's model inference service
-var openAIOptions = new OpenAIClientOptions()
-{
-    Endpoint = new Uri(github_endpoint)
-};
-
-// Initialize OpenAI Client with GitHub Models Configuration
-// Create OpenAI client using GitHub token for authentication
-// Configure it to use GitHub Models endpoint instead of OpenAI directly
-var openAIClient = new OpenAIClient(new ApiKeyCredential(github_token), openAIOptions);
+var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
 // Create AI Agent with Travel Planning Capabilities
-// Initialize OpenAI client, get chat client for specified model, and create AI agent
+// Get the Responses client for the specified deployment and create the AI agent
 // Configure agent with travel planning instructions and random destination tool
 // The agent can now plan trips using the GetRandomDestination function
-AIAgent agent = openAIClient
-    .GetChatClient(github_model_id)
-    .CreateAIAgent(
+AIAgent agent = azureClient
+    .GetChatClient(deployment)
+    .AsAIAgent(
         instructions: "You are a helpful AI Agent that can help plan vacations for customers at random destinations",
         tools: [AIFunctionFactory.Create(GetRandomDestination)]
     );
@@ -168,21 +159,21 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 
 ## 🎓 Temel Çıkarımlar
 
-1. **Acenta Mimarisi**: Microsoft Agent Framework, .NET'te AI acentaları oluşturmak için temiz ve tür güvenli bir yaklaşım sunar
-2. **Araç Entegrasyonu**: `[Description]` öznitelikleriyle süslenmiş fonksiyonlar acenta için kullanılabilir araçlar haline gelir
-3. **Yapılandırma Yönetimi**: Çevre değişkenleri ve güvenli kimlik bilgisi yönetimi .NET en iyi uygulamalarını takip eder
-4. **OpenAI Uyumluluğu**: GitHub Modelleri entegrasyonu OpenAI uyumlu API'ler aracılığıyla sorunsuz çalışır
+1. **Acenta Mimarisi**: Microsoft Agent Framework, .NET'te AI acenteleri oluşturmak için temiz ve tip güvenli bir yaklaşım sunar
+2. **Araç Entegrasyonu**: `[Description]` özniteliği ile süslenmiş fonksiyonlar acente için kullanılabilir araçlar haline gelir
+3. **Yapılandırma Yönetimi**: Ortam değişkenleri ve güvenli kimlik bilgisi yönetimi, .NET en iyi uygulamalarını takip eder
+4. **Azure OpenAI Yanıtlar API**: Acenta, Azure.AI.OpenAI SDK aracılığıyla Azure OpenAI Yanıtlar API'sini kullanır
 
 ## 🔗 Ek Kaynaklar
 
 - [Microsoft Agent Framework Belgeleri](https://learn.microsoft.com/agent-framework)
-- [GitHub Modelleri Pazarı](https://github.com/marketplace?type=models)
+- [Microsoft Foundry'de Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
 - [.NET Tek Dosya Uygulamaları](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Feragatname**:  
-Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba göstersek de, otomatik çevirilerin hata veya yanlışlıklar içerebileceğini lütfen unutmayın. Belgenin orijinal dili, yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımından kaynaklanan yanlış anlamalar veya yanlış yorumlamalardan sorumlu değiliz.
+**Feragatname**:
+Bu belge, AI çeviri hizmeti [Co-op Translator](https://github.com/Azure/co-op-translator) kullanılarak çevrilmiştir. Doğruluk için çaba sarf etsek de, otomatik çevirilerin hata veya yanlışlık içerebileceğini lütfen unutmayınız. Orijinal belge, kendi dilinde yetkili kaynak olarak kabul edilmelidir. Kritik bilgiler için profesyonel insan çevirisi önerilir. Bu çevirinin kullanımı sonucu ortaya çıkabilecek yanlış anlamalardan veya yanlış yorumlamalardan sorumlu değiliz.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

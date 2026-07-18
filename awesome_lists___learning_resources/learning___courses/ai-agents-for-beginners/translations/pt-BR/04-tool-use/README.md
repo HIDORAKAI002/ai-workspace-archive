@@ -4,14 +4,14 @@
 
 # Padrão de Design de Uso de Ferramentas
 
-Ferramentas são interessantes porque permitem que agentes de IA tenham uma gama maior de capacidades. Em vez de o agente ter um conjunto limitado de ações que pode realizar, ao adicionar uma ferramenta, o agente pode agora executar uma ampla variedade de ações. Neste capítulo, vamos examinar o Padrão de Design de Uso de Ferramentas, que descreve como agentes de IA podem utilizar ferramentas específicas para atingir seus objetivos.
+Ferramentas são interessantes porque permitem que agentes de IA tenham um leque mais amplo de capacidades. Em vez de o agente ter um conjunto limitado de ações que pode executar, ao adicionar uma ferramenta, o agente pode agora realizar uma ampla gama de ações. Neste capítulo, veremos o Padrão de Design de Uso de Ferramentas, que descreve como agentes de IA podem usar ferramentas específicas para alcançar seus objetivos.
 
 ## Introdução
 
-Nesta lição, buscamos responder às seguintes perguntas:
+Nesta lição, vamos buscar responder às seguintes perguntas:
 
 - O que é o padrão de design de uso de ferramentas?
-- Quais são os casos de uso aos quais ele pode ser aplicado?
+- Quais são os casos de uso a que ele pode ser aplicado?
 - Quais são os elementos/blocos de construção necessários para implementar o padrão de design?
 - Quais são as considerações especiais para usar o Padrão de Design de Uso de Ferramentas para construir agentes de IA confiáveis?
 
@@ -22,89 +22,87 @@ Após concluir esta lição, você será capaz de:
 - Definir o Padrão de Design de Uso de Ferramentas e seu propósito.
 - Identificar casos de uso onde o Padrão de Design de Uso de Ferramentas é aplicável.
 - Compreender os elementos-chave necessários para implementar o padrão de design.
-- Reconhecer considerações para garantir a confiabilidade em agentes de IA que utilizam este padrão de design.
+- Reconhecer considerações para garantir confiabilidade em agentes de IA usando este padrão de design.
 
 ## O que é o Padrão de Design de Uso de Ferramentas?
 
-O **Padrão de Design de Uso de Ferramentas** foca em dar aos Modelos de Linguagem de Grande Escala (LLMs) a capacidade de interagir com ferramentas externas para alcançar objetivos específicos. Ferramentas são códigos que podem ser executados por um agente para realizar ações. Uma ferramenta pode ser uma função simples, como uma calculadora, ou uma chamada de API para um serviço de terceiros, como consulta de preço de ações ou previsão do tempo. No contexto de agentes de IA, as ferramentas são projetadas para serem executadas pelos agentes em resposta a **chamadas de função geradas pelo modelo**.
+O **Padrão de Design de Uso de Ferramentas** foca em dar aos LLMs a habilidade de interagir com ferramentas externas para alcançar objetivos específicos. Ferramentas são códigos que podem ser executados por um agente para realizar ações. Uma ferramenta pode ser uma função simples, como uma calculadora, ou uma chamada de API a um serviço terceirizado, como consulta de preço de ações ou previsão do tempo. No contexto de agentes de IA, ferramentas são projetadas para serem executadas pelos agentes em resposta a **chamadas de função geradas pelo modelo**.
 
-## Quais são os casos de uso aos quais ele pode ser aplicado?
+## Quais são os casos de uso a que ele pode ser aplicado?
 
-Agentes de IA podem aproveitar ferramentas para completar tarefas complexas, recuperar informações ou tomar decisões. O padrão de design de uso de ferramentas é frequentemente usado em cenários que exigem interação dinâmica com sistemas externos, como bancos de dados, serviços web ou interpretadores de código. Essa capacidade é útil para diversos casos de uso, incluindo:
+Agentes de IA podem utilizar ferramentas para completar tarefas complexas, recuperar informações ou tomar decisões. O padrão de design de uso de ferramentas é frequentemente usado em cenários que requerem interação dinâmica com sistemas externos, como bancos de dados, serviços web ou interpretadores de código. Essa capacidade é útil para vários casos de uso diferentes, incluindo:
 
-- **Recuperação Dinâmica de Informação:** Agentes podem consultar APIs externas ou bancos de dados para obter dados atualizados (por exemplo, consultar uma base SQLite para análise de dados, buscar preços de ações ou informações meteorológicas).
+- **Recuperação Dinâmica de Informações:** Agentes podem consultar APIs externas ou bancos de dados para obter dados atualizados (ex.: consultar um banco de dados SQLite para análise de dados, buscar preços de ações ou informações meteorológicas).
 - **Execução e Interpretação de Código:** Agentes podem executar códigos ou scripts para resolver problemas matemáticos, gerar relatórios ou realizar simulações.
-- **Automação de Fluxo de Trabalho:** Automatização de fluxos de trabalho repetitivos ou de múltiplas etapas, integrando ferramentas como agendadores de tarefas, serviços de e-mail ou pipelines de dados.
-- **Suporte ao Cliente:** Agentes podem interagir com sistemas CRM, plataformas de tickets ou bases de conhecimento para resolver dúvidas dos usuários.
-- **Geração e Edição de Conteúdo:** Agentes podem usar ferramentas como verificadores gramaticais, resumidores de texto ou avaliadores de segurança de conteúdo para ajudar em tarefas de criação.
+- **Automação de Fluxos de Trabalho:** Automatizar fluxos de trabalho repetitivos ou multi-etapas integrando ferramentas como agendadores de tarefas, serviços de e-mail ou pipelines de dados.
+- **Suporte ao Cliente:** Agentes podem interagir com sistemas CRM, plataformas de tickets ou bases de conhecimento para resolver dúvidas de usuários.
+- **Geração e Edição de Conteúdo:** Agentes podem usar ferramentas como corretores gramaticais, resumidores de texto ou avaliadores de segurança de conteúdo para auxiliar em tarefas de criação de conteúdo.
 
 ## Quais são os elementos/blocos de construção necessários para implementar o padrão de design de uso de ferramentas?
 
-Esses blocos de construção permitem que o agente de IA realize uma ampla variedade de tarefas. Vamos examinar os elementos-chave necessários para implementar o Padrão de Design de Uso de Ferramentas:
+Esses blocos de construção permitem que o agente de IA realize uma ampla gama de tarefas. Vamos olhar os elementos-chave para implementar o Padrão de Design de Uso de Ferramentas:
 
 - **Esquemas de Função/Ferramenta**: Definições detalhadas das ferramentas disponíveis, incluindo nome da função, propósito, parâmetros necessários e saídas esperadas. Esses esquemas permitem que o LLM entenda quais ferramentas estão disponíveis e como construir solicitações válidas.
 
-- **Lógica de Execução da Função**: Rege como e quando as ferramentas são invocadas com base na intenção do usuário e no contexto da conversa. Isso pode incluir módulos planejadores, mecanismos de roteamento ou fluxos condicionais que determinam dinamicamente o uso da ferramenta.
+- **Lógica de Execução da Função**: Regula como e quando as ferramentas são invocadas com base na intenção do usuário e no contexto da conversa. Pode incluir módulos planejadores, mecanismos de roteamento ou fluxos condicionais que determinam o uso dinâmico da ferramenta.
 
-- **Sistema de Manipulação de Mensagens**: Componentes que gerenciam o fluxo conversacional entre entradas do usuário, respostas do LLM, chamadas de ferramentas e saídas das ferramentas.
+- **Sistema de Gerenciamento de Mensagens**: Componentes que gerenciam o fluxo da conversa entre entradas do usuário, respostas do LLM, chamadas de ferramenta e saídas de ferramenta.
 
-- **Estrutura de Integração de Ferramentas**: Infraestrutura que conecta o agente a várias ferramentas, sejam elas funções simples ou serviços externos complexos.
+- **Framework de Integração de Ferramentas**: Infraestrutura que conecta o agente a várias ferramentas, sejam funções simples ou serviços externos complexos.
 
-- **Tratamento e Validação de Erros**: Mecanismos para lidar com falhas na execução das ferramentas, validar parâmetros e gerenciar respostas inesperadas.
+- **Tratamento de Erros e Validação**: Mecanismos para lidar com falhas na execução da ferramenta, validar parâmetros e gerenciar respostas inesperadas.
 
-- **Gerenciamento de Estado**: Acompanha o contexto da conversa, interações anteriores com ferramentas e dados persistentes para garantir consistência em interações de múltiplas etapas.
+- **Gestão de Estado**: Rastreia o contexto da conversa, interações anteriores com ferramentas e dados persistentes para garantir consistência em interações de múltiplas etapas.
 
-A seguir, vamos examinar o Chamado de Função/Ferramenta com mais detalhes.
+A seguir, vamos aprofundar sobre Chamadas de Função/Ferramenta.
  
-### Chamado de Função/Ferramenta
+### Chamadas de Função/Ferramenta
 
-O chamado de função é a principal forma pela qual habilitamos Modelos de Linguagem de Grande Escala (LLMs) a interagir com ferramentas. Frequentemente, você verá “Função” e “Ferramenta” usados de forma intercambiável porque “funções” (blocos de código reutilizáveis) são as “ferramentas” que agentes utilizam para realizar tarefas. Para que o código de uma função seja invocado, o LLM deve comparar a solicitação do usuário com a descrição das funções. Para isso, um esquema contendo as descrições de todas as funções disponíveis é enviado ao LLM. O LLM então seleciona a função mais apropriada para a tarefa e retorna seu nome e argumentos. A função selecionada é invocada, sua resposta é enviada de volta para o LLM, que usa essa informação para responder à solicitação do usuário.
+A chamada de função é a principal forma que habilitamos Modelos de Linguagem Grandes (LLMs) para interagir com ferramentas. Você verá frequentemente "Função" e "Ferramenta" usados como sinônimos porque "funções" (blocos de código reutilizáveis) são as "ferramentas" que agentes usam para realizar tarefas. Para que o código de uma função seja invocado, um LLM deve comparar a solicitação do usuário com a descrição das funções. Para isso, um esquema contendo as descrições de todas as funções disponíveis é enviado ao LLM. O LLM então seleciona a função mais apropriada para a tarefa e retorna seu nome e argumentos. A função selecionada é invocada, sua resposta é enviada de volta ao LLM, que usa essa informação para responder à solicitação do usuário.
 
-Para que os desenvolvedores possam implementar o chamado de função para agentes, são necessários:
+Para desenvolvedores implementarem chamada de funções para agentes, você precisará de:
 
-1. Um modelo LLM que suporte chamado de função
+1. Um modelo LLM que suporte chamadas de função
 2. Um esquema contendo as descrições das funções
 3. O código para cada função descrita
 
-Vamos usar o exemplo de obter o horário atual em uma cidade para ilustrar:
+Vamos usar o exemplo de obter a hora atual em uma cidade para ilustrar:
 
-1. **Inicializar um LLM que suporta chamado de função:**
+1. **Inicializar um LLM que suporte chamadas de função:**
 
-    Nem todos os modelos suportam chamado de função, então é importante verificar se o LLM que você está utilizando o faz. <a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/function-calling" target="_blank">Azure OpenAI</a> suporta chamado de função. Podemos começar iniciando o cliente Azure OpenAI.
+    Nem todos os modelos suportam chamada de função, então é importante verificar se o LLM que você está usando suporta.     <a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/function-calling" target="_blank">Azure OpenAI</a> suporta chamadas de função. Podemos começar iniciando o cliente OpenAI contra a **API de Respostas** do Azure OpenAI (o endpoint estável `/openai/v1/` — não é necessário `api_version`). 
 
     ```python
-    # Inicializar o cliente Azure OpenAI
-    client = AzureOpenAI(
-        azure_endpoint = os.getenv("AZURE_AI_PROJECT_ENDPOINT"), 
-        api_key=os.getenv("AZURE_OPENAI_API_KEY"),  
-        api_version="2024-05-01-preview"
+    # Inicialize o cliente OpenAI para Azure OpenAI (API de Respostas, endpoint v1)
+    client = OpenAI(
+        base_url=f"{os.environ['AZURE_OPENAI_ENDPOINT'].rstrip('/')}/openai/v1/",
+        api_key=os.environ["AZURE_OPENAI_API_KEY"],
     )
+    deployment_name = os.environ["AZURE_OPENAI_DEPLOYMENT"]
     ```
 
 1. **Criar um Esquema de Função**:
 
-    Em seguida, definiremos um esquema JSON que contém o nome da função, a descrição do que ela faz e os nomes e descrições dos parâmetros da função.
-    Depois, passaremos esse esquema para o cliente criado anteriormente, junto com a solicitação do usuário para encontrar a hora em São Francisco. O que é importante notar é que uma **chamada de ferramenta** é o que é retornado, **não** a resposta final para a pergunta. Como mencionado anteriormente, o LLM retorna o nome da função que selecionou para a tarefa e os argumentos que serão passados para ela.
+    Em seguida, definiremos um esquema JSON que contém o nome da função, descrição do que a função faz e os nomes e descrições dos parâmetros da função.
+    Depois, vamos passar este esquema ao cliente criado anteriormente, junto com a solicitação do usuário para encontrar a hora em São Francisco. O importante a notar é que uma **chamada de ferramenta** é o que é retornado, **não** a resposta final para a pergunta. Como mencionado antes, o LLM retorna o nome da função que selecionou para a tarefa e os argumentos que serão passados a ela.
 
     ```python
-    # Descrição da função para o modelo ler
+    # Descrição da função para o modelo ler (formato da ferramenta API de respostas plano)
     tools = [
         {
             "type": "function",
-            "function": {
-                "name": "get_current_time",
-                "description": "Get the current time in a given location",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "location": {
-                            "type": "string",
-                            "description": "The city name, e.g. San Francisco",
-                        },
+            "name": "get_current_time",
+            "description": "Get the current time in a given location",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "The city name, e.g. San Francisco",
                     },
-                    "required": ["location"],
                 },
-            }
+                "required": ["location"],
+            },
         }
     ]
     ```
@@ -112,35 +110,35 @@ Vamos usar o exemplo de obter o horário atual em uma cidade para ilustrar:
     ```python
   
     # Mensagem inicial do usuário
-    messages = [{"role": "user", "content": "What's the current time in San Francisco"}] 
-  
-    # Primeira chamada da API: Peça ao modelo para usar a função
-      response = client.chat.completions.create(
-          model=deployment_name,
-          messages=messages,
-          tools=tools,
-          tool_choice="auto",
-      )
-  
-      # Processar a resposta do modelo
-      response_message = response.choices[0].message
-      messages.append(response_message)
-  
-      print("Model's response:")  
+    messages = [{"role": "user", "content": "What's the current time in San Francisco"}]
 
-      print(response_message)
+    # Primeira chamada de API: Peça ao modelo para usar a função
+    response = client.responses.create(
+        model=deployment_name,
+        input=messages,
+        tools=tools,
+        tool_choice="auto",
+        store=False,
+    )
+
+    # A API de Respostas retorna chamadas de ferramenta como itens function_call em response.output.
+    # Adicione-os à conversa para que o modelo tenha o contexto completo na próxima interação.
+    messages += response.output
+
+    print("Model's response:")
+    print(response.output)
   
     ```
 
     ```bash
     Model's response:
-    ChatCompletionMessage(content=None, role='assistant', function_call=None, tool_calls=[ChatCompletionMessageToolCall(id='call_pOsKdUlqvdyttYB67MOj434b', function=Function(arguments='{"location":"San Francisco"}', name='get_current_time'), type='function')])
+    [ResponseFunctionToolCall(arguments='{"location":"San Francisco"}', call_id='call_pOsKdUlqvdyttYB67MOj434b', name='get_current_time', type='function_call')]
     ```
   
 1. **O código da função necessário para realizar a tarefa:**
 
     Agora que o LLM escolheu qual função precisa ser executada, o código que realiza a tarefa precisa ser implementado e executado.
-    Podemos implementar o código para obter o horário atual em Python. Também precisaremos escrever o código para extrair o nome e os argumentos da mensagem de resposta para obter o resultado final.
+    Podemos implementar o código para obter a hora atual em Python. Também precisaremos escrever o código para extrair o nome e os argumentos da response_message para obter o resultado final.
 
     ```python
       def get_current_time(location):
@@ -162,33 +160,36 @@ Vamos usar o exemplo de obter o horário atual em uma cidade para ilustrar:
     ```
 
      ```python
-     # Lidar com chamadas de função
-      if response_message.tool_calls:
-          for tool_call in response_message.tool_calls:
-              if tool_call.function.name == "get_current_time":
-     
-                  function_args = json.loads(tool_call.function.arguments)
-     
-                  time_response = get_current_time(
-                      location=function_args.get("location")
-                  )
-     
-                  messages.append({
-                      "tool_call_id": tool_call.id,
-                      "role": "tool",
-                      "name": "get_current_time",
-                      "content": time_response,
-                  })
-      else:
-          print("No tool calls were made by the model.")  
-  
-      # Segunda chamada da API: Obter a resposta final do modelo
-      final_response = client.chat.completions.create(
-          model=deployment_name,
-          messages=messages,
-      )
-  
-      return final_response.choices[0].message.content
+    # Lidar com chamadas de função
+    tool_calls = [item for item in response.output if item.type == "function_call"]
+    if tool_calls:
+        for tool_call in tool_calls:
+            if tool_call.name == "get_current_time":
+
+                function_args = json.loads(tool_call.arguments)
+
+                time_response = get_current_time(
+                    location=function_args.get("location")
+                )
+
+                # Retornar o resultado da ferramenta como um item function_call_output
+                messages.append({
+                    "type": "function_call_output",
+                    "call_id": tool_call.call_id,
+                    "output": time_response,
+                })
+    else:
+        print("No tool calls were made by the model.")
+
+    # Segunda chamada da API: Obter a resposta final do modelo
+    final_response = client.responses.create(
+        model=deployment_name,
+        input=messages,
+        tools=tools,
+        store=False,
+    )
+
+    return final_response.output_text
      ```
 
      ```bash
@@ -197,79 +198,84 @@ Vamos usar o exemplo de obter o horário atual em uma cidade para ilustrar:
       The current time in San Francisco is 09:24 AM.
      ```
 
-O Chamado de Função está no coração da maioria, senão de todo o design de uso de ferramentas para agentes, porém implementá-lo do zero pode às vezes ser desafiador.
-Como aprendemos na [Lição 2](../../../02-explore-agentic-frameworks), frameworks agenticos nos fornecem blocos de construção pré-construídos para implementar o uso de ferramentas.
+A Chamada de Função está no centro da maioria, senão de todo o design de uso de ferramentas para agentes, porém implementá-la do zero pode ser algum desafio.
+Como aprendemos na [Lição 2](../../../02-explore-agentic-frameworks), frameworks agentic nos fornecem blocos de construção pré-fabricados para implementar o uso de ferramentas.
  
-## Exemplos de Uso de Ferramentas com Frameworks Agenticos
+## Exemplos de Uso de Ferramentas com Frameworks Agentic
 
-Aqui estão alguns exemplos de como você pode implementar o Padrão de Design de Uso de Ferramentas usando diferentes frameworks agenticos:
+Aqui estão alguns exemplos de como você pode implementar o Padrão de Design de Uso de Ferramentas utilizando diferentes frameworks agentic:
 
 ### Microsoft Agent Framework
 
-<a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Agent Framework</a> é um framework de código aberto para construir agentes de IA. Ele simplifica o processo de usar chamado de função permitindo que você defina ferramentas como funções Python com o decorador `@tool`. O framework gerencia a comunicação de ida e volta entre o modelo e seu código. Ele também fornece acesso a ferramentas pré-construídas como Busca de Arquivos e Interpretador de Código através do `AzureAIProjectAgentProvider`.
+<a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Agent Framework</a> é um framework de IA open-source para construir agentes de IA. Ele simplifica o processo de usar chamadas de função permitindo que você defina ferramentas como funções Python com o decorador `@tool`. O framework lida com a comunicação de ida e volta entre o modelo e seu código. Também oferece acesso a ferramentas pré-construídas como Pesquisa de Arquivos e Interpretador de Código através do `FoundryChatClient`.
 
-O diagrama a seguir ilustra o processo de chamado de função com o Microsoft Agent Framework:
+O diagrama a seguir ilustra o processo de chamadas de função com o Microsoft Agent Framework:
 
-![function calling](../../../translated_images/pt-BR/functioncalling-diagram.a84006fc287f6014.webp)
+![chamada de função](../../../translated_images/pt-BR/functioncalling-diagram.a84006fc287f6014.webp)
 
-No Microsoft Agent Framework, ferramentas são definidas como funções decoradas. Podemos converter a função `get_current_time` que vimos antes em uma ferramenta usando o decorador `@tool`. O framework serializará automaticamente a função e seus parâmetros, criando o esquema para enviar ao LLM.
+No Microsoft Agent Framework, ferramentas são definidas como funções decoradas. Podemos converter a função `get_current_time` que vimos anteriormente em uma ferramenta usando o decorador `@tool`. O framework automaticamente serializará a função e seus parâmetros, criando o esquema para enviar ao LLM.
 
 ```python
+import os
 from agent_framework import tool
-from agent_framework.azure import AzureAIProjectAgentProvider
+from agent_framework.foundry import FoundryChatClient
 from azure.identity import AzureCliCredential
 
-@tool
+@tool(approval_mode="never_require")
 def get_current_time(location: str) -> str:
     """Get the current time for a given location"""
     ...
 
 # Crie o cliente
-provider = AzureAIProjectAgentProvider(credential=AzureCliCredential())
+provider = FoundryChatClient(
+    project_endpoint=os.environ["AZURE_AI_PROJECT_ENDPOINT"],
+    model=os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"],
+    credential=AzureCliCredential(),
+)
 
 # Crie um agente e execute com a ferramenta
-agent = await provider.create_agent(name="TimeAgent", instructions="Use available tools to answer questions.", tools=get_current_time)
+agent = provider.as_agent(name="TimeAgent", instructions="Use available tools to answer questions.", tools=get_current_time)
 response = await agent.run("What time is it?")
 ```
   
-### Azure AI Agent Service
+### Microsoft Foundry Agent Service
 
-<a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Azure AI Agent Service</a> é um framework agentico mais recente, projetado para capacitar desenvolvedores a construir, implantar e escalar agentes de IA de alta qualidade e extensíveis de forma segura, sem precisar gerenciar os recursos computacionais e de armazenamento subjacentes. É particularmente útil para aplicações empresariais, pois é um serviço totalmente gerenciado com segurança em nível empresarial.
+<a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Foundry Agent Service</a> é um framework agentic mais recente projetado para capacitar desenvolvedores a construir, implantar e escalar agentes de IA extensíveis e de alta qualidade de forma segura, sem precisar gerenciar os recursos de computação e armazenamento subjacentes. É particularmente útil para aplicações empresariais, pois é um serviço totalmente gerenciado com segurança de nível empresarial.
 
-Quando comparado ao desenvolvimento diretamente com a API do LLM, o Azure AI Agent Service oferece algumas vantagens, incluindo:
+Em comparação ao desenvolvimento direto via API LLM, o Microsoft Foundry Agent Service oferece algumas vantagens, incluindo:
 
-- Chamada automática de ferramentas – não é necessário analisar uma chamada de ferramenta, invocar a ferramenta e tratar a resposta; tudo isso agora é feito no servidor
-- Dados gerenciados de forma segura – em vez de gerenciar seu próprio estado de conversa, você pode contar com threads para armazenar todas as informações necessárias
-- Ferramentas prontas para uso – ferramentas que você pode usar para interagir com suas fontes de dados, como Bing, Azure AI Search e Azure Functions.
+- Chamadas automáticas de ferramentas – não é necessário interpretar uma chamada de ferramenta, invocar a ferramenta e lidar com a resposta; tudo isso é feito no lado do servidor
+- Dados gerenciados com segurança – em vez de gerenciar seu próprio estado de conversa, você pode contar com os threads para armazenar todas as informações necessárias
+- Ferramentas prontas para uso – Ferramentas que você pode usar para interagir com suas fontes de dados, como Bing, Azure AI Search e Azure Functions.
 
-As ferramentas disponíveis no Azure AI Agent Service podem ser divididas em duas categorias:
+As ferramentas disponíveis no Microsoft Foundry Agent Service podem ser divididas em duas categorias:
 
 1. Ferramentas de Conhecimento:
-    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/bing-grounding?tabs=python&pivots=overview" target="_blank">Grounding com Bing Search</a>
-    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/file-search?tabs=python&pivots=overview" target="_blank">Busca de Arquivos</a>
+    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/bing-grounding?tabs=python&pivots=overview" target="_blank">Integração com Bing Search</a>
+    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/file-search?tabs=python&pivots=overview" target="_blank">Pesquisa de Arquivos</a>
     - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/azure-ai-search?tabs=azurecli%2Cpython&pivots=overview-azure-ai-search" target="_blank">Azure AI Search</a>
 
 2. Ferramentas de Ação:
-    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/function-calling?tabs=python&pivots=overview" target="_blank">Chamado de Função</a>
+    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/function-calling?tabs=python&pivots=overview" target="_blank">Chamadas de Função</a>
     - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/code-interpreter?tabs=python&pivots=overview" target="_blank">Interpretador de Código</a>
-    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/openapi-spec?tabs=python&pivots=overview" target="_blank">Ferramentas definidas por OpenAPI</a>
+    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/openapi-spec?tabs=python&pivots=overview" target="_blank">Ferramentas definidas via OpenAPI</a>
     - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/azure-functions?pivots=overview" target="_blank">Azure Functions</a>
 
-O Agent Service nos permite usar essas ferramentas juntas como um `conjunto de ferramentas`. Ele também utiliza `threads`, que acompanham o histórico de mensagens de uma conversa específica.
+O Agent Service permite que possamos usar essas ferramentas juntas como um `conjunto de ferramentas`. Também utiliza `threads` que acompanham o histórico de mensagens de uma determinada conversa.
 
-Imagine que você é um agente de vendas em uma empresa chamada Contoso. Você quer desenvolver um agente conversacional que possa responder a perguntas sobre seus dados de vendas.
+Imagine que você é um agente de vendas em uma empresa chamada Contoso. Você quer desenvolver um agente conversacional que possa responder perguntas sobre seus dados de vendas.
 
-A imagem a seguir ilustra como você poderia usar o Azure AI Agent Service para analisar seus dados de vendas:
+A imagem a seguir ilustra como você poderia usar o Microsoft Foundry Agent Service para analisar seus dados de vendas:
 
-![Agentic Service In Action](../../../translated_images/pt-BR/agent-service-in-action.34fb465c9a84659e.webp)
+![Agentic Service em Ação](../../../translated_images/pt-BR/agent-service-in-action.34fb465c9a84659e.webp)
 
-Para usar qualquer uma dessas ferramentas com o serviço, podemos criar um cliente e definir uma ferramenta ou um conjunto de ferramentas. Para implementar isso na prática, podemos usar o seguinte código Python. O LLM poderá analisar o conjunto de ferramentas e decidir se usa a função criada pelo usuário, `fetch_sales_data_using_sqlite_query`, ou o Interpretador de Código pré-construído, dependendo da solicitação do usuário.
+Para usar qualquer uma dessas ferramentas com o serviço, podemos criar um cliente e definir uma ferramenta ou conjunto de ferramentas. Para implementar isso na prática, podemos usar o seguinte código Python. O LLM poderá analisar o conjunto de ferramentas e decidir se usa a função criada pelo usuário, `fetch_sales_data_using_sqlite_query`, ou o Interpretador de Código pré-construído, dependendo do pedido do usuário.
 
 ```python 
 import os
 from azure.ai.projects import AIProjectClient
 from azure.identity import DefaultAzureCredential
-from fetch_sales_data_functions import fetch_sales_data_using_sqlite_query # função fetch_sales_data_using_sqlite_query que pode ser encontrada no arquivo fetch_sales_data_functions.py.
+from fetch_sales_data_functions import fetch_sales_data_using_sqlite_query # função fetch_sales_data_using_sqlite_query que pode ser encontrada em um arquivo fetch_sales_data_functions.py.
 from azure.ai.projects.models import ToolSet, FunctionTool, CodeInterpreterTool
 
 project_client = AIProjectClient.from_connection_string(
@@ -288,38 +294,44 @@ toolset.add(fetch_data_function)
 code_interpreter = CodeInterpreterTool()toolset.add(code_interpreter)
 
 agent = project_client.agents.create_agent(
-    model="gpt-4o-mini", name="my-agent", instructions="You are helpful agent", 
+    model="gpt-4.1-mini", name="my-agent", instructions="You are helpful agent", 
     toolset=toolset
 )
 ```
 
-## Quais são as considerações especiais para usar o Padrão de Design de Uso de Ferramentas para construir agentes de IA confiáveis?
+## Quais são as considerações especiais ao usar o Padrão de Design de Uso de Ferramentas para construir agentes de IA confiáveis?
 
-Uma preocupação comum com SQL gerado dinamicamente por LLMs é a segurança, particularmente o risco de injeção de SQL ou ações maliciosas, como excluir ou adulterar o banco de dados. Embora essas preocupações sejam válidas, elas podem ser efetivamente mitigadas configurando corretamente as permissões de acesso ao banco de dados. Para a maioria dos bancos de dados, isso envolve configurá-lo como leitura apenas. Para serviços de banco de dados como PostgreSQL ou Azure SQL, o aplicativo deve receber uma função somente leitura (SELECT).
+Uma preocupação comum com SQL gerado dinamicamente por LLMs é a segurança, particularmente o risco de injeção de SQL ou ações maliciosas, como exclusão ou adulteração do banco de dados. Embora essas preocupações sejam válidas, elas podem ser efetivamente mitigadas configurando corretamente as permissões de acesso ao banco de dados. Para a maioria dos bancos de dados, isso envolve configurar o banco como somente leitura. Para serviços de banco de dados como PostgreSQL ou Azure SQL, o aplicativo deve ser atribuído a um papel somente leitura (SELECT).
 
-Executar o aplicativo em um ambiente seguro melhora ainda mais a proteção. Em cenários empresariais, os dados são tipicamente extraídos e transformados de sistemas operacionais para um banco de dados somente leitura ou data warehouse com um esquema amigável ao usuário. Essa abordagem garante que os dados estejam seguros, otimizados para desempenho e acessibilidade, e que o aplicativo tenha acesso restrito e somente leitura.
+Executar o aplicativo em um ambiente seguro ainda aumenta a proteção. Em cenários empresariais, os dados geralmente são extraídos e transformados de sistemas operacionais para um banco de dados ou data warehouse somente leitura com um esquema amigável ao usuário. Essa abordagem garante que os dados estejam seguros, otimizados para desempenho e acessibilidade, e que o aplicativo tenha acesso restrito e somente leitura.
 
 ## Códigos de Exemplo
 
 - Python: [Agent Framework](./code_samples/04-python-agent-framework.ipynb)
 - .NET: [Agent Framework](./code_samples/04-dotnet-agent-framework.md)
 
-## Tem Mais Perguntas sobre o Padrão de Design de Uso de Ferramentas?
+## Tem Mais Perguntas sobre os Padrões de Design de Uso de Ferramentas?
 
-Junte-se ao [Microsoft Foundry Discord](https://aka.ms/ai-agents/discord) para se conectar com outros aprendizes, participar de horários de atendimento e esclarecer suas dúvidas sobre Agentes de IA.
+Junte-se ao [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) para encontrar outros aprendizes, participar de office hours e ter suas dúvidas sobre Agentes de IA respondidas.
 
 ## Recursos Adicionais
 
 - <a href="https://microsoft.github.io/build-your-first-agent-with-azure-ai-agent-service-workshop/" target="_blank">Workshop Azure AI Agents Service</a>
-- <a href="https://github.com/Azure-Samples/contoso-creative-writer/tree/main/docs/workshop" target="_blank">Workshop Contoso Creative Writer Multi-Agent</a>
+- <a href="https://github.com/Azure-Samples/contoso-creative-writer/tree/main/docs/workshop" target="_blank">Workshop Multi-Agentes Contoso Creative Writer</a>
 - <a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Visão Geral do Microsoft Agent Framework</a>
+
+
+## Teste Rápido Deste Agente (Opcional)
+
+Depois de aprender a implantar agentes em [Lição 16](../16-deploying-scalable-agents/README.md), você pode fazer um teste rápido do `TravelToolAgent` desta lição (ele ainda chama suas ferramentas e responde?) com [`tests/lesson-04-smoke-tests.json`](../../../tests/lesson-04-smoke-tests.json). Veja [`tests/README.md`](../tests/README.md) para saber como executá-lo.
 
 ## Lição Anterior
 
-[Entendendo Padrões de Design Agentes](../03-agentic-design-patterns/README.md)
+[Entendendo Padrões de Design Agêncicos](../03-agentic-design-patterns/README.md)
 
 ## Próxima Lição
-[Agentic RAG](../05-agentic-rag/README.md)
+
+[RAG Agêncico](../05-agentic-rag/README.md)
 
 ---
 

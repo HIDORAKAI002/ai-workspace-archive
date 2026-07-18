@@ -1,34 +1,34 @@
 # AGENTS.md
 
-## Project Overview
+## Pangkalahatang-ideya ng Proyekto
 
-Ang repository na ito ay naglalaman ng "AI Agents for Beginners" - isang komprehensibong kursong pang-edukasyon na nagtuturo ng lahat ng kinakailangan upang makabuo ng AI Agents. Ang kurso ay binubuo ng higit sa 15 leksyon na sumasaklaw sa mga pundasyon, design patterns, frameworks, at produksyon ng deployment ng mga AI agent.
+Ang repositoryong ito ay naglalaman ng "Mga AI Agent para sa mga Nagsisimula" - isang komprehensibong kurso na edukasyonal na nagtuturo ng lahat ng kailangan upang makabuo ng AI Agents. Binubuo ang kurso ng 18 na mga aralin (naka-numero mula 00-18) na sumasaklaw sa mga pundasyon, disenyo ng mga pattern, mga framework, production deployment, lokal/on-device agents, at seguridad ng AI agents.
 
 **Pangunahing Teknolohiya:**
 - Python 3.12+
-- Jupyter Notebooks para sa interaktibong pag-aaral
+- Jupyter Notebooks para sa interaktibong pagkatuto
 - AI Frameworks: Microsoft Agent Framework (MAF)
-- Azure AI Services: Microsoft Foundry, Azure AI Foundry Agent Service V2
+- Azure AI Services: Microsoft Foundry, Microsoft Foundry Agent Service V2
 
 **Arkitektura:**
-- Istrakturang nakabatay sa mga leksyon (mga direktoryo 00-15+)
-- Bawat leksyon ay naglalaman ng: README dokumentasyon, mga code sample (Jupyter notebooks), at mga larawan
-- Suporta sa maraming wika sa pamamagitan ng automated translation system
-- Isang Python notebook kada leksyon gamit ang Microsoft Agent Framework
+- Istrukturang batay sa aralin (mga direktoryo 00-15+)
+- Ang bawat aralin ay naglalaman ng: README na dokumentasyon, mga halimbawa ng code (Jupyter notebooks), at mga larawan
+- Suporta sa magkakaibang wika sa pamamagitan ng automated translation system
+- Isang Python notebook bawat aralin gamit ang Microsoft Agent Framework
 
-## Setup Commands
+## Mga Utos sa Setup
 
-### Prerequisites
-- Python 3.12 o mas mataas
-- Azure subscription (para sa Azure AI Foundry)
-- Azure CLI na naka-install at authenticated (`az login`)
+### Mga Kinakailangan
+- Python 3.12 o mas mataas pa
+- Azure subscription (para sa Microsoft Foundry)
+- Azure CLI na naka-install at naka-authenticate (`az login`)
 
-### Initial Setup
+### Paunang Setup
 
-1. **I-clone o i-fork ang repository:**
+1. **I-clone o i-fork ang repositoryo:**
    ```bash
    gh repo fork microsoft/ai-agents-for-beginners --clone
-   # O PHP
+   # O
    git clone https://github.com/microsoft/ai-agents-for-beginners.git
    cd ai-agents-for-beginners
    ```
@@ -44,97 +44,101 @@ Ang repository na ito ay naglalaman ng "AI Agents for Beginners" - isang kompreh
    pip install -r requirements.txt
    ```
 
-4. **I-setup ang environment variables:**
+4. **I-set up ang mga environment variables:**
    ```bash
    cp .env.example .env
    # I-edit ang .env gamit ang iyong mga API key at mga endpoint
    ```
 
-### Kinakailangang Environment Variables
+### Mga Kinakailangang Environment Variables
 
-Para sa **Azure AI Foundry** (Kinakailangan):
-- `AZURE_AI_PROJECT_ENDPOINT` - Azure AI Foundry project endpoint
-- `AZURE_AI_MODEL_DEPLOYMENT_NAME` - Pangalan ng model deployment (e.g., gpt-4o)
+Para sa **Microsoft Foundry** (Kinakailangan):
+- `AZURE_AI_PROJECT_ENDPOINT` - Endpoint ng Microsoft Foundry project
+- `AZURE_AI_MODEL_DEPLOYMENT_NAME` - Pangalan ng model deployment (hal. gpt-4.1-mini)
 
-Para sa **Azure AI Search** (Lektion 05 - RAG):
-- `AZURE_SEARCH_SERVICE_ENDPOINT` - Azure AI Search endpoint
-- `AZURE_SEARCH_API_KEY` - Azure AI Search API key
+Para sa **Azure AI Search** (Aralin 05 - RAG):
+- `AZURE_SEARCH_SERVICE_ENDPOINT` - Endpoint ng Azure AI Search
+- `AZURE_SEARCH_API_KEY` - API key ng Azure AI Search
 
-Authentication: Patakbuhin ang `az login` bago magpatakbo ng mga notebook (gamit ang `AzureCliCredential`).
+Authentication: Patakbuhin ang `az login` bago patakbuhin ang mga notebooks (gamit ang `AzureCliCredential`).
 
-## Development Workflow
+## Workflow ng Development
 
 ### Pagpapatakbo ng Jupyter Notebooks
 
-Ang bawat leksyon ay naglalaman ng maraming Jupyter notebooks para sa iba't ibang frameworks:
+Ang bawat aralin ay naglalaman ng maraming Jupyter notebooks para sa iba't ibang framework:
 
 1. **Simulan ang Jupyter:**
    ```bash
    jupyter notebook
    ```
 
-2. **Pumunta sa direktoryo ng leksyon** (e.g., `01-intro-to-ai-agents/code_samples/`)
+2. **Pumunta sa direktoryo ng aralin** (halimbawa, `01-intro-to-ai-agents/code_samples/`)
 
-3. **Buksan at patakbuhin ang mga notebook:**
-   - `*-python-agent-framework.ipynb` - Gamit ang Microsoft Agent Framework (Python)
-   - `*-dotnet-agent-framework.ipynb` - Gamit ang Microsoft Agent Framework (.NET)
+3. **Buksan at patakbuhin ang mga notebooks:**
+   - `*-python-agent-framework.ipynb` - Paggamit ng Microsoft Agent Framework (Python)
+   - `*-dotnet-agent-framework.ipynb` - Paggamit ng Microsoft Agent Framework (.NET)
 
 ### Paggamit ng Microsoft Agent Framework
 
-**Microsoft Agent Framework + Azure AI Foundry:**
-- Nangangailangan ng Azure subscription
-- Gumagamit ng `AzureAIProjectAgentProvider` para sa Agent Service V2 (nakikita ang mga agent sa Foundry portal)
-- Handa para sa produksyon na may built-in na observability
+**Microsoft Agent Framework + Microsoft Foundry:**
+- Kinakailangan ang Azure subscription
+- Ginagamit ang `FoundryChatClient` para sa Agent Service V2 (mga agent na nakikita sa Foundry portal)
+- Handa sa production na may built-in na observability
 - Pattern ng file: `*-python-agent-framework.ipynb`
 
-## Testing Instructions
+## Mga Tagubilin sa Pagsusulit
 
-Ito ay isang edukasyonal na repository na may mga halimbawa ng code, hindi isang production code na may automated tests. Upang mapatunayan ang iyong setup at mga pagbabago:
+Ito ay isang edukasyonal na repositoryo na may halimbawang code kaysa production code na may automated tests. Upang kumpirmahin ang iyong setup at mga pagbabago:
 
-### Manual Testing
+### Manwal na Pagsusulit
 
 1. **Subukan ang Python environment:**
    ```bash
-   python --version  # Dapat ay 3.12 pataas
+   python --version  # Dapat ay 3.12+
    pip list | grep -E "(agent-framework|azure-ai|azure-identity)"
    ```
 
-2. **Subukan ang notebook execution:**
+2. **Subukan ang pagpapatakbo ng notebook:**
    ```bash
-   # I-convert ang notebook sa script at patakbuhin (nasusulit ang mga import)
+   # I-convert ang notebook sa script at patakbuhin (tinitingnan ang mga import)
    jupyter nbconvert --to script <lesson-folder>/code_samples/<notebook>.ipynb --stdout | python
    ```
 
-3. **Beripikahin ang environment variables:**
+3. **Kumpirmahin ang mga environment variables:**
    ```bash
-   python -c "import os; from dotenv import load_dotenv; load_dotenv(); print('✓ GITHUB_TOKEN' if os.getenv('GITHUB_TOKEN') else '✗ GITHUB_TOKEN missing')"
+   python -c "import os; from dotenv import load_dotenv; load_dotenv(); print('✓ AZURE_AI_PROJECT_ENDPOINT' if os.getenv('AZURE_AI_PROJECT_ENDPOINT') else '✗ AZURE_AI_PROJECT_ENDPOINT missing')"
    ```
 
-### Pagpatakbo ng Indibidwal na Notebooks
+### Pagpapatakbo ng Indibidwal na mga Notebook
 
-Buksan ang mga notebook sa Jupyter at isagawa ang mga cells nang sunud-sunod. Bawat notebook ay sariling kabuuan at may kasamang:
+Buksan ang mga notebook sa Jupyter at isagawa ang mga cell nang sunud-sunod. Ang bawat notebook ay self-contained at naglalaman ng:
 - Mga import statement
 - Pag-load ng configuration
-- Mga halimbawa ng implementasyon ng agent
-- Mga inaasahang output sa markdown cells
+- Mga halimbawa ng pagpapatupad ng agent
+- Inaasahang mga output sa markdown cells
 
-## Code Style
+### Smoke-Testing ng mga Na-deploy na Agent
+
+Para sa mga aralin kung saan ang agent ay na-deploy bilang isang Microsoft Foundry hosted agent (01, 04, 05, 16), ang repo ay naglalaman ng mga smoke-test na katalogo sa ilalim ng `tests/` na pinapatakbo ng `.github/workflows/smoke-test.yml` workflow gamit ang [AI Smoke Test](https://github.com/marketplace/actions/ai-smoke-test) action. Ito ay isang magaan na post-deploy gate (maaabot ba ang agent at sumusunod sa mga pangunahing prompt na inaasahan?), na kumukumpleto sa evaluation pipeline sa Mga Aralin 10 at 16. Tingnan ang [tests/README.md](./tests/README.md) para sa katalogo-patungkol-sa-aralin-patungkol-sa-agent na pagtutugma. Ang Aralin 17 ay tumatakbo lokal gamit ang Foundry Local at walang hosted na endpoint, kaya ito ay pinapatunayan sa pamamagitan ng pagtakbo mismo ng notebook nito.
+
+## Estilo ng Code
 
 ### Mga Konbensiyon sa Python
 
 - **Bersyon ng Python**: 3.12+
-- **Code Style**: Sundin ang standard Python PEP 8 conventions
-- **Mga Notebook**: Gumamit ng malinaw na markdown cells para ipaliwanag ang mga konsepto
-- **Imports**: I-grupo ayon sa standard library, third-party, lokal na imports
+- **Estilo ng Code**: Sundin ang standard na Python PEP 8 na mga konbensiyon
+- **Mga Notebook**: Gumamit ng malinaw na mga markdown cell para ipaliwanag ang mga konsepto
+- **Import**: Pangkatin ayon sa standard library, third-party, at local imports
 
-### Konbensiyon ng Jupyter Notebook
+### Mga Konbensiyon sa Jupyter Notebook
 
-- Maglagay ng mga deskriptibong markdown cells bago ang mga code cells
-- Magdagdag ng mga halimbawa ng output sa notebooks bilang sanggunian
-- Gumamit ng malinaw na mga pangalan ng variable na tumutugma sa mga konsepto ng leksyon
-- Panatilihing linear ang order ng pagpapatakbo ng notebook (cell 1 → 2 → 3...)
+- Isama ang mga naglalarawang markdown cells bago ang code cells
+- Magdagdag ng mga halimbawa ng output sa mga notebook bilang sanggunian
+- Gumamit ng malinaw na mga variable name na tumutugma sa mga konsepto ng aralin
+- Panatilihin ang linear na pagkakasunod ng pagpapatakbo ng notebook (cell 1 → 2 → 3...)
 
-### Organisasyon ng mga File
+### Organisasyon ng File
 
 ```
 <lesson-number>-<lesson-name>/
@@ -146,160 +150,162 @@ Buksan ang mga notebook sa Jupyter at isagawa ang mga cells nang sunud-sunod. Ba
     └── *.png
 ```
 
-## Build and Deployment
+## Pagbuo at Deployment
 
-### Paggawa ng Dokumentasyon
+### Pagbuo ng Dokumentasyon
 
-Gumagamit ang repository na ito ng Markdown para sa dokumentasyon:
-- Mga README.md files sa bawat folder ng leksyon
-- Pangunahing README.md sa root ng repository
-- Automated translation system gamit ang GitHub Actions
+Ang repositoryong ito ay gumagamit ng Markdown para sa dokumentasyon:
+- Mga README.md na file sa bawat folder ng aralin
+- Pangunahing README.md sa root ng repositoryo
+- Automated translation system sa pamamagitan ng GitHub Actions
 
 ### CI/CD Pipeline
 
 Matatagpuan sa `.github/workflows/`:
 
-1. **co-op-translator.yml** - Awtomatikong pagsasalin sa 50+ na wika
-2. **welcome-issue.yml** - Pagsalubong sa mga bagong nag-create ng isyu
-3. **welcome-pr.yml** - Pagsalubong sa mga bagong nag-contribute ng pull request
+1. **co-op-translator.yml** - Awtomatikong pagsasalin sa mahigit 50 mga wika
+2. **welcome-issue.yml** - Binabati ang mga bagong lumikha ng isyu
+3. **welcome-pr.yml** - Binabati ang mga bagong kontribyutor ng pull request
 
 ### Deployment
 
-Ito ay isang edukasyonal na repository - walang proseso ng deployment. Ang mga gumagamit ay:
-1. Mag-fork o mag-clone ng repository
-2. Patakbuhin ang mga notebook lokal o sa GitHub Codespaces
-3. Matuto sa pamamagitan ng pagbabago at pag-eeksperimento sa mga halimbawa
+Ito ay isang edukasyonal na repositoryo - walang proseso ng deployment. Ang mga user ay:
+1. Mag-fork o i-clone ang repositoryo
+2. Patakbuhin ang mga notebook nang lokal o sa GitHub Codespaces
+3. Matuto sa pamamagitan ng pagbabago at pagsusubok sa mga halimbawa
 
-## Pull Request Guidelines
+## Mga Patnubay sa Pull Request
 
-### Bago Mag-Submit
+### Bago Mag-submit
 
-1. **Subukan ang mga pagbabago:**
-   - Patakbuhin nang buo ang mga apektadong notebook
-   - Siguraduhing lahat ng mga cells ay tumatakbo nang walang error
-   - Tingnan na ang mga output ay naaangkop
+1. **Subukan ang iyong mga pagbabago:**
+   - Patakbuhin nang buo ang mga naapektuhang notebook
+   - Siguraduhin na walang error ang pagpapatakbo ng mga cell
+   - Tiyakin na ang mga output ay naaangkop
 
-2. **Mga update sa dokumentasyon:**
-   - I-update ang README.md kung magdadagdag ng bagong konsepto
-   - Maglagay ng mga komento sa notebooks para sa mahihirap na code
-   - Siguraduhing ang mga markdown cells ay nagpapaliwanag ng layunin
+2. **Pag-Update ng Dokumentasyon:**
+   - I-update ang README.md kung nagdadagdag ng mga bagong konsepto
+   - Magdagdag ng mga paliwanag sa mga notebook para sa mga komplikadong code
+   - Siguraduhing ipapaliwanag ng mga markdown cell ang layunin
 
-3. **Mga pagbabago sa files:**
-   - Iwasang i-commit ang mga `.env` files (gamitin ang `.env.example`)
-   - Huwag i-commit ang mga direktoryo `venv/` o `__pycache__/`
-   - Panatilihin ang output ng notebook kung nagpapakita ito ng mga konsepto
-   - Alisin ang mga pansamantalang files at backup notebooks (`*-backup.ipynb`)
+3. **Mga pagbabago sa file:**
+   - Iwasan ang pag-commit ng `.env` files (gamitin ang `.env.example`)
+   - Huwag mag-commit ng `venv/` o `__pycache__/` na mga direktoryo
+   - Panatilihin ang mga output ng notebook kapag nagpapakita ito ng mga konsepto
+   - Alisin ang mga pansamantalang file at backup notebooks (`*-backup.ipynb`)
 
-### Format ng PR Title
+### Format ng Pamagat ng PR
 
-Gumamit ng mga deskriptibong titulo:
+Gumamit ng mga naglalarawang pamagat:
 - `[Lesson-XX] Magdagdag ng bagong halimbawa para sa <concept>`
-- `[Fix] Ayusin ang typo sa lesson-XX README`
-- `[Update] Pagandahin ang code sample sa lesson-XX`
+- `[Fix] Itama ang typo sa lesson-XX README`
+- `[Update] Pahusayin ang halimbawa ng code sa lesson-XX`
 - `[Docs] I-update ang mga tagubilin sa setup`
 
 ### Kinakailangang Mga Check
 
 - Dapat tumakbo ang mga notebook nang walang error
-- Ang mga README files ay dapat malinaw at tumpak
-- Sundin ang umiiral na mga pattern ng code sa repository
-- Panatilihin ang pagkakapare-pareho sa ibang mga leksyon
+- Dapat malinaw at tama ang mga README files
+- Sundin ang umiiral na pattern ng code sa repositoryo
+- Panatilihin ang pagkakapare-pareho sa ibang mga aralin
 
-## Karagdagang Tala
+## Karagdagang Mga Tala
 
-### Karaniwang Mga Isyu
+### Mga Karaniwang Problema
 
 1. **Hindi tugmang bersyon ng Python:**
-   - Siguraduhing ginagamit ang Python 3.12+
-   - Maaaring hindi gumana ang ilang packages sa mas lumang bersyon
-   - Gamitin ang `python3 -m venv` upang tukuyin ang bersyon ng Python nang hayagan
+   - Siguraduhing gumagamit ng Python 3.12+ 
+   - Ang ilang mga package ay maaaring hindi gumana sa mas lumang bersyon
+   - Gamitin ang `python3 -m venv` upang tahasang tukuyin ang bersyon ng Python
 
 2. **Mga environment variables:**
    - Laging gumawa ng `.env` mula sa `.env.example`
-   - Huwag i-commit ang `.env` file (ito ay nasa `.gitignore`)
-   - Ang GitHub token ay dapat may tamang mga permiso
+   - Huwag i-commit ang `.env` file (naka-lista ito sa `.gitignore`)
+   - Mag-sign in gamit ang `az login` para sa keyless na Entra ID authentication
 
-3. **Mga conflict ng package:**
+3. **Mga conflict sa package:**
    - Gumamit ng bagong virtual environment
-   - Mag-install mula sa `requirements.txt` kaysa sa mga indibidwal na package
-   - Ang ilang mga notebook ay maaaring mangailangan ng karagdagang mga package na nakasaad sa kanilang markdown cells
+   - I-install mula sa `requirements.txt` kaysa sa indibidwal na mga package
+   - Ang ilang mga notebook ay maaaring mangailangan ng karagdagang mga package na nabanggit sa kanilang markdown cells
 
-4. **Mga serbisyo sa Azure:**
-   - Nangangailangan ang Azure AI services ng aktibong subscription
-   - Ang ilang features ay specific sa mga rehiyon
-   - May mga limitasyon sa free tier para sa GitHub Models
+4. **Mga serbisyo ng Azure:**
+   - Nangangailangan ng aktibong subscription ang Azure AI services
+   - Ang ilang mga tampok ay partikular sa rehiyon
+   - Siguraduhing sinusuportahan ng deployment ng iyong Azure OpenAI model ang Responses API
 
-### Landas ng Pag-aaral
+### Landas ng Pagkatuto
 
-Inirerekomendang sundan ang mga leksyon sa ganitong pagkakasunod:
+Inirerekomendang pagkakasunod-sunod sa mga aralin:
 1. **00-course-setup** - Simulan dito para sa setup ng environment
 2. **01-intro-to-ai-agents** - Unawain ang mga pundasyon ng AI agent
-3. **02-explore-agentic-frameworks** - Matuto tungkol sa iba't ibang frameworks
-4. **03-agentic-design-patterns** - Mga pangunahing design patterns
-5. Sundan ang mga susunod na numeradong leksyon nang sunud-sunod
+3. **02-explore-agentic-frameworks** - Matuto tungkol sa iba't ibang mga framework
+4. **03-agentic-design-patterns** - Pangunahing mga disenyo ng pattern
+5. Magpatuloy sa mga naka-numero na aralin nang sunud-sunod
 
 ### Pagpili ng Framework
 
 Pumili ng framework batay sa iyong mga layunin:
-- **Lahat ng leksyon**: Microsoft Agent Framework (MAF) gamit ang `AzureAIProjectAgentProvider`
-- **Mga agent ay nire-register server-side** sa Azure AI Foundry Agent Service V2 at makikita sa Foundry portal
+- **Lahat ng aralin**: Microsoft Agent Framework (MAF) gamit ang `FoundryChatClient`
+- **Mga agent ay nagrerehistro sa server-side** sa Microsoft Foundry Agent Service V2 at nakikita sa Foundry portal
 
 ### Paghahanap ng Tulong
 
 - Sumali sa [Microsoft Foundry Community Discord](https://aka.ms/ai-agents/discord)
-- Tingnan ang mga README file ng mga leksyon para sa partikular na gabay
-- Suriin ang pangunahing [README.md](./README.md) para sa pangkalahatang-ideya ng kurso
-- Basahin ang [Course Setup](./00-course-setup/README.md) para sa detalyadong tagubilin sa setup
+- Suriin ang mga README file ng aralin para sa tiyak na gabay
+- Tingnan ang pangunahing [README.md](./README.md) para sa pangkalahatang-ideya ng kurso
+- Sumangguni sa [Course Setup](./00-course-setup/README.md) para sa detalyadong mga tagubilin sa setup
 
-### Pagsasangkot
+### Pagtutulungan
 
-Ito ay isang bukas na edukasyonal na proyekto. Malugod ang pagtanggap ng mga kontribusyon:
+Ito ay isang bukas na proyektong edukasyonal. Malugod ang mga kontribusyon:
 - Pagbutihin ang mga halimbawa ng code
-- Ayusin ang mga typo o error
+- Itama ang mga typo o error
 - Magdagdag ng mga paliwanag na komento
-- Magmungkahi ng mga bagong paksa sa leksyon
-- Isalin sa iba pang mga wika
+- Magmungkahi ng mga bagong paksang aralin
+- Magsalin sa karagdagang mga wika
 
-Tingnan ang [GitHub Issues](https://github.com/microsoft/ai-agents-for-beginners/issues) para sa kasalukuyang mga pangangailangan.
+Tingnan ang [GitHub Issues](https://github.com/microsoft/ai-agents-for-beginners/issues) para sa mga kasalukuyang pangangailangan.
 
-## Konteksto ng Proyekto
+## Kontekstong Tiyak sa Proyekto
 
-### Suporta sa Maramihang Wika
+### Suporta sa Maraming Wika
 
-Gumagamit ang repository na ito ng automated translation system:
-- Sinusuportahan ang 50+ na wika
-- Mga pagsasalin sa `/translations/<lang-code>/` na mga direktoryo
-- Pinangangasiwaan ng GitHub Actions workflow ang mga update sa pagsasalin
-- Ang mga source file ay nasa Ingles sa root ng repository
+Gumagamit ang repositoryong ito ng automated translation system:
+- Suportado ang mahigit sa 50 mga wika
+- Mga pagsasalin sa mga direktoryo na `/translations/<lang-code>/`
+- Ginagawa ang mga update sa pagsasalin ng workflow ng GitHub Actions
+- Ang mga source file ay nasa Ingles sa root ng repositoryo
 
-### Istraktura ng Leksiyon
+### Istruktura ng Aralin
 
-Ang bawat leksyon ay sumusunod sa isang consistent na pattern:
+Ang bawat aralin ay sumusunod sa isang konsistenteng pattern:
 1. Thumbnail ng video na may link
-2. Nakasaad na nilalaman ng leksyon (README.md)
-3. Mga code sample sa iba't ibang framework
-4. Mga layunin sa pag-aaral at mga kinakailangan
-5. Mga karagdagang mapagkukunan ng pag-aaral na naka-link
+2. Nakasaad na nilalaman ng aralin (README.md)
+3. Mga halimbawa ng code sa iba't ibang framework
+4. Mga layunin at kinakailangan sa pag-aaral
+5. Mga karagdagang mapagkukunan sa pag-aaral na naka-link
 
-### Pangalan ng Code Sample
+### Pagpapangalan sa Code Sample
 
 Format: `<lesson-number>-python-agent-framework.ipynb`
-- `01-python-agent-framework.ipynb` - Leksiyon 1, MAF Python
-- `14-sequential.ipynb` - Leksiyon 14, MAF advanced patterns
+- `01-python-agent-framework.ipynb` - Aralin 1, MAF Python
+- `14-sequential.ipynb` - Aralin 14, mga advanced na pattern ng MAF
+- `16-python-agent-framework.ipynb` - Aralin 16, production customer-support agent
+- `17-local-agent-foundry-local.ipynb` - Aralin 17, lokal na agent gamit ang Foundry Local + Qwen
 
-### Espesyal na Direktoryo
+### Mga Espesyal na Direktoryo
 
-- `translated_images/` - Mga nilokalisa na larawan para sa mga pagsasalin
-- `images/` - Orihinal na mga larawan para sa nilalaman na Ingles
-- `.devcontainer/` - Konfigurasyon ng VS Code development container
-- `.github/` - Mga workflow at template ng GitHub Actions
+- `translated_images/` - Mga lokal na imahe para sa mga pagsasalin
+- `images/` - Orihinal na mga imahe para sa nilalamang Ingles
+- `.devcontainer/` - Konfigurasiyon ng VS Code development container
+- `.github/` - Mga workflow ng GitHub Actions at mga template
 
-### Mga Dependencies
+### Mga Depende
 
 Pangunahing mga package mula sa `requirements.txt`:
 - `agent-framework` - Microsoft Agent Framework
 - `a2a-sdk` - Suporta sa Agent-to-Agent protocol
-- `azure-ai-inference`, `azure-ai-projects` - Mga serbisyo ng Azure AI
+- `azure-ai-inference`, `azure-ai-projects` - Serbisyo ng Azure AI
 - `azure-identity` - Azure authentication (AzureCliCredential)
 - `azure-search-documents` - Integrasyon ng Azure AI Search
 - `mcp[cli]` - Suporta sa Model Context Protocol
@@ -307,6 +313,6 @@ Pangunahing mga package mula sa `requirements.txt`:
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Pahayag ng Pagwawakas**:  
-Ang dokumentong ito ay isinalin gamit ang AI translation service na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagamat aming pinagsisikapang maging tumpak, pakatandaan na ang mga awtomatikong salin ay maaaring maglaman ng mga pagkakamali o di-katumpakan. Ang orihinal na dokumento sa orihinal nitong wika ang dapat ituring na pinanggagalingang awtoridad. Para sa mahahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang hindi pagkakaunawaan o maling interpretasyon na maaaring magmula sa paggamit ng salin na ito.
+**Pagtatanggi**:
+Ang dokumentong ito ay isinalin gamit ang serbisyo ng AI translation na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagama't nagsusumikap kami para sa katumpakan, pakatandaan na ang awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o hindi pagkakatugma. Ang orihinal na dokumento sa orihinal nitong wika ang dapat ituring na pangunahing sanggunian. Para sa mahahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang maling pagkakaintindi o maling interpretasyon na nagmula sa paggamit ng pagsasaling ito.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

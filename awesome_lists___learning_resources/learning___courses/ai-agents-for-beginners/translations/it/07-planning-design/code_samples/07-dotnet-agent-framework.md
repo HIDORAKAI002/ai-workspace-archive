@@ -1,43 +1,46 @@
-# 🎯 Pianificazione e Design Patterns con i Modelli GitHub (.NET)
+# 🎯 Pianificazione & Pattern di Design con Azure OpenAI (Responses API) (.NET)
 
 ## 📋 Obiettivi di Apprendimento
 
-Questo notebook dimostra modelli di pianificazione e design di livello aziendale per la creazione di agenti intelligenti utilizzando il Microsoft Agent Framework in .NET con i Modelli GitHub. Imparerai a creare agenti capaci di scomporre problemi complessi, pianificare soluzioni multi-step e eseguire flussi di lavoro sofisticati con le funzionalità aziendali di .NET.
+Questo notebook dimostra pattern di pianificazione e design di livello enterprise per la costruzione di agenti intelligenti utilizzando il Microsoft Agent Framework in .NET con Azure OpenAI (Responses API). Imparerai a creare agenti in grado di decomporre problemi complessi, pianificare soluzioni multi-step ed eseguire workflow sofisticati con le funzionalità enterprise di .NET.
 
-## ⚙️ Prerequisiti e Configurazione
+## ⚙️ Prerequisiti & Configurazione
 
 **Ambiente di Sviluppo:**
 - SDK .NET 9.0 o superiore
 - Visual Studio 2022 o VS Code con estensione C#
-- Accesso all'API dei Modelli GitHub
+- Un abbonamento Azure con una risorsa Azure OpenAI e un deployment di modello
+- Azure CLI — esegui l'accesso con `az login`
 
-**Dipendenze Necessarie:**
+**Dipendenze Richieste:**
 ```xml
-<PackageReference Include="Microsoft.Extensions.AI" Version="9.9.0" />
-<PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.9.0-preview.1.25458.4" />
+<PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
+<PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
+<PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.*-*" />
+<PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
+<PackageReference Include="Azure.Identity" Version="1.13.1" />
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
-**Configurazione dell'Ambiente (file .env):**
+**Configurazione Ambiente (file .env):**
 ```env
-GITHUB_TOKEN=your_github_personal_access_token
-GITHUB_ENDPOINT=https://models.inference.ai.azure.com
-GITHUB_MODEL_ID=gpt-4o-mini
+AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
 ```
 
-## Esecuzione del Codice
+## Eseguire il Codice
 
-Questa lezione include un'implementazione di un'applicazione .NET Single File. Per eseguirla:
+Questa lezione include un'applicazione .NET Single File. Per eseguirla:
 
 ```bash
-# Make the file executable (Linux/macOS)
+# Rendi il file eseguibile (Linux/macOS)
 chmod +x 07-dotnet-agent-framework.cs
 
-# Run the application
+# Esegui l'applicazione
 ./07-dotnet-agent-framework.cs
 ```
 
-Oppure utilizza il comando dotnet run:
+Oppure usa il comando dotnet run:
 
 ```bash
 dotnet run 07-dotnet-agent-framework.cs
@@ -47,17 +50,17 @@ dotnet run 07-dotnet-agent-framework.cs
 
 L'implementazione completa è disponibile in `07-dotnet-agent-framework.cs`, che dimostra:
 
-- Caricamento della configurazione dell'ambiente con DotNetEnv
-- Configurazione del client OpenAI per i Modelli GitHub
+- Caricamento della configurazione ambiente con DotNetEnv
+- Configurazione del client Azure OpenAI e creazione di un agente AI usando `GetChatClient().AsAIAgent()`
 - Definizione di modelli di dati strutturati (Plan e TravelPlan) con serializzazione JSON
-- Creazione di un agente AI con output strutturato utilizzando lo schema JSON
-- Esecuzione di richieste di pianificazione con risposte tipizzate
+- Creazione di un agente AI con output strutturato usando schema JSON
+- Esecuzione di richieste di pianificazione con risposte tipo-sicure
 
 ## Concetti Chiave
 
-### Pianificazione Strutturata con Modelli Tipizzati
+### Pianificazione Strutturata con Modelli Tipo-Sicuri
 
-L'agente utilizza classi C# per definire la struttura degli output di pianificazione:
+L'agente usa classi C# per definire la struttura degli output di pianificazione:
 
 ```csharp
 public class Plan
@@ -84,8 +87,10 @@ public class TravelPlan
 L'agente è configurato per restituire risposte che corrispondono allo schema TravelPlan:
 
 ```csharp
-ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_INSTRUCTIONS)
+ChatClientAgentOptions agentOptions = new()
 {
+    Name = AGENT_NAME,
+    Description = AGENT_INSTRUCTIONS,
     ChatOptions = new()
     {
         ResponseFormat = ChatResponseFormatJson.ForJsonSchema(
@@ -98,7 +103,7 @@ ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_
 
 ### Istruzioni per l'Agente di Pianificazione
 
-L'agente agisce come coordinatore, delegando compiti a sub-agenti specializzati:
+L'agente agisce da coordinatore, delegando compiti a sotto-agenti specializzati:
 
 - FlightBooking: Per prenotare voli e fornire informazioni sui voli
 - HotelBooking: Per prenotare hotel e fornire informazioni sugli hotel
@@ -109,9 +114,11 @@ L'agente agisce come coordinatore, delegando compiti a sub-agenti specializzati:
 
 ## Output Atteso
 
-Quando esegui l'agente con una richiesta di pianificazione di viaggio, analizzerà la richiesta e genererà un piano strutturato con assegnazioni di compiti appropriate agli agenti specializzati, formattato come JSON conforme allo schema TravelPlan.
+Quando esegui l'agente con una richiesta di pianificazione viaggio, analizzerà la richiesta e genererà un piano strutturato con assegnazioni di compiti appropriate agli agenti specializzati, formattato come JSON conforme allo schema TravelPlan.
 
 ---
 
-**Disclaimer**:  
-Questo documento è stato tradotto utilizzando il servizio di traduzione AI [Co-op Translator](https://github.com/Azure/co-op-translator). Sebbene ci impegniamo per garantire l'accuratezza, si prega di notare che le traduzioni automatiche possono contenere errori o imprecisioni. Il documento originale nella sua lingua nativa dovrebbe essere considerato la fonte autorevole. Per informazioni critiche, si raccomanda una traduzione professionale umana. Non siamo responsabili per eventuali incomprensioni o interpretazioni errate derivanti dall'uso di questa traduzione.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+Questo documento è stato tradotto utilizzando il servizio di traduzione AI [Co-op Translator](https://github.com/Azure/co-op-translator). Sebbene ci impegniamo per garantire la precisione, si prega di notare che le traduzioni automatizzate possono contenere errori o imprecisioni. Il documento originale nella sua lingua nativa deve essere considerato la fonte autorevole. Per informazioni critiche, si raccomanda una traduzione professionale effettuata da un essere umano. Non siamo responsabili per eventuali malintesi o interpretazioni errate derivanti dall’uso di questa traduzione.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

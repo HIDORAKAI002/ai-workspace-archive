@@ -72,9 +72,9 @@ MCP follows a **client-server model**, where:
 - **Resources** – Static or dynamic data for models  
 - **Prompts** – Predefined workflows for guided generation  
 - **Tools** – Executable functions like search, calculations  
-- **Sampling** – Agentic behavior via recursive interactions
+- **Sampling** – Agentic behavior via recursive interactions (deprecated in `2026-07-28` release candidate)
 - **Elicitation** – Server-initiated requests for user input
-- **Roots** – Filesystem boundaries for server access control
+- **Roots** – Filesystem boundaries for server access control (deprecated in `2026-07-28` release candidate)
 
 ### **Protocol Architecture:**
 
@@ -116,10 +116,10 @@ graph TD
     Client[MCP Client/Application] -->|Sends Request| H[MCP Host]
     H -->|Invokes| A[AI Model]
     A -->|Tool Call Request| H
-    H -->|MCP Protocol| T1[MCP Server Tool 01: Web Search]
-    H -->|MCP Protocol| T2[MCP Server Tool 02: Calculator tool]
-    H -->|MCP Protocol| T3[MCP Server Tool 03: Database Access tool]
-    H -->|MCP Protocol| T4[MCP Server Tool 04: File System tool]
+    H -->|MCP Protocol| T1[MCP Server Tool 01: Web Search
+    H -->|MCP Protocol| T2[MCP Server Tool 02: Calculator tool
+    H -->|MCP Protocol| T3[MCP Server Tool 03: Database Access tool
+    H -->|MCP Protocol| T4[MCP Server Tool 04: File System tool
     H -->|Sends Response| Client
 
     subgraph "MCP Host Components"
@@ -147,6 +147,7 @@ graph TD
     style T3 fill:#c2f0c2,stroke:#333,stroke-width:1px
     style T4 fill:#c2f0c2,stroke:#333,stroke-width:1px
 ```
+
 ## 👨‍💻 How to Build an MCP Server (With Examples)
 
 MCP servers allow you to extend LLM capabilities by providing data and functionality. 
@@ -215,7 +216,8 @@ graph TD
         KnowledgeB[Knowledge]
         ToolsB[Tools]
     end
-```The Universal Connector enables MCP servers to communicate and share capabilities with each other, allowing ServerA to delegate tasks to ServerB or access its tools and knowledge. This federates tools and data across servers, supporting scalable and modular agent architectures. Because MCP standardizes tool exposure, agents can dynamically discover and route requests between servers without hardcoded integrations.
+```
+The Universal Connector enables MCP servers to communicate and share capabilities with each other, allowing ServerA to delegate tasks to ServerB or access its tools and knowledge. This federates tools and data across servers, supporting scalable and modular agent architectures. Because MCP standardizes tool exposure, agents can dynamically discover and route requests between servers without hardcoded integrations.
 
 
 Tool and knowledge federation: Tools and data can be accessed across servers, enabling more scalable and modular agentic architectures.
@@ -285,6 +287,7 @@ sequenceDiagram
         end
     end
 ```
+
 ## 🔐 Practical Benefits of MCP
 
 Here are the practical benefits of using MCP:
@@ -323,5 +326,5 @@ Next: [Chapter 1: Core Concepts](../01-CoreConcepts/README.md)
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
 **Disclaimer**:
-This document has been translated using the AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

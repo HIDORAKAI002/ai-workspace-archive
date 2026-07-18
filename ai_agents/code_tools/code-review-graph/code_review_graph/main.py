@@ -17,6 +17,7 @@ from typing import Optional
 
 from fastmcp import FastMCP
 
+from . import incremental as _incremental
 from .graph import GraphStore
 from .incremental import find_project_root, get_db_path, start_watch_thread
 from .prompts import (
@@ -100,6 +101,8 @@ async def build_or_update_graph_tool(
     base: str = "HEAD~1",
     postprocess: str = "full",
     recurse_submodules: Optional[bool] = None,
+    embedding_provider: Optional[str] = None,
+    embedding_model: Optional[str] = None,
 ) -> dict:
     """Build or incrementally update the code knowledge graph.
 
@@ -122,6 +125,10 @@ async def build_or_update_graph_tool(
                      or "none" (skip all post-processing). Use "minimal" for faster builds.
         recurse_submodules: If True, include files from git submodules.
             When None (default), falls back to CRG_RECURSE_SUBMODULES env var.
+        embedding_provider: Exact provider for an explicit post-build embedding
+            refresh. Must be supplied with embedding_model. Default: disabled.
+        embedding_model: Exact model for an explicit post-build embedding
+            refresh. Must be supplied with embedding_provider. Default: disabled.
     """
     root = _resolve_repo_root(repo_root)
 
@@ -129,6 +136,8 @@ async def build_or_update_graph_tool(
         return with_provenance(build_or_update_graph(
             full_rebuild=full_rebuild, repo_root=root, base=base,
             postprocess=postprocess, recurse_submodules=recurse_submodules,
+            embedding_provider=embedding_provider,
+            embedding_model=embedding_model,
         ), root)
 
     return await asyncio.to_thread(_run)
@@ -140,6 +149,8 @@ async def run_postprocess_tool(
     communities: bool = True,
     fts: bool = True,
     repo_root: Optional[str] = None,
+    embedding_provider: Optional[str] = None,
+    embedding_model: Optional[str] = None,
 ) -> dict:
     """Run post-processing on existing graph (flows, communities, FTS index).
 
@@ -155,12 +166,18 @@ async def run_postprocess_tool(
         communities: Run community detection. Default: True.
         fts: Rebuild FTS index. Default: True.
         repo_root: Repository root path. Auto-detected if omitted.
+        embedding_provider: Exact provider for an explicit embedding refresh.
+            Must be supplied with embedding_model. Default: disabled.
+        embedding_model: Exact model for an explicit embedding refresh.
+            Must be supplied with embedding_provider. Default: disabled.
     """
     root = _resolve_repo_root(repo_root)
 
     def _run() -> dict:
         return with_provenance(run_postprocess(
             flows=flows, communities=communities, fts=fts, repo_root=root,
+            embedding_provider=embedding_provider,
+            embedding_model=embedding_model,
         ), root)
 
     return await asyncio.to_thread(_run)
@@ -225,6 +242,7 @@ def query_graph_tool(
     target: str,
     repo_root: Optional[str] = None,
     detail_level: str = "standard",
+    max_results: int = 100,
 ) -> dict:
     """Run a predefined graph query to explore code relationships.
 
@@ -236,6 +254,13 @@ def query_graph_tool(
     - children_of: Find nodes contained in a file or class
     - tests_for: Find tests for the target
     - inheritors_of: Find classes inheriting from the target
+    - triggers_of: Find methods invoked by a scheduler or other trigger
+    - triggered_by: Find schedulers or other triggers that invoke the target
+    - publishers_of: Find methods that publish an event
+    - listeners_of: Find methods that listen for an event
+    - handlers_of: Find methods that handle an endpoint
+    - endpoints_for: Find endpoints handled by a method
+    - consumers_of: Find classes that consume a Spring configuration property
     - file_summary: Get all nodes in a file
 
     Args:
@@ -243,11 +268,12 @@ def query_graph_tool(
         target: Node name, qualified name, or file path to query.
         repo_root: Repository root path. Auto-detected if omitted.
         detail_level: "standard" for full output, "minimal" for compact summary. Default: standard.
+        max_results: Maximum results to return. Default: 100.
     """
     root = _resolve_repo_root(repo_root)
     return with_provenance(query_graph(
         pattern=pattern, target=target, repo_root=root,
-        detail_level=detail_level,
+        detail_level=detail_level, max_results=max_results,
     ), root)
 
 
@@ -1077,26 +1103,29 @@ def main(
     _default_repo_root = str(root)
     _apply_tool_filter(tools)
 
+    previous_stdio_state = _incremental._MCP_STDIO_ACTIVE
+    _incremental._MCP_STDIO_ACTIVE = transport == "stdio"
     watch_store: GraphStore | None = None
-    if auto_watch:
-        watch_store = GraphStore(get_db_path(root))
-        thread = start_watch_thread(root, watch_store, daemon=True)
-        if thread is None:
-            logger.warning("Auto-watch was requested but could not be started")
-
-    if sys.platform == "win32":
-        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-        # Pre-warm sentence-transformers on the main thread before fastmcp's
-        # event loop starts. Lazy-loading ``torch`` + tokenizers inside an
-        # executor worker thread deadlocks ``semantic_search_nodes_tool`` on
-        # Windows stdio MCP (DLL init / OpenMP thread-pool registration grabs
-        # locks the loop needs). #385 added ``asyncio.to_thread`` to peer
-        # tools but cannot fix this case — the dangerous initialization has
-        # to happen on the main thread before any worker thread is spawned.
-        from .embeddings import prewarm_local_embeddings
-        prewarm_local_embeddings()
-
     try:
+        if auto_watch:
+            watch_store = GraphStore(get_db_path(root))
+            thread = start_watch_thread(root, watch_store, daemon=True)
+            if thread is None:
+                logger.warning("Auto-watch was requested but could not be started")
+
+        if sys.platform == "win32":
+            asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+            # Pre-warm sentence-transformers on the main thread before fastmcp's
+            # event loop starts. Lazy-loading ``torch`` + tokenizers inside an
+            # executor worker thread deadlocks ``semantic_search_nodes_tool`` on
+            # Windows stdio MCP (DLL init / OpenMP thread-pool registration grabs
+            # locks the loop needs). #385 added ``asyncio.to_thread`` to peer
+            # tools but cannot fix this case — the dangerous initialization has
+            # to happen on the main thread before any worker thread is spawned.
+            from .embeddings import prewarm_local_embeddings
+
+            prewarm_local_embeddings()
+
         if transport == "stdio":
             # Stdio MCP must keep stdout strictly JSON-RPC. FastMCP's banner/update
             # notices corrupt the handshake stream on clients like Codex CLI.
@@ -1110,6 +1139,7 @@ def main(
     finally:
         if watch_store is not None:
             watch_store.close()
+        _incremental._MCP_STDIO_ACTIVE = previous_stdio_state
 
 
 if __name__ == "__main__":
