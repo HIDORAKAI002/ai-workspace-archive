@@ -741,6 +741,28 @@ export const CloudUpload = () => (
   </svg>
 );
 
+// @src: lucide box
+export const Cube = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path
+      fill="none"
+      d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
+    />
+    <path fill="none" d="m3.3 7 8.7 5 8.7-5" />
+    <path fill="none" d="M12 22V12" />
+  </svg>
+);
+
 //D
 export const Database = () => (
   <svg
@@ -1938,6 +1960,19 @@ export const SlideIn = () => (
       d="M18 21C19.654 21 21 19.654 21 18L21 6C21 4.346 19.654 3 18 3L6 3C4.346 3 3 4.346 3 6L3 18C3 19.654 4.346 21 6 21L18 21ZM6 5L9 5L9 19L6 19C5.449 19 5 18.551 5 18L5 6C5 5.449 5.449 5 6 5ZM18 19L11 19L11 5L18 5C18.551 5 19 5.449 19 6L19 18C19 18.551 18.551 19 18 19ZM14.0995 9.00021C14.2247 9.00021 14.349 9.05464 14.4338 9.16008L16.503 11.7316C16.6307 11.8906 16.629 12.1178 16.4982 12.2746L14.3554 14.8461C14.2041 15.0279 13.9337 15.0523 13.7515 14.901C13.5698 14.7497 13.5454 14.4793 13.6971 14.2975L15.615 11.9956L13.7657 9.69752C13.6174 9.51323 13.6465 9.24322 13.8312 9.09493C13.9101 9.03107 14.0052 9.00021 14.0995 9.00021Z"
       fill="currentColor"
     />
+  </svg>
+);
+
+export const Sparkle = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    style={{ fill: "none", stroke: "currentColor" }}
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+  >
+    <path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z" />
   </svg>
 );
 
