@@ -1,39 +1,42 @@
-# 🎯 برنامه‌ریزی و الگوهای طراحی با مدل‌های GitHub (.NET)
+# 🎯 برنامه‌ریزی و الگوهای طراحی با Azure OpenAI (API پاسخ‌ها) (.NET)
 
-## 📋 اهداف آموزشی
+## 📋 اهداف یادگیری
 
-این دفترچه راهنما الگوهای برنامه‌ریزی و طراحی در سطح سازمانی برای ساخت عوامل هوشمند با استفاده از Microsoft Agent Framework در .NET و مدل‌های GitHub را نشان می‌دهد. شما یاد خواهید گرفت که عوامل هوشمندی ایجاد کنید که بتوانند مسائل پیچیده را تجزیه کنند، راه‌حل‌های چندمرحله‌ای برنامه‌ریزی کنند و جریان‌های کاری پیچیده را با ویژگی‌های سازمانی .NET اجرا کنند.
+این دفترچه الگوهای طراحی و برنامه‌ریزی سطح سازمانی را برای ساخت نماینده‌های هوشمند با استفاده از Microsoft Agent Framework در .NET با Azure OpenAI (API پاسخ‌ها) نشان می‌دهد. شما یاد می‌گیرید چگونه نمایندگانی بسازید که بتوانند مسائل پیچیده را تجزیه کنند، راهکارهای چندمرحله‌ای برنامه‌ریزی کنند و گردش‌کارهای پیچیده را با امکانات سازمانی .NET اجرا کنند.
 
-## ⚙️ پیش‌نیازها و تنظیمات
+## ⚙️ پیش‌نیازها و راه‌اندازی
 
 **محیط توسعه:**
-- .NET 9.0 SDK یا بالاتر
+- SDK نسخه 9.0 یا بالاتر .NET
 - Visual Studio 2022 یا VS Code با افزونه C#
-- دسترسی به API مدل‌های GitHub
+- یک اشتراک Azure با منبع Azure OpenAI و پیاده‌سازی مدل
+- ابزار خط فرمان Azure — وارد شوید با `az login`
 
 **وابستگی‌های مورد نیاز:**
 ```xml
-<PackageReference Include="Microsoft.Extensions.AI" Version="9.9.0" />
-<PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.9.0-preview.1.25458.4" />
+<PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
+<PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
+<PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.*-*" />
+<PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
+<PackageReference Include="Azure.Identity" Version="1.13.1" />
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
-**پیکربندی محیط (.env file):**
+**پیکربندی محیط (.env فایل):**
 ```env
-GITHUB_TOKEN=your_github_personal_access_token
-GITHUB_ENDPOINT=https://models.inference.ai.azure.com
-GITHUB_MODEL_ID=gpt-4o-mini
+AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
 ```
 
 ## اجرای کد
 
-این درس شامل یک پیاده‌سازی برنامه تک‌فایلی .NET است. برای اجرای آن:
+این درس شامل پیاده‌سازی برنامه تک فایلی .NET است. برای اجرای آن:
 
 ```bash
-# Make the file executable (Linux/macOS)
+# فایل را اجرایی کنید (لینوکس/مک‌اواس)
 chmod +x 07-dotnet-agent-framework.cs
 
-# Run the application
+# برنامه را اجرا کنید
 ./07-dotnet-agent-framework.cs
 ```
 
@@ -45,19 +48,19 @@ dotnet run 07-dotnet-agent-framework.cs
 
 ## پیاده‌سازی کد
 
-پیاده‌سازی کامل در `07-dotnet-agent-framework.cs` موجود است که موارد زیر را نشان می‌دهد:
+پیاده‌سازی کامل در `07-dotnet-agent-framework.cs` موجود است که نشان می‌دهد:
 
 - بارگذاری پیکربندی محیط با DotNetEnv
-- پیکربندی کلاینت OpenAI برای مدل‌های GitHub
-- تعریف مدل‌های داده ساختاریافته (Plan و TravelPlan) با سریال‌سازی JSON
-- ایجاد یک عامل هوش مصنوعی با خروجی ساختاریافته با استفاده از JSON schema
-- اجرای درخواست‌های برنامه‌ریزی با پاسخ‌های نوع-ایمن
+- پیکربندی کلاینت Azure OpenAI و ایجاد نماینده هوش مصنوعی با `GetChatClient().AsAIAgent()`
+- تعریف مدل‌های داده ساختاری (Plan و TravelPlan) با سریال‌سازی JSON
+- ساخت نماینده هوش مصنوعی با خروجی ساختاریافته با استفاده از طرح JSON
+- اجرای درخواست‌های برنامه‌ریزی با پاسخ‌های نوع ایمن
 
 ## مفاهیم کلیدی
 
-### برنامه‌ریزی ساختاریافته با مدل‌های نوع-ایمن
+### برنامه‌ریزی ساختاریافته با مدل‌های نوع ایمن
 
-عامل از کلاس‌های C# برای تعریف ساختار خروجی‌های برنامه‌ریزی استفاده می‌کند:
+نماینده از کلاس‌های C# برای تعریف ساختار خروجی برنامه‌ریزی استفاده می‌کند:
 
 ```csharp
 public class Plan
@@ -79,13 +82,15 @@ public class TravelPlan
 }
 ```
 
-### JSON Schema برای خروجی‌های ساختاریافته
+### طرح JSON برای خروجی‌های ساختاریافته
 
-عامل طوری پیکربندی شده است که پاسخ‌هایی مطابق با schema TravelPlan ارائه دهد:
+نماینده به گونه‌ای پیکربندی شده است که پاسخ‌هایی مطابق با طرح TravelPlan بازگرداند:
 
 ```csharp
-ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_INSTRUCTIONS)
+ChatClientAgentOptions agentOptions = new()
 {
+    Name = AGENT_NAME,
+    Description = AGENT_INSTRUCTIONS,
     ChatOptions = new()
     {
         ResponseFormat = ChatResponseFormatJson.ForJsonSchema(
@@ -96,22 +101,24 @@ ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_
 };
 ```
 
-### دستورالعمل‌های عامل برنامه‌ریزی
+### دستورالعمل‌های نماینده برنامه‌ریزی
 
-عامل به عنوان هماهنگ‌کننده عمل می‌کند و وظایف را به زیرعامل‌های تخصصی واگذار می‌کند:
+نماینده به عنوان هماهنگ‌کننده عمل می‌کند و وظایف را به زیرنماینده‌های تخصصی واگذار می‌کند:
 
-- FlightBooking: برای رزرو پرواز و ارائه اطلاعات پرواز
-- HotelBooking: برای رزرو هتل و ارائه اطلاعات هتل
-- CarRental: برای رزرو خودرو و ارائه اطلاعات اجاره خودرو
+- FlightBooking: برای رزرو پروازها و ارائه اطلاعات پرواز
+- HotelBooking: برای رزرو هتل‌ها و ارائه اطلاعات هتل
+- CarRental: برای رزرو خودرو و ارائه اطلاعات کرایه خودرو
 - ActivitiesBooking: برای رزرو فعالیت‌ها و ارائه اطلاعات فعالیت‌ها
-- DestinationInfo: برای ارائه اطلاعات مقصدها
+- DestinationInfo: برای ارائه اطلاعات درباره مقاصد
 - DefaultAgent: برای مدیریت درخواست‌های عمومی
 
 ## خروجی مورد انتظار
 
-وقتی عامل را با درخواست برنامه‌ریزی سفر اجرا کنید، درخواست را تحلیل کرده و یک برنامه ساختاریافته با تخصیص وظایف مناسب به زیرعامل‌های تخصصی تولید می‌کند که به صورت JSON مطابق با schema TravelPlan قالب‌بندی شده است.
+هنگامی که نماینده را با درخواست برنامه‌ریزی سفر اجرا می‌کنید، درخواست را تحلیل کرده و برنامه‌ای ساختاریافته با واگذاری مناسب وظایف به نماینده‌های تخصصی تولید می‌کند که به صورت JSON مطابق با طرح TravelPlan فرم‌دهی شده است.
 
 ---
 
-**سلب مسئولیت**:  
-این سند با استفاده از سرویس ترجمه هوش مصنوعی [Co-op Translator](https://github.com/Azure/co-op-translator) ترجمه شده است. در حالی که ما تلاش می‌کنیم دقت را حفظ کنیم، لطفاً توجه داشته باشید که ترجمه‌های خودکار ممکن است شامل خطاها یا نادرستی‌ها باشند. سند اصلی به زبان اصلی آن باید به عنوان منبع معتبر در نظر گرفته شود. برای اطلاعات حیاتی، ترجمه حرفه‌ای انسانی توصیه می‌شود. ما مسئولیتی در قبال سوء تفاهم‌ها یا تفسیرهای نادرست ناشی از استفاده از این ترجمه نداریم.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**سلب مسئولیت**:
+این سند با استفاده از سرویس ترجمه هوش مصنوعی [Co-op Translator](https://github.com/Azure/co-op-translator) ترجمه شده است. در حالی که ما در تلاش برای دقت هستیم، لطفاً توجه داشته باشید که ترجمه‌های خودکار ممکن است شامل خطاها یا نادرستی‌هایی باشند. سند اصلی به زبان مادری خود باید به عنوان منبع معتبر در نظر گرفته شود. برای اطلاعات حیاتی، ترجمه حرفه‌ای انسانی توصیه می‌شود. ما در قبال هرگونه سوء تفاهم یا برداشت نادرست ناشی از استفاده از این ترجمه مسئولیتی نداریم.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

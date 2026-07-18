@@ -1,63 +1,66 @@
-# 🎯 規劃與設計模式：使用 GitHub Models (.NET)
+# 🎯 使用 Azure OpenAI (Responses API) 的規劃與設計模式 (.NET)
 
 ## 📋 學習目標
 
-本筆記本展示了使用 Microsoft Agent Framework 和 GitHub Models 在 .NET 中構建智能代理的企業級規劃與設計模式。您將學習如何創建能夠分解複雜問題、規劃多步解決方案並執行複雜工作流程的代理，並結合 .NET 的企業功能。
+本筆記本展示了如何使用 .NET 中的 Microsoft Agent Framework 與 Azure OpenAI (Responses API) 建立企業級的智能代理規劃與設計模式。您將學會創建能夠分解複雜問題、規劃多步解決方案並運用 .NET 企業功能執行複雜工作流程的智能代理。
 
-## ⚙️ 先決條件與設置
+## ⚙️ 先決條件與設定
 
 **開發環境：**
 - .NET 9.0 SDK 或更高版本
-- Visual Studio 2022 或安裝 C# 擴展的 VS Code
-- GitHub Models API 訪問權限
+- Visual Studio 2022 或帶有 C# 擴充功能的 VS Code
+- 一個包含 Azure OpenAI 資源與模型部署的 Azure 訂閱
+- 安裝 Azure CLI — 使用 `az login` 登入
 
-**所需依賴項：**
+**所需依賴：**
 ```xml
-<PackageReference Include="Microsoft.Extensions.AI" Version="9.9.0" />
-<PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.9.0-preview.1.25458.4" />
+<PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
+<PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
+<PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.*-*" />
+<PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
+<PackageReference Include="Azure.Identity" Version="1.13.1" />
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
-**環境配置 (.env 文件)：**
+**環境設定 (.env 文件)：**
 ```env
-GITHUB_TOKEN=your_github_personal_access_token
-GITHUB_ENDPOINT=https://models.inference.ai.azure.com
-GITHUB_MODEL_ID=gpt-4o-mini
+AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
 ```
 
-## 運行代碼
+## 執行程式碼
 
-本課程包含一個 .NET 單文件應用程式的實現。運行方式如下：
+本課程包含一個 .NET 單檔案應用程式實作。執行方式如下：
 
 ```bash
-# Make the file executable (Linux/macOS)
+# 使檔案可執行（Linux/macOS）
 chmod +x 07-dotnet-agent-framework.cs
 
-# Run the application
+# 執行應用程式
 ./07-dotnet-agent-framework.cs
 ```
 
-或者使用 dotnet run 命令：
+或使用 dotnet run 指令：
 
 ```bash
 dotnet run 07-dotnet-agent-framework.cs
 ```
 
-## 代碼實現
+## 程式碼實作
 
-完整的實現可在 `07-dotnet-agent-framework.cs` 中找到，展示了以下內容：
+完整實作包含於 `07-dotnet-agent-framework.cs`，內容示範：
 
-- 使用 DotNetEnv 加載環境配置
-- 配置 OpenAI 客戶端以使用 GitHub Models
-- 使用 JSON 序列化定義結構化數據模型（Plan 和 TravelPlan）
-- 使用 JSON schema 創建具有結構化輸出的 AI 代理
-- 執行規劃請求並返回類型安全的響應
+- 使用 DotNetEnv 載入環境設定
+- 配置 Azure OpenAI 用戶端並透過 `GetChatClient().AsAIAgent()` 建立 AI 代理
+- 定義用於計劃的結構化資料模型 (Plan 和 TravelPlan)，並採用 JSON 序列化
+- 創建以 JSON 架構為輸出的結構化 AI 代理
+- 執行具型別安全的規劃請求並回傳結果
 
 ## 核心概念
 
-### 使用類型安全模型進行結構化規劃
+### 使用型別安全模型的結構化規劃
 
-代理使用 C# 類來定義規劃輸出的結構：
+代理使用 C# 類別定義規劃輸出的結構：
 
 ```csharp
 public class Plan
@@ -79,13 +82,15 @@ public class TravelPlan
 }
 ```
 
-### 用於結構化輸出的 JSON Schema
+### 用於結構化輸出的 JSON 架構
 
-代理被配置為返回符合 TravelPlan schema 的響應：
+代理設定回應必須符合 TravelPlan 架構：
 
 ```csharp
-ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_INSTRUCTIONS)
+ChatClientAgentOptions agentOptions = new()
 {
+    Name = AGENT_NAME,
+    Description = AGENT_INSTRUCTIONS,
     ChatOptions = new()
     {
         ResponseFormat = ChatResponseFormatJson.ForJsonSchema(
@@ -98,20 +103,22 @@ ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_
 
 ### 規劃代理指令
 
-代理充當協調者，將任務分配給專門的子代理：
+代理作為協調者，委派任務給專門的子代理：
 
-- FlightBooking：負責預訂航班並提供航班信息
-- HotelBooking：負責預訂酒店並提供酒店信息
-- CarRental：負責租車並提供租車信息
-- ActivitiesBooking：負責預訂活動並提供活動信息
-- DestinationInfo：負責提供目的地信息
+- FlightBooking：負責訂票及提供航班資訊
+- HotelBooking：負責訂房及提供飯店資訊
+- CarRental：負責租車及提供汽車租賃資訊
+- ActivitiesBooking：負責預訂活動及提供活動資訊
+- DestinationInfo：負責提供目的地資訊
 - DefaultAgent：負責處理一般請求
 
 ## 預期輸出
 
-當您使用旅行規劃請求運行代理時，它將分析請求並生成一個結構化的計劃，將適當的任務分配給專門的代理，並以符合 TravelPlan schema 的 JSON 格式輸出。
+執行代理旅遊規劃請求時，代理將分析請求並生成結構化計劃，並以符合 TravelPlan 架構的 JSON 格式，適當委派任務給專門代理。
 
 ---
 
-**免責聲明**：  
-本文件已使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。儘管我們努力確保翻譯的準確性，但請注意，機器翻譯可能包含錯誤或不準確之處。原始文件的母語版本應被視為權威來源。對於關鍵信息，建議使用專業人工翻譯。我們對因使用此翻譯而引起的任何誤解或誤釋不承擔責任。
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**免責聲明**：
+此文件已使用 AI 翻譯服務 [Co-op Translator](https://github.com/Azure/co-op-translator) 進行翻譯。雖然我們努力追求準確性，但請注意自動翻譯可能包含錯誤或不準確之處。原始文件的母語版本應視為權威來源。對於關鍵資訊，建議採用專業人工翻譯。我們不對因使用此翻譯所產生的任何誤解或誤譯承擔責任。
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

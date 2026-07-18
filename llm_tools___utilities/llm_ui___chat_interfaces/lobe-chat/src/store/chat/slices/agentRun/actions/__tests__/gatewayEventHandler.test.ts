@@ -237,6 +237,120 @@ describe('createGatewayEventHandler', () => {
       );
     });
 
+    it('applies replace snapshots and drops redelivered snapshot seqs', async () => {
+      const store = createMockStore();
+      const handler = createHandler(store);
+
+      // `lh hetero exec` sends full-text snapshots: each carries the WHOLE
+      // message so far and must replace, not append.
+      handler(
+        makeEvent('stream_chunk', {
+          chunkType: 'text',
+          content: 'Hello',
+          snapshotMode: 'replace',
+          snapshotSeq: 1,
+        }),
+      );
+      handler(
+        makeEvent('stream_chunk', {
+          chunkType: 'text',
+          content: 'Hello world',
+          snapshotMode: 'replace',
+          snapshotSeq: 2,
+        }),
+      );
+      // Redelivery of seq 2 (server-side batch retry) — must be dropped, not
+      // appended: appending would render "Hello worldHello world".
+      handler(
+        makeEvent('stream_chunk', {
+          chunkType: 'text',
+          content: 'Hello world',
+          snapshotMode: 'replace',
+          snapshotSeq: 2,
+        }),
+      );
+      await flush();
+
+      expect(store.internal_dispatchMessage).toHaveBeenLastCalledWith(
+        {
+          id: 'msg-initial',
+          type: 'updateMessage',
+          value: { content: 'Hello world' },
+        },
+        { operationId: 'op-1' },
+      );
+      const textDispatches = store.internal_dispatchMessage.mock.calls.filter(
+        ([action]: any[]) => action.type === 'updateMessage' && 'content' in action.value,
+      );
+      expect(textDispatches).toHaveLength(2); // the redelivered snapshot dispatched nothing
+    });
+
+    it('applies reasoning replace snapshots and drops redelivered seqs', async () => {
+      const store = createMockStore();
+      const handler = createHandler(store);
+
+      handler(
+        makeEvent('stream_chunk', {
+          chunkType: 'reasoning',
+          reasoning: 'thinking',
+          snapshotMode: 'replace',
+          snapshotSeq: 1,
+        }),
+      );
+      handler(
+        makeEvent('stream_chunk', {
+          chunkType: 'reasoning',
+          reasoning: 'thinking done',
+          snapshotMode: 'replace',
+          snapshotSeq: 2,
+        }),
+      );
+      // Redelivered seq 2 — appending it would render "thinking donethinking done".
+      handler(
+        makeEvent('stream_chunk', {
+          chunkType: 'reasoning',
+          reasoning: 'thinking done',
+          snapshotMode: 'replace',
+          snapshotSeq: 2,
+        }),
+      );
+      await flush();
+
+      const reasoningDispatches = store.internal_dispatchMessage.mock.calls.filter(
+        ([action]: any[]) => action.type === 'updateMessage' && 'reasoning' in action.value,
+      );
+      expect(reasoningDispatches).toHaveLength(2); // duplicate dropped
+      expect(reasoningDispatches.at(-1)?.[0].value).toEqual({
+        reasoning: { content: 'thinking done' },
+      });
+    });
+
+    it('a snapshot replaces text accumulated from plain deltas', async () => {
+      const store = createMockStore();
+      const handler = createHandler(store);
+
+      handler(makeEvent('stream_chunk', { chunkType: 'text', content: 'Hel' }));
+      handler(
+        makeEvent('stream_chunk', {
+          chunkType: 'text',
+          content: 'Hello world',
+          snapshotMode: 'replace',
+          snapshotSeq: 1,
+        }),
+      );
+      await flush();
+
+      // Replace, not append — appending would render "HelHello world".
+      expect(store.internal_dispatchMessage).toHaveBeenLastCalledWith(
+        {
+          id: 'msg-initial',
+          type: 'updateMessage',
+          value: { content: 'Hello world' },
+        },
+        { operationId: 'op-1' },
+      );
+    });
+
     it('should accumulate reasoning content', async () => {
       const store = createMockStore();
       const handler = createHandler(store);

@@ -1,39 +1,42 @@
-# 🎯 Plánování a návrhové vzory s GitHub Models (.NET)
+# 🎯 Plánování a návrhové vzory s Azure OpenAI (Responses API) (.NET)
 
 ## 📋 Cíle učení
 
-Tento notebook ukazuje plánování a návrhové vzory na podnikové úrovni pro vytváření inteligentních agentů pomocí Microsoft Agent Framework v .NET s GitHub Models. Naučíte se vytvářet agenty, kteří dokážou rozkládat složité problémy, plánovat vícekroková řešení a provádět sofistikované pracovní postupy s podnikovými funkcemi .NET.
+Tento sešit ukazuje podnikové plánovací a návrhové vzory pro vytváření inteligentních agentů pomocí Microsoft Agent Framework v .NET s Azure OpenAI (Responses API). Naučíte se vytvářet agenty, kteří dokáží rozložit složité problémy, plánovat vícekroková řešení a provádět složité pracovní postupy pomocí podnikových funkcí .NET.
 
 ## ⚙️ Předpoklady a nastavení
 
 **Vývojové prostředí:**
-- .NET 9.0 SDK nebo vyšší
+- .NET 9.0 SDK nebo novější
 - Visual Studio 2022 nebo VS Code s rozšířením C#
-- Přístup k GitHub Models API
+- Předplatné Azure s Azure OpenAI zdrojem a nasazením modelu
+- Azure CLI — přihlaste se pomocí `az login`
 
 **Požadované závislosti:**
 ```xml
-<PackageReference Include="Microsoft.Extensions.AI" Version="9.9.0" />
-<PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.9.0-preview.1.25458.4" />
+<PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
+<PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
+<PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.*-*" />
+<PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
+<PackageReference Include="Azure.Identity" Version="1.13.1" />
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
 **Konfigurace prostředí (soubor .env):**
 ```env
-GITHUB_TOKEN=your_github_personal_access_token
-GITHUB_ENDPOINT=https://models.inference.ai.azure.com
-GITHUB_MODEL_ID=gpt-4o-mini
+AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
 ```
 
 ## Spuštění kódu
 
-Tato lekce obsahuje implementaci .NET Single File App. Pro spuštění:
+Tato lekce obsahuje implementaci .NET Single File App. Ke spuštění:
 
 ```bash
-# Make the file executable (Linux/macOS)
+# Udělejte soubor spustitelným (Linux/macOS)
 chmod +x 07-dotnet-agent-framework.cs
 
-# Run the application
+# Spusťte aplikaci
 ./07-dotnet-agent-framework.cs
 ```
 
@@ -48,16 +51,16 @@ dotnet run 07-dotnet-agent-framework.cs
 Kompletní implementace je dostupná v `07-dotnet-agent-framework.cs`, která ukazuje:
 
 - Načítání konfigurace prostředí pomocí DotNetEnv
-- Konfiguraci klienta OpenAI pro GitHub Models
+- Konfiguraci klienta Azure OpenAI a vytvoření AI agenta pomocí `GetChatClient().AsAIAgent()`
 - Definování strukturovaných datových modelů (Plan a TravelPlan) s JSON serializací
 - Vytvoření AI agenta se strukturovaným výstupem pomocí JSON schématu
-- Provádění plánovacích požadavků s typově bezpečnými odpověďmi
+- Spouštění plánovacích požadavků s typově bezpečnými odpověďmi
 
-## Klíčové koncepty
+## Klíčové pojmy
 
 ### Strukturované plánování s typově bezpečnými modely
 
-Agent používá C# třídy k definování struktury výstupů plánování:
+Agent používá C# třídy pro definování struktury plánovacích výstupů:
 
 ```csharp
 public class Plan
@@ -84,8 +87,10 @@ public class TravelPlan
 Agent je nakonfigurován tak, aby vracel odpovědi odpovídající schématu TravelPlan:
 
 ```csharp
-ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_INSTRUCTIONS)
+ChatClientAgentOptions agentOptions = new()
 {
+    Name = AGENT_NAME,
+    Description = AGENT_INSTRUCTIONS,
     ChatOptions = new()
     {
         ResponseFormat = ChatResponseFormatJson.ForJsonSchema(
@@ -98,20 +103,22 @@ ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_
 
 ### Instrukce pro plánovacího agenta
 
-Agent funguje jako koordinátor, který deleguje úkoly na specializované pod-agenty:
+Agent funguje jako koordinátor, delegující úkoly specializovaným subagentům:
 
 - FlightBooking: Pro rezervaci letů a poskytování informací o letech
 - HotelBooking: Pro rezervaci hotelů a poskytování informací o hotelech
-- CarRental: Pro rezervaci aut a poskytování informací o pronájmu aut
+- CarRental: Pro rezervaci aut a poskytování informací o půjčovnách
 - ActivitiesBooking: Pro rezervaci aktivit a poskytování informací o aktivitách
 - DestinationInfo: Pro poskytování informací o destinacích
 - DefaultAgent: Pro zpracování obecných požadavků
 
 ## Očekávaný výstup
 
-Když spustíte agenta s požadavkem na plánování cesty, analyzuje požadavek a vytvoří strukturovaný plán s odpovídajícími přiřazeními úkolů specializovaným agentům, formátovaný jako JSON odpovídající schématu TravelPlan.
+Při spuštění agenta s požadavkem na plánování cesty analyzuje požadavek a vygeneruje strukturovaný plán s vhodným přiřazením úkolů specializovaným agentům, formátovaný jako JSON odpovídající schématu TravelPlan.
 
 ---
 
-**Prohlášení**:  
-Tento dokument byl přeložen pomocí služby AI pro překlad [Co-op Translator](https://github.com/Azure/co-op-translator). Ačkoli se snažíme o přesnost, mějte prosím na paměti, že automatizované překlady mohou obsahovat chyby nebo nepřesnosti. Původní dokument v jeho původním jazyce by měl být považován za autoritativní zdroj. Pro důležité informace se doporučuje profesionální lidský překlad. Neodpovídáme za žádná nedorozumění nebo nesprávné interpretace vyplývající z použití tohoto překladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Prohlášení o omezení odpovědnosti**:
+Tento dokument byl přeložen pomocí AI překladatelské služby [Co-op Translator](https://github.com/Azure/co-op-translator). Přestože usilujeme o co největší přesnost, mějte prosím na paměti, že automatizované překlady mohou obsahovat chyby nebo nepřesnosti. Originální dokument v jeho mateřském jazyce by měl být považován za autoritativní zdroj. Pro kritické informace se doporučuje profesionální lidský překlad. Nejsme odpovědní za jakékoli nedorozumění nebo nesprávné interpretace vzniklé použitím tohoto překladu.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

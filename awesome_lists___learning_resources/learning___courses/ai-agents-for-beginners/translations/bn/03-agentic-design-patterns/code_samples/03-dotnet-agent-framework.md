@@ -1,150 +1,153 @@
-# 🎨 GitHub মডেল (.NET) সহ Agentic ডিজাইন প্যাটার্ন
+# 🎨 Azure OpenAI (Responses API) এর সাথে Agentic ডিজাইন প্যাটার্নগুলি (.NET)
 
-## 📋 শেখার লক্ষ্য
+## 📋 শেখার উদ্দেশ্য
 
-এই উদাহরণটি Microsoft Agent Framework ব্যবহার করে .NET-এ GitHub মডেল ইন্টিগ্রেশনের মাধ্যমে বুদ্ধিমান এজেন্ট তৈরি করার জন্য এন্টারপ্রাইজ-গ্রেড ডিজাইন প্যাটার্নগুলি প্রদর্শন করে। আপনি এমন পেশাদার প্যাটার্ন এবং স্থাপত্যগত পদ্ধতি শিখবেন যা এজেন্টকে প্রোডাকশন-রেডি, রক্ষণাবেক্ষণযোগ্য এবং স্কেলযোগ্য করে তোলে।
+এই উদাহরণটি .NET-এ Microsoft Agent Framework ব্যবহার করে Azure OpenAI (Responses API) ইন্টিগ্রেশনের মাধ্যমে বুদ্ধিমান এজেন্ট তৈরি করার জন্য এন্টারপ্রাইজ-গ্রেড ডিজাইন প্যাটার্নগুলি প্রদর্শন করে। আপনি পেশাদার প্যাটার্ন এবং স্থাপত্যগত পদ্ধতিগুলি শিখবেন যা এজেন্টদের প্রোডাকশন-রেডি, মেইনটেইনেবল এবং স্কেলএবল করে।
 
-### এন্টারপ্রাইজ ডিজাইন প্যাটার্ন
+### এন্টারপ্রাইজ ডিজাইন প্যাটার্নগুলি
 
-- 🏭 **ফ্যাক্টরি প্যাটার্ন**: ডিপেনডেন্সি ইনজেকশন সহ এজেন্ট তৈরির মানকরণ
-- 🔧 **বিল্ডার প্যাটার্ন**: ফ্লুয়েন্ট এজেন্ট কনফিগারেশন এবং সেটআপ
-- 🧵 **থ্রেড-সেফ প্যাটার্ন**: সমান্তরাল কথোপকথন ব্যবস্থাপনা
-- 📋 **রিপোজিটরি প্যাটার্ন**: টুল এবং সক্ষমতা ব্যবস্থাপনার সংগঠিত পদ্ধতি
+- 🏭 **ফ্যাক্টরি প্যাটার্ন**: ডিপেনডেন্সি ইনজেকশনের সাথে স্ট্যান্ডার্ডাইজড এজেন্ট নির্মাণ
+- 🔧 **বিল্ডার প্যাটার্ন**: ফ্লুয়েন্ট এজেন্ট কনফিগারেশন এবং সেটআপ
+- 🧵 **থ্রেড-সেফ প্যাটার্নগুলি**: একযোগে কথোপকথন পরিচালনা
+- 📋 **রিপোজিটরি প্যাটার্ন**: সংগঠিত টুল এবং সক্ষমতা ব্যবস্থাপনা
 
-## 🎯 .NET-নির্দিষ্ট স্থাপত্যগত সুবিধা
+## 🎯 .NET-বিশেষ স্থাপত্যগত সুবিধাসমূহ
 
-### এন্টারপ্রাইজ বৈশিষ্ট্য
+### এন্টারপ্রাইজ বৈশিষ্ট্যসমূহ
 
-- **স্ট্রং টাইপিং**: কম্পাইল-টাইম যাচাইকরণ এবং IntelliSense সাপোর্ট
-- **ডিপেনডেন্সি ইনজেকশন**: বিল্ট-ইন DI কন্টেইনার ইন্টিগ্রেশন
-- **কনফিগারেশন ব্যবস্থাপনা**: IConfiguration এবং Options প্যাটার্ন
-- **Async/Await**: প্রথম-শ্রেণীর অ্যাসিঙ্ক্রোনাস প্রোগ্রামিং সাপোর্ট
+- **স্ট্রং টাইপিং**: কম্পাইল-টাইম ভ্যালিডেশন এবং IntelliSense সমর্থন
+- **ডিপেনডেন্সি ইনজেকশন**: বিল্ট-ইন DI কনটেইনার ইন্টিগ্রেশন
+- **কনফিগারেশন ম্যানেজমেন্ট**: IConfiguration এবং Options প্যাটার্ন
+- **Async/Await**: প্রথম-শ্রেণীর অ্যাসিঙ্ক্রোনাস প্রোগ্রামিং সমর্থন
 
-### প্রোডাকশন-রেডি প্যাটার্ন
+### প্রোডাকশন-রেডি প্যাটার্নগুলি
 
-- **লগিং ইন্টিগ্রেশন**: ILogger এবং স্ট্রাকচার্ড লগিং সাপোর্ট
-- **হেলথ চেক**: বিল্ট-ইন মনিটরিং এবং ডায়াগনস্টিকস
-- **কনফিগারেশন যাচাইকরণ**: ডেটা অ্যানোটেশন সহ স্ট্রং টাইপিং
-- **এরর হ্যান্ডলিং**: স্ট্রাকচার্ড এক্সসেপশন ব্যবস্থাপনা
+- **লগিং ইন্টিগ্রেশন**: ILogger এবং স্ট্রাকচার্ড লগিং সমর্থন
+- **হেলথ চেকস**: বিল্ট-ইন মনিটরিং এবং ডায়াগনস্টিক্স
+- **কনফিগারেশন ভ্যালিডেশন**: ডেটা অ্যানোটেশনের সাথে স্ট্রং টাইপিং
+- **এরর হ্যান্ডলিং**: স্ট্রাকচার্ড এক্সেপশন ম্যানেজমেন্ট
 
-## 🔧 টেকনিক্যাল স্থাপত্য
+## 🔧 টেকনিক্যাল আর্কিটেকচার
 
-### মূল .NET উপাদান
+### মূল .NET কম্পোনেন্টসমূহ
 
-- **Microsoft.Extensions.AI**: একীভূত AI সার্ভিস অ্যাবস্ট্রাকশন
-- **Microsoft.Agents.AI**: এন্টারপ্রাইজ এজেন্ট অর্কেস্ট্রেশন ফ্রেমওয়ার্ক
-- **GitHub মডেল ইন্টিগ্রেশন**: উচ্চ-প্রদর্শন API ক্লায়েন্ট প্যাটার্ন
+- **Microsoft.Extensions.AI**: এককৃত AI সার্ভিস বিমূর্ততা
+- **Microsoft.Agents.AI**: এন্টারপ্রাইজ এজেন্ট অর্কেস্ট্রেশন ফ্রেমওয়ার্ক
+- **Azure OpenAI (Responses API)**: উচ্চ-ক্ষমতাসম্পন্ন API ক্লায়েন্ট প্যাটার্নগুলি
 - **কনফিগারেশন সিস্টেম**: appsettings.json এবং পরিবেশ ইন্টিগ্রেশন
 
-### ডিজাইন প্যাটার্ন বাস্তবায়ন
+### ডিজাইন প্যাটার্ন ইমপ্লিমেন্টেশন
 
 ```mermaid
 graph LR
-    A[IServiceCollection] --> B[Agent Builder]
-    B --> C[Configuration]
-    C --> D[Tool Registry]
-    D --> E[AI Agent]
+    A[IServiceCollection] --> B[এজেন্ট নির্মাতা]
+    B --> C[কনফিগারেশন]
+    C --> D[টুল রেজিস্ট্রি]
+    D --> E[AI এজেন্ট]
 ```
 
-## 🏗️ প্রদর্শিত এন্টারপ্রাইজ প্যাটার্ন
+## 🏗️ প্রদর্শিত এন্টারপ্রাইজ প্যাটার্নসমূহ
 
-### 1. **ক্রিয়েশনাল প্যাটার্ন**
+### 1. **সৃষ্টিমূলক প্যাটার্ন**
 
-- **এজেন্ট ফ্যাক্টরি**: ধারাবাহিক কনফিগারেশন সহ কেন্দ্রীভূত এজেন্ট তৈরি
-- **বিল্ডার প্যাটার্ন**: জটিল এজেন্ট কনফিগারেশনের জন্য ফ্লুয়েন্ট API
-- **সিঙ্গেলটন প্যাটার্ন**: শেয়ার করা রিসোর্স এবং কনফিগারেশন ব্যবস্থাপনা
-- **ডিপেনডেন্সি ইনজেকশন**: লুজ কাপলিং এবং টেস্টেবিলিটি
+- **এজেন্ট ফ্যাক্টরি**: কেন্দ্রীভূত এজেন্ট নির্মাণ সঙ্গতিপূর্ণ কনফিগারেশনের সাথে
+- **বিল্ডার প্যাটার্ন**: জটিল এজেন্ট কনফিগারেশনের জন্য ফ্লুয়েন্ট API
+- **সিঙ্গলটন প্যাটার্ন**: শেয়ারকৃত রিসোর্স এবং কনফিগারেশন ম্যানেজমেন্ট
+- **ডিপেনডেন্সি ইনজেকশন**: নমনীয় coupling এবং পরীক্ষাযোগ্যতা
 
-### 2. **বিহেভিরাল প্যাটার্ন**
+### 2. **ব্যবহারকৃত প্যাটার্ন**
 
-- **স্ট্র্যাটেজি প্যাটার্ন**: পরিবর্তনযোগ্য টুল এক্সিকিউশন স্ট্র্যাটেজি
-- **কমান্ড প্যাটার্ন**: এজেন্ট অপারেশন এনক্যাপসুলেশন সহ undo/redo
-- **অবজারভার প্যাটার্ন**: ইভেন্ট-চালিত এজেন্ট লাইফসাইকেল ব্যবস্থাপনা
-- **টেমপ্লেট মেথড**: এজেন্ট এক্সিকিউশন ওয়ার্কফ্লো মানকরণ
+- **স্ট্র্যাটেজি প্যাটার্ন**: প্রতিস্থাপনযোগ্য টুল এক্সিকিউশন কৌশল
+- **কমান্ড প্যাটার্ন**: আংশিকভাবে মোড়ককৃত এজেন্ট অপারেশন সাধারণ undo/redo সহ
+- **অবজারভার প্যাটার্ন**: ইভেন্ট-চালিত এজেন্ট লাইফসাইকেল ম্যানেজমেন্ট
+- **টেমপ্লেট মেথড**: স্ট্যান্ডার্ডাইজড এজেন্ট এক্সিকিউশন ওয়ার্কফ্লোসমূহ
 
 ### 3. **স্ট্রাকচারাল প্যাটার্ন**
 
-- **অ্যাডাপ্টার প্যাটার্ন**: GitHub মডেল API ইন্টিগ্রেশন লেয়ার
-- **ডেকোরেটর প্যাটার্ন**: এজেন্ট সক্ষমতা বৃদ্ধি
-- **ফ্যাসাড প্যাটার্ন**: সরলীকৃত এজেন্ট ইন্টারঅ্যাকশন ইন্টারফেস
-- **প্রক্সি প্যাটার্ন**: পারফরম্যান্সের জন্য লেজি লোডিং এবং ক্যাশিং
+- **অ্যাডাপ্টার প্যাটার্ন**: Azure OpenAI (Responses API) ইন্টিগ্রেশন লেয়ার
+- **ডেকোরেটর প্যাটার্ন**: এজেন্ট সক্ষমতা বৃদ্ধিকরণ
+- **ফাসাদ প্যাটার্ন**: সরলীকৃত এজেন্ট ইন্টারঅ্যাকশন ইন্টারফেসসমূহ
+- **প্রক্সি প্যাটার্ন**: পারফরম্যান্সের জন্য অলস লোডিং এবং ক্যাশিং
 
 ## 📚 .NET ডিজাইন নীতিমালা
 
 ### SOLID নীতিমালা
 
-- **সিঙ্গেল রেসপন্সিবিলিটি**: প্রতিটি কম্পোনেন্টের একটি স্পষ্ট উদ্দেশ্য
-- **ওপেন/ক্লোজড**: পরিবর্তন ছাড়াই সম্প্রসারণযোগ্য
+- **সিঙ্গল রেস্পন্সিবিলিটি**: প্রতিটি কম্পোনেন্টের একটি স্পষ্ট উদ্দেশ্য থাকে
+- **ওপেন/ক্লোজড**: পরিবর্তন ছাড়াই বর্ধনযোগ্য
 - **লিসকভ সাবস্টিটিউশন**: ইন্টারফেস-ভিত্তিক টুল ইমপ্লিমেন্টেশন
-- **ইন্টারফেস সেগ্রিগেশন**: ফোকাসড, সংহত ইন্টারফেস
-- **ডিপেনডেন্সি ইনভার্সন**: অ্যাবস্ট্রাকশন নির্ভর, কনক্রিশন নয়
+- **ইন্টারফেস সেগ্রিগেশন**: ফোকাসড, সঙ্গতিপূর্ণ ইন্টারফেসসমূহ
+- **ডিপেনডেন্সি ইনভার্শন**: বিমূর্ততার উপর নির্ভরশীল, বাস্তবতার নয়
 
-### ক্লিন আর্কিটেকচার
+### পরিষ্কার স্থাপত্য
 
-- **ডোমেইন লেয়ার**: মূল এজেন্ট এবং টুল অ্যাবস্ট্রাকশন
-- **অ্যাপ্লিকেশন লেয়ার**: এজেন্ট অর্কেস্ট্রেশন এবং ওয়ার্কফ্লো
-- **ইনফ্রাস্ট্রাকচার লেয়ার**: GitHub মডেল ইন্টিগ্রেশন এবং বাহ্যিক সার্ভিস
-- **প্রেজেন্টেশন লেয়ার**: ব্যবহারকারী ইন্টারঅ্যাকশন এবং রেসপন্স ফরম্যাটিং
+- **ডোমেন লেয়ার**: প্রধান এজেন্ট এবং টুল বিমূর্ততা
+- **অ্যাপ্লিকেশন লেয়ার**: এজেন্ট অর্কেস্ট্রেশন এবং ওয়ার্কফ্লোসমূহ
+- **ইনফ্রাস্ট্রাকচার লেয়ার**: Azure OpenAI (Responses API) ইন্টিগ্রেশন এবং বাহ্যিক সার্ভিসসমূহ
+- **প্রেজেন্টেশন লেয়ার**: ব্যবহারকারী ইন্টারঅ্যাকশন এবং রেসপন্স ফরম্যাটিং
 
-## 🔒 এন্টারপ্রাইজ বিবেচনা
+## 🔒 এন্টারপ্রাইজ বিবেচনাসমূহ
 
 ### নিরাপত্তা
 
-- **ক্রেডেনশিয়াল ব্যবস্থাপনা**: IConfiguration সহ নিরাপদ API কী হ্যান্ডলিং
-- **ইনপুট যাচাইকরণ**: স্ট্রং টাইপিং এবং ডেটা অ্যানোটেশন যাচাইকরণ
-- **আউটপুট স্যানিটাইজেশন**: নিরাপদ রেসপন্স প্রসেসিং এবং ফিল্টারিং
+- **ক্রেডেনশিয়াল ম্যানেজমেন্ট**: IConfiguration সহ নিরাপদ API কী পরিচালনা
+- **ইনপুট ভ্যালিডেশন**: স্ট্রং টাইপিং এবং ডেটা অ্যানোটেশন ভ্যালিডেশন
+- **আউটপুট স্যানিটাইজেশন**: নিরাপদ রেসপন্স প্রক্রিয়াকরণ এবং ফিল্টারিং
 - **অডিট লগিং**: ব্যাপক অপারেশন ট্র্যাকিং
 
-### পারফরম্যান্স
+### কর্মক্ষমতা
 
 - **অ্যাসিঙ্ক প্যাটার্ন**: নন-ব্লকিং I/O অপারেশন
-- **কানেকশন পুলিং**: দক্ষ HTTP ক্লায়েন্ট ব্যবস্থাপনা
-- **ক্যাশিং**: পারফরম্যান্স উন্নতির জন্য রেসপন্স ক্যাশিং
-- **রিসোর্স ব্যবস্থাপনা**: সঠিক ডিসপোজাল এবং ক্লিনআপ প্যাটার্ন
+- **কানেকশন পুলিং**: দক্ষ HTTP ক্লায়েন্ট ব্যবস্থাপনা
+- **ক্যাশিং**: উন্নত পারফরম্যান্সের জন্য রেসপন্স ক্যাশিং
+- **রিসোর্স ম্যানেজমেন্ট**: যথাযথ ডিসপোজাল এবং ক্লিনআপ প্যাটার্নসমূহ
 
-### স্কেলেবিলিটি
+### স্কেলএবিলিটি
 
-- **থ্রেড সেফটি**: সমান্তরাল এজেন্ট এক্সিকিউশন সাপোর্ট
+- **থ্রেড সেফটি**: সমান্তরাল এজেন্ট এক্সিকিউশন সমর্থন
 - **রিসোর্স পুলিং**: দক্ষ রিসোর্স ব্যবহার
-- **লোড ব্যবস্থাপনা**: রেট লিমিটিং এবং ব্যাকপ্রেশার হ্যান্ডলিং
-- **মনিটরিং**: পারফরম্যান্স মেট্রিক এবং হেলথ চেক
+- **লোড ম্যানেজমেন্ট**: রেট লিমিটিং এবং ব্যাকপ্রেশার হ্যান্ডলিং
+- **মনিটরিং**: পারফরম্যান্স মেট্রিক্স এবং হেলথ চেকস
 
-## 🚀 প্রোডাকশন ডিপ্লয়মেন্ট
+## 🚀 প্রোডাকশন ডিপ্লয়মেন্ট
 
-- **কনফিগারেশন ব্যবস্থাপনা**: পরিবেশ-নির্দিষ্ট সেটিংস
-- **লগিং স্ট্র্যাটেজি**: করেলেশন ID সহ স্ট্রাকচার্ড লগিং
-- **এরর হ্যান্ডলিং**: গ্লোবাল এক্সসেপশন হ্যান্ডলিং সহ সঠিক পুনরুদ্ধার
-- **মনিটরিং**: অ্যাপ্লিকেশন ইনসাইট এবং পারফরম্যান্স কাউন্টার
+- **কনফিগারেশন ম্যানেজমেন্ট**: পরিবেশ-নির্দিষ্ট সেটিংস
+- **লগিং স্ট্রাটেজি**: করিলেশন আইডি সহ স্ট্রাকচার্ড লগিং
+- **এরর হ্যান্ডলিং**: উপযুক্ত পুনরুদ্ধারের সাথে গ্লোবাল এক্সেপশন হ্যান্ডলিং
+- **মনিটরিং**: অ্যাপ্লিকেশন ইনসাইটস এবং পারফরম্যান্স কাউন্টারসমূহ
 - **টেস্টিং**: ইউনিট টেস্ট, ইন্টিগ্রেশন টেস্ট এবং লোড টেস্টিং প্যাটার্ন
 
-এন্টারপ্রাইজ-গ্রেড বুদ্ধিমান এজেন্ট তৈরি করতে প্রস্তুত .NET দিয়ে? চলুন কিছু শক্তিশালী স্থাপত্য তৈরি করি! 🏢✨
+.NET দিয়ে এন্টারপ্রাইজ-গ্রেড বুদ্ধিমান এজেন্ট তৈরি করতে প্রস্তুত? চলুন কিছু দৃঢ় স্থাপত্য করি! 🏢✨
 
 ## 🚀 শুরু করা
 
-### প্রয়োজনীয়তা
+### প্রয়োজনীয়তাসমূহ
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) বা তার বেশি
-- [GitHub মডেল API অ্যাক্সেস টোকেন](https://docs.github.com/github-models/github-models-at-scale/using-your-own-api-keys-in-github-models)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) বা তার উপরে
+- [Azure সাবস্ক্রিপশন](https://azure.microsoft.com/free/) যার সঙ্গে Azure OpenAI রিসোর্স এবং একটি মডেল ডিপ্লয়মেন্ট রয়েছে
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` দিয়ে সাইন ইন করুন
 
-### প্রয়োজনীয় পরিবেশ ভেরিয়েবল
+### প্রয়োজনীয় পরিবেশ ভেরিয়েবলসমূহ
 
 ```bash
 # zsh/bash
-export GH_TOKEN=<your_github_token>
-export GH_ENDPOINT=https://models.github.ai/inference
-export GH_MODEL_ID=openai/gpt-5-mini
+export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+# তারপর সাইন ইন করুন যাতে AzureCliCredential একটি টোকেন পেতে পারে
+az login
 ```
 
 ```powershell
-# PowerShell
-$env:GH_TOKEN = "<your_github_token>"
-$env:GH_ENDPOINT = "https://models.github.ai/inference"
-$env:GH_MODEL_ID = "openai/gpt-5-mini"
+# পাওয়ারশেল
+$env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+# তারপর সাইন ইন করুন যাতে AzureCliCredential একটি টোকেন পেতে পারে
+az login
 ```
 
 ### নমুনা কোড
 
-কোড উদাহরণ চালানোর জন্য,
+উদাহরণ কোড চালানোর জন্য,
 
 ```bash
 # zsh/bash
@@ -158,21 +161,23 @@ chmod +x ./03-dotnet-agent-framework.cs
 dotnet run ./03-dotnet-agent-framework.cs
 ```
 
-সম্পূর্ণ কোডের জন্য দেখুন [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs)।
+পূর্ণ কোডের জন্য দেখুন [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs)।
 
 ```csharp
 #!/usr/bin/dotnet run
 
 #:package Microsoft.Extensions.AI@10.*
 #:package Microsoft.Agents.AI.OpenAI@1.*-*
+#:package Azure.AI.OpenAI@2.1.0
+#:package Azure.Identity@1.13.1
 
-using System.ClientModel;
 using System.ComponentModel;
 
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
-using OpenAI;
+using Azure.AI.OpenAI;
+using Azure.Identity;
 
 // Tool Function: Random Destination Generator
 // This static method will be available to the agent as a callable tool
@@ -204,26 +209,12 @@ static string GetRandomDestination()
     return destinations[index];
 }
 
-// Extract configuration from environment variables
-// Retrieve the GitHub Models API endpoint, defaults to https://models.github.ai/inference if not specified
-// Retrieve the model ID, defaults to openai/gpt-5-mini if not specified
-// Retrieve the GitHub token for authentication, throws exception if not specified
-var github_endpoint = Environment.GetEnvironmentVariable("GH_ENDPOINT") ?? "https://models.github.ai/inference";
-var github_model_id = Environment.GetEnvironmentVariable("GH_MODEL_ID") ?? "openai/gpt-5-mini";
-var github_token = Environment.GetEnvironmentVariable("GH_TOKEN") ?? throw new InvalidOperationException("GH_TOKEN is not set.");
+// Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
+var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
+    ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
 
-// Configure OpenAI Client Options
-// Create configuration options to point to GitHub Models endpoint
-// This redirects OpenAI client calls to GitHub's model inference service
-var openAIOptions = new OpenAIClientOptions()
-{
-    Endpoint = new Uri(github_endpoint)
-};
-
-// Initialize OpenAI Client with GitHub Models Configuration
-// Create OpenAI client using GitHub token for authentication
-// Configure it to use GitHub Models endpoint instead of OpenAI directly
-var openAIClient = new OpenAIClient(new ApiKeyCredential(github_token), openAIOptions);
+var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
 // Define Agent Identity and Comprehensive Instructions
 // Agent name for identification and logging purposes
@@ -249,28 +240,28 @@ Always prioritize user preferences. If they mention a specific destination like 
 """;
 
 // Create AI Agent with Advanced Travel Planning Capabilities
-// Initialize complete agent pipeline: OpenAI client → Chat client → AI agent
+// Get the Responses client for the deployment and create the AI agent
 // Configure agent with name, detailed instructions, and available tools
 // This demonstrates the .NET agent creation pattern with full configuration
-AIAgent agent = openAIClient
-    .GetChatClient(github_model_id)
-    .CreateAIAgent(
+AIAgent agent = azureClient
+    .GetChatClient(deployment)
+    .AsAIAgent(
         name: AGENT_NAME,
         instructions: AGENT_INSTRUCTIONS,
         tools: [AIFunctionFactory.Create(GetRandomDestination)]
     );
 
-// Create New Conversation Thread for Context Management
-// Initialize a new conversation thread to maintain context across multiple interactions
-// Threads enable the agent to remember previous exchanges and maintain conversational state
+// Create New Conversation Session for Context Management
+// Initialize a new conversation session to maintain context across multiple interactions
+// Sessions enable the agent to remember previous exchanges and maintain conversational state
 // This is essential for multi-turn conversations and contextual understanding
-AgentThread thread = agent.GetNewThread();
+var session = await agent.CreateSessionAsync();
 
 // Execute Agent: First Travel Planning Request
 // Run the agent with an initial request that will likely trigger the random destination tool
 // The agent will analyze the request, use the GetRandomDestination tool, and create an itinerary
-// Using the thread parameter maintains conversation context for subsequent interactions
-await foreach (var update in agent.RunStreamingAsync("Plan me a day trip", thread))
+// Using the session parameter maintains conversation context for subsequent interactions
+await foreach (var update in agent.RunStreamingAsync("Plan me a day trip", session))
 {
     await Task.Delay(10);
     Console.Write(update);
@@ -281,8 +272,8 @@ Console.WriteLine();
 // Execute Agent: Follow-up Request with Context Awareness
 // Demonstrate contextual conversation by referencing the previous response
 // The agent remembers the previous destination suggestion and will provide an alternative
-// This showcases the power of conversation threads and contextual understanding in .NET agents
-await foreach (var update in agent.RunStreamingAsync("I don't like that destination. Plan me another vacation.", thread))
+// This showcases the power of conversation sessions and contextual understanding in .NET agents
+await foreach (var update in agent.RunStreamingAsync("I don't like that destination. Plan me another vacation.", session))
 {
     await Task.Delay(10);
     Console.Write(update);
@@ -292,6 +283,6 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**অস্বীকৃতি**:  
-এই নথিটি AI অনুবাদ পরিষেবা [Co-op Translator](https://github.com/Azure/co-op-translator) ব্যবহার করে অনুবাদ করা হয়েছে। আমরা যথাসাধ্য সঠিক অনুবাদের চেষ্টা করি, তবে দয়া করে মনে রাখবেন যে স্বয়ংক্রিয় অনুবাদে ত্রুটি বা অসঙ্গতি থাকতে পারে। নথিটির মূল ভাষায় থাকা সংস্করণটিকে প্রামাণিক উৎস হিসেবে বিবেচনা করা উচিত। গুরুত্বপূর্ণ তথ্যের জন্য, পেশাদার মানব অনুবাদ সুপারিশ করা হয়। এই অনুবাদ ব্যবহারের ফলে সৃষ্ট কোনো ভুল বোঝাবুঝি বা ভুল ব্যাখ্যার জন্য আমরা দায়ী নই।
+**অস্বীকৃতি**:
+এই নথিটি AI অনুবাদ পরিষেবা [Co-op Translator](https://github.com/Azure/co-op-translator) ব্যবহার করে অনূদিত হয়েছে। যদিও আমরা শুদ্ধতার জন্য চেষ্টা করি, অনুগ্রহ করে মনে রাখবেন যে স্বয়ংক্রিয় অনুবাদে ত্রুটি বা অসঙ্গতি থাকতে পারে। মূল নথিটি তার স্বভাষায় কর্তৃত্বপূর্ণ উৎস হিসেবে বিবেচিত হওয়া উচিত। গুরুত্বপূর্ণ তথ্যের জন্য পেশাদার মানব অনুবাদ সুপারিশ করা হয়। এই অনুবাদের ব্যবহারে প্রয়োজনীয় ভুল বোঝাবুঝি বা ভুল ব্যাখ্যার জন্য আমরা দায়বদ্ধ নই।
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

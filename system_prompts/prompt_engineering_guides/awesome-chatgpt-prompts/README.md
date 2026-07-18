@@ -58,7 +58,7 @@
 
 ## What is this?
 
-A curated collection of **prompt examples** for AI chat models. Originally created for ChatGPT, these prompts work great with any modern AI assistant.
+A curated collection of **prompts** for AI chat models. Originally created for ChatGPT, these prompts work great with any modern AI assistant.
 
 | Browse Prompts | Data Formats |
 |----------------|--------------|

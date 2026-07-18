@@ -274,10 +274,11 @@ def run_hook() -> None:
     cwd = hook_input.get("cwd", os.getcwd())
 
     # Find repo root by walking up from cwd
-    from .incremental import find_project_root
+    from .incremental import find_project_root, get_db_path
 
-    repo_root = str(find_project_root(Path(cwd)))
-    db_path = Path(repo_root) / ".code-review-graph" / "graph.db"
+    repo_path = find_project_root(Path(cwd))
+    repo_root = str(repo_path)
+    db_path = get_db_path(repo_path)
     if not db_path.exists():
         return
 

@@ -1,145 +1,148 @@
-# 🎨 Σχέδια Σχεδίασης Πρακτόρων με Μοντέλα GitHub (.NET)
+# 🎨 Σχεδιαστικά Μοντέλα Agentic με Azure OpenAI (Responses API) (.NET)
 
-## 📋 Στόχοι Μάθησης
+## 📋 Μαθησιακοί Στόχοι
 
-Αυτό το παράδειγμα παρουσιάζει σχέδια σχεδίασης επιπέδου επιχείρησης για τη δημιουργία έξυπνων πρακτόρων χρησιμοποιώντας το Microsoft Agent Framework σε .NET με ενσωμάτωση Μοντέλων GitHub. Θα μάθετε επαγγελματικά σχέδια και αρχιτεκτονικές προσεγγίσεις που καθιστούν τους πράκτορες έτοιμους για παραγωγή, συντηρήσιμους και επεκτάσιμους.
+Αυτό το παράδειγμα παρουσιάζει πρότυπα σχεδιασμού επιπέδου επιχείρησης για τη δημιουργία ευφυών αντιπροσώπων χρησιμοποιώντας το Microsoft Agent Framework στο .NET με ενσωμάτωση Azure OpenAI (Responses API). Θα μάθετε επαγγελματικά πρότυπα και αρχιτεκτονικές προσεγγίσεις που καθιστούν τους αντιπροσώπους έτοιμους για παραγωγή, εύκολους στη συντήρηση και κλιμακούμενους.
 
-### Σχέδια Σχεδίασης Επιπέδου Επιχείρησης
+### Πρότυπα Επιχειρησιακού Σχεδιασμού
 
-- 🏭 **Factory Pattern**: Τυποποιημένη δημιουργία πρακτόρων με εξάρτηση από injection
-- 🔧 **Builder Pattern**: Ρευστή διαμόρφωση και ρύθμιση πρακτόρων
-- 🧵 **Thread-Safe Patterns**: Διαχείριση συνομιλιών με ταυτόχρονη εκτέλεση
-- 📋 **Repository Pattern**: Οργανωμένη διαχείριση εργαλείων και δυνατοτήτων
+- 🏭 **Μοντέλο Εργοστασίου (Factory Pattern)**: Τυποποιημένη δημιουργία αντιπροσώπων με εισαγωγή εξαρτήσεων
+- 🔧 **Μοντέλο Δημιουργού (Builder Pattern)**: Ευέλικτη διαμόρφωση και ρύθμιση αντιπροσώπου
+- 🧵 **Ασφαλή Μοντέλα Νήματος (Thread-Safe Patterns)**: Διαχείριση ταυτόχρονων συνομιλιών
+- 📋 **Μοντέλο Αποθετηρίου (Repository Pattern)**: Οργανωμένη διαχείριση εργαλείων και δυνατοτήτων
 
-## 🎯 Αρχιτεκτονικά Οφέλη του .NET
+## 🎯 Αρχιτεκτονικά Οφέλη Ειδικά για .NET
 
-### Χαρακτηριστικά Επιπέδου Επιχείρησης
+### Χαρακτηριστικά Επιχείρησης
 
-- **Ισχυρή Τυποποίηση**: Επικύρωση κατά τη μεταγλώττιση και υποστήριξη IntelliSense
-- **Dependency Injection**: Ενσωμάτωση ενσωματωμένου DI container
-- **Διαχείριση Διαμόρφωσης**: Μοτίβα IConfiguration και Options
-- **Async/Await**: Υποστήριξη ασύγχρονου προγραμματισμού πρώτης κατηγορίας
+- **Ισχυρός Τυποποιημένος Κώδικας**: Επικύρωση κατά τη μεταγλώττιση και υποστήριξη IntelliSense
+- **Εισαγωγή Εξαρτήσεων**: Ενσωματωμένο κοντέινερ DI
+- **Διαχείριση Ρυθμίσεων**: Πρότυπα IConfiguration και Options
+- **Async/Await**: Πρωτοποριακή υποστήριξη ασύγχρονος προγραμματισμός
 
-### Μοτίβα Έτοιμα για Παραγωγή
+### Πρότυπα Έτοιμα για Παραγωγή
 
 - **Ενσωμάτωση Καταγραφής**: Υποστήριξη ILogger και δομημένης καταγραφής
 - **Έλεγχοι Υγείας**: Ενσωματωμένη παρακολούθηση και διαγνωστικά
-- **Επικύρωση Διαμόρφωσης**: Ισχυρή τυποποίηση με σχολιασμούς δεδομένων
+- **Επικύρωση Ρυθμίσεων**: Ισχυρός τύπος με επεξηγήσεις δεδομένων
 - **Διαχείριση Σφαλμάτων**: Δομημένη διαχείριση εξαιρέσεων
 
 ## 🔧 Τεχνική Αρχιτεκτονική
 
-### Κύρια Συστατικά του .NET
+### Κύρια Συστατικά .NET
 
 - **Microsoft.Extensions.AI**: Ενοποιημένες αφαιρέσεις υπηρεσιών AI
-- **Microsoft.Agents.AI**: Πλαίσιο ορχήστρας πρακτόρων επιπέδου επιχείρησης
-- **Ενσωμάτωση Μοντέλων GitHub**: Μοτίβα API πελάτη υψηλής απόδοσης
-- **Σύστημα Διαμόρφωσης**: Ενσωμάτωση appsettings.json και περιβάλλοντος
+- **Microsoft.Agents.AI**: Πλαίσιο ορχήστρωσης αντιπροσώπων επιχείρησης
+- **Azure OpenAI (Responses API)**: Πρότυπα πελατών API υψηλής απόδοσης
+- **Σύστημα Ρυθμίσεων**: appsettings.json και ενσωμάτωση περιβάλλοντος
 
-### Υλοποίηση Σχεδίων Σχεδίασης
+### Υλοποίηση Προτύπων Σχεδίασης
 
 ```mermaid
 graph LR
-    A[IServiceCollection] --> B[Agent Builder]
-    B --> C[Configuration]
-    C --> D[Tool Registry]
-    D --> E[AI Agent]
+    A[IServiceCollection] --> B[Δημιουργός Αντιπροσώπου]
+    B --> C[Διαμόρφωση]
+    C --> D[Κατάλογος Εργαλείων]
+    D --> E[Πράκτορας Τεχνητής Νοημοσύνης]
 ```
 
-## 🏗️ Επιδεικνυόμενα Σχέδια Επιπέδου Επιχείρησης
+## 🏗️ Επιχειρησιακά Πρότυπα που Δείχνονται
 
-### 1. **Δημιουργικά Σχέδια**
+### 1. **Δημιουργικά Πρότυπα**
 
-- **Agent Factory**: Κεντρική δημιουργία πρακτόρων με συνεπή διαμόρφωση
-- **Builder Pattern**: Ρευστό API για σύνθετη διαμόρφωση πρακτόρων
-- **Singleton Pattern**: Διαχείριση κοινών πόρων και διαμόρφωσης
-- **Dependency Injection**: Χαλαρή σύζευξη και δυνατότητα δοκιμών
+- **Agent Factory**: Κεντρική δημιουργία αντιπροσώπων με συνεπή διαμόρφωση
+- **Builder Pattern**: Εκφραστικό API για σύνθετη διαμόρφωση αντιπροσώπων
+- **Singleton Pattern**: Κοινά πόροι και διαχείριση διαμόρφωσης
+- **Dependency Injection**: Χαλαρή σύζευξη και διευκόλυνση δοκιμών
 
-### 2. **Συμπεριφορικά Σχέδια**
+### 2. **Συμπεριφορικά Πρότυπα**
 
 - **Strategy Pattern**: Εναλλάξιμες στρατηγικές εκτέλεσης εργαλείων
-- **Command Pattern**: Ενθυλακωμένες λειτουργίες πρακτόρων με undo/redo
-- **Observer Pattern**: Διαχείριση κύκλου ζωής πρακτόρων με βάση τα γεγονότα
-- **Template Method**: Τυποποιημένες ροές εργασίας εκτέλεσης πρακτόρων
+- **Command Pattern**: Ενθυλακωμένες λειτουργίες αντιπροσώπου με αναίρεση/επανάληψη
+- **Observer Pattern**: Διαχείριση κύκλου ζωής αντιπροσώπου προσανατολισμένη σε γεγονότα
+- **Template Method**: Τυποποιημένες ροές εκτέλεσης αντιπροσώπου
 
-### 3. **Δομικά Σχέδια**
+### 3. **Δομικά Πρότυπα**
 
-- **Adapter Pattern**: Επίπεδο ενσωμάτωσης API Μοντέλων GitHub
-- **Decorator Pattern**: Ενίσχυση δυνατοτήτων πρακτόρων
-- **Facade Pattern**: Απλοποιημένες διεπαφές αλληλεπίδρασης πρακτόρων
-- **Proxy Pattern**: Lazy loading και caching για απόδοση
+- **Adapter Pattern**: Επίπεδο ενσωμάτωσης Azure OpenAI (Responses API)
+- **Decorator Pattern**: Ενίσχυση δυνατοτήτων αντιπροσώπου
+- **Facade Pattern**: Απλοποιημένα διεπαφές αλληλεπίδρασης αντιπροσώπου
+- **Proxy Pattern**: Αργή φόρτωση και κρυφή μνήμη για απόδοση
 
 ## 📚 Αρχές Σχεδίασης .NET
 
 ### Αρχές SOLID
 
-- **Single Responsibility**: Κάθε συστατικό έχει έναν σαφή σκοπό
-- **Open/Closed**: Επεκτάσιμο χωρίς τροποποίηση
-- **Liskov Substitution**: Υλοποιήσεις εργαλείων βασισμένες σε διεπαφές
-- **Interface Segregation**: Εστιασμένες, συνεκτικές διεπαφές
-- **Dependency Inversion**: Εξάρτηση από αφαιρέσεις, όχι από συγκεκριμένα
+- **Μοναδική Ευθύνη**: Κάθε συνιστώσα έχει ένα σαφές σκοπό
+- **Ανοιχτό/Κλειστό**: Επεκτάσιμο χωρίς τροποποίηση
+- **Αντικατάσταση Liskov**: Υλοποιήσεις εργαλείων βασισμένες σε διεπαφές
+- **Διαχωρισμός Διεπαφών**: Εστιασμένες, συνεκτικές διεπαφές
+- **Αντιστροφή Εξαρτήσεων**: Εξάρτηση από αφαιρέσεις, όχι από υλοποιήσεις
 
 ### Καθαρή Αρχιτεκτονική
 
-- **Επίπεδο Τομέα**: Βασικές αφαιρέσεις πρακτόρων και εργαλείων
-- **Επίπεδο Εφαρμογής**: Ορχήστρα πρακτόρων και ροές εργασίας
-- **Επίπεδο Υποδομής**: Ενσωμάτωση Μοντέλων GitHub και εξωτερικών υπηρεσιών
+- **Επίπεδο Τομέα**: Βασικές αφαιρέσεις αντιπροσώπου και εργαλείων
+- **Επίπεδο Εφαρμογής**: Ορχήστρωση και ροές εργασίας αντιπροσώπου
+- **Επίπεδο Υποδομής**: Ενσωμάτωση Azure OpenAI (Responses API) και εξωτερικές υπηρεσίες
 - **Επίπεδο Παρουσίασης**: Αλληλεπίδραση χρήστη και μορφοποίηση απαντήσεων
 
-## 🔒 Σκέψεις Επιπέδου Επιχείρησης
+## 🔒 Επιχειρησιακές Εκτιμήσεις
 
 ### Ασφάλεια
 
-- **Διαχείριση Διαπιστευτηρίων**: Ασφαλής χειρισμός API key με IConfiguration
-- **Επικύρωση Εισόδου**: Ισχυρή τυποποίηση και επικύρωση σχολιασμών δεδομένων
+- **Διαχείριση Διαπιστευτηρίων**: Ασφαλής διαχείριση κλειδιών API με IConfiguration
+- **Επικύρωση Εισόδου**: Ισχυρός τύπος και επικύρωση με σημάνσεις δεδομένων
 - **Καθαρισμός Εξόδου**: Ασφαλής επεξεργασία και φιλτράρισμα απαντήσεων
-- **Καταγραφή Ελέγχου**: Ολοκληρωμένη παρακολούθηση λειτουργιών
+- **Καταγραφή Ελέγχου**: Περιεκτική παρακολούθηση λειτουργιών
 
 ### Απόδοση
 
-- **Ασύγχρονα Μοτίβα**: Μη μπλοκαρισμένες λειτουργίες I/O
-- **Pooling Συνδέσεων**: Αποτελεσματική διαχείριση HTTP client
-- **Caching**: Cache απαντήσεων για βελτιωμένη απόδοση
-- **Διαχείριση Πόρων**: Σωστή διάθεση και καθαρισμός
+- **Async Πρότυπα**: Μη αποκλειστικές λειτουργίες I/O
+- **Συγκομιδή Συνδέσεων**: Αποδοτική διαχείριση πελατών HTTP
+- **Caching**: Αποθήκευση απαντήσεων για βελτιωμένη απόδοση
+- **Διαχείριση Πόρων**: Σωστή απόρριψη και πρότυπα καθαρισμού
 
-### Επεκτασιμότητα
+### Κλιμάκωση
 
-- **Ασφάλεια Νημάτων**: Υποστήριξη ταυτόχρονης εκτέλεσης πρακτόρων
-- **Pooling Πόρων**: Αποτελεσματική αξιοποίηση πόρων
-- **Διαχείριση Φορτίου**: Περιορισμός ρυθμού και διαχείριση πίεσης
-- **Παρακολούθηση**: Μετρήσεις απόδοσης και έλεγχοι υγείας
+- **Ασφάλεια Νημάτων**: Υποστήριξη ταυτόχρονης εκτέλεσης αντιπροσώπων
+- **Συλλογή Πόρων**: Αποδοτική χρήση πόρων
+- **Διαχείριση Φορτίου**: Περιορισμός ρυθμού και αντιμετώπιση πίεσης
+- **Παρακολούθηση**: Μετρικές απόδοσης και έλεγχοι υγείας
 
 ## 🚀 Ανάπτυξη σε Παραγωγή
 
-- **Διαχείριση Διαμόρφωσης**: Ρυθμίσεις συγκεκριμένες για το περιβάλλον
+- **Διαχείριση Ρυθμίσεων**: Ρυθμίσεις ανά περιβάλλον
 - **Στρατηγική Καταγραφής**: Δομημένη καταγραφή με αναγνωριστικά συσχέτισης
 - **Διαχείριση Σφαλμάτων**: Παγκόσμια διαχείριση εξαιρέσεων με σωστή ανάκτηση
 - **Παρακολούθηση**: Application insights και μετρητές απόδοσης
-- **Δοκιμές**: Μοτίβα μονάδων, ολοκλήρωσης και δοκιμών φόρτωσης
+- **Δοκιμές**: Μονάδα, ολοκλήρωσης και πρότυπα φόρτωσης
 
-Έτοιμοι να δημιουργήσετε έξυπνους πράκτορες επιπέδου επιχείρησης με .NET; Ας σχεδιάσουμε κάτι ανθεκτικό! 🏢✨
+Έτοιμοι να χτίσετε ευφυείς αντιπροσώπους επιπέδου επιχείρησης με .NET; Ας σχεδιάσουμε κάτι αξιόπιστο! 🏢✨
 
 ## 🚀 Ξεκινώντας
 
-### Προαπαιτούμενα
+### Απαιτούμενα
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) ή νεότερο
-- [GitHub Models API access token](https://docs.github.com/github-models/github-models-at-scale/using-your-own-api-keys-in-github-models)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) ή νεότερη έκδοση
+- Ένας [λογαριασμός Azure](https://azure.microsoft.com/free/) με πόρο Azure OpenAI και ανάπτυξη μοντέλου
+- Το [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — συνδεθείτε με `az login`
 
 ### Απαιτούμενες Μεταβλητές Περιβάλλοντος
 
 ```bash
 # zsh/bash
-export GH_TOKEN=<your_github_token>
-export GH_ENDPOINT=https://models.github.ai/inference
-export GH_MODEL_ID=openai/gpt-5-mini
+export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+# Στη συνέχεια, συνδεθείτε για να μπορέσει το AzureCliCredential να αποκτήσει ένα token
+az login
 ```
 
 ```powershell
 # PowerShell
-$env:GH_TOKEN = "<your_github_token>"
-$env:GH_ENDPOINT = "https://models.github.ai/inference"
-$env:GH_MODEL_ID = "openai/gpt-5-mini"
+$env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+# Στη συνέχεια, συνδεθείτε ώστε το AzureCliCredential να μπορεί να πάρει ένα διακριτικό
+az login
 ```
 
 ### Παράδειγμα Κώδικα
@@ -158,21 +161,23 @@ chmod +x ./03-dotnet-agent-framework.cs
 dotnet run ./03-dotnet-agent-framework.cs
 ```
 
-Δείτε το [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) για τον πλήρη κώδικα.
+Δείτε το [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) για πλήρη κώδικα.
 
 ```csharp
 #!/usr/bin/dotnet run
 
 #:package Microsoft.Extensions.AI@10.*
 #:package Microsoft.Agents.AI.OpenAI@1.*-*
+#:package Azure.AI.OpenAI@2.1.0
+#:package Azure.Identity@1.13.1
 
-using System.ClientModel;
 using System.ComponentModel;
 
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
-using OpenAI;
+using Azure.AI.OpenAI;
+using Azure.Identity;
 
 // Tool Function: Random Destination Generator
 // This static method will be available to the agent as a callable tool
@@ -204,26 +209,12 @@ static string GetRandomDestination()
     return destinations[index];
 }
 
-// Extract configuration from environment variables
-// Retrieve the GitHub Models API endpoint, defaults to https://models.github.ai/inference if not specified
-// Retrieve the model ID, defaults to openai/gpt-5-mini if not specified
-// Retrieve the GitHub token for authentication, throws exception if not specified
-var github_endpoint = Environment.GetEnvironmentVariable("GH_ENDPOINT") ?? "https://models.github.ai/inference";
-var github_model_id = Environment.GetEnvironmentVariable("GH_MODEL_ID") ?? "openai/gpt-5-mini";
-var github_token = Environment.GetEnvironmentVariable("GH_TOKEN") ?? throw new InvalidOperationException("GH_TOKEN is not set.");
+// Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
+var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
+    ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
 
-// Configure OpenAI Client Options
-// Create configuration options to point to GitHub Models endpoint
-// This redirects OpenAI client calls to GitHub's model inference service
-var openAIOptions = new OpenAIClientOptions()
-{
-    Endpoint = new Uri(github_endpoint)
-};
-
-// Initialize OpenAI Client with GitHub Models Configuration
-// Create OpenAI client using GitHub token for authentication
-// Configure it to use GitHub Models endpoint instead of OpenAI directly
-var openAIClient = new OpenAIClient(new ApiKeyCredential(github_token), openAIOptions);
+var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
 // Define Agent Identity and Comprehensive Instructions
 // Agent name for identification and logging purposes
@@ -249,28 +240,28 @@ Always prioritize user preferences. If they mention a specific destination like 
 """;
 
 // Create AI Agent with Advanced Travel Planning Capabilities
-// Initialize complete agent pipeline: OpenAI client → Chat client → AI agent
+// Get the Responses client for the deployment and create the AI agent
 // Configure agent with name, detailed instructions, and available tools
 // This demonstrates the .NET agent creation pattern with full configuration
-AIAgent agent = openAIClient
-    .GetChatClient(github_model_id)
-    .CreateAIAgent(
+AIAgent agent = azureClient
+    .GetChatClient(deployment)
+    .AsAIAgent(
         name: AGENT_NAME,
         instructions: AGENT_INSTRUCTIONS,
         tools: [AIFunctionFactory.Create(GetRandomDestination)]
     );
 
-// Create New Conversation Thread for Context Management
-// Initialize a new conversation thread to maintain context across multiple interactions
-// Threads enable the agent to remember previous exchanges and maintain conversational state
+// Create New Conversation Session for Context Management
+// Initialize a new conversation session to maintain context across multiple interactions
+// Sessions enable the agent to remember previous exchanges and maintain conversational state
 // This is essential for multi-turn conversations and contextual understanding
-AgentThread thread = agent.GetNewThread();
+var session = await agent.CreateSessionAsync();
 
 // Execute Agent: First Travel Planning Request
 // Run the agent with an initial request that will likely trigger the random destination tool
 // The agent will analyze the request, use the GetRandomDestination tool, and create an itinerary
-// Using the thread parameter maintains conversation context for subsequent interactions
-await foreach (var update in agent.RunStreamingAsync("Plan me a day trip", thread))
+// Using the session parameter maintains conversation context for subsequent interactions
+await foreach (var update in agent.RunStreamingAsync("Plan me a day trip", session))
 {
     await Task.Delay(10);
     Console.Write(update);
@@ -281,8 +272,8 @@ Console.WriteLine();
 // Execute Agent: Follow-up Request with Context Awareness
 // Demonstrate contextual conversation by referencing the previous response
 // The agent remembers the previous destination suggestion and will provide an alternative
-// This showcases the power of conversation threads and contextual understanding in .NET agents
-await foreach (var update in agent.RunStreamingAsync("I don't like that destination. Plan me another vacation.", thread))
+// This showcases the power of conversation sessions and contextual understanding in .NET agents
+await foreach (var update in agent.RunStreamingAsync("I don't like that destination. Plan me another vacation.", session))
 {
     await Task.Delay(10);
     Console.Write(update);
@@ -292,6 +283,6 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Αποποίηση ευθυνών**:  
-Αυτό το έγγραφο έχει μεταφραστεί χρησιμοποιώντας την υπηρεσία αυτόματης μετάφρασης AI [Co-op Translator](https://github.com/Azure/co-op-translator). Παρόλο που καταβάλλουμε προσπάθειες για ακρίβεια, παρακαλούμε να έχετε υπόψη ότι οι αυτόματες μεταφράσεις ενδέχεται να περιέχουν λάθη ή ανακρίβειες. Το πρωτότυπο έγγραφο στη μητρική του γλώσσα θα πρέπει να θεωρείται η αυθεντική πηγή. Για κρίσιμες πληροφορίες, συνιστάται επαγγελματική ανθρώπινη μετάφραση. Δεν φέρουμε ευθύνη για τυχόν παρεξηγήσεις ή εσφαλμένες ερμηνείες που προκύπτουν από τη χρήση αυτής της μετάφρασης.
+**Αποποίηση ευθυνών**:
+Αυτό το έγγραφο έχει μεταφραστεί χρησιμοποιώντας την υπηρεσία μετάφρασης με τεχνητή νοημοσύνη [Co-op Translator](https://github.com/Azure/co-op-translator). Ενώ επιδιώκουμε την ακρίβεια, παρακαλούμε να έχετε υπόψη ότι οι αυτοματοποιημένες μεταφράσεις ενδέχεται να περιέχουν λάθη ή ανακρίβειες. Το πρωτότυπο έγγραφο στη μητρική του γλώσσα πρέπει να θεωρείται η αυθεντική πηγή. Για κρίσιμες πληροφορίες, συνιστάται επαγγελματική ανθρώπινη μετάφραση. Δεν φέρουμε ευθύνη για τυχόν παρεξηγήσεις ή λανθασμένες ερμηνείες που προκύπτουν από τη χρήση αυτής της μετάφρασης.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

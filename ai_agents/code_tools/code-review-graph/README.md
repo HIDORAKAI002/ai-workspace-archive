@@ -73,6 +73,22 @@ code-review-graph install --platform codebuddy    # configure only CodeBuddy Cod
 
 Requires Python 3.10+. For the best experience, install [uv](https://docs.astral.sh/uv/) (the MCP config will use `uvx` if available, otherwise falls back to the `code-review-graph` command directly).
 
+To remove CRG from a Git or SVN project, use the symmetric uninstall command
+from anywhere inside its working tree. The target is normalized to the working
+tree root, and non-repository directories are refused. It removes only
+CRG-owned files and entries; unrelated MCP servers, hooks, skills, and JSONC
+comments remain untouched. Shared configuration changes use atomic replacement
+so a failed write leaves the original file intact.
+
+```bash
+code-review-graph uninstall --dry-run    # preview every action; write nothing
+code-review-graph uninstall              # preview, ask for confirmation, then apply
+code-review-graph uninstall --yes        # apply without prompting
+code-review-graph uninstall --all-repos  # also clean every registered repository
+code-review-graph uninstall --keep-data  # remove integrations but keep graph databases
+code-review-graph uninstall --keep-user-configs --repo .  # clean this project only
+```
+
 Then open your project and ask your AI assistant:
 
 ```
@@ -124,7 +140,7 @@ Large monorepos are where token waste is most painful. The graph cuts through th
   <img src="diagrams/diagram9_language_coverage.png" alt="Language coverage organized by category: Web, Backend, Systems, Mobile, Scripting, Config, plus Jupyter and Databricks notebook support" width="90%" />
 </p>
 
-Parser support covers functions, classes, imports, call sites, inheritance, and test detection across the current parser surface, using Tree-sitter where available and targeted fallbacks where needed. Current support includes Python, JavaScript/TypeScript/TSX, Go, Rust, Java, C/C++, C#, Ruby, Kotlin, Swift, PHP, Scala, Solidity, Dart, R, Perl, Lua/Luau, Objective-C, shell scripts, Elixir, Zig, PowerShell, Julia, ReScript, GDScript, Nix, Verilog/SystemVerilog, SQL, Vue/Svelte SFCs, Astro files parsed through the TypeScript parser, Jupyter/Databricks notebooks (`.ipynb`), and Perl XS files (`.xs`).
+Parser support covers functions, classes, imports, call sites, inheritance, and test detection across the current parser surface, using Tree-sitter where available and targeted fallbacks where needed. Current support includes Python, JavaScript/TypeScript/TSX, Go, Rust, Java, C/C++, C#, VB.NET, Ruby, Kotlin, Swift, PHP, Scala, Solidity, Dart, R, Perl, Lua/Luau, Objective-C, shell scripts, Elixir, Zig, PowerShell, Julia, ReScript, GDScript, Nix, Verilog/SystemVerilog, SQL, Terraform/OpenTofu structure (`.tf`; generic `.hcl` files are recognized as file nodes), Ansible playbooks/roles/tasks, Vue/Svelte SFCs, Astro files parsed through the TypeScript parser, Jupyter/Databricks notebooks (`.ipynb`), and Perl XS files (`.xs`). Generic YAML is not treated as source code.
 
 PHP projects additionally get repository-bounded Composer PSR-4 resolution,
 Blade template references, and Laravel Route/Eloquent semantic edges when the
@@ -258,7 +274,7 @@ The benchmark also runs an honest **co-change mode**: the predictor is seeded wi
 | Feature | Details |
 |---------|---------|
 | **Incremental updates** | Re-parses only changed files. Subsequent updates complete in under 2 seconds. |
-| **Broad language + notebook support** | Python, JavaScript/TypeScript/TSX, Go, Rust, Java, C/C++, C#, Ruby, Kotlin, Swift, PHP, Scala, Solidity, Dart, R, Perl, Lua/Luau, Objective-C, shell scripts, Elixir, Zig, PowerShell, Julia, ReScript, GDScript, Nix, Verilog/SystemVerilog, SQL, Vue/Svelte SFCs, Astro files parsed through the TypeScript parser, Jupyter/Databricks (.ipynb), and Perl XS (.xs) |
+| **Broad language + notebook support** | Python, JavaScript/TypeScript/TSX, Go, Rust, Java, C/C++, C#, VB.NET, Ruby, Kotlin, Swift, PHP, Scala, Solidity, Dart, R, Perl, Lua/Luau, Objective-C, shell scripts, Elixir, Zig, PowerShell, Julia, ReScript, GDScript, Nix, Verilog/SystemVerilog, SQL, Terraform/OpenTofu structure (`.tf`; generic `.hcl` files are file-only), Ansible playbooks/roles/tasks, Vue/Svelte SFCs, Astro files parsed through the TypeScript parser, Jupyter/Databricks (.ipynb), and Perl XS (.xs) |
 | **Framework-aware PHP parsing** | Repository-bounded Composer PSR-4 imports, Blade template references, and evidence-gated Laravel Route-to-controller and Eloquent relationship edges |
 | **Blast-radius analysis** | Shows which functions, classes, and files are likely affected by a change |
 | **Auto-update hooks** | Hooks and watch mode can update the graph on file saves and supported commit hooks |
@@ -314,11 +330,13 @@ The benchmark also runs an honest **co-change mode**: the predictor is seeded wi
 ```bash
 code-review-graph install          # Auto-detect and configure all platforms
 code-review-graph install --platform <name>  # Target a specific platform
+code-review-graph uninstall --dry-run  # Preview safe removal of installed artifacts
 code-review-graph build            # Parse entire codebase
 code-review-graph update           # Incremental update (changed files only)
 code-review-graph status           # Graph statistics
 code-review-graph watch            # Auto-update on file changes
 code-review-graph visualize        # Generate interactive HTML graph
+code-review-graph visualize --format json      # Export local graph data as JSON
 code-review-graph visualize --format graphml   # Export as GraphML
 code-review-graph visualize --format svg       # Export as SVG
 code-review-graph visualize --format obsidian  # Export as Obsidian vault
@@ -336,6 +354,10 @@ code-review-graph daemon status    # Show daemon status and repos
 code-review-graph eval             # Run evaluation benchmarks
 code-review-graph serve            # Start MCP server
 ```
+
+JSON exports stay inside the local graph data directory, which Git ignores by
+default. They can contain absolute paths and code-structure metadata, so inspect
+and sanitize an export before publishing it outside your machine.
 
 </details>
 
@@ -543,12 +565,14 @@ The cloud-egress warning is auto-skipped when the base URL points to localhost
 > `gemini-embedding-001` (via the native Gemini provider, which requires
 > `GOOGLE_API_KEY` instead of the OpenAI-compatible path).
 >
-> Also note: `code-review-graph` currently embeds **function signatures only**
-> (~10 tokens per node, e.g. `"parse_file function (path: str) returns Tree"`).
-> Models whose headline quality comes from long-context body understanding
-> (such as Gemini 2 or Qwen3-8B at their MTEB-code SOTA scores) will see a
-> much narrower quality gap against smaller models at this input length.
-> Body/docstring embedding is tracked as a follow-up enhancement.
+> `code-review-graph` embeds identifiers, signatures, structural context, and a
+> bounded first-paragraph docstring/doc-comment summary. It does not transmit
+> function bodies. Graphs created before documentation extraction was added
+> need one full `code-review-graph build` before re-embedding so every file is
+> reparsed. Routine builds never refresh embeddings by default. To refresh an
+> existing index after a build, explicitly pass both `--embedding-provider`
+> and `--embedding-model`; cloud choices may transmit this source-derived text
+> and incur API cost.
 
 #### Tool Filtering
 

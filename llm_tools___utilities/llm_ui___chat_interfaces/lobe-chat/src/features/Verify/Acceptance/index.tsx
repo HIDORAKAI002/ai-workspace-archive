@@ -5,6 +5,7 @@ import {
   ActionIcon,
   Avatar,
   Center,
+  copyToClipboard,
   DraggablePanel,
   Drawer,
   Empty,
@@ -13,8 +14,8 @@ import {
   Tag,
   Text,
 } from '@lobehub/ui';
-import { Button, Segmented, Select } from '@lobehub/ui/base-ui';
-import { createStaticStyles, cssVar, cx } from 'antd-style';
+import { Button, Segmented, Select, toast } from '@lobehub/ui/base-ui';
+import { createStaticStyles, cssVar, cx, useResponsive } from 'antd-style';
 import dayjs from 'dayjs';
 import {
   BadgeCheck,
@@ -53,11 +54,24 @@ import CheckList, {
   hasVisualEvidence,
   isException,
   isGroupFullyAccepted,
+  userReviewState,
 } from './CheckList';
 import DecisionBar from './DecisionBar';
 import FeedbackDrawer, { type FeedbackListEntry } from './FeedbackDrawer';
 import LedgerPanel, { type AcceptanceRound } from './LedgerPanel';
-import { openAcceptModal } from './modals';
+import { openAcceptModal, openRejectModal } from './modals';
+
+/**
+ * The hardcoded repair prompt (复制 review 建议 / 打回重跑 share it): points the
+ * agent at the CLI as the source of truth for this acceptance's feedback, so
+ * nobody has to hand-summarize review notes into an instruction.
+ */
+const buildRepairPrompt = (acceptanceId: string) =>
+  `请用 LobeHub CLI 读取验收 ${acceptanceId} 的最新 review 反馈：
+
+lh acceptance feedback ${acceptanceId} --actionable
+
+输出的条目（含各检查项的评论、截图圈选标注与附件）就是本轮要处理的全部反馈。请逐条修改代码；完成后重新执行验证，并把新一轮验证结果 ingest 回同一个 acceptance（复用既有检查项 id，语义有变化的用 supersedes 迭代）。`;
 
 const styles = createStaticStyles(({ css }) => ({
   banner: css`
@@ -176,6 +190,14 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
   const isEmbedded = Boolean(explicitAcceptanceId);
   const { t } = useTranslation('verify');
   const { data, error, isLoading, mutate } = useAcceptanceBundle(acceptanceId ?? null);
+  // Below `lg` the report body and a 300px+ in-flow ledger cannot share the
+  // viewport — the ledger switches to a float overlay, closed by default (the
+  // same narrow regime the list panel uses).
+  const { lg = true } = useResponsive();
+  const isNarrowViewport = !lg;
+  // The portal embed is container-narrow even in a wide window — both regimes
+  // get the one-line compact toolbar.
+  const compactToolbar = isEmbedded || isNarrowViewport;
 
   const [filter, setFilter] = useState<CheckFilter>('all');
   const [roundFilter, setRoundFilter] = useState<number | null>(null);
@@ -184,8 +206,14 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
   const [seeded, setSeeded] = useState(false);
   const [highlightRound, setHighlightRound] = useState<number | null>(null);
   const [ledgerExpand, setLedgerExpand] = useState(!isEmbedded);
+  // Entering the narrow regime closes the ledger (it would cover the report);
+  // reopening is an explicit act via the corner toggle, as a float overlay.
+  useEffect(() => {
+    if (isNarrowViewport) setLedgerExpand(false);
+  }, [isNarrowViewport]);
   const [reportRound, setReportRound] = useState<AcceptanceRound | null>(null);
   const [pending, setPending] = useState(false);
+  const [rerunPending, setRerunPending] = useState(false);
   const [actionError, setActionError] = useState<string>();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
@@ -199,14 +227,20 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
   }, [status, mutate]);
 
   // Exceptions and visually-evidenced checks start expanded (P-08) — once,
-  // on first load, so the user's own toggling is never overwritten. Groups the
-  // user already accepted in full are settled business: they start collapsed.
+  // on first load, so the user's own toggling is never overwritten. A check
+  // the user already accepted is settled business and stays folded regardless
+  // of its evidence; groups accepted in full start collapsed for the same
+  // reason.
   useEffect(() => {
     if (seeded || !data) return;
     setExpanded(
       new Set(
         data.checks
-          .filter((check) => isException(check) || hasVisualEvidence(check))
+          .filter(
+            (check) =>
+              userReviewState(check) !== 'accepted' &&
+              (isException(check) || hasVisualEvidence(check)),
+          )
           .map((check) => check.id),
       ),
     );
@@ -362,8 +396,15 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
 
   // Group-scoped feedback — for concerns that belong to no single check (the
   // checks themselves may be accepted) yet must reach the next round.
-  const handleGroupFeedback = (category: string, comment: string) =>
-    runAction(() => verifyService.addGroupFeedback({ category, comment, id: acceptance.id }));
+  const handleGroupFeedback = (category: string, comment: string, fileIds: string[]) =>
+    runAction(() =>
+      verifyService.addGroupFeedback({
+        category,
+        comment,
+        fileIds: fileIds.length > 0 ? fileIds : undefined,
+        id: acceptance.id,
+      }),
+    );
 
   // The floating bar's one-line state + supporting line — the old banner's
   // content, relocated to where the decision actually happens.
@@ -374,7 +415,14 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
       : acceptance.status === 'rejected'
         ? ('rejected' as const)
         : ('settled' as const);
-  const hasException = counts.exceptions > 0;
+  // Review progress — the bar's dial and wording follow how much of the union
+  // the user has personally signed off, not the verifier's pass tally.
+  const reviewableChecks = checks.filter((check) => check.result);
+  const reviewTotal = reviewableChecks.length;
+  const reviewDone = reviewableChecks.filter(
+    (check) => userReviewState(check) === 'accepted',
+  ).length;
+  const allConfirmed = reviewTotal > 0 && reviewDone >= reviewTotal;
   const barTexts = {
     accepted: {
       statusText: t('acceptance.banner.accepted', {
@@ -392,12 +440,26 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
       statusText: t('acceptance.banner.rejected'),
       subText: currentRound?.run.decisionDetail?.comment ?? t('acceptance.banner.rejectedHint'),
     },
-    settled: {
-      statusText: hasException
-        ? t('acceptance.banner.exceptions', { count: counts.exceptions })
-        : t('acceptance.banner.clean', { count: rounds.length }),
-      subText: `${countsText} · ${t('acceptance.banner.decisionHint')}`,
-    },
+    settled: allConfirmed
+      ? {
+          // The done line stands alone — a grey stats echo under it reads as
+          // an unresolved caveat (review feedback).
+          statusText: t('acceptance.bar.progressDone', { total: reviewTotal }),
+          subText: undefined,
+        }
+      : reviewDone === 0
+        ? {
+            statusText: t('acceptance.bar.progressZero', { total: reviewTotal }),
+            subText: `${countsText} · ${t('acceptance.banner.decisionHint')}`,
+          }
+        : {
+            statusText: t('acceptance.bar.progress', {
+              done: reviewDone,
+              rest: reviewTotal - reviewDone,
+              total: reviewTotal,
+            }),
+            subText: `${countsText} · ${t('acceptance.banner.decisionHint')}`,
+          },
   }[barState];
 
   // Every feedback event, flattened for the clearing list: per-check rejects
@@ -409,6 +471,7 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
         .filter((review) => review.action === 'reject')
         .map((review) => ({
           annotationCount: review.annotations?.length || undefined,
+          attachments: review.attachments,
           checkId: check.id,
           checkSeq: check.seq,
           comment: review.comment ?? '',
@@ -420,6 +483,7 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
         })),
     ),
     ...groupFeedbackEntries.map((entry) => ({
+      attachments: entry.attachments,
       comment: entry.comment,
       createdAt: entry.createdAt,
       groupLabel: entry.category,
@@ -447,6 +511,46 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
       onConfirm: () => runAction(() => verifyService.acceptDelivery(acceptance.id)),
       subjectTitle: subject.title ?? subject.id,
     });
+
+  // The aggregate-level reject — the whole delivery goes back with a comment.
+  const handleRejectComment = () =>
+    openRejectModal({
+      onConfirm: (comment) => runAction(() => verifyService.rejectDelivery(acceptance.id, comment)),
+    });
+
+  const repairPrompt = buildRepairPrompt(acceptance.id);
+
+  // Hand the repair prompt to the reviewer's clipboard — for pasting to any
+  // agent, not just the origin conversation.
+  const handleCopyReview = async () => {
+    await copyToClipboard(repairPrompt);
+    // Bottom-center — right above the action bar the click came from.
+    toast.success({ placement: 'bottom', title: t('acceptance.bar.copied') });
+  };
+
+  // Dispatch the repair prompt straight into the origin conversation — the
+  // agent reads the feedback itself via the CLI, no hand-summarizing. The
+  // aggregate is stamped `repairing` so the page (and the list) show the
+  // send-back took effect instead of sitting unchanged.
+  const handleRerun = async () => {
+    if (!origin?.topic) return;
+    setRerunPending(true);
+    try {
+      await verifyService.dispatchAcceptanceRepair({
+        agentId: origin.agent?.id,
+        content: repairPrompt,
+        topicId: origin.topic.id,
+      });
+      await verifyService.markAcceptanceRepairing(acceptance.id);
+      await mutate();
+      void globalMutate(verifyKeys.acceptances());
+      toast.success({ placement: 'bottom', title: t('acceptance.bar.rerunSent') });
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : t('acceptance.actionError'));
+    } finally {
+      setRerunPending(false);
+    }
+  };
 
   return (
     <Flexbox horizontal className={styles.page}>
@@ -501,8 +605,10 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
             </Flexbox>
 
             {/* Origin — the conversation this acceptance belongs to (agent +
-                topic). Owner-only: the server redacts it for shared links. */}
-            {(origin?.agent || origin?.topic) && (
+                topic). Owner-only: the server redacts it for shared links.
+                Hidden in the portal embed: that surface already lives inside
+                the origin conversation. */}
+            {!isEmbedded && (origin?.agent || origin?.topic) && (
               <Flexbox horizontal align={'center'} gap={16} wrap={'wrap'}>
                 {origin.agent && (
                   <AgentProfilePopup
@@ -640,34 +746,60 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
           </Flexbox>
 
           {/* Check union — the complete inventory, familiar sections (P-14).
-              The row wraps so narrow embeds (the chat portal) drop the filter
-              controls to a second line instead of crushing the text vertical. */}
-          <Flexbox horizontal align={'center'} gap={8} wrap={'wrap'}>
+              Narrow surfaces (the chat portal embed, sub-lg viewports) trade
+              the Segmented for a compact Select so the toolbar stays one
+              line; wide viewports keep the glanceable Segmented. */}
+          <Flexbox horizontal align={'center'} gap={8} wrap={compactToolbar ? 'nowrap' : 'wrap'}>
             <Text strong style={{ fontSize: 14, whiteSpace: 'nowrap' }}>
               {t('acceptance.checks.title')}
             </Text>
             <span className={styles.countBadge}>{counts.total}</span>
             <Flexbox flex={1} />
-            <Segmented
-              size={'small'}
-              value={filter}
-              options={[
-                { label: t('acceptance.filter.all', { count: counts.total }), value: 'all' },
-                {
-                  label: t('acceptance.filter.pending', { count: counts.pending }),
-                  value: 'pending',
-                },
-                {
-                  label: t('acceptance.filter.needsFix', { count: counts.needsFix }),
-                  value: 'needsFix',
-                },
-                {
-                  label: t('acceptance.filter.accepted', { count: counts.accepted }),
-                  value: 'accepted',
-                },
-              ]}
-              onChange={(value) => setFilter(value as CheckFilter)}
-            />
+            {compactToolbar ? (
+              <Select
+                size={'small'}
+                style={{ height: 34, width: 118 }}
+                value={filter}
+                variant={'filled'}
+                options={[
+                  { label: t('acceptance.filter.all', { count: counts.total }), value: 'all' },
+                  {
+                    label: t('acceptance.filter.pending', { count: counts.pending }),
+                    value: 'pending',
+                  },
+                  {
+                    label: t('acceptance.filter.needsFix', { count: counts.needsFix }),
+                    value: 'needsFix',
+                  },
+                  {
+                    label: t('acceptance.filter.accepted', { count: counts.accepted }),
+                    value: 'accepted',
+                  },
+                ]}
+                onChange={(value) => setFilter(value as CheckFilter)}
+              />
+            ) : (
+              <Segmented
+                size={'small'}
+                value={filter}
+                options={[
+                  { label: t('acceptance.filter.all', { count: counts.total }), value: 'all' },
+                  {
+                    label: t('acceptance.filter.pending', { count: counts.pending }),
+                    value: 'pending',
+                  },
+                  {
+                    label: t('acceptance.filter.needsFix', { count: counts.needsFix }),
+                    value: 'needsFix',
+                  },
+                  {
+                    label: t('acceptance.filter.accepted', { count: counts.accepted }),
+                    value: 'accepted',
+                  },
+                ]}
+                onChange={(value) => setFilter(value as CheckFilter)}
+              />
+            )}
             {/* Which round touched a check — audit slicing, orthogonal to the
                 review-state segments. */}
             {rounds.length > 1 && (
@@ -746,14 +878,20 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
               queueing feedback are the author's calls, never a visitor's. */}
           {isOwner && (
             <DecisionBar
+              acceptedCount={reviewDone}
               feedbackCount={activeFeedbackCount}
-              hasException={hasException}
               pending={pending}
+              rerunAvailable={Boolean(origin?.topic)}
+              rerunPending={rerunPending}
               state={barState}
               statusText={barTexts.statusText}
               subText={barTexts.subText}
+              totalCount={reviewTotal}
               onAccept={handleAccept}
+              onCopyReview={handleCopyReview}
               onOpenFeedback={() => setFeedbackOpen(true)}
+              onRejectComment={handleRejectComment}
+              onRerun={handleRerun}
             />
           )}
           <Flexbox style={{ height: 8 }} />
@@ -769,24 +907,46 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
 
       {/* Round ledger — audit detail, off the decision path (P-13). No edge
           handle: opening happens from the page-corner toggle, closing from the
-          ledger's own header action. */}
-      <DraggablePanel
-        defaultSize={{ width: 340 }}
-        expand={ledgerExpand}
-        minWidth={300}
-        placement={'right'}
-        style={{ flex: 'none', height: '100%' }}
-        onExpandChange={setLedgerExpand}
-      >
-        <Flexbox style={{ height: '100%', overflow: 'auto' }}>
+          ledger's own header action. On narrow viewports it opens as a masked
+          drawer over the report — dismissable by tapping outside — instead of
+          shrinking the report into an unreadable column. */}
+      {isNarrowViewport ? (
+        <Drawer
+          noHeader
+          containerMaxWidth={'100%'}
+          open={ledgerExpand}
+          placement={'right'}
+          styles={{ body: { padding: 0 } }}
+          width={'min(340px, 88vw)'}
+          onClose={() => setLedgerExpand(false)}
+        >
           <LedgerPanel
+            hideCollapse
             highlight={highlightRound}
             rounds={rounds}
             onCollapse={() => setLedgerExpand(false)}
             onOpenReport={setReportRound}
           />
-        </Flexbox>
-      </DraggablePanel>
+        </Drawer>
+      ) : (
+        <DraggablePanel
+          defaultSize={{ width: 340 }}
+          expand={ledgerExpand}
+          minWidth={300}
+          placement={'right'}
+          style={{ flex: 'none', height: '100%' }}
+          onExpandChange={setLedgerExpand}
+        >
+          <Flexbox style={{ height: '100%', overflow: 'auto' }}>
+            <LedgerPanel
+              highlight={highlightRound}
+              rounds={rounds}
+              onCollapse={() => setLedgerExpand(false)}
+              onOpenReport={setReportRound}
+            />
+          </Flexbox>
+        </DraggablePanel>
+      )}
 
       {/* Per-round report drill-down — the full verify run view, not a
           markdown excerpt: same content as /verify/:runId, opened in place.

@@ -8,6 +8,8 @@ export default {
   'acceptance.actions.accept': 'Accept delivery',
   'acceptance.actions.cancel': 'Cancel',
   'acceptance.actions.confirmAccept': 'Confirm acceptance',
+  'acceptance.actions.more': 'More actions',
+  'acceptance.actions.refresh': 'Refresh',
   'acceptance.actions.confirmReject': 'Reject and start the next round',
   'acceptance.actions.reject': 'Reject delivery',
   'acceptance.banner.accepted': 'Accepted · confirmed by you at {{time}}',
@@ -24,7 +26,16 @@ export default {
   'acceptance.banner.rejectedHint':
     'The next verification round re-opens this acceptance when it lands.',
   'acceptance.banner.rejectedReason': 'Reason: {{reason}}',
+  'acceptance.bar.copied': 'Copied — paste it to any agent to start the repair.',
+  'acceptance.bar.copyReview': 'Copy review prompt',
   'acceptance.bar.feedback': 'Feedback {{count}}',
+  'acceptance.bar.progress':
+    'Confirmed {{done}} / {{total}} checks — {{rest}} awaiting your review',
+  'acceptance.bar.progressDone': 'All {{total}} checks confirmed — ready to accept',
+  'acceptance.bar.progressZero': '{{total}} checks awaiting your review',
+  'acceptance.bar.rejectComment': 'Reject with comment',
+  'acceptance.bar.rerun': 'Send back & rerun',
+  'acceptance.bar.rerunSent': 'Sent to the origin conversation — the repair round is starting.',
   'acceptance.checks.copied': 'Copied',
   'acceptance.checks.copySeq': 'Copy the check label',
   'acceptance.checks.finalRoundHint':
@@ -72,7 +83,7 @@ export default {
   'acceptance.group.feedbackAction': 'Add group feedback',
   'acceptance.group.feedbackDescription':
     'Feedback on “{{label}}” as a whole — for concerns no single check covers. The next verification round reads it.',
-  'acceptance.group.feedbackLabel': 'Group feedback · round {{round}}',
+  'acceptance.group.feedbackLabel': 'Group feedback',
   'acceptance.group.feedbackPlaceholder':
     'What should change about this area, and what do you expect…',
   'acceptance.group.feedbackSubmit': 'Submit feedback',
@@ -106,9 +117,14 @@ export default {
   'acceptance.review.annotateHint':
     'Drag on the image to circle a region, then leave a note for it.',
   'acceptance.review.annotationPlaceholder': 'What is wrong in region {{index}}…',
+  'acceptance.review.attach': 'Attach screenshot',
+  'acceptance.review.attachFailed': 'Screenshot upload failed — please try again.',
+  'acceptance.review.attachLimit': 'Up to {{count}} screenshots.',
+  'acceptance.review.attachTooLarge': 'The image is too large (10MB max).',
   'acceptance.review.confirmReject': 'Submit feedback',
-  'acceptance.review.feedbackLabel': 'Your feedback · round {{round}}',
+  'acceptance.review.feedbackLabel': 'Feedback',
   'acceptance.review.fullscreen': 'Annotate fullscreen',
+  'acceptance.review.fullscreenDone': 'Done annotating',
   'acceptance.review.regionComments': 'Region comments',
   'acceptance.review.regionCommentsEmpty':
     'Drag on the image to circle a region — its comment lands here.',

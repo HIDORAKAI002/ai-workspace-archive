@@ -1,97 +1,102 @@
-# 🌍 סוכן נסיעות מבוסס AI עם Microsoft Agent Framework (.NET)
+# 🌍 סוכן נסיעות מבוסס בינה מלאכותית עם Microsoft Agent Framework (.NET)
 
-## 📋 סקירה כללית של התרחיש
+## 📋 סקירת התרחיש
 
-דוגמה זו מדגימה כיצד לבנות סוכן חכם לתכנון נסיעות באמצעות Microsoft Agent Framework עבור .NET. הסוכן יכול ליצור באופן אוטומטי מסלולי טיול מותאמים אישית ליעדים אקראיים ברחבי העולם.
+דוגמה זו ממחישה כיצד לבנות סוכן תכנון נסיעות אינטליגנטי באמצעות Microsoft Agent Framework ל-.NET. הסוכן יכול לייצר באופן אוטומטי מסלולי טיול יומיים מותאמים אישית ליעדים אקראיים ברחבי העולם.
 
-### יכולות עיקריות:
+### יכולות מפתח:
 
-- 🎲 **בחירת יעד אקראי**: משתמש בכלי מותאם לבחירת מקומות חופשה
-- 🗺️ **תכנון טיול חכם**: יוצר מסלולים מפורטים לפי ימים
-- 🔄 **שידור בזמן אמת**: תומך בתגובות מיידיות ובשידור רציף
-- 🛠️ **שילוב כלים מותאמים**: מדגים כיצד להרחיב את יכולות הסוכן
+- 🎲 **בחירת יעד אקראי**: משתמש בכלי מותאם לבחירת מוקדי חופשה
+- 🗺️ **תכנון טיול אינטיליגנטי**: יוצר מסלולים מפורטים יום-יום
+- 🔄 **זרימה בזמן אמת**: תומך בתגובות מיידיות וזרימות
+- 🛠️ **אינטגרציה עם כלים מותאמים**: מדגים כיצד להרחיב את יכולות הסוכן
 
 ## 🔧 ארכיטקטורה טכנית
 
-### טכנולוגיות ליבה
+### טכנולוגיות מרכזיות
 
-- **Microsoft Agent Framework**: יישום .NET העדכני לפיתוח סוכני AI
-- **שילוב מודלים של GitHub**: משתמש בשירות ההסקה של מודלי AI של GitHub
-- **תאימות ל-OpenAI API**: מנצל ספריות לקוח של OpenAI עם נקודות קצה מותאמות
-- **תצורה מאובטחת**: ניהול מפתחות API מבוסס סביבה
+- **Microsoft Agent Framework**: מימוש עדכני ב-.NET לפיתוח סוכני AI
+- **Azure OpenAI (Responses API)**: משתמש ב-API של תגובות Azure OpenAI להסקת מודל
+- **Azure Identity**: כניסה מאובטחת דרך `AzureCliCredential` (`az login`)
+- **ניהול מאובטח**: ניהול נקודת קצה מבוסס סביבה
 
-### רכיבים עיקריים
+### רכיבים מרכזיים
 
-1. **AIAgent**: מתזמר הסוכן הראשי שמנהל את זרימת השיחה
+1. **AIAgent**: מנחה הזרימה הראשי שמנהל את שיחת השיח
 2. **כלים מותאמים**: פונקציית `GetRandomDestination()` זמינה לסוכן
-3. **לקוח שיחה**: ממשק שיחה מבוסס מודלים של GitHub
-4. **תמיכה בשידור**: יכולות יצירת תגובות בזמן אמת
+3. **לקוח תגובות**: ממשק שיחה מבוסס Azure OpenAI Responses
+4. **תמיכה בזרימה**: יכולות יצירת תגובות בזמן אמת
 
-### תבנית שילוב
+### דפוס אינטגרציה
 
 ```mermaid
 graph LR
-    A[User Request] --> B[AI Agent]
-    B --> C[GitHub Models API]
-    B --> D[GetRandomDestination Tool]
-    C --> E[Travel Itinerary]
+    A[בקשת משתמש] --> B[סוכן בינה מלאכותית]
+    B --> C[Azure OpenAI (ממשק API לתגובות)]
+    B --> D[כלי GetRandomDestination]
+    C --> E[מסלול טיול]
     D --> E
 ```
 
-## 🚀 תחילת העבודה
+## 🚀 התחלת עבודה
 
 ### דרישות מוקדמות
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) או גרסה מתקדמת יותר
-- [אסימון גישה ל-API של מודלים של GitHub](https://docs.github.com/github-models/github-models-at-scale/using-your-own-api-keys-in-github-models)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) או גרסה גבוהה יותר
+- [מנוי Azure](https://azure.microsoft.com/free/) עם משאב Azure OpenAI ופריסת מודל
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — התחבר עם `az login`
 
 ### משתני סביבה נדרשים
 
 ```bash
 # zsh/bash
-export GH_TOKEN=<your_github_token>
-export GH_ENDPOINT=https://models.github.ai/inference
-export GH_MODEL_ID=openai/gpt-5-mini
+export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+# לאחר מכן היכנס כדי ש-AzureCliCredential יוכל לקבל אסימון
+az login
 ```
 
 ```powershell
 # PowerShell
-$env:GH_TOKEN = "<your_github_token>"
-$env:GH_ENDPOINT = "https://models.github.ai/inference"
-$env:GH_MODEL_ID = "openai/gpt-5-mini"
+$env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+# לאחר מכן התחבר כדי ש-AzureCliCredential יוכל לקבל אסימון
+az login
 ```
 
 ### קוד לדוגמה
 
-כדי להריץ את דוגמת הקוד,
+להפעלת דוגמת הקוד,
 
 ```bash
-# zsh/bash
+# זש/באש
 chmod +x ./01-dotnet-agent-framework.cs
 ./01-dotnet-agent-framework.cs
 ```
 
-או באמצעות CLI של dotnet:
+או באמצעות ה-CLI של dotnet:
 
 ```bash
 dotnet run ./01-dotnet-agent-framework.cs
 ```
 
-ראו את [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) עבור הקוד המלא.
+ראה [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) עבור הקוד המלא.
 
 ```csharp
 #!/usr/bin/dotnet run
 
-#:package Microsoft.Extensions.AI@9.*
-#:package Microsoft.Agents.AI.OpenAI@1.*-*
+#:package Microsoft.Extensions.AI@10.4.1
+#:package Microsoft.Agents.AI.OpenAI@1.1.0
+#:package Azure.AI.OpenAI@2.1.0
+#:package Azure.Identity@1.13.1
 
-using System.ClientModel;
 using System.ComponentModel;
 
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
-using OpenAI;
+using Azure.AI.OpenAI;
+using Azure.Identity;
 
 // Tool Function: Random Destination Generator
 // This static method will be available to the agent as a callable tool
@@ -123,34 +128,20 @@ static string GetRandomDestination()
     return destinations[index];
 }
 
-// Extract configuration from environment variables
-// Retrieve the GitHub Models API endpoint, defaults to https://models.github.ai/inference if not specified
-// Retrieve the model ID, defaults to openai/gpt-5-mini if not specified
-// Retrieve the GitHub token for authentication, throws exception if not specified
-var github_endpoint = Environment.GetEnvironmentVariable("GH_ENDPOINT") ?? "https://models.github.ai/inference";
-var github_model_id = Environment.GetEnvironmentVariable("GH_MODEL_ID") ?? "openai/gpt-5-mini";
-var github_token = Environment.GetEnvironmentVariable("GH_TOKEN") ?? throw new InvalidOperationException("GH_TOKEN is not set.");
+// Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
+var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
+    ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
 
-// Configure OpenAI Client Options
-// Create configuration options to point to GitHub Models endpoint
-// This redirects OpenAI client calls to GitHub's model inference service
-var openAIOptions = new OpenAIClientOptions()
-{
-    Endpoint = new Uri(github_endpoint)
-};
-
-// Initialize OpenAI Client with GitHub Models Configuration
-// Create OpenAI client using GitHub token for authentication
-// Configure it to use GitHub Models endpoint instead of OpenAI directly
-var openAIClient = new OpenAIClient(new ApiKeyCredential(github_token), openAIOptions);
+var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
 // Create AI Agent with Travel Planning Capabilities
-// Initialize OpenAI client, get chat client for specified model, and create AI agent
+// Get the Responses client for the specified deployment and create the AI agent
 // Configure agent with travel planning instructions and random destination tool
 // The agent can now plan trips using the GetRandomDestination function
-AIAgent agent = openAIClient
-    .GetChatClient(github_model_id)
-    .CreateAIAgent(
+AIAgent agent = azureClient
+    .GetChatClient(deployment)
+    .AsAIAgent(
         instructions: "You are a helpful AI Agent that can help plan vacations for customers at random destinations",
         tools: [AIFunctionFactory.Create(GetRandomDestination)]
     );
@@ -166,23 +157,23 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 תובנות עיקריות
+## 🎓 מסקנות מרכזיות
 
-1. **ארכיטקטורת סוכן**: Microsoft Agent Framework מספק גישה נקייה ובטוחה מבחינת טיפוסים לבניית סוכני AI ב-.NET
-2. **שילוב כלים**: פונקציות המעוטרות בתכונת `[Description]` הופכות לכלים זמינים עבור הסוכן
-3. **ניהול תצורה**: משתני סביבה וטיפול מאובטח באישורים עוקבים אחר שיטות העבודה המומלצות של .NET
-4. **תאימות ל-OpenAI**: שילוב מודלים של GitHub פועל בצורה חלקה דרך APIs תואמי OpenAI
+1. **ארכיטקטורת סוכן**: Microsoft Agent Framework מספק גישה נקייה ובטוחה מסוג לפיתוח סוכני AI ב-.NET
+2. **אינטגרציית כלים**: פונקציות המצוינות עם תכונות `[Description]` נהפכות לזמינות ככלים לסוכן
+3. **ניהול קונפיגורציה**: משתני סביבה וטיפול מאובטח באישורים בהתאם להנחיות הטובות ב-.NET
+4. **API תגובות Azure OpenAI**: הסוכן משתמש ב-API תגובות Azure OpenAI דרך Azure.AI.OpenAI SDK
 
 ## 🔗 משאבים נוספים
 
 - [תיעוד Microsoft Agent Framework](https://learn.microsoft.com/agent-framework)
-- [שוק מודלים של GitHub](https://github.com/marketplace?type=models)
+- [Azure OpenAI ב-Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
 - [.NET Single File Apps](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**כתב ויתור**:  
-מסמך זה תורגם באמצעות שירות תרגום AI [Co-op Translator](https://github.com/Azure/co-op-translator). למרות שאנו שואפים לדיוק, יש לקחת בחשבון שתרגומים אוטומטיים עשויים להכיל שגיאות או אי דיוקים. המסמך המקורי בשפתו המקורית צריך להיחשב כמקור סמכותי. עבור מידע קריטי, מומלץ להשתמש בתרגום מקצועי אנושי. איננו נושאים באחריות לאי הבנות או לפרשנויות שגויות הנובעות משימוש בתרגום זה.
+**כתב ויתור**:
+מסמך זה תורגם באמצעות שירות תרגום אוטומטי [Co-op Translator](https://github.com/Azure/co-op-translator). למרות שאנו שואפים לדיוק, יש לקחת בחשבון שתרגומים אוטומטיים עלולים להכיל שגיאות או אי-דיוקים. יש להחשיב את המסמך המקורי בשפתו הטבעית כמקור הסמכות. למידע קריטי מומלץ להשתמש בתרגום מקצועי על ידי מתרגם אדם. אנו לא אחראים לכל אי-הבנה או פירוש שגוי הנובע מהשימוש בתרגום זה.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

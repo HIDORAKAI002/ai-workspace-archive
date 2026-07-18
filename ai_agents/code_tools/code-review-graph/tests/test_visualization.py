@@ -1,14 +1,52 @@
 """Tests for graph visualization export."""
 
 import json
-import re
 import shutil
 import subprocess
+from html.parser import HTMLParser
 
 import pytest
 
 from code_review_graph.graph import GraphStore
 from code_review_graph.parser import EdgeInfo, NodeInfo
+
+
+class _ScriptExtractor(HTMLParser):
+    """Collect external script URLs and inline script bodies from HTML."""
+
+    def __init__(self) -> None:
+        super().__init__(convert_charrefs=False)
+        self.sources: list[str] = []
+        self.inline_scripts: list[str] = []
+        self._inline_chunks: list[str] | None = None
+
+    def handle_starttag(
+        self, tag: str, attrs: list[tuple[str, str | None]]
+    ) -> None:
+        if tag != "script":
+            return
+        source = dict(attrs).get("src")
+        if source is not None:
+            self.sources.append(source)
+            self._inline_chunks = None
+        else:
+            self._inline_chunks = []
+
+    def handle_data(self, data: str) -> None:
+        if self._inline_chunks is not None:
+            self._inline_chunks.append(data)
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag == "script" and self._inline_chunks is not None:
+            self.inline_scripts.append("".join(self._inline_chunks))
+            self._inline_chunks = None
+
+
+def _extract_scripts(content: str) -> tuple[list[str], list[str]]:
+    parser = _ScriptExtractor()
+    parser.feed(content)
+    parser.close()
+    return parser.sources, parser.inline_scripts
 
 
 @pytest.fixture
@@ -131,6 +169,45 @@ def test_export_graph_data(store_with_data):
     json.dumps(data)  # must be serializable
 
 
+def test_export_json_writes_utf8_graph_data(store_with_data, tmp_path):
+    from code_review_graph.exports import export_json
+
+    output_path = tmp_path / "nested" / "graph.json"
+    result = export_json(store_with_data, output_path)
+
+    assert result == output_path
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert {node["name"] for node in payload["nodes"]} >= {
+        "auth.py",
+        "AuthService",
+        "login",
+    }
+    assert {edge["kind"] for edge in payload["edges"]} == {
+        "CALLS",
+        "CONTAINS",
+    }
+
+
+def test_export_json_failure_preserves_existing_file(
+    store_with_data, tmp_path, monkeypatch
+):
+    from code_review_graph import exports
+
+    output_path = tmp_path / "graph.json"
+    output_path.write_text("existing export\n", encoding="utf-8")
+    monkeypatch.setattr(
+        exports,
+        "export_graph_data",
+        lambda _store: {"not_json": {object()}},
+    )
+
+    with pytest.raises(TypeError):
+        exports.export_json(store_with_data, output_path)
+
+    assert output_path.read_text(encoding="utf-8") == "existing export\n"
+    assert list(tmp_path.glob(".graph.json.*.tmp")) == []
+
+
 def test_generate_html(store_with_data, tmp_path):
     from code_review_graph.visualization import generate_html
 
@@ -138,11 +215,24 @@ def test_generate_html(store_with_data, tmp_path):
     generate_html(store_with_data, output_path)
     assert output_path.exists()
     content = output_path.read_text()
-    assert "d3js.org" in content or "d3.v7" in content
+    script_sources, _inline_scripts = _extract_scripts(content)
+    assert script_sources == ["https://d3js.org/d3.v7.min.js"]
     assert "auth.py" in content
     assert "AuthService" in content
     assert "<!DOCTYPE html>" in content
     assert "</html>" in content
+
+
+def test_script_extraction_handles_case_insensitive_html_tags():
+    content = (
+        '<SCRIPT SRC="https://d3js.org/d3.v7.min.js"></SCRIPT>'
+        "<SCRIPT>const responsive = 1 < 2;</SCRIPT>"
+    )
+
+    script_sources, inline_scripts = _extract_scripts(content)
+
+    assert script_sources == ["https://d3js.org/d3.v7.min.js"]
+    assert inline_scripts == ["const responsive = 1 < 2;"]
 
 
 def test_cpp_include_resolution(tmp_path):
@@ -360,7 +450,7 @@ def _assert_responsive_graph_script(content):
     node = shutil.which("node")
     if node is None:
         pytest.skip("Node.js is required for generated JavaScript syntax validation")
-    inline_scripts = re.findall(r"<script(?:\s[^>]*)?>(.*?)</script>", content, re.DOTALL)
+    _script_sources, inline_scripts = _extract_scripts(content)
     assert inline_scripts
     for script in inline_scripts:
         if not script.strip():

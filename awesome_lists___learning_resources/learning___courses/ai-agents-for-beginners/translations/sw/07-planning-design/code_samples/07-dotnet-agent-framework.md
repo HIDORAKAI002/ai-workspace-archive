@@ -1,39 +1,42 @@
-# 🎯 Mipango na Mitindo ya Ubunifu na GitHub Models (.NET)
+# 🎯 Mipango & Mifumo ya Ubunifu na Azure OpenAI (Responses API) (.NET)
 
 ## 📋 Malengo ya Kujifunza
 
-Notebook hii inaonyesha mipango ya kiwango cha biashara na mitindo ya ubunifu kwa ajili ya kujenga mawakala wenye akili kwa kutumia Microsoft Agent Framework katika .NET na GitHub Models. Utajifunza kuunda mawakala wanaoweza kugawa matatizo magumu, kupanga suluhisho za hatua nyingi, na kutekeleza mtiririko wa kazi wa hali ya juu kwa kutumia vipengele vya biashara vya .NET.
+Daftari hili linaonyesha mifumo ya mipango na ubunifu ya kiwango cha shirika kwa kuunda mawakala wa akili kwa kutumia Microsoft Agent Framework katika .NET na Azure OpenAI (Responses API). Utajifunza kuunda mawakala ambao wanaweza kuvunja matatizo magumu, kupanga suluhisho za hatua nyingi, na kutekeleza michakato tata kwa kutumia sifa za shirika za .NET.
 
-## ⚙️ Mahitaji ya Awali na Usanidi
+## ⚙️ Mahitaji na Usanidi
 
 **Mazingira ya Maendeleo:**
 - .NET 9.0 SDK au zaidi
-- Visual Studio 2022 au VS Code na kiendelezi cha C#
-- Ufikiaji wa GitHub Models API
+- Visual Studio 2022 au VS Code yenye kiendelezi cha C#
+- Usajili wa Azure una rasilimali ya Azure OpenAI na usambazaji wa modeli
+- Azure CLI — ingia kwa kutumia `az login`
 
-**Vitegemezi Vinavyohitajika:**
+**Mategemeo Yanayohitajika:**
 ```xml
-<PackageReference Include="Microsoft.Extensions.AI" Version="9.9.0" />
-<PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.9.0-preview.1.25458.4" />
+<PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
+<PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
+<PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.*-*" />
+<PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
+<PackageReference Include="Azure.Identity" Version="1.13.1" />
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
-**Usanidi wa Mazingira (Faili ya .env):**
+**Marekebisho ya Mazingira (.env file):**
 ```env
-GITHUB_TOKEN=your_github_personal_access_token
-GITHUB_ENDPOINT=https://models.inference.ai.azure.com
-GITHUB_MODEL_ID=gpt-4o-mini
+AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
 ```
 
-## Kuendesha Msimbo
+## Kukimbia Msimbo
 
-Somu hili linajumuisha utekelezaji wa Programu ya Faili Moja ya .NET. Ili kuiendesha:
+Somo hili linajumuisha utekelezaji wa Programu Moja ya Faili (.NET Single File App). Ili kuikimbia:
 
 ```bash
-# Make the file executable (Linux/macOS)
+# Fanya faili iwe inayoendeshwa (Linux/macOS)
 chmod +x 07-dotnet-agent-framework.cs
 
-# Run the application
+# Endesha programu
 ./07-dotnet-agent-framework.cs
 ```
 
@@ -45,19 +48,19 @@ dotnet run 07-dotnet-agent-framework.cs
 
 ## Utekelezaji wa Msimbo
 
-Utekelezaji kamili unapatikana katika `07-dotnet-agent-framework.cs`, ambayo inaonyesha:
+Utekelezaji kamili upo katika `07-dotnet-agent-framework.cs`, unaoonyesha:
 
-- Kupakia usanidi wa mazingira kwa kutumia DotNetEnv
-- Kuseti mteja wa OpenAI kwa GitHub Models
-- Kufafanua mifano ya data iliyopangwa (Plan na TravelPlan) kwa kutumia serialization ya JSON
-- Kuunda wakala wa AI na matokeo yaliyopangwa kwa kutumia JSON schema
-- Kutekeleza maombi ya mipango na majibu salama kwa aina
+- Kupakia marekebisho ya mazingira kwa kutumia DotNetEnv
+- Kusanidi mteja wa Azure OpenAI na kuunda wakala wa AI kwa kutumia `GetChatClient().AsAIAgent()`
+- Kufafanua mifano ya data iliyopangwa (Plan na TravelPlan) kwa serialization ya JSON
+- Kuunda wakala wa AI mwenye pato lililopangwa kwa kutumia schema ya JSON
+- Kutekeleza maombi ya mipango pamoja na majibu salama kwa aina
 
-## Dhana Muhimu
+## Misingi Muhimu
 
-### Mipango Iliyopangwa na Mifano Salama kwa Aina
+### Mipango Iliyo Pangiliwa kwa Modeli Salama Kwa Aina
 
-Wakala hutumia madarasa ya C# kufafanua muundo wa matokeo ya mipango:
+Wakala hutumia darasa za C# kubainisha muundo wa matokeo ya mipango:
 
 ```csharp
 public class Plan
@@ -79,13 +82,15 @@ public class TravelPlan
 }
 ```
 
-### JSON Schema kwa Matokeo Yaliyopangwa
+### Schema ya JSON kwa Matokeo Yaliyo Pangiliwa
 
-Wakala umesetiwa kurudisha majibu yanayolingana na schema ya TravelPlan:
+Wakala amesanidiwa kurudisha majibu yanayolingana na schema ya TravelPlan:
 
 ```csharp
-ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_INSTRUCTIONS)
+ChatClientAgentOptions agentOptions = new()
 {
+    Name = AGENT_NAME,
+    Description = AGENT_INSTRUCTIONS,
     ChatOptions = new()
     {
         ResponseFormat = ChatResponseFormatJson.ForJsonSchema(
@@ -98,20 +103,22 @@ ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_
 
 ### Maelekezo ya Wakala wa Mipango
 
-Wakala hufanya kama mratibu, akigawa kazi kwa mawakala maalum:
+Wakala hufanya kazi kama mratibu, akigawa majukumu kwa mawakala maalum:
 
-- FlightBooking: Kwa kuweka nafasi za ndege na kutoa taarifa za ndege
-- HotelBooking: Kwa kuweka nafasi za hoteli na kutoa taarifa za hoteli
-- CarRental: Kwa kuweka nafasi za magari na kutoa taarifa za kukodisha magari
-- ActivitiesBooking: Kwa kuweka nafasi za shughuli na kutoa taarifa za shughuli
-- DestinationInfo: Kwa kutoa taarifa kuhusu maeneo ya safari
-- DefaultAgent: Kwa kushughulikia maombi ya jumla
+- Booking ya Ndege: Kwa kuandaa tiketi za ndege na kutoa habari za ndege
+- Booking ya Hoteli: Kwa kujaza hoteli na kutoa habari za hoteli
+- Kusaidia Kodi ya Gari: Kwa kuangalia magari na kutoa taarifa za kukodi gari
+- Booking ya Shughuli: Kwa kupanga shughuli na kutoa taarifa za shughuli
+- Taarifa za Maeneo: Kwa kutoa taarifa kuhusu maeneo
+- Wakala wa Default: Kwa kushughulikia maombi ya jumla
 
 ## Matokeo Yanayotarajiwa
 
-Unapoendesha wakala na ombi la kupanga safari, itachambua ombi hilo na kutoa mpango uliopangwa na mgawanyo wa kazi kwa mawakala maalum, uliopangwa kama JSON inayolingana na schema ya TravelPlan.
+Unapomfanya wakala kufanya ombi la kupanga safari, atachambua ombi hilo na kutengeneza mpango uliopangwa na ugawaji wa kazi kwa mawakala maalum, uliotumwa kama JSON inayofuata schema ya TravelPlan.
 
 ---
 
-**Kanusho**:  
-Hati hii imetafsiriwa kwa kutumia huduma ya kutafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kwa usahihi, tafadhali fahamu kuwa tafsiri za kiotomatiki zinaweza kuwa na makosa au kutokuwa sahihi. Hati ya asili katika lugha yake ya awali inapaswa kuzingatiwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu ya binadamu inapendekezwa. Hatutawajibika kwa kutoelewana au tafsiri zisizo sahihi zinazotokana na matumizi ya tafsiri hii.
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Kionyozo**:
+Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kupata usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake halisi inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatutojibu kwa kuelewa vibaya au tafsiri potofu zinazotokea kutokana na matumizi ya tafsiri hii.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->
