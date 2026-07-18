@@ -29,12 +29,13 @@ import {
   Loader2,
   MessagesSquare,
   PanelRightOpen,
+  RefreshCw,
   RotateCcw,
   SquareArrowOutUpRight,
 } from 'lucide-react';
 import { memo, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useParams } from 'react-router';
+import { useParams, useSearchParams } from 'react-router';
 
 import NeuralNetworkLoading from '@/components/NeuralNetworkLoading';
 import AgentProfilePopup from '@/features/AgentProfileCard/AgentProfilePopup';
@@ -67,11 +68,11 @@ import { openAcceptModal, openRejectModal } from './modals';
  * nobody has to hand-summarize review notes into an instruction.
  */
 const buildRepairPrompt = (acceptanceId: string) =>
-  `请用 LobeHub CLI 读取验收 ${acceptanceId} 的最新 review 反馈：
+  `Use the LobeHub CLI to read the latest review feedback for acceptance ${acceptanceId}:
 
 lh acceptance feedback ${acceptanceId} --actionable
 
-输出的条目（含各检查项的评论、截图圈选标注与附件）就是本轮要处理的全部反馈。请逐条修改代码；完成后重新执行验证，并把新一轮验证结果 ingest 回同一个 acceptance（复用既有检查项 id，语义有变化的用 supersedes 迭代）。`;
+Every entry it prints (per-check comments, circled-region annotations on the evidence screenshots, and attachments) is the full set of feedback to handle this round. Fix the code item by item; then re-run verification and ingest the new result back into the SAME acceptance (reuse the existing check ids, and use supersedes for any check whose meaning changed). Keep the final report in the same language the previous rounds used.`;
 
 const styles = createStaticStyles(({ css }) => ({
   banner: css`
@@ -199,7 +200,33 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
   // get the one-line compact toolbar.
   const compactToolbar = isEmbedded || isNarrowViewport;
 
-  const [filter, setFilter] = useState<CheckFilter>('all');
+  // The checklist filter survives a refresh via a `?filter=` query param — but
+  // only on the standalone acceptance page. The portal embed rides the chat
+  // URL, so it keeps the filter in local state instead of hijacking that query.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [localFilter, setLocalFilter] = useState<CheckFilter>('all');
+  const urlFilterRaw = searchParams.get('filter');
+  const urlFilter: CheckFilter = (['all', 'pending', 'needsFix', 'accepted'] as const).includes(
+    urlFilterRaw as CheckFilter,
+  )
+    ? (urlFilterRaw as CheckFilter)
+    : 'all';
+  const filter = isEmbedded ? localFilter : urlFilter;
+  const setFilter = (next: CheckFilter) => {
+    if (isEmbedded) {
+      setLocalFilter(next);
+      return;
+    }
+    setSearchParams(
+      (prev) => {
+        const params = new URLSearchParams(prev);
+        if (next === 'all') params.delete('filter');
+        else params.set('filter', next);
+        return params;
+      },
+      { replace: true },
+    );
+  };
   const [roundFilter, setRoundFilter] = useState<number | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set());
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(() => new Set());
@@ -330,41 +357,52 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
     icon: typeof BadgeCheck;
     label: string;
     spin?: boolean;
-  } = LIVE_STATUSES.has(acceptance.status)
-    ? {
-        bg: cssVar.colorInfoBg,
-        color: cssVar.colorInfo,
-        icon: Loader2,
-        label: t(`acceptance.status.${acceptance.status}`),
-        spin: true,
-      }
-    : acceptance.status === 'accepted'
+  } =
+    acceptance.status === 'repairing'
       ? {
-          bg: cssVar.colorSuccessBg,
-          color: cssVar.colorSuccess,
-          icon: BadgeCheck,
-          label: t('acceptance.status.accepted'),
+          // A repair round is an in-progress TASK — warn-coloured spinning
+          // refresh, matching the system's task-process cue, not a neutral verify.
+          bg: cssVar.colorWarningBg,
+          color: cssVar.colorWarning,
+          icon: RefreshCw,
+          label: t('acceptance.status.repairing'),
+          spin: true,
         }
-      : acceptance.status === 'rejected'
+      : LIVE_STATUSES.has(acceptance.status)
         ? {
-            bg: cssVar.colorErrorBg,
-            color: cssVar.colorError,
-            icon: RotateCcw,
-            label: t('acceptance.status.rejected'),
+            bg: cssVar.colorInfoBg,
+            color: cssVar.colorInfo,
+            icon: Loader2,
+            label: t(`acceptance.status.${acceptance.status}`),
+            spin: true,
           }
-        : acceptance.status === 'errored'
+        : acceptance.status === 'accepted'
           ? {
-              bg: cssVar.colorWarningBg,
-              color: cssVar.colorWarning,
-              icon: HelpCircle,
-              label: t('acceptance.status.errored'),
+              bg: cssVar.colorSuccessBg,
+              color: cssVar.colorSuccess,
+              icon: BadgeCheck,
+              label: t('acceptance.status.accepted'),
             }
-          : {
-              bg: cssVar.colorInfoBg,
-              color: cssVar.colorInfo,
-              icon: CircleDashed,
-              label: t('acceptance.verdict.inProgress'),
-            };
+          : acceptance.status === 'rejected'
+            ? {
+                bg: cssVar.colorErrorBg,
+                color: cssVar.colorError,
+                icon: RotateCcw,
+                label: t('acceptance.status.rejected'),
+              }
+            : acceptance.status === 'errored'
+              ? {
+                  bg: cssVar.colorWarningBg,
+                  color: cssVar.colorWarning,
+                  icon: HelpCircle,
+                  label: t('acceptance.status.errored'),
+                }
+              : {
+                  bg: cssVar.colorInfoBg,
+                  color: cssVar.colorInfo,
+                  icon: CircleDashed,
+                  label: t('acceptance.verdict.inProgress'),
+                };
 
   const runAction = async (action: () => Promise<unknown>) => {
     try {
@@ -415,14 +453,35 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
       : acceptance.status === 'rejected'
         ? ('rejected' as const)
         : ('settled' as const);
-  // Review progress — the bar's dial and wording follow how much of the union
-  // the user has personally signed off, not the verifier's pass tally.
+  // Review progress — the bar's dial and wording track the user's own decisions,
+  // split the SAME way as the checklist chips (已验收 / 待修复 / 未验收) so the two
+  // never disagree. A rejected check is DECIDED (it belongs to 待修复), not
+  // "awaiting your acceptance" — only the untouched 未验收 checks are pending.
   const reviewableChecks = checks.filter((check) => check.result);
   const reviewTotal = reviewableChecks.length;
-  const reviewDone = reviewableChecks.filter(
-    (check) => userReviewState(check) === 'accepted',
+  const acceptedCount = reviewableChecks.filter(
+    (check) => checkFilterState(check) === 'accepted',
   ).length;
-  const allConfirmed = reviewTotal > 0 && reviewDone >= reviewTotal;
+  const needsFixCount = reviewableChecks.filter(
+    (check) => checkFilterState(check) === 'needsFix',
+  ).length;
+  const pendingCount = reviewTotal - acceptedCount - needsFixCount; // 未验收 (undecided)
+  const decidedCount = acceptedCount + needsFixCount;
+  // Per-round acceptance tally for the ledger: each reviewable check belongs to
+  // the round its current result came from, so the ledger can show that round's
+  // own 已验收 / 待验收 progress instead of a raw verification verdict.
+  const reviewByRound = (() => {
+    const map = new Map<number, { accepted: number; total: number }>();
+    for (const check of reviewableChecks) {
+      const round = check.resultRound;
+      if (round === undefined || round === null) continue;
+      const cur = map.get(round) ?? { accepted: 0, total: 0 };
+      cur.total += 1;
+      if (checkFilterState(check) === 'accepted') cur.accepted += 1;
+      map.set(round, cur);
+    }
+    return map;
+  })();
   const barTexts = {
     accepted: {
       statusText: t('acceptance.banner.accepted', {
@@ -440,26 +499,36 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
       statusText: t('acceptance.banner.rejected'),
       subText: currentRound?.run.decisionDetail?.comment ?? t('acceptance.banner.rejectedHint'),
     },
-    settled: allConfirmed
-      ? {
-          // The done line stands alone — a grey stats echo under it reads as
-          // an unresolved caveat (review feedback).
-          statusText: t('acceptance.bar.progressDone', { total: reviewTotal }),
-          subText: undefined,
-        }
-      : reviewDone === 0
-        ? {
+    // The status line stands alone in every settled state — a grey stats echo
+    // (`N 通过 · …`) under it read as an unresolved caveat and just added noise.
+    settled:
+      decidedCount === 0
+        ? // Nothing reviewed yet — a clean "not started" prompt (no "已完成 0/…").
+          {
             statusText: t('acceptance.bar.progressZero', { total: reviewTotal }),
-            subText: `${countsText} · ${t('acceptance.banner.decisionHint')}`,
+            subText: undefined,
           }
-        : {
-            statusText: t('acceptance.bar.progress', {
-              done: reviewDone,
-              rest: reviewTotal - reviewDone,
-              total: reviewTotal,
-            }),
-            subText: `${countsText} · ${t('acceptance.banner.decisionHint')}`,
-          },
+        : pendingCount === 0
+          ? needsFixCount === 0
+            ? // Every check accepted — ready to accept the delivery.
+              {
+                statusText: t('acceptance.bar.progressDone', { total: reviewTotal }),
+                subText: undefined,
+              }
+            : // Fully reviewed, but some checks need a fix — NOT "awaiting acceptance".
+              {
+                statusText: t('acceptance.bar.needsFix', { count: needsFixCount }),
+                subText: undefined,
+              }
+          : // Mid-review — the remainder is the UNDECIDED (未验收) count, not total-accepted.
+            {
+              statusText: t('acceptance.bar.progress', {
+                done: decidedCount,
+                rest: pendingCount,
+                total: reviewTotal,
+              }),
+              subText: undefined,
+            },
   }[barState];
 
   // Every feedback event, flattened for the clearing list: per-check rejects
@@ -524,8 +593,13 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
   // agent, not just the origin conversation.
   const handleCopyReview = async () => {
     await copyToClipboard(repairPrompt);
-    // Bottom-center — right above the action bar the click came from.
-    toast.success({ placement: 'bottom', title: t('acceptance.bar.copied') });
+    // Bottom-center, lifted clear of the sticky decision bar so it floats ABOVE
+    // the action row the click came from (not overlapping it).
+    toast.success({
+      placement: 'bottom',
+      style: { marginBlockEnd: 88 },
+      title: t('acceptance.bar.copied'),
+    });
   };
 
   // Dispatch the repair prompt straight into the origin conversation — the
@@ -544,7 +618,11 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
       await verifyService.markAcceptanceRepairing(acceptance.id);
       await mutate();
       void globalMutate(verifyKeys.acceptances());
-      toast.success({ placement: 'bottom', title: t('acceptance.bar.rerunSent') });
+      toast.success({
+        placement: 'bottom',
+        style: { marginBlockEnd: 88 },
+        title: t('acceptance.bar.rerunSent'),
+      });
     } catch (cause) {
       toast.error(cause instanceof Error ? cause.message : t('acceptance.actionError'));
     } finally {
@@ -878,9 +956,11 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
               queueing feedback are the author's calls, never a visitor's. */}
           {isOwner && (
             <DecisionBar
-              acceptedCount={reviewDone}
+              acceptedCount={acceptedCount}
               feedbackCount={activeFeedbackCount}
+              needsFixCount={needsFixCount}
               pending={pending}
+              repairing={acceptance.status === 'repairing'}
               rerunAvailable={Boolean(origin?.topic)}
               rerunPending={rerunPending}
               state={barState}
@@ -909,10 +989,13 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
           handle: opening happens from the page-corner toggle, closing from the
           ledger's own header action. On narrow viewports it opens as a masked
           drawer over the report — dismissable by tapping outside — instead of
-          shrinking the report into an unreadable column. */}
+          shrinking the report into an unreadable column. The panel's own
+          fold icon is the close affordance (same as wide mode), so the Drawer's
+          built-in close button is suppressed — one collapse handle, not two. */}
       {isNarrowViewport ? (
         <Drawer
           noHeader
+          closable={false}
           containerMaxWidth={'100%'}
           open={ledgerExpand}
           placement={'right'}
@@ -921,8 +1004,8 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
           onClose={() => setLedgerExpand(false)}
         >
           <LedgerPanel
-            hideCollapse
             highlight={highlightRound}
+            reviewByRound={reviewByRound}
             rounds={rounds}
             onCollapse={() => setLedgerExpand(false)}
             onOpenReport={setReportRound}
@@ -940,6 +1023,7 @@ const AcceptancePage = memo<AcceptancePageProps>(({ acceptanceId: explicitAccept
           <Flexbox style={{ height: '100%', overflow: 'auto' }}>
             <LedgerPanel
               highlight={highlightRound}
+              reviewByRound={reviewByRound}
               rounds={rounds}
               onCollapse={() => setLedgerExpand(false)}
               onOpenReport={setReportRound}

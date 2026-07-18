@@ -201,6 +201,8 @@ pub struct StoredCredentials {
     pub granted_scopes: Vec<String>,
     #[serde(default)]
     pub token_received_at: Option<u64>,
+    #[serde(default)]
+    pub issuer: Option<String>,
 }
 
 impl std::fmt::Debug for StoredCredentials {
@@ -213,6 +215,7 @@ impl std::fmt::Debug for StoredCredentials {
             )
             .field("granted_scopes", &self.granted_scopes)
             .field("token_received_at", &self.token_received_at)
+            .field("issuer", &self.issuer)
             .finish()
     }
 }
@@ -230,7 +233,13 @@ impl StoredCredentials {
             token_response,
             granted_scopes,
             token_received_at,
+            issuer: None,
         }
+    }
+
+    pub fn with_issuer(mut self, issuer: Option<String>) -> Self {
+        self.issuer = issuer;
+        self
     }
 }
 
@@ -1088,6 +1097,49 @@ impl AuthorizationManager {
                     self.metadata = Some(metadata);
                 }
 
+                if let (Some(stored_issuer), Some(current_issuer)) =
+                    (stored.issuer.as_deref(), self.metadata_issuer().as_deref())
+                {
+                    // A CIMD client ID is the client's metadata URL, so it is
+                    // portable across authorization servers and exempt here.
+                    if stored_issuer != current_issuer {
+                        if is_https_url(&stored.client_id) {
+                            // A CIMD client ID is the client's metadata URL, so it is
+                            // portable across authorization servers — but the tokens
+                            // were minted by the previous AS and must not be reused.
+                            tracing::warn!(
+                                stored_issuer,
+                                current_issuer,
+                                "authorization server issuer changed; discarding tokens but keeping portable CIMD client ID"
+                            );
+                            self.credential_store
+                                .save(
+                                    StoredCredentials::new(
+                                        stored.client_id.clone(),
+                                        None,
+                                        vec![],
+                                        None,
+                                    )
+                                    .with_issuer(self.metadata_issuer()),
+                                )
+                                .await?;
+                            self.configure_client_id(&stored.client_id)?;
+                            return Ok(false);
+                        }
+
+                        tracing::warn!(
+                            stored_issuer,
+                            current_issuer,
+                            "authorization server issuer changed; clearing stored credentials bound to the previous issuer"
+                        );
+                        self.credential_store.clear().await?;
+                        return Err(AuthError::AuthorizationServerMismatch {
+                            expected_issuer: stored_issuer.to_string(),
+                            received_issuer: current_issuer.to_string(),
+                        });
+                    }
+                }
+
                 self.configure_client_id(&stored.client_id)?;
                 return Ok(true);
             }
@@ -1703,6 +1755,7 @@ impl AuthorizationManager {
             token_response: Some(token_result.clone()),
             granted_scopes,
             token_received_at: Some(Self::now_epoch_secs()),
+            issuer: self.metadata_issuer(),
         };
         self.credential_store.save(stored).await?;
 
@@ -1714,6 +1767,10 @@ impl AuthorizationManager {
             .duration_since(UNIX_EPOCH)
             .unwrap_or_default()
             .as_secs()
+    }
+
+    fn metadata_issuer(&self) -> Option<String> {
+        self.metadata.as_ref().and_then(|m| m.issuer.clone())
     }
 
     /// Proactive refresh buffer: refresh tokens this many seconds before they expire
@@ -1838,6 +1895,7 @@ impl AuthorizationManager {
             token_response: Some(token_result.clone()),
             granted_scopes,
             token_received_at: Some(Self::now_epoch_secs()),
+            issuer: self.metadata_issuer(),
         };
         self.credential_store.save(stored).await?;
 
@@ -2658,6 +2716,7 @@ impl AuthorizationManager {
             token_response: Some(token_result.clone()),
             granted_scopes,
             token_received_at: Some(Self::now_epoch_secs()),
+            issuer: self.metadata_issuer(),
         };
         self.credential_store.save(stored).await?;
 
@@ -2780,6 +2839,7 @@ impl AuthorizationManager {
             token_response: Some(token_result.clone()),
             granted_scopes,
             token_received_at: Some(Self::now_epoch_secs()),
+            issuer: self.metadata_issuer(),
         };
         self.credential_store.save(stored).await?;
 
@@ -3170,16 +3230,17 @@ impl OAuthState {
 
             *manager.current_scopes.write().await = granted_scopes.clone();
 
+            let metadata = manager.discover_metadata().await?;
+            manager.metadata = Some(metadata);
+
             let stored = StoredCredentials {
                 client_id: client_id.to_string(),
                 token_response: Some(credentials),
                 granted_scopes,
                 token_received_at: Some(AuthorizationManager::now_epoch_secs()),
+                issuer: manager.metadata_issuer(),
             };
             manager.credential_store.save(stored).await?;
-
-            let metadata = manager.discover_metadata().await?;
-            manager.metadata = Some(metadata);
 
             manager.configure_client_id(client_id)?;
 
@@ -4887,6 +4948,7 @@ mod tests {
             token_response: Some(token_response),
             granted_scopes: vec![],
             token_received_at: None,
+            issuer: None,
         };
         let debug_output = format!("{:?}", creds);
 
@@ -5864,6 +5926,7 @@ mod tests {
             token_response: Some(make_token_response("my-access-token", Some(3600))),
             granted_scopes: vec![],
             token_received_at: Some(AuthorizationManager::now_epoch_secs()),
+            issuer: None,
         };
         manager.credential_store.save(stored).await.unwrap();
 
@@ -5881,6 +5944,7 @@ mod tests {
             token_response: Some(make_token_response("stale-token", Some(3600))),
             granted_scopes: vec![],
             token_received_at: Some(AuthorizationManager::now_epoch_secs() - 7200),
+            issuer: None,
         };
         manager.credential_store.save(stored).await.unwrap();
 
@@ -5899,6 +5963,7 @@ mod tests {
             token_response: Some(make_token_response("no-expiry-token", None)),
             granted_scopes: vec![],
             token_received_at: None,
+            issuer: None,
         };
         manager.credential_store.save(stored).await.unwrap();
 
@@ -5916,6 +5981,7 @@ mod tests {
             token_response: Some(make_token_response("almost-expired", Some(3600))),
             granted_scopes: vec![],
             token_received_at: Some(AuthorizationManager::now_epoch_secs() - 3590),
+            issuer: None,
         };
         manager.credential_store.save(stored).await.unwrap();
 
@@ -5934,6 +6000,7 @@ mod tests {
             token_response: Some(make_token_response("stale-token", Some(3600))),
             granted_scopes: vec![],
             token_received_at: Some(AuthorizationManager::now_epoch_secs() - 7200),
+            issuer: None,
         };
         manager.credential_store.save(stored).await.unwrap();
 
@@ -6235,6 +6302,7 @@ mod tests {
                 )),
                 granted_scopes: vec![],
                 token_received_at: Some(AuthorizationManager::now_epoch_secs()),
+                issuer: None,
             })
             .await
             .unwrap();
@@ -6263,6 +6331,7 @@ mod tests {
             token_response: None,
             granted_scopes: vec![],
             token_received_at: None,
+            issuer: None,
         };
         manager.credential_store.save(stored).await.unwrap();
 
@@ -6283,6 +6352,7 @@ mod tests {
             token_response: Some(make_token_response("old-token", Some(3600))),
             granted_scopes: vec![],
             token_received_at: Some(AuthorizationManager::now_epoch_secs()),
+            issuer: None,
         };
         manager.credential_store.save(stored).await.unwrap();
 
@@ -6373,6 +6443,7 @@ mod tests {
                 )),
                 granted_scopes: vec![],
                 token_received_at: Some(AuthorizationManager::now_epoch_secs()),
+                issuer: None,
             })
             .await
             .unwrap();
@@ -6578,6 +6649,7 @@ mod tests {
             )),
             granted_scopes: vec!["read".to_string(), "write".to_string()],
             token_received_at: Some(AuthorizationManager::now_epoch_secs()),
+            issuer: None,
         };
         manager.credential_store.save(stored).await.unwrap();
 
@@ -6615,6 +6687,7 @@ mod tests {
             )),
             granted_scopes: vec![],
             token_received_at: Some(AuthorizationManager::now_epoch_secs()),
+            issuer: None,
         };
         manager.credential_store.save(stored).await.unwrap();
 
@@ -6652,6 +6725,7 @@ mod tests {
             )),
             granted_scopes: vec!["read".to_string()],
             token_received_at: Some(AuthorizationManager::now_epoch_secs()),
+            issuer: None,
         };
         manager.credential_store.save(stored).await.unwrap();
 
@@ -6689,6 +6763,7 @@ mod tests {
             )),
             granted_scopes: vec![],
             token_received_at: Some(AuthorizationManager::now_epoch_secs()),
+            issuer: None,
         };
         manager.credential_store.save(stored).await.unwrap();
 
@@ -6727,6 +6802,7 @@ mod tests {
             )),
             granted_scopes: vec![],
             token_received_at: Some(AuthorizationManager::now_epoch_secs()),
+            issuer: None,
         };
         manager.credential_store.save(stored).await.unwrap();
 
@@ -6790,6 +6866,7 @@ mod tests {
             )),
             granted_scopes: vec![],
             token_received_at: Some(AuthorizationManager::now_epoch_secs()),
+            issuer: None,
         };
         manager.credential_store.save(stored).await.unwrap();
 
