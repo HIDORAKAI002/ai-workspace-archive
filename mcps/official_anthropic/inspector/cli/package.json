@@ -1,6 +1,6 @@
 {
   "name": "@modelcontextprotocol/inspector-cli",
-  "version": "0.22.0",
+  "version": "1.0.0",
   "description": "CLI for the Model Context Protocol inspector",
   "license": "SEE LICENSE IN LICENSE",
   "author": "Model Context Protocol a Series of LF Projects, LLC.",
@@ -33,7 +33,7 @@
   "devDependencies": {
     "@types/express": "^5.0.0",
     "tsx": "^4.7.0",
-    "vitest": "^4.0.17"
+    "vitest": "^4.1.0"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.25.2",

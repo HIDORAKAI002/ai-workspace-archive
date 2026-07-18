@@ -6,7 +6,60 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-07-17T00:26:21Z</updated>
+  <updated>2026-07-18T01:20:23Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.214</id>
+    <title>Claude Code v2.1.214</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.214"/>
+    <updated>2026-07-18T01:20:23Z</updated>
+    <content type="html">&lt;p&gt;• Fixed single-segment dir/ allow rules like Edit(src/) auto-approving writes to nested dir/ directories anywhere in the tree instead of only &amp;lt;cwd&amp;gt;/dir&lt;/p&gt;
+&lt;p&gt;• Fixed a permission-check bypass affecting commands run in Windows PowerShell 5.1 sessions&lt;/p&gt;
+&lt;p&gt;• Fixed Bash permission checks to fail closed on file-descriptor redirect forms that bash parses differently than the permission analyzer&lt;/p&gt;
+&lt;p&gt;• Fixed Bash permission checks misjudging very long commands — commands over 10,000 characters now always prompt instead of running automatically&lt;/p&gt;
+&lt;p&gt;• Fixed Bash permission checks treating zsh variable subscripts and modifiers in [[ ]] comparisons as inert text — these commands now prompt for approval&lt;/p&gt;
+&lt;p&gt;• Fixed Bash permission checks to no longer auto-approve certain help and man commands that could run unsafe options, command substitutions, or backslash paths&lt;/p&gt;
+&lt;p&gt;• Fixed permission prompts on remote sessions that could proceed before the local confirmation dialog&lt;/p&gt;
+&lt;p&gt;• Added the EndConversation tool: Claude can end sessions with highly abusive users or jailbreak attempts, as on claude.ai since 2025 — see https://www.anthropic.com/research/end-subset-conversations&lt;/p&gt;
+&lt;p&gt;• Added a periodic progress heartbeat for long-running tool calls that previously went silent&lt;/p&gt;
+&lt;p&gt;• Added an ISO modified timestamp to memory file frontmatter&lt;/p&gt;
+&lt;p&gt;• Added message.uuid, client_request_id, and tool_source attributes to OpenTelemetry log events for message-level correlation and tool provenance&lt;/p&gt;
+&lt;p&gt;• Added CLAUDE_CODE_OTEL_CONTENT_MAX_LENGTH to configure the 60 KB truncation limit on OpenTelemetry content attributes&lt;/p&gt;
+&lt;p&gt;• Added reasoning effort to the subagentStatusLine payload, so custom agent rows can render model and effort&lt;/p&gt;
+&lt;p&gt;• Added permission prompts for docker commands (including the Podman docker shim) carrying daemon-redirect flags (--url, --connection, --identity, and Podman's remote mode) that previously ran without one&lt;/p&gt;
+&lt;p&gt;• Fixed a crash when a GrowthBook feature evaluates to null, and a bug where a malformed flag payload could wipe the cached feature flags&lt;/p&gt;
+&lt;p&gt;• Fixed Bash tool killing the Claude session when a pkill -f pattern accidentally matched the CLI's own process (Linux)&lt;/p&gt;
+&lt;p&gt;• Fixed unbounded memory growth when --settings points at a device file or multi-GB file; oversized (&amp;gt;2 MiB) settings files now fail at startup with a clear error&lt;/p&gt;
+&lt;p&gt;• Fixed streaming turns failing with "Socket is closed" behind corporate proxies on Windows&lt;/p&gt;
+&lt;p&gt;• Fixed stream-json output truncation at exit for slow-reading SDK/pipeline consumers; the exit drain now scales with queued bytes instead of a flat 2s cap&lt;/p&gt;
+&lt;p&gt;• Fixed scheduled tasks refusing their own configured prompt as untrusted input — the fired prompt is now delivered as the session's assigned task&lt;/p&gt;
+&lt;p&gt;• Fixed PowerShell tool commands hanging until timeout when a child process waited on standard input (Windows)&lt;/p&gt;
+&lt;p&gt;• Fixed Python scripts under the PowerShell tool crashing with UnicodeDecodeError when reading non-UTF-8 data from standard input (Windows)&lt;/p&gt;
+&lt;p&gt;• Fixed Python scripts run via the PowerShell tool crashing with UnicodeEncodeError on non-ASCII output, and PowerShell 7 error messages containing raw ANSI escape sequences (Windows)&lt;/p&gt;
+&lt;p&gt;• Fixed the PowerShell tool reporting where.exe, fc.exe, and diff.exe as errors when they return a valid negative answer (Windows)&lt;/p&gt;
+&lt;p&gt;• Fixed &amp;gt; and &amp;gt;&amp;gt; under the PowerShell tool on Windows PowerShell 5.1 writing UTF-16LE files that other tools couldn't read as UTF-8&lt;/p&gt;
+&lt;p&gt;• Fixed a displaced background daemon deleting its successor's control socket on shutdown, which made the next client kill the healthy replacement daemon&lt;/p&gt;
+&lt;p&gt;• Fixed background sessions parked with ← or /background and left idle keeping the background daemon and a worker process alive indefinitely&lt;/p&gt;
+&lt;p&gt;• Fixed completed background sessions being impossible to remove via claude rm or the agent view once the background service had gone idle&lt;/p&gt;
+&lt;p&gt;• Fixed background sessions dispatched from a non-git folder being impossible to delete from the agents view&lt;/p&gt;
+&lt;p&gt;• Fixed reopening a stopped background session failing to restore its saved conversation when an unreadable folder exists in the session store&lt;/p&gt;
+&lt;p&gt;• Fixed the Remote Control "session ready" push notification firing for sessions where Remote Control was not explicitly enabled&lt;/p&gt;
+&lt;p&gt;• Fixed /install-github-app and the /mcp settings menu being blocked in agent-view sessions — they're now refused only in background sessions with no terminal attached&lt;/p&gt;
+&lt;p&gt;• Fixed plugins enabled via the --settings CLI flag not loading (regression since v2.1.181)&lt;/p&gt;
+&lt;p&gt;• Fixed feature flags going stale in long-running sessions after the OAuth token rotates&lt;/p&gt;
+&lt;p&gt;• Fixed /ultrareview refusing to run in repos with no merge base — it now offers to review all tracked files&lt;/p&gt;
+&lt;p&gt;• Fixed claude update and claude doctor hanging silently, and the /status System diagnostics section going blank, when a shell-config path is a directory&lt;/p&gt;
+&lt;p&gt;• Fixed memory frontmatter values being silently truncated at an inline # when memory files are saved&lt;/p&gt;
+&lt;p&gt;• Fixed session cost and token telemetry double-counting on streams that emit multiple cumulative message_delta frames&lt;/p&gt;
+&lt;p&gt;• Fixed a spurious "check your network" warning that appeared while the advisor was thinking&lt;/p&gt;
+&lt;p&gt;• Fixed hooks with exit code 2 not blocking as documented when the hook's stdout JSON fails schema validation&lt;/p&gt;
+&lt;p&gt;• Fixed OTel log events emitted outside the turn's async context missing the interaction span's trace context&lt;/p&gt;
+&lt;p&gt;• Fixed MCP transient errors during prompts/resources refresh clearing the server's slash commands and resources&lt;/p&gt;
+&lt;p&gt;• Improved the claude rc workspace-trust error in the home directory to say trust there is never saved and to suggest running from a project directory&lt;/p&gt;
+&lt;p&gt;• Changed single-segment dir/ hook if: conditions to match only &amp;lt;cwd&amp;gt;/dir; write /dir/** for any-depth matching. deny/ask permission rules keep their any-depth match.&lt;/p&gt;
+&lt;p&gt;• Changed file commands using -m/--magic-file or -f/--files-from to require permission instead of being auto-allowed as read-only&lt;/p&gt;
+&lt;p&gt;• Changed keep-alive connection pooling to disable after a stale-connection error, so retries open a fresh socket&lt;/p&gt;
+&lt;p&gt;• Changed SessionStart hooks to report source "fork" when a session begins as a fork instead of "resume"&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.212</id>
     <title>Claude Code v2.1.212</title>
@@ -544,31 +597,5 @@
 &lt;p&gt;• Improved MCP headersHelper auth: the helper now re-runs and reconnects automatically when a tool call returns 401/403&lt;/p&gt;
 &lt;p&gt;• Improved plugin auto-rename: marketplace renames maps are now followed automatically, updating your settings to the new name&lt;/p&gt;
 &lt;p&gt;• Improved /add-dir message when the directory is already a working directory&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.191</id>
-    <title>Claude Code v2.1.191</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.191"/>
-    <updated>2026-06-24T21:58:06Z</updated>
-    <content type="html">&lt;p&gt;• Added /rewind support for resuming a conversation from before /clear was run&lt;/p&gt;
-&lt;p&gt;• Fixed scroll position jumping to the bottom while reading earlier output during a streaming response&lt;/p&gt;
-&lt;p&gt;• Fixed background agents resurrecting after being stopped — stopping an agent from the tasks panel is now permanent&lt;/p&gt;
-&lt;p&gt;• Fixed /voice showing a generic "not available" message when disabled by an organization's policy — it now explains the restriction&lt;/p&gt;
-&lt;p&gt;• Fixed /login URL opening truncated in Windows Terminal when it wraps across lines&lt;/p&gt;
-&lt;p&gt;• Fixed Cmd+click on links in fullscreen mode for Ghostty over ssh/tmux&lt;/p&gt;
-&lt;p&gt;• Fixed claude agents sending builtin slash commands like /usage to background sessions as prompt text instead of showing a hint&lt;/p&gt;
-&lt;p&gt;• Fixed claude agents job rows showing full filesystem paths for pasted images instead of the [Image #N] placeholder&lt;/p&gt;
-&lt;p&gt;• Fixed hooks with comma-separated matchers (e.g. "Bash,PowerShell") silently never firing&lt;/p&gt;
-&lt;p&gt;• Fixed /permissions Recently-denied tab: approving a denial now persists on close instead of being silently discarded&lt;/p&gt;
-&lt;p&gt;• Fixed the agent panel jumping by one row when scrolling the roster past the overflow cap&lt;/p&gt;
-&lt;p&gt;• Fixed the welcome splash art overflowing the default 80×24 macOS Terminal window&lt;/p&gt;
-&lt;p&gt;• Fixed managed settings: forceRemoteSettingsRefresh now takes effect when set via MDM or file policy, and the fetch sends Cache-Control: no-cache to prevent proxies from serving stale responses&lt;/p&gt;
-&lt;p&gt;• Improved sandbox network permission dialog: hosts you allow with "Yes" are now remembered for the rest of the session instead of re-prompting on every connection&lt;/p&gt;
-&lt;p&gt;• Improved MCP server reliability: capability discovery (tools/list, prompts/list, resources/list) now retries transient network errors with short backoff&lt;/p&gt;
-&lt;p&gt;• Improved MCP OAuth: discovery and token requests now retry once after transient network errors, and headless environments skip the browser popup and go straight to the paste-the-URL prompt&lt;/p&gt;
-&lt;p&gt;• Improved MCP error messages: HTTP 404 errors now show the URL and point to your MCP config&lt;/p&gt;
-&lt;p&gt;• Improved vim mode prompt-history search (NORMAL /) to hint how to reach slash commands&lt;/p&gt;
-&lt;p&gt;• Reduced CPU usage during streaming responses by ~37% by coalescing text updates to 100ms&lt;/p&gt;
-&lt;p&gt;• Reduced long-session memory growth from terminal output cache&lt;/p&gt;</content>
   </entry>
 </feed>
