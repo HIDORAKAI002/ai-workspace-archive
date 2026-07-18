@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import logging
 import sqlite3
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -11,6 +13,9 @@ from ..graph import GraphStore
 from ..incremental import find_project_root, get_db_path
 
 _PROVENANCE_READ_TIMEOUT_SECONDS = 0.05
+_PROVENANCE_GIT_TIMEOUT_SECONDS = 1.0
+
+logger = logging.getLogger(__name__)
 
 
 def _error_response(
@@ -18,6 +23,37 @@ def _error_response(
 ) -> dict[str, Any]:
     """Build a standardised error response dict."""
     return {"status": status, "error": message, "summary": message, **extra}
+
+
+def _read_live_git_head(root: Path) -> str | None:
+    """Return the checked-out commit without making provenance mandatory.
+
+    ``head_matches_build`` deliberately compares commits only. It does not
+    claim that staged, unstaged, or untracked files are represented by the
+    graph, avoiding the misleading ``is_stale=False`` contract from #458.
+    """
+    if not (root / ".git").exists():
+        return None
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--verify", "HEAD"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            cwd=str(root),
+            timeout=_PROVENANCE_GIT_TIMEOUT_SECONDS,
+            stdin=subprocess.DEVNULL,
+            check=False,
+        )
+    except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
+        logger.debug("Could not read live Git HEAD for graph provenance", exc_info=True)
+        return None
+    if result.returncode != 0:
+        logger.debug("git rev-parse failed while reading graph provenance")
+        return None
+    head_sha = result.stdout.strip()
+    return head_sha or None
 
 
 def graph_provenance(repo_root: str | None = None) -> dict[str, Any] | None:
@@ -75,6 +111,11 @@ def graph_provenance(repo_root: str | None = None) -> dict[str, Any] | None:
         head_sha = rows.get("git_head_sha")
         if isinstance(head_sha, str) and head_sha:
             provenance["built_at_sha"] = head_sha
+        live_head_sha = _read_live_git_head(root)
+        if live_head_sha:
+            provenance["head_sha"] = live_head_sha
+            if isinstance(head_sha, str) and head_sha:
+                provenance["head_matches_build"] = live_head_sha == head_sha
         return provenance
     except Exception:
         return None

@@ -1,106 +1,109 @@
-# 🛠️ Advanced Tool Use with GitHub Models (.NET)
+# 🛠️ Advanced Tool Use with Azure OpenAI (Responses API) (.NET)
 
-## 📋 Mga Layunin sa Pag-aaral
+## 📋 Mga Layunin sa Pagkatuto
 
-Ipinapakita ng notebook na ito ang mga pattern ng enterprise-grade tool integration gamit ang Microsoft Agent Framework sa .NET kasama ang GitHub Models. Matututo kang bumuo ng mga sopistikadong agent na may maraming espesyal na tool, gamit ang malakas na typing ng C# at mga enterprise feature ng .NET.
+Ipinapakita ng notebook na ito ang mga pattern ng enterprise-grade tool integration gamit ang Microsoft Agent Framework sa .NET kasama ang Azure OpenAI (Responses API). Matututuhan mong bumuo ng mga sopistikadong ahente na may maraming espesyal na tool, gamit ang malakas na pagta-type ng C# at mga enterprise feature ng .NET.
 
-### Mga Advanced na Kakayahan ng Tool na Iyong Matututuhan
+### Mga Advanced na Kakayahan sa Tool na Iyong Mamahalaan
 
-- 🔧 **Multi-Tool Architecture**: Pagbuo ng mga agent na may maraming espesyal na kakayahan
+- 🔧 **Multi-Tool Architecture**: Pagtatayo ng mga ahente na may maraming espesyal na kakayahan
 - 🎯 **Type-Safe Tool Execution**: Paggamit ng compile-time validation ng C#
-- 📊 **Enterprise Tool Patterns**: Disenyo ng tool na handa para sa produksyon at paghawak ng error
-- 🔗 **Tool Composition**: Pagsasama-sama ng mga tool para sa masalimuot na mga workflow ng negosyo
+- 📊 **Enterprise Tool Patterns**: Disenyo ng production-ready tool at paghawak ng error
+- 🔗 **Tool Composition**: Pagsasama-sama ng mga tool para sa komplikadong workflows ng negosyo
 
 ## 🎯 Mga Benepisyo ng .NET Tool Architecture
 
 ### Mga Tampok ng Enterprise Tool
 
-- **Compile-Time Validation**: Tinitiyak ng malakas na typing ang tamang mga parameter ng tool
-- **Dependency Injection**: IoC container integration para sa pamamahala ng tool
-- **Async/Await Patterns**: Non-blocking na pagpapatupad ng tool na may tamang pamamahala ng mga resources
-- **Structured Logging**: Built-in logging integration para sa pagsubaybay sa pagpapatupad ng tool
+- **Compile-Time Validation**: Pinatitibay ng malakas na pagta-type ang kawastuhan ng mga parameter ng tool
+- **Dependency Injection**: Integrasyon ng IoC container para sa pamamahala ng tool
+- **Async/Await Patterns**: Hindi nagpapabara na pagtakbo ng tool gamit ang tamang pamamahala ng resources
+- **Structured Logging**: Nakapaloob na logging integration para sa pagsubaybay ng pagpapatakbo ng tool
 
-### Mga Pattern na Handa para sa Produksyon
+### Mga Pattern na Handa sa Produksyon
 
 - **Exception Handling**: Komprehensibong pamamahala ng error gamit ang typed exceptions
-- **Resource Management**: Tamang mga pattern ng disposal at pamamahala ng memorya
-- **Performance Monitoring**: Built-in metrics at performance counters
-- **Configuration Management**: Type-safe na configuration na may validation
+- **Resource Management**: Tamang pag-dispose at pamamahala ng memorya
+- **Performance Monitoring**: Nakapaloob na metrics at performance counters
+- **Configuration Management**: Type-safe configuration na may validation
 
 ## 🔧 Teknikal na Arkitektura
 
-### Mga Pangunahing Komponent ng .NET Tool
+### Pangunahing Bahagi ng .NET Tool
 
-- **Microsoft.Extensions.AI**: Unified abstraction layer para sa tool
-- **Microsoft.Agents.AI**: Enterprise-grade na orchestration ng tool
-- **GitHub Models Integration**: High-performance API client na may connection pooling
+- **Microsoft.Extensions.AI**: Pinagsamang abstraction layer ng tool
+- **Microsoft.Agents.AI**: Enterprise-grade na pag-orchestrate ng tool
+- **Azure OpenAI (Responses API)**: Mabilis na API client na may connection pooling
 
-### Tool Execution Pipeline
+### Pipeline ng Pagpapatakbo ng Tool
 
 ```mermaid
 graph LR
-    A[User Request] --> B[Agent Analysis]
-    B --> C[Tool Selection]
-    C --> D[Type Validation]
-    B --> E[Parameter Binding]
-    E --> F[Tool Execution]
+    A[Kahilingan ng User] --> B[Pagsusuri ng Ahente]
+    B --> C[Pagpili ng Kasangkapan]
+    C --> D[Pagpapatotoo ng Uri]
+    B --> E[Pagbubuklod ng Parameter]
+    E --> F[Pagsasagawa ng Kasangkapan]
     C --> F
-    F --> G[Result Processing]
+    F --> G[Pagpoproseso ng Resulta]
     D --> G
-    G --> H[Response]
+    G --> H[Tugon]
 ```
 
 ## 🛠️ Mga Kategorya at Pattern ng Tool
 
-### 1. **Mga Tool sa Pagpoproseso ng Data**
+### 1. **Mga Tool sa Pagproseso ng Data**
 
-- **Input Validation**: Malakas na typing gamit ang data annotations
-- **Transform Operations**: Type-safe na conversion at formatting ng data
+- **Input Validation**: Malakas na pagta-type gamit ang data annotations
+- **Transform Operations**: Type-safe na conversion at pag-format ng data
 - **Business Logic**: Mga tool para sa domain-specific na kalkulasyon at pagsusuri
 - **Output Formatting**: Structured na pagbuo ng tugon
 
-### 2. **Mga Integration Tool**
+### 2. **Mga Tool sa Integrasyon**
 
-- **API Connectors**: RESTful service integration gamit ang HttpClient
-- **Database Tools**: Entity Framework integration para sa pag-access ng data
-- **File Operations**: Secure na mga operasyon sa file system na may validation
-- **External Services**: Mga pattern ng integration para sa third-party na serbisyo
+- **API Connectors**: Integrasyon ng RESTful service gamit ang HttpClient
+- **Database Tools**: Integrasyon ng Entity Framework para sa pag-access ng data
+- **File Operations**: Ligtas na mga operasyon sa file system na may validation
+- **External Services**: Mga pattern ng integrasyon ng third-party na serbisyo
 
 ### 3. **Mga Utility Tool**
 
-- **Text Processing**: Mga utility para sa string manipulation at formatting
-- **Date/Time Operations**: Culture-aware na mga kalkulasyon ng petsa/oras
-- **Mathematical Tools**: Mga kalkulasyon na may precision at statistical operations
-- **Validation Tools**: Pag-verify ng mga business rule at data
+- **Text Processing**: Mga utility para sa manipulasyon at pag-format ng string
+- **Date/Time Operations**: Mga kalkulasyon sa petsa/oras na nakaangkop sa kultura
+- **Mathematical Tools**: Tumpak na kalkulasyon at mga operasyon sa estadistika
+- **Validation Tools**: Pag-validate ng mga patakaran sa negosyo at bersipikasyon ng data
 
-Handa ka na bang bumuo ng mga enterprise-grade agent na may makapangyarihan at type-safe na kakayahan ng tool sa .NET? Tara't magdisenyo ng mga solusyong propesyonal! 🏢⚡
+Handa ka na bang bumuo ng mga enterprise-grade na ahente na may makapangyarihan, type-safe na kakayahan ng tool sa .NET? Tara, i-arkitekto natin ang mga propesyonal na solusyon! 🏢⚡
 
 ## 🚀 Pagsisimula
 
 ### Mga Kinakailangan
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) o mas mataas
-- [GitHub Models API access token](https://docs.github.com/github-models/github-models-at-scale/using-your-own-api-keys-in-github-models)
+- Isang [Azure subscription](https://azure.microsoft.com/free/) na may Azure OpenAI resource at deployment ng modelo
+- Ang [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — mag-sign in gamit ang `az login`
 
-### Kinakailangang Environment Variables
+### Mga Kailangang Environment Variable
 
 ```bash
 # zsh/bash
-export GH_TOKEN=<your_github_token>
-export GH_ENDPOINT=https://models.github.ai/inference
-export GH_MODEL_ID=openai/gpt-5-mini
+export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+# Pagkatapos mag-sign in upang makakuha ng token ang AzureCliCredential
+az login
 ```
 
 ```powershell
 # PowerShell
-$env:GH_TOKEN = "<your_github_token>"
-$env:GH_ENDPOINT = "https://models.github.ai/inference"
-$env:GH_MODEL_ID = "openai/gpt-5-mini"
+$env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+# Pagkatapos mag-sign in para makakuha ng token ang AzureCliCredential
+az login
 ```
 
-### Halimbawang Code
+### Sample Code
 
-Upang patakbuhin ang halimbawa ng code,
+Para patakbuhin ang halimbawa ng code,
 
 ```bash
 # zsh/bash
@@ -114,21 +117,23 @@ O gamit ang dotnet CLI:
 dotnet run ./04-dotnet-agent-framework.cs
 ```
 
-Tingnan ang [`04-dotnet-agent-framework.cs`](../../../../04-tool-use/code_samples/04-dotnet-agent-framework.cs) para sa kumpletong code.
+Tingnan ang [`04-dotnet-agent-framework.cs`](../../../../04-tool-use/code_samples/04-dotnet-agent-framework.cs) para sa buong code.
 
 ```csharp
 #!/usr/bin/dotnet run
 
 #:package Microsoft.Extensions.AI@10.*
 #:package Microsoft.Agents.AI.OpenAI@1.*-*
+#:package Azure.AI.OpenAI@2.1.0
+#:package Azure.Identity@1.13.1
 
-using System.ClientModel;
 using System.ComponentModel;
 
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
-using OpenAI;
+using Azure.AI.OpenAI;
+using Azure.Identity;
 
 // Tool Function: Random Destination Generator
 // This static method will be available to the agent as a callable tool
@@ -160,26 +165,12 @@ static string GetRandomDestination()
     return destinations[index];
 }
 
-// Extract configuration from environment variables
-// Retrieve the GitHub Models API endpoint, defaults to https://models.github.ai/inference if not specified
-// Retrieve the model ID, defaults to openai/gpt-5-mini if not specified
-// Retrieve the GitHub token for authentication, throws exception if not specified
-var github_endpoint = Environment.GetEnvironmentVariable("GH_ENDPOINT") ?? "https://models.github.ai/inference";
-var github_model_id = Environment.GetEnvironmentVariable("GH_MODEL_ID") ?? "openai/gpt-5-mini";
-var github_token = Environment.GetEnvironmentVariable("GH_TOKEN") ?? throw new InvalidOperationException("GH_TOKEN is not set.");
+// Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
+var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
+    ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
 
-// Configure OpenAI Client Options
-// Create configuration options to point to GitHub Models endpoint
-// This redirects OpenAI client calls to GitHub's model inference service
-var openAIOptions = new OpenAIClientOptions()
-{
-    Endpoint = new Uri(github_endpoint)
-};
-
-// Initialize OpenAI Client with GitHub Models Configuration
-// Create OpenAI client using GitHub token for authentication
-// Configure it to use GitHub Models endpoint instead of OpenAI directly
-var openAIClient = new OpenAIClient(new ApiKeyCredential(github_token), openAIOptions);
+var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
 // Define Agent Identity and Comprehensive Instructions
 // Agent name for identification and logging purposes
@@ -205,28 +196,28 @@ Always prioritize user preferences. If they mention a specific destination like 
 """;
 
 // Create AI Agent with Advanced Travel Planning Capabilities
-// Initialize complete agent pipeline: OpenAI client → Chat client → AI agent
+// Get the Responses client for the deployment and create the AI agent
 // Configure agent with name, detailed instructions, and available tools
 // This demonstrates the .NET agent creation pattern with full configuration
-AIAgent agent = openAIClient
-    .GetChatClient(github_model_id)
-    .CreateAIAgent(
+AIAgent agent = azureClient
+    .GetChatClient(deployment)
+    .AsAIAgent(
         name: AGENT_NAME,
         instructions: AGENT_INSTRUCTIONS,
         tools: [AIFunctionFactory.Create(GetRandomDestination)]
     );
 
-// Create New Conversation Thread for Context Management
-// Initialize a new conversation thread to maintain context across multiple interactions
-// Threads enable the agent to remember previous exchanges and maintain conversational state
+// Create New Conversation Session for Context Management
+// Initialize a new conversation session to maintain context across multiple interactions
+// Sessions enable the agent to remember previous exchanges and maintain conversational state
 // This is essential for multi-turn conversations and contextual understanding
-AgentThread thread = agent.GetNewThread();
+await using var session = await agent.CreateSessionAsync();
 
 // Execute Agent: First Travel Planning Request
 // Run the agent with an initial request that will likely trigger the random destination tool
 // The agent will analyze the request, use the GetRandomDestination tool, and create an itinerary
-// Using the thread parameter maintains conversation context for subsequent interactions
-await foreach (var update in agent.RunStreamingAsync("Plan me a day trip", thread))
+// Using the session parameter maintains conversation context for subsequent interactions
+await foreach (var update in agent.RunStreamingAsync("Plan me a day trip", session))
 {
     await Task.Delay(10);
     Console.Write(update);
@@ -237,8 +228,8 @@ Console.WriteLine();
 // Execute Agent: Follow-up Request with Context Awareness
 // Demonstrate contextual conversation by referencing the previous response
 // The agent remembers the previous destination suggestion and will provide an alternative
-// This showcases the power of conversation threads and contextual understanding in .NET agents
-await foreach (var update in agent.RunStreamingAsync("I don't like that destination. Plan me another vacation.", thread))
+// This showcases the power of conversation sessions and contextual understanding in .NET agents
+await foreach (var update in agent.RunStreamingAsync("I don't like that destination. Plan me another vacation.", session))
 {
     await Task.Delay(10);
     Console.Write(update);
@@ -248,6 +239,6 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Paunawa**:  
-Ang dokumentong ito ay isinalin gamit ang AI translation service na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagama't sinisikap naming maging tumpak, pakitandaan na ang mga awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o hindi pagkakatugma. Ang orihinal na dokumento sa orihinal nitong wika ang dapat ituring na opisyal na sanggunian. Para sa mahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang hindi pagkakaunawaan o maling interpretasyon na dulot ng paggamit ng pagsasaling ito.
+**Pagtatanggi**:
+Ang dokumentong ito ay isinalin gamit ang serbisyo ng AI translation na [Co-op Translator](https://github.com/Azure/co-op-translator). Bagama't nagsusumikap kami para sa katumpakan, pakatandaan na ang awtomatikong pagsasalin ay maaaring maglaman ng mga pagkakamali o hindi pagkakatugma. Ang orihinal na dokumento sa orihinal nitong wika ang dapat ituring na pangunahing sanggunian. Para sa mahahalagang impormasyon, inirerekomenda ang propesyonal na pagsasalin ng tao. Hindi kami mananagot sa anumang maling pagkakaintindi o maling interpretasyon na nagmula sa paggamit ng pagsasaling ito.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

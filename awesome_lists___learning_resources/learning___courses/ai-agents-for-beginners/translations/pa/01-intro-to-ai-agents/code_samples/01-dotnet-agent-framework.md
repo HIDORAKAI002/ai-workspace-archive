@@ -1,69 +1,72 @@
-# 🌍 ਮਾਈਕਰੋਸਾਫਟ ਏਜੰਟ ਫਰੇਮਵਰਕ (.NET) ਨਾਲ AI ਯਾਤਰਾ ਏਜੰਟ
+# 🌍 ਮਾਇਕ੍ਰੋਸਾਫਟ ਏਜੰਟ ਫਰੇਮਵਰਕ (.NET) ਨਾਲ AI ਯਾਤਰਾ ਏਜੰਟ
 
-## 📋 ਸਨਰੀਓ ਝਲਕ
+## 📋 ਸਿਧਾਂਤ ਝਲਕ
 
-ਇਹ ਉਦਾਹਰਨ ਦਿਖਾਉਂਦੀ ਹੈ ਕਿ ਮਾਈਕਰੋਸਾਫਟ ਏਜੰਟ ਫਰੇਮਵਰਕ ਲਈ .NET ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਇੱਕ ਬੁੱਧੀਮਾਨ ਯਾਤਰਾ ਯੋਜਨਾ ਏਜੰਟ ਕਿਵੇਂ ਬਣਾਇਆ ਜਾ ਸਕਦਾ ਹੈ। ਇਹ ਏਜੰਟ ਦੁਨੀਆ ਭਰ ਵਿੱਚ ਕਦੇ ਵੀ ਗਮਨ ਸਥਾਨਾਂ ਲਈ ਨਿੱਜੀ ਦਿਨ-ਯਾਤਰਾ ਯੋਜਨਾਵਾਂ ਸਵੈਚਾਲਿਤ ਤੌਰ 'ਤੇ ਤਿਆਰ ਕਰ ਸਕਦਾ ਹੈ।
+ਇਸ ਉਦਾਹਰਨ ਵਿੱਚ ਦਿਖਾਇਆ ਗਿਆ ਹੈ ਕਿ ਕਿਵੇਂ ਮਾਇਕ੍ਰੋਸਾਫਟ ਏਜੰਟ ਫਰੇਮਵਰਕ ਲਈ .NET ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਇੱਕ ਬੁੱਧੀਮਾਨ ਯਾਤਰਾ ਯੋਜਨਾ ਏਜੰਟ ਬਣਾਈ ਜਾ ਸਕਦੀ ਹੈ। ਏਜੰਟ ਦੁਨੀਆ ਭਰ ਦੇ ਬੇਤਰਤੀਬੀ ਮੰਜ਼ਿਲਾਂ ਲਈ ਵਿਅਕਤੀਗਤ ਦਿਨ-ਦੌਰੇ ਦੀ ਯੋਜਨਾ ਆਪਣੇ ਆਪ ਤਿਆਰ ਕਰ ਸਕਦਾ ਹੈ।
 
-### ਮੁੱਖ ਸਮਰੱਥਾਵਾਂ:
+### ਮੁੱਖ ਯੋਗਤਾਵਾਂ:
 
-- 🎲 **ਰੈਂਡਮ ਸਥਾਨ ਚੋਣ**: ਛੁੱਟੀਆਂ ਦੇ ਸਥਾਨ ਚੁਣਨ ਲਈ ਇੱਕ ਕਸਟਮ ਟੂਲ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ
-- 🗺️ **ਬੁੱਧੀਮਾਨ ਯਾਤਰਾ ਯੋਜਨਾ**: ਵਿਸਥਾਰਤ ਦਿਨ-ਦਰ-ਦਿਨ ਯੋਜਨਾਵਾਂ ਬਣਾਉਂਦਾ ਹੈ
-- 🔄 **ਰਿਅਲ-ਟਾਈਮ ਸਟ੍ਰੀਮਿੰਗ**: ਤੁਰੰਤ ਅਤੇ ਸਟ੍ਰੀਮਿੰਗ ਜਵਾਬਾਂ ਦਾ ਸਮਰਥਨ ਕਰਦਾ ਹੈ
-- 🛠️ **ਕਸਟਮ ਟੂਲ ਇੰਟੀਗ੍ਰੇਸ਼ਨ**: ਏਜੰਟ ਦੀ ਸਮਰੱਥਾ ਨੂੰ ਵਧਾਉਣ ਦਾ ਪ੍ਰਦਰਸ਼ਨ ਕਰਦਾ ਹੈ
+- 🎲 **ਬੇਤਰਤੀਬੀ ਮੰਜ਼ਿਲ ਚੋਣ**: ਛੁੱਟੀਆਂ ਵਾਲੀਆਂ ਥਾਵਾਂ ਚੁੱਕਣ ਲਈ ਕਸਟਮ ਟੂਲ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ
+- 🗺️ **ਬੁੱਧੀਮਾਨ ਦੌਰਾ ਯੋਜਨਾ**: ਦਿਨ ਦਰ ਦਿਨ ਵਿਸਥਾਰ ਨਾਲ ਯੋਜਨਾਵਾਂ ਬਣਾਉਂਦਾ ਹੈ
+- 🔄 **ਹਕੀਕਤੀ ਸਮੇਂ ਸਟ੍ਰੀਮਿੰਗ**: ਤੁਰੰਤ ਅਤੇ ਸਟ੍ਰੀਮਿੰਗ ਜਵਾਬ ਦੋਹਾਂ ਨੂੰ ਸਹਿਯੋਗ ਕਰਦਾ ਹੈ
+- 🛠️ **ਕਸਟਮ ਟੂਲ ਇੰਟੀਗਰੇਸ਼ਨ**: ਏਜੰਟ ਦੀਆਂ ਸਮਰੱਥਾਵਾਂ ਨੂੰ ਵਧਾਉਣ ਦਾ ਤਰੀਕਾ ਦਰਸਾਉਂਦਾ ਹੈ
 
-## 🔧 ਤਕਨੀਕੀ ਆਰਕੀਟੈਕਚਰ
+## 🔧 ਤਕਨੀਕੀ ਬਣਤਰ
 
-### ਕੋਰ ਤਕਨੀਕਾਂ
+### ਮੁੱਖ ਤਕਨੀਕਾਂ
 
-- **ਮਾਈਕਰੋਸਾਫਟ ਏਜੰਟ ਫਰੇਮਵਰਕ**: .NET ਲਈ AI ਏਜੰਟ ਵਿਕਾਸ ਲਈ ਨਵੀਂ ਲਾਗੂ ਕੀਤੀ ਗਈ ਤਕਨੀਕ
-- **GitHub ਮਾਡਲ ਇੰਟੀਗ੍ਰੇਸ਼ਨ**: GitHub ਦੇ AI ਮਾਡਲ ਇੰਫਰੈਂਸ ਸੇਵਾ ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ
-- **OpenAI API ਅਨੁਕੂਲਤਾ**: OpenAI ਕਲਾਇੰਟ ਲਾਇਬ੍ਰੇਰੀਆਂ ਨੂੰ ਕਸਟਮ ਐਂਡਪੋਇੰਟਸ ਨਾਲ ਵਰਤਦਾ ਹੈ
-- **ਸੁਰੱਖਿਅਤ ਸੰਰਚਨਾ**: ਵਾਤਾਵਰਣ-ਅਧਾਰਿਤ API ਕੁੰਜੀਆਂ ਦਾ ਪ੍ਰਬੰਧਨ
+- **ਮਾਇਕ੍ਰੋਸਾਫਟ ਏਜੰਟ ਫਰੇਮਵਰਕ**: AI ਏਜੰਟ ਵਿਕਾਸ ਲਈ ਤਾਜ਼ਾ .NET ਅਮਲੀਕਰਨ
+- **ਆਜ਼ੋਰ ਓਪਨAI (Responses API)**: ਮਾਡਲ ਅਨੁਮਾਨਕ ਲਈ ਆਜ਼ੋਰ ਓਪਨAI Responses API ਦੀ ਵਰਤੋਂ
+- **ਆਜ਼ੋਰ ਆਈਡੈਂਟਿਟੀ**: `AzureCliCredential` (`az login`) ਰਾਹੀਂ ਸੁਰੱਖਿਅਤ ਸਾਈਨ-ਇਨ
+- **ਸੁਰੱਖਿਅਤ ਸੰਰਚਨਾ**: ਮਾਹੌਲ ਅਧਾਰਿਤ ਐਂਡਪੌਇੰਟ ਪ੍ਰਬੰਧਨ
 
 ### ਮੁੱਖ ਹਿੱਸੇ
 
-1. **AIAgent**: ਮੁੱਖ ਏਜੰਟ ਆਰਕੈਸਟਰੇਟਰ ਜੋ ਗੱਲਬਾਤ ਦੇ ਪ੍ਰਵਾਹ ਨੂੰ ਸੰਭਾਲਦਾ ਹੈ
-2. **ਕਸਟਮ ਟੂਲ**: `GetRandomDestination()` ਫੰਕਸ਼ਨ ਜੋ ਏਜੰਟ ਲਈ ਉਪਲਬਧ ਹੈ
-3. **ਚੈਟ ਕਲਾਇੰਟ**: GitHub ਮਾਡਲ-ਸਹਾਇਕ ਗੱਲਬਾਤ ਇੰਟਰਫੇਸ
-4. **ਸਟ੍ਰੀਮਿੰਗ ਸਮਰਥਨ**: ਰਿਅਲ-ਟਾਈਮ ਜਵਾਬ ਤਿਆਰ ਕਰਨ ਦੀ ਸਮਰੱਥਾ
+1. **AIAgent**: ਮੁੱਖ ਏਜੰਟ ਜੋ ਗੱਲਬਾਤ ਦਾ ਪ੍ਰਬੰਧਨ ਕਰਦਾ ਹੈ
+2. **ਕਸਟਮ ਟੂਲ**: ਏਜੰਟ ਲਈ ਉਪਲਬਧ `GetRandomDestination()` ਫੰਕਸ਼ਨ
+3. **Responses ਕਲਾਇਂਟ**: ਆਜ਼ੋਰ ਓਪਨAI Responses ਆਧਾਰਤ ਗੱਲਬਾਤ ਮਾਹੌਲ
+4. **ਸਟ੍ਰੀਮਿੰਗ ਸਹਿਯੋਗ**: ਹਕੀਕਤੀ ਸਮੇਂ ਜਵਾਬ ਤਿਆਰ ਕਰਨ ਦੀ ਸਮਰੱਥਾ
 
-### ਇੰਟੀਗ੍ਰੇਸ਼ਨ ਪੈਟਰਨ
+### ਇੰਟੀਗਰੇਸ਼ਨ ਪੈਟਰਨ
 
 ```mermaid
 graph LR
-    A[User Request] --> B[AI Agent]
-    B --> C[GitHub Models API]
-    B --> D[GetRandomDestination Tool]
-    C --> E[Travel Itinerary]
+    A[ਯੂਜ਼ਰ ਬਿਨੈ] --> B[ਏਆਈ ਏਜੰਟ]
+    B --> C[ਅਜ਼ੂਰ ਓਪਨਏਆਈ (ਜਵਾਬ API)]
+    B --> D[ਗੇਟਰੈਂਡਮਡੈਸਟਿਨੇਸ਼ਨ ਟੂਲ]
+    C --> E[ਯਾਤਰਾ ਯੋਜਨਾ]
     D --> E
 ```
 
-## 🚀 ਸ਼ੁਰੂਆਤ ਕਰਨਾ
+## 🚀 ਸ਼ੁਰੂਆਤ
 
-### ਪੂਰਵ ਸ਼ਰਤਾਂ
+### ਲੋੜੀਂਦੀਆਂ ਚੀਜ਼ਾਂ
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) ਜਾਂ ਇਸ ਤੋਂ ਉੱਚਾ
-- [GitHub ਮਾਡਲ API ਐਕਸੈਸ ਟੋਕਨ](https://docs.github.com/github-models/github-models-at-scale/using-your-own-api-keys-in-github-models)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) ਜਾਂ ਉੱਪਰ
+- ਇੱਕ [ਆਜ਼ੋਰ ਸਬਸਕ੍ਰਿਪਸ਼ਨ](https://azure.microsoft.com/free/) ਜਿਸ ਵਿੱਚ ਆਜ਼ੋਰ ਓਪਨAI ਸਾਧਨ ਅਤੇ ਮਾਡਲ ਡਿਪਲੋਇਮੈਂਟ ਹੋਵੇ
+- [ਆਜ਼ੋਰ CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` ਨਾਲ ਸਾਈਨ-ਇਨ ਕਰੋ
 
-### ਲੋੜੀਂਦੇ ਵਾਤਾਵਰਣ ਵੈਰੀਏਬਲ
+### ਲੋੜੀਂਦੇ ਮਾਹੌਲ ਵੈਰੀਏਬਲ
 
 ```bash
 # zsh/bash
-export GH_TOKEN=<your_github_token>
-export GH_ENDPOINT=https://models.github.ai/inference
-export GH_MODEL_ID=openai/gpt-5-mini
+export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+# ਫਿਰ ਸਾਈਨ ਇਨ ਕਰੋ ਤਾਂ ਜੋ AzureCliCredential ਟੋਕਨ ਪ੍ਰਾਪਤ ਕਰ ਸਕੇ
+az login
 ```
 
 ```powershell
-# PowerShell
-$env:GH_TOKEN = "<your_github_token>"
-$env:GH_ENDPOINT = "https://models.github.ai/inference"
-$env:GH_MODEL_ID = "openai/gpt-5-mini"
+# پاور شیل
+$env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+# ਫਿਰ ਸਾਈਨ ਇਨ ਕਰੋ ਤਾਂ ਜੋ AzureCliCredential ਟੋਕਨ ਪ੍ਰਾਪਤ ਕਰ ਸਕੇ
+az login
 ```
 
 ### ਨਮੂਨਾ ਕੋਡ
 
-ਕੋਡ ਉਦਾਹਰਨ ਚਲਾਉਣ ਲਈ,
+ਕੋਡ ਉਦਾਹਰਨ ਨੂੰ ਚਲਾਉਣ ਲਈ,
 
 ```bash
 # zsh/bash
@@ -71,27 +74,29 @@ chmod +x ./01-dotnet-agent-framework.cs
 ./01-dotnet-agent-framework.cs
 ```
 
-ਜਾਂ dotnet CLI ਦੀ ਵਰਤੋਂ ਕਰਕੇ:
+ਜਾਂ ਡੌਟਨੈੱਟ CLI ਦੀ ਵਰਤੋਂ ਕਰਕੇ:
 
 ```bash
 dotnet run ./01-dotnet-agent-framework.cs
 ```
 
-ਪੂਰੇ ਕੋਡ ਲਈ [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) ਵੇਖੋ।
+ਪੂਰੇ ਕੋਡ ਲਈ [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) ਨੂੰ ਦੇਖੋ।
 
 ```csharp
 #!/usr/bin/dotnet run
 
-#:package Microsoft.Extensions.AI@9.*
-#:package Microsoft.Agents.AI.OpenAI@1.*-*
+#:package Microsoft.Extensions.AI@10.4.1
+#:package Microsoft.Agents.AI.OpenAI@1.1.0
+#:package Azure.AI.OpenAI@2.1.0
+#:package Azure.Identity@1.13.1
 
-using System.ClientModel;
 using System.ComponentModel;
 
 using Microsoft.Agents.AI;
 using Microsoft.Extensions.AI;
 
-using OpenAI;
+using Azure.AI.OpenAI;
+using Azure.Identity;
 
 // Tool Function: Random Destination Generator
 // This static method will be available to the agent as a callable tool
@@ -123,34 +128,20 @@ static string GetRandomDestination()
     return destinations[index];
 }
 
-// Extract configuration from environment variables
-// Retrieve the GitHub Models API endpoint, defaults to https://models.github.ai/inference if not specified
-// Retrieve the model ID, defaults to openai/gpt-5-mini if not specified
-// Retrieve the GitHub token for authentication, throws exception if not specified
-var github_endpoint = Environment.GetEnvironmentVariable("GH_ENDPOINT") ?? "https://models.github.ai/inference";
-var github_model_id = Environment.GetEnvironmentVariable("GH_MODEL_ID") ?? "openai/gpt-5-mini";
-var github_token = Environment.GetEnvironmentVariable("GH_TOKEN") ?? throw new InvalidOperationException("GH_TOKEN is not set.");
+// Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
+var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
+    ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
 
-// Configure OpenAI Client Options
-// Create configuration options to point to GitHub Models endpoint
-// This redirects OpenAI client calls to GitHub's model inference service
-var openAIOptions = new OpenAIClientOptions()
-{
-    Endpoint = new Uri(github_endpoint)
-};
-
-// Initialize OpenAI Client with GitHub Models Configuration
-// Create OpenAI client using GitHub token for authentication
-// Configure it to use GitHub Models endpoint instead of OpenAI directly
-var openAIClient = new OpenAIClient(new ApiKeyCredential(github_token), openAIOptions);
+var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
 // Create AI Agent with Travel Planning Capabilities
-// Initialize OpenAI client, get chat client for specified model, and create AI agent
+// Get the Responses client for the specified deployment and create the AI agent
 // Configure agent with travel planning instructions and random destination tool
 // The agent can now plan trips using the GetRandomDestination function
-AIAgent agent = openAIClient
-    .GetChatClient(github_model_id)
-    .CreateAIAgent(
+AIAgent agent = azureClient
+    .GetChatClient(deployment)
+    .AsAIAgent(
         instructions: "You are a helpful AI Agent that can help plan vacations for customers at random destinations",
         tools: [AIFunctionFactory.Create(GetRandomDestination)]
     );
@@ -166,23 +157,23 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 ਮੁੱਖ ਸਿੱਖਣ ਵਾਲੀਆਂ ਗੱਲਾਂ
+## 🎓 ਮੁੱਖ ਸਿੱਖਿਆ
 
-1. **ਏਜੰਟ ਆਰਕੀਟੈਕਚਰ**: ਮਾਈਕਰੋਸਾਫਟ ਏਜੰਟ ਫਰੇਮਵਰਕ .NET ਵਿੱਚ AI ਏਜੰਟ ਬਣਾਉਣ ਲਈ ਇੱਕ ਸਾਫ਼, ਟਾਈਪ-ਸੇਫ਼ ਪਹੁੰਚ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ
-2. **ਟੂਲ ਇੰਟੀਗ੍ਰੇਸ਼ਨ**: `[Description]` ਐਟ੍ਰਿਬਿਊਟ ਨਾਲ ਸਜਾਏ ਫੰਕਸ਼ਨ ਏਜੰਟ ਲਈ ਉਪਲਬਧ ਟੂਲ ਬਣ ਜਾਂਦੇ ਹਨ
-3. **ਸੰਰਚਨਾ ਪ੍ਰਬੰਧਨ**: ਵਾਤਾਵਰਣ ਵੈਰੀਏਬਲ ਅਤੇ ਸੁਰੱਖਿਅਤ ਪ੍ਰਮਾਣ ਪੱਤਰ ਸੰਭਾਲ .NET ਦੇ ਸਰਵੋਤਮ ਅਭਿਆਸਾਂ ਦਾ ਪਾਲਣ ਕਰਦੇ ਹਨ
-4. **OpenAI ਅਨੁਕੂਲਤਾ**: GitHub ਮਾਡਲ ਇੰਟੀਗ੍ਰੇਸ਼ਨ OpenAI-ਅਨੁਕੂਲ API ਦੇ ਜ਼ਰੀਏ ਬੇਰੁਕਾਵਟ ਕੰਮ ਕਰਦਾ ਹੈ
+1. **ਏਜੰਟ ਬਣਤਰ**: ਮਾਇਕ੍ਰੋਸਾਫਟ ਏਜੰਟ ਫਰੇਮਵਰਕ .NET ਵਿੱਚ AI ਏਜੰਟ ਬਣਾਉਣ ਲਈ ਸਾਫ, ਟਾਈਪ-ਸੇਫ਼ ਢੰਗ ਦਿੰਦਾ ਹੈ
+2. **ਟੂਲ ਇੰਟੀਗਰੇਸ਼ਨ**: `[Description]` ਐਟ੍ਰਿਬਿਊਟ ਨਾਲ ਸਜਾਏ ਗਏ ਫੰਕਸ਼ਨ ਏਜੰਟ ਲਈ ਉਪਲਬਧ ਟੂਲ ਬਣ ਜਾਂਦੇ ਹਨ
+3. **ਸੰਰਚਨਾ ਪ੍ਰਬੰਧਨ**: ਮਾਹੌਲ ਵੈਰੀਏਬਲ ਅਤੇ ਸੁਰੱਖਿਅਤ ਪ੍ਰਮਾਣਪੱਤਰ ਸੰਭਾਲ .NET ਦੀਆਂ ਸਭ ਤੋਂ ਵਧੀਆ ਪ੍ਰਥਾਵਾਂ ਨੂੰ ਫਾਲੋ ਕਰਦੇ ਹਨ
+4. **ਆਜ਼ੋਰ ਓਪਨAI Responses API**: ਏਜੰਟ ਆਜ਼ੋਰ.AI.OpenAI SDK ਰਾਹੀਂ ਆਜ਼ੋਰ ਓਪਨAI Responses API ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ
 
 ## 🔗 ਵਾਧੂ ਸਰੋਤ
 
-- [ਮਾਈਕਰੋਸਾਫਟ ਏਜੰਟ ਫਰੇਮਵਰਕ ਦਸਤਾਵੇਜ਼](https://learn.microsoft.com/agent-framework)
-- [GitHub ਮਾਡਲ ਮਾਰਕੀਟਪਲੇਸ](https://github.com/marketplace?type=models)
+- [ਮਾਇਕ੍ਰੋਸਾਫਟ ਏਜੰਟ ਫਰੇਮਵਰਕ ਦਸਤਾਵੇਜ਼](https://learn.microsoft.com/agent-framework)
+- [ਮਾਇਕ੍ਰੋਸਾਫਟ ਫਾਊਂਡਰੀ ਵਿੱਚ ਆਜ਼ੋਰ ਓਪਨAI](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [.NET ਸਿੰਗਲ ਫਾਈਲ ਐਪਸ](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [.NET ਸਿੰਗਲ ਫਾਇਲ ਐਪਸ](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**ਅਸਵੀਕਰਤੀ**:  
-ਇਹ ਦਸਤਾਵੇਜ਼ AI ਅਨੁਵਾਦ ਸੇਵਾ [Co-op Translator](https://github.com/Azure/co-op-translator) ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਅਨੁਵਾਦ ਕੀਤਾ ਗਿਆ ਹੈ। ਜਦੋਂ ਕਿ ਅਸੀਂ ਸਹੀ ਹੋਣ ਦਾ ਯਤਨ ਕਰਦੇ ਹਾਂ, ਕਿਰਪਾ ਕਰਕੇ ਧਿਆਨ ਦਿਓ ਕਿ ਸਵੈਚਾਲਿਤ ਅਨੁਵਾਦਾਂ ਵਿੱਚ ਗਲਤੀਆਂ ਜਾਂ ਅਸੁਚਨਾਵਾਂ ਹੋ ਸਕਦੀਆਂ ਹਨ। ਇਸ ਦੀ ਮੂਲ ਭਾਸ਼ਾ ਵਿੱਚ ਮੌਜੂਦ ਮੂਲ ਦਸਤਾਵੇਜ਼ ਨੂੰ ਅਧਿਕਾਰਕ ਸਰੋਤ ਮੰਨਿਆ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ। ਮਹੱਤਵਪੂਰਨ ਜਾਣਕਾਰੀ ਲਈ, ਪੇਸ਼ੇਵਰ ਮਨੁੱਖੀ ਅਨੁਵਾਦ ਦੀ ਸਿਫਾਰਸ਼ ਕੀਤੀ ਜਾਂਦੀ ਹੈ। ਅਸੀਂ ਇਸ ਅਨੁਵਾਦ ਦੀ ਵਰਤੋਂ ਤੋਂ ਪੈਦਾ ਹੋਣ ਵਾਲੀਆਂ ਕਿਸੇ ਵੀ ਗਲਤਫਹਮੀਆਂ ਜਾਂ ਗਲਤ ਵਿਆਖਿਆਵਾਂ ਲਈ ਜ਼ਿੰਮੇਵਾਰ ਨਹੀਂ ਹਾਂ।
+**ਅਸਵੀਕਾਰੋਪਣ**:
+ਇਸ ਦਸਤਾਵੇਜ਼ ਦਾ ਅਨੁਵਾਦ ਏਆਈ ਅਨੁਵਾਦ ਸੇਵਾ [Co-op Translator](https://github.com/Azure/co-op-translator) ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਕੀਤਾ ਗਿਆ ਹੈ। ਜਦੋਂ ਕਿ ਅਸੀਂ ਸਹੀਤਾਵਾਂ ਲਈ ਯਤਨਸ਼ੀਲ ਹਾਂ, ਕਿਰਪਾ ਕਰਕੇ ਧਿਆਨ ਰੱਖੋ ਕਿ ਸਵੈਚਾਲਿਤ ਅਨੁਵਾਦਾਂ ਵਿੱਚ ਗਲਤੀਆਂ ਜਾਂ ਅਸਮੱਤਿਆਵਾਂ ਹੋ ਸਕਦੀਆਂ ਹਨ। ਮੂਲ ਦਸਤਾਵੇਜ਼ ਆਪਣੀ ਮੂਲ ਭਾਸ਼ਾ ਵਿੱਚ ਅਧਿਕਾਰਕ ਸਰੋਤ ਮੰਨਿਆ ਜਾਣਾ ਚਾਹੀਦਾ ਹੈ। ਜਰੂਰੀ ਜਾਣਕਾਰੀ ਲਈ, ਪੇਸ਼ੇਵਰ ਮਨੁੱਖੀ ਅਨੁਵਾਦ ਦੀ ਸਿਫ਼ਾਰਸ਼ ਕੀਤੀ ਜਾਂਦੀ ਹੈ। ਅਸੀਂ ਇਸ ਅਨੁਵਾਦ ਦੇ ਉਪਯੋਗ ਤੋਂ ਪੈਦਾ ਹੋਣ ਵਾਲੀਆਂ ਕਿਸੇ ਵੀ ਗਲਤਫਹਿਮੀਆਂ ਜਾਂ ਗਲਤ ਵਿਆਖਿਆਵਾਂ ਲਈ ਜਵਾਬਦੇਹ ਨਹੀਂ ਹਾਂ।
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

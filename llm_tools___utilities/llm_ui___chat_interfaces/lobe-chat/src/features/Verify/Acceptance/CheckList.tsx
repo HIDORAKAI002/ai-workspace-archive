@@ -17,7 +17,6 @@ import {
   Film,
   HelpCircle,
   Images,
-  MessageSquarePlus,
   MessageSquareText,
   MessageSquareX,
   Repeat,
@@ -33,6 +32,7 @@ import {
   readEvidenceComparison,
 } from '../components/EvidenceComparisonCard';
 import { AnnotatedImage } from './Annotation';
+import { AttachmentThumbs } from './attachments';
 import { openCheckRejectModal } from './CheckRejectModal';
 import { openGroupFeedbackModal } from './modals';
 
@@ -47,6 +47,7 @@ export interface CheckReviewInput {
   annotations?: AcceptanceReviewAnnotation[];
   checkItemIds: string[];
   comment?: string;
+  fileIds?: string[];
 }
 
 /** The user's standing verdict on a check — `pending` means "awaiting your confirmation". */
@@ -198,7 +199,7 @@ const styles = createStaticStyles(({ css }) => ({
 
     font-family: ${cssVar.fontFamilyCode};
     font-size: 11px;
-    color: ${cssVar.colorTextQuaternary};
+    color: ${cssVar.colorTextSecondary};
     letter-spacing: 0.02em;
   `,
   seqChipClickable: css`
@@ -275,6 +276,13 @@ const EVIDENCE_BADGES = [
 const isFilename = (value: string | null | undefined) =>
   !value || /^[\w.-]+\.(?:gif|jpe?g|mp4|png|webm|webp)$/i.test(value);
 
+/**
+ * Reserve the image's box before it loads — with the stored intrinsic size the
+ * layout never jumps when a row expands and its screenshots stream in.
+ */
+const imageRatio = (item: AcceptanceEvidence): string | undefined =>
+  item.fileWidth && item.fileHeight ? `${item.fileWidth} / ${item.fileHeight}` : undefined;
+
 /** Flat media for a comparison side — the card frames it, so no own border/radius. */
 const comparisonContent = (item: AcceptanceEvidence) =>
   item.type === 'video' ? (
@@ -285,7 +293,7 @@ const comparisonContent = (item: AcceptanceEvidence) =>
       alt={item.description ?? item.fileName ?? item.type}
       loading={'lazy'}
       src={item.fileUrl!}
-      style={{ borderRadius: 0, width: '100%' }}
+      style={{ aspectRatio: imageRatio(item), borderRadius: 0, width: '100%' }}
       variant={'borderless'}
     />
   );
@@ -355,14 +363,29 @@ const EvidenceList = memo<{ evidence: AcceptanceEvidence[] }>(({ evidence }) => 
           return (
             <Flexbox gap={4} key={item.id} style={{ maxWidth: '100%', width: 'fit-content' }}>
               {/* The frame owns the border — the inner Image must not draw its
-                  own, or the two 1px borders stack visibly. */}
-              <Flexbox className={styles.evidenceImage}>
+                  own, or the two 1px borders stack visibly. The frame also
+                  reserves the aspect ratio so the row's height is settled
+                  before the image loads (no expand jump). */}
+              <Flexbox
+                className={styles.evidenceImage}
+                style={
+                  item.fileWidth && item.fileHeight
+                    ? { aspectRatio: imageRatio(item), maxWidth: '100%', width: item.fileWidth }
+                    : undefined
+                }
+              >
                 <Image
                   alt={item.description ?? item.fileName ?? item.type}
                   loading={'lazy'}
                   src={item.fileUrl}
-                  style={{ borderRadius: 0, maxWidth: '100%' }}
                   variant={'borderless'}
+                  style={{
+                    borderRadius: 0,
+                    maxWidth: '100%',
+                    // Fill the ratio-reserving frame; without known dimensions
+                    // the image keeps its intrinsic size (legacy evidence).
+                    width: item.fileWidth && item.fileHeight ? '100%' : undefined,
+                  }}
                 />
               </Flexbox>
               {caption}
@@ -426,13 +449,14 @@ const FeedbackCard = memo<{
       <Flexbox horizontal align={'center'} gap={6}>
         <Icon color={cssVar.colorError} icon={MessageSquareX} size={13} />
         <Text style={{ color: cssVar.colorError, fontSize: 12 }}>
-          {t('acceptance.review.feedbackLabel', { round: review.roundIndex })}
+          {t('acceptance.review.feedbackLabel')}
         </Text>
         <Text fontSize={12} type={'secondary'}>
           {dayjs(review.createdAt).format('MM-DD HH:mm')}
         </Text>
       </Flexbox>
       {review.comment && <Text style={{ fontSize: 12 }}>{review.comment}</Text>}
+      <AttachmentThumbs attachments={review.attachments} />
       {[...groups.entries()].map(([evidenceId, annotations]) => {
         const evidence = evidenceById.get(evidenceId);
         // The evidence may be gone (deleted round) — the notes stay readable.
@@ -447,9 +471,16 @@ const FeedbackCard = memo<{
         return (
           <AnnotatedImage
             annotations={annotations}
-            imageStyle={{ maxHeight: 240 }}
             key={evidenceId}
             src={evidence.fileUrl}
+            imageStyle={{
+              // Known dimensions reserve the box up front (explicit height +
+              // ratio-derived width) — no height jump when the row expands
+              // and the screenshot streams in.
+              aspectRatio: imageRatio(evidence),
+              height: evidence.fileHeight ? Math.min(evidence.fileHeight, 240) : undefined,
+              maxHeight: 240,
+            }}
           />
         );
       })}
@@ -643,12 +674,13 @@ const CheckRow = memo<{
       evidence: check.evidence
         .filter((item) => isVisual(item))
         .map((item) => ({ fileUrl: item.fileUrl!, id: item.id })),
-      onConfirm: ({ annotations, comment }) =>
+      onConfirm: ({ annotations, comment, fileIds }) =>
         onReview({
           action: 'reject',
           annotations: annotations.length > 0 ? annotations : undefined,
           checkItemIds: [check.id],
           comment: comment || undefined,
+          fileIds: fileIds.length > 0 ? fileIds : undefined,
         }),
     });
 
@@ -781,37 +813,35 @@ const CheckRow = memo<{
               </Tooltip>
             ) : null,
           )}
+          {/* The iteration mark stays compact — [↻ N]; the words (verified N
+              rounds · introduced in round X) live in its tooltip. Clicking
+              jumps to the round the concern first appeared in. */}
           {check.revisions > 1 && (
             <Tooltip
-              title={
+              title={[
                 check.titleChanged
-                  ? t('acceptance.checks.iteratedHint', { count: check.revisions })
-                  : t('acceptance.checks.rerunHint', { count: check.revisions })
-              }
-            >
-              <span className={styles.chip}>
-                <Icon icon={Repeat} size={10} />{' '}
-                {check.titleChanged
                   ? t('acceptance.checks.iterated', { count: check.revisions })
-                  : t('acceptance.checks.rerun', { count: check.revisions })}
+                  : t('acceptance.checks.rerun', { count: check.revisions }),
+                check.resultRound !== undefined &&
+                check.resultRound !== null &&
+                check.introducedAtRound !== check.resultRound
+                  ? t('acceptance.checks.introduced', { round: check.introducedAtRound })
+                  : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            >
+              <span
+                className={cx(styles.chip, styles.chipClickable)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onRound(check.introducedAtRound);
+                }}
+              >
+                <Icon icon={Repeat} size={10} /> {check.revisions}
               </span>
             </Tooltip>
           )}
-          {check.resultRound !== undefined &&
-            check.resultRound !== null &&
-            check.introducedAtRound !== check.resultRound && (
-              <Tooltip title={t('acceptance.checks.introducedHint')}>
-                <span
-                  className={cx(styles.chip, styles.chipClickable)}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onRound(check.introducedAtRound);
-                  }}
-                >
-                  {t('acceptance.checks.introduced', { round: check.introducedAtRound })}
-                </span>
-              </Tooltip>
-            )}
           {check.resultRound !== undefined && check.resultRound !== null && (
             <Tooltip title={t('acceptance.checks.finalRoundHint')}>
               <span
@@ -994,7 +1024,7 @@ interface CheckListProps {
   /** Group-scoped feedback entries recorded on the aggregate. */
   groupFeedback: AcceptanceGroupFeedback[];
   /** Record group-scoped feedback; resolves true when the write landed. */
-  onGroupFeedback: (category: string, comment: string) => Promise<boolean>;
+  onGroupFeedback: (category: string, comment: string, fileIds: string[]) => Promise<boolean>;
   /** Record the user's verdict; resolves true when the write landed. */
   onReview: (input: CheckReviewInput) => Promise<boolean>;
   onRound: (round: number) => void;
@@ -1163,25 +1193,27 @@ const CheckList = memo<CheckListProps>(
                       {t('acceptance.review.acceptAllDone')}
                     </Flexbox>
                   ))}
+                <Flexbox flex={1} />
                 {/* Group-scoped feedback — the channel for concerns that
-                    belong to no single check yet must reach the next round. */}
+                    belong to no single check yet must reach the next round.
+                    Lives with the other group-level controls by the chevron. */}
                 {canReview && (
                   <span className={'acceptance-group-actions'}>
                     <ActionIcon
-                      icon={MessageSquarePlus}
+                      icon={MessageSquareText}
                       size={'small'}
                       title={t('acceptance.group.feedbackAction')}
                       onClick={(event) => {
                         event.stopPropagation();
                         openGroupFeedbackModal({
                           groupLabel: label,
-                          onConfirm: (comment) => onGroupFeedback(rawCategory, comment),
+                          onConfirm: (comment, fileIds) =>
+                            onGroupFeedback(rawCategory, comment, fileIds),
                         });
                       }}
                     />
                   </span>
                 )}
-                <Flexbox flex={1} />
                 {collapsed ? (
                   // Fixed-size placeholder keeps the header height stable across toggles.
                   <div style={{ height: 24, width: 24 }} />
@@ -1196,8 +1228,16 @@ const CheckList = memo<CheckListProps>(
                     }
                     onClick={(event) => {
                       event.stopPropagation();
+                      // Expanding a group is "show me what still needs judgment"
+                      // — rows the user already accepted are settled business
+                      // and stay folded (they open individually on demand).
+                      // Collapsing folds everything, accepted or not.
                       onToggleGroupItems(
-                        rows.map((check) => check.id),
+                        anyItemOpen
+                          ? rows.map((check) => check.id)
+                          : rows
+                              .filter((check) => userReviewState(check) !== 'accepted')
+                              .map((check) => check.id),
                         !anyItemOpen,
                       );
                     }}
@@ -1237,13 +1277,14 @@ const CheckList = memo<CheckListProps>(
                               fontSize: 12,
                             }}
                           >
-                            {t('acceptance.group.feedbackLabel', { round: entry.roundIndex })}
+                            {t('acceptance.group.feedbackLabel')}
                           </Text>
                           <Text fontSize={12} type={'secondary'}>
                             {dayjs(entry.createdAt).format('MM-DD HH:mm')}
                           </Text>
                         </Flexbox>
                         <Text style={{ fontSize: 12 }}>{entry.comment}</Text>
+                        <AttachmentThumbs attachments={entry.attachments} />
                       </Flexbox>
                     );
                   })}

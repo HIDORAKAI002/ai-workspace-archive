@@ -159,6 +159,7 @@ export class VerifyService {
     annotations?: AcceptanceReviewAnnotation[];
     checkItemIds: string[];
     comment?: string;
+    fileIds?: string[];
     id: string;
   }) => lambdaClient.acceptance.reviewChecks.mutate(input);
 
@@ -166,8 +167,28 @@ export class VerifyService {
    * Feedback addressed to a check group (business category) — for concerns
    * that belong to no single check yet must reach the next round.
    */
-  addGroupFeedback = (input: { category: string; comment: string; id: string }) =>
-    lambdaClient.acceptance.addGroupFeedback.mutate(input);
+  addGroupFeedback = (input: {
+    category: string;
+    comment: string;
+    fileIds?: string[];
+    id: string;
+  }) => lambdaClient.acceptance.addGroupFeedback.mutate(input);
+
+  /**
+   * Dispatch the repair prompt straight into the acceptance's origin
+   * conversation — a user message that triggers the agent, the same callback
+   * channel remote hetero runs (`lh notify`) use.
+   */
+  dispatchAcceptanceRepair = (input: { agentId?: string; content: string; topicId: string }) =>
+    lambdaClient.agentNotify.notify.mutate({
+      agentId: input.agentId,
+      content: input.content,
+      role: 'user',
+      topicId: input.topicId,
+    });
+
+  /** Stamp the aggregate `repairing` after the send-back dispatch. */
+  markAcceptanceRepairing = (id: string) => lambdaClient.acceptance.markRepairing.mutate({ id });
 
   // ---- per-run plan ----
   getVerifyState = (operationId: string): Promise<VerifyStateResponse | null> =>

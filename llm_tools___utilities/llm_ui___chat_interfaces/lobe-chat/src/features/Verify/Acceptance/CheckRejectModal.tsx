@@ -16,6 +16,7 @@ import { memo, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { AnnotationCanvas } from './Annotation';
+import { AttachmentStrip, AttachmentUploadButton, useFeedbackAttachments } from './attachments';
 
 const styles = createStaticStyles(({ css }) => ({
   canvasWrap: css`
@@ -103,6 +104,27 @@ const styles = createStaticStyles(({ css }) => ({
 
     background: ${cssVar.colorFillQuaternary};
   `,
+  /** The zoom pill floats bottom-center over the stage — controls live with
+      the thing they control, not in a detached toolbar row. */
+  zoomBar: css`
+    position: absolute;
+    z-index: 5;
+    inset-block-end: 16px;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+
+    display: flex;
+    gap: 4px;
+    align-items: center;
+
+    padding-block: 4px;
+    padding-inline: 8px;
+    border: 1px solid ${cssVar.colorBorderSecondary};
+    border-radius: 99px;
+
+    background: ${cssVar.colorBgElevated};
+    box-shadow: ${cssVar.boxShadowSecondary};
+  `,
   zoomLabel: css`
     min-width: 44px;
 
@@ -160,6 +182,7 @@ interface CheckRejectModalProps {
   onConfirm: (value: {
     annotations: AcceptanceReviewAnnotation[];
     comment: string;
+    fileIds: string[];
   }) => Promise<boolean>;
 }
 
@@ -180,11 +203,19 @@ const CheckRejectContent = memo<CheckRejectModalProps>(
           .map((entry) => ({ ...entry, key: nextAnnotationKey() })),
     );
 
+    // Your own screenshots (paste or upload) — attached to the reject alongside
+    // the note and any circled regions.
+    const { attachments, fileIds, handlePaste, remove, uploadFiles, uploading } =
+      useFeedbackAttachments();
+
     // Fullscreen inspect-and-annotate: same draft state, a zoomable stage.
     const [fullscreen, setFullscreen] = useState(false);
     const [zoom, setZoom] = useState(1);
     const viewportRef = useRef<HTMLDivElement>(null);
     const [viewportWidth, setViewportWidth] = useState<number>();
+    // The stage edits the SHARED draft; Cancel must be able to hand back the
+    // annotations exactly as they were when the stage opened.
+    const fullscreenSnapshot = useRef<DraftAnnotationEntry[]>([]);
 
     useLayoutEffect(() => {
       if (!fullscreen) return;
@@ -239,9 +270,12 @@ const CheckRejectContent = memo<CheckRejectModalProps>(
         return ZOOM_STEPS[Math.min(Math.max(at + direction, 0), ZOOM_STEPS.length - 1)];
       });
 
-    // The reject IS its feedback — at least one note (global or per-region).
+    // The reject IS its feedback — at least one note (global or per-region) or
+    // an attached screenshot the next round can act on.
     const canSubmit =
-      Boolean(comment.trim()) || annotations.some((annotation) => annotation.comment.trim());
+      Boolean(comment.trim()) ||
+      annotations.some((annotation) => annotation.comment.trim()) ||
+      fileIds.length > 0;
 
     const handleConfirm = async () => {
       setLoading(true);
@@ -255,6 +289,7 @@ const CheckRejectContent = memo<CheckRejectModalProps>(
               rect: annotation.rect,
             })),
           comment: comment.trim(),
+          fileIds,
         });
         if (confirmed) {
           if (draftKey) localStorage.removeItem(draftStorageKey(draftKey));
@@ -367,6 +402,7 @@ const CheckRejectContent = memo<CheckRejectModalProps>(
                     title={translate('acceptance.review.fullscreen')}
                     onClick={() => {
                       setZoom(1);
+                      fullscreenSnapshot.current = annotations;
                       setFullscreen(true);
                     }}
                   />
@@ -387,7 +423,19 @@ const CheckRejectContent = memo<CheckRejectModalProps>(
               placeholder={translate('acceptance.review.rejectPlaceholder')}
               value={comment}
               onChange={(event) => setComment(event.target.value)}
+              onPaste={handlePaste}
             />
+            {/* One row hugging the input — the thumbnails and the picker
+                belong to the note they back, not to the modal footer. */}
+            <Flexbox horizontal align={'center'} gap={8} wrap={'wrap'}>
+              <AttachmentStrip
+                attachments={attachments}
+                disabled={loading}
+                uploading={uploading}
+                onRemove={remove}
+              />
+              <AttachmentUploadButton disabled={loading} onFiles={uploadFiles} />
+            </Flexbox>
           </Flexbox>
         </Flexbox>
 
@@ -402,7 +450,12 @@ const CheckRejectContent = memo<CheckRejectModalProps>(
           <Button disabled={loading} onClick={close}>
             {translate('acceptance.actions.cancel')}
           </Button>
-          <Button disabled={!canSubmit} loading={loading} type={'primary'} onClick={handleConfirm}>
+          <Button
+            disabled={!canSubmit || uploading}
+            loading={loading}
+            type={'primary'}
+            onClick={handleConfirm}
+          >
             {translate('acceptance.review.confirmReject')}
           </Button>
         </Flexbox>
@@ -410,16 +463,18 @@ const CheckRejectContent = memo<CheckRejectModalProps>(
         {/* Fullscreen inspect-and-annotate stage — a base-ui Modal so the mask,
             theme scope and stacking are handled by the same layer system as
             the reject dialog it opens over (nested modals stack correctly).
-            Same draft state: zoom via the toolbar, pan via the viewport's
-            native scroll. */}
+            Same draft state; the stage is edit-in-place, so it closes through
+            explicit Done/Cancel (Cancel restores the entry snapshot). Zoom
+            lives as a floating pill over the stage; the how-to line sits with
+            the comments it produces. */}
         <Modal
           centered
           destroyOnHidden
           footer={null}
-          height={'88vh'}
+          height={'94vh'}
           open={fullscreen}
           title={translate('acceptance.review.annotate')}
-          width={'min(96vw, 1440px)'}
+          width={'min(98vw, 1680px)'}
           styles={{
             body: {
               display: 'flex',
@@ -434,29 +489,8 @@ const CheckRejectContent = memo<CheckRejectModalProps>(
         >
           {activeEvidence && (
             <>
-              <Flexbox horizontal align={'center'} gap={8}>
-                <Text fontSize={12} type={'secondary'}>
-                  {translate('acceptance.review.annotateHint')}
-                </Text>
-                <Flexbox flex={1} />
-                <ActionIcon
-                  disabled={zoom <= ZOOM_STEPS[0]}
-                  icon={ZoomOut}
-                  size={'small'}
-                  title={translate('acceptance.review.zoomOut')}
-                  onClick={() => stepZoom(-1)}
-                />
-                <span className={styles.zoomLabel}>{Math.round(zoom * 100)}%</span>
-                <ActionIcon
-                  disabled={zoom >= ZOOM_STEPS.at(-1)!}
-                  icon={ZoomIn}
-                  size={'small'}
-                  title={translate('acceptance.review.zoomIn')}
-                  onClick={() => stepZoom(1)}
-                />
-              </Flexbox>
               {thumbnails}
-              <div className={styles.fullscreenBody}>
+              <div className={styles.fullscreenBody} style={{ position: 'relative' }}>
                 <div className={styles.viewport} ref={viewportRef}>
                   <AnnotationCanvas
                     annotations={activeAnnotations}
@@ -469,10 +503,32 @@ const CheckRejectContent = memo<CheckRejectModalProps>(
                     {...canvasHandlers}
                   />
                 </div>
+                <div className={styles.zoomBar}>
+                  <ActionIcon
+                    disabled={zoom <= ZOOM_STEPS[0]}
+                    icon={ZoomOut}
+                    size={'small'}
+                    title={translate('acceptance.review.zoomOut')}
+                    onClick={() => stepZoom(-1)}
+                  />
+                  <span className={styles.zoomLabel}>{Math.round(zoom * 100)}%</span>
+                  <ActionIcon
+                    disabled={zoom >= ZOOM_STEPS.at(-1)!}
+                    icon={ZoomIn}
+                    size={'small'}
+                    title={translate('acceptance.review.zoomIn')}
+                    onClick={() => stepZoom(1)}
+                  />
+                </div>
                 <div className={styles.sidePanel}>
-                  <Text strong fontSize={13}>
-                    {translate('acceptance.review.regionComments')}
-                  </Text>
+                  <Flexbox gap={2}>
+                    <Text strong fontSize={13}>
+                      {translate('acceptance.review.regionComments')}
+                    </Text>
+                    <Text fontSize={12} type={'secondary'}>
+                      {translate('acceptance.review.annotateHint')}
+                    </Text>
+                  </Flexbox>
                   {activeAnnotations.length === 0 && (
                     <Text fontSize={12} type={'secondary'}>
                       {translate('acceptance.review.regionCommentsEmpty')}
@@ -481,6 +537,19 @@ const CheckRejectContent = memo<CheckRejectModalProps>(
                   {annotationInputs}
                 </div>
               </div>
+              <Flexbox horizontal gap={8} justify={'flex-end'} style={{ flex: 'none' }}>
+                <Button
+                  onClick={() => {
+                    setAnnotations(fullscreenSnapshot.current);
+                    setFullscreen(false);
+                  }}
+                >
+                  {translate('acceptance.actions.cancel')}
+                </Button>
+                <Button type={'primary'} onClick={() => setFullscreen(false)}>
+                  {translate('acceptance.review.fullscreenDone')}
+                </Button>
+              </Flexbox>
             </>
           )}
         </Modal>
@@ -500,6 +569,7 @@ export const openCheckRejectModal = (options: CheckRejectModalProps): ModalInsta
     // The content region hosts its own scroll body + pinned action bar — it
     // must not scroll (or pad) as a whole, or the bar scrolls away with it.
     styles: {
+      backdrop: { backdropFilter: 'blur(4px)' },
       content: {
         display: 'flex',
         flexDirection: 'column',

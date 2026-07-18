@@ -493,6 +493,10 @@ export type InternalOptions = {
   bypassBilling?: boolean;
   zeroDataRetention?: boolean;
   teamFlags?: TeamFlags;
+  /** Team's sold concurrency, snapshotted from the request ACUC at
+   * acceptance (same pattern as teamFlags). Rides the job payload so
+   * downstream engines (FirePDF async account context) never re-fetch. */
+  teamConcurrency?: number | null;
 
   /**
    * Effective threat protection policy for this scrape, resolved at the

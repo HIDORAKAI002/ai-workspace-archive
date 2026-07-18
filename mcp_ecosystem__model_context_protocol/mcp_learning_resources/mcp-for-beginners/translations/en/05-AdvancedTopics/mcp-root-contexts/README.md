@@ -1,36 +1,40 @@
+> [DEPRECATED: 2026-07-28 RELEASE CANDIDATE](https://blog.modelcontextprotocol.io/posts/2026-07-28-release-candidate/#roots-sampling-and-logging-are-deprecated)
+
 # MCP Root Contexts
 
-Root contexts are a core concept in the Model Context Protocol that provide a persistent layer for maintaining conversation history and shared state across multiple requests and sessions.
+> **Deprecation notice:** the `2026-07-28` MCP specification release candidate marks Roots as deprecated in favor of tool parameters, resource URIs, or server configuration. Roots continue to work in `2025-11-25` and for at least a year after any formal deprecation, so everything in this lesson remains valid - but new server designs should evaluate the replacement pattern. See [What's Changing in MCP: The 2026-07-28 Release Candidate](../../01-CoreConcepts/mcp-2026-07-28-release-candidate.md).
+
+Root contexts are a fundamental concept in the Model Context Protocol that provide a persistent layer for maintaining conversation history and shared state across multiple requests and sessions.
 
 ## Introduction
 
-In this lesson, we will explore how to create, manage, and use root contexts in MCP.
+In this lesson, we will explore how to create, manage, and utilize root contexts in MCP. 
 
 ## Learning Objectives
 
 By the end of this lesson, you will be able to:
 
-- Understand the purpose and structure of root contexts  
-- Create and manage root contexts using MCP client libraries  
-- Implement root contexts in .NET, Java, JavaScript, and Python applications  
-- Use root contexts for multi-turn conversations and state management  
-- Apply best practices for root context management  
+- Understand the purpose and structure of root contexts
+- Create and manage root contexts using MCP client libraries
+- Implement root contexts in .NET, Java, JavaScript, and Python applications
+- Utilize root contexts for multi-turn conversations and state management
+- Implement best practices for root context management
 
 ## Understanding Root Contexts
 
-Root contexts act as containers that hold the history and state for a series of related interactions. They enable:
+Root contexts serve as containers that hold the history and state for a series of related interactions. They enable:
 
-- **Conversation Persistence**: Maintaining coherent multi-turn conversations  
-- **Memory Management**: Storing and retrieving information across interactions  
-- **State Management**: Tracking progress in complex workflows  
-- **Context Sharing**: Allowing multiple clients to access the same conversation state  
+- **Conversation Persistence**: Maintaining coherent multi-turn conversations
+- **Memory Management**: Storing and retrieving information across interactions
+- **State Management**: Tracking progress in complex workflows
+- **Context Sharing**: Allowing multiple clients to access the same conversation state
 
-In MCP, root contexts have these key features:
+In MCP, root contexts have these key characteristics:
 
-- Each root context has a unique identifier.  
-- They can contain conversation history, user preferences, and other metadata.  
-- They can be created, accessed, and archived as needed.  
-- They support fine-grained access control and permissions.  
+- Each root context has a unique identifier.
+- They can contain conversation history, user preferences, and other metadata.
+- They can be created, accessed, and archived as needed.
+- They support fine-grained access control and permissions.
 
 ## Root Context Lifecycle
 
@@ -45,7 +49,7 @@ flowchart TD
 
 ## Working with Root Contexts
 
-Here’s an example of how to create and manage root contexts.
+Here's an example of how to create and manage root contexts. 
 
 ### C# Implementation
 
@@ -122,17 +126,17 @@ public class RootContextExample
 }
 ```
 
-In the code above we have:
+In the preceding code we've:
 
-1. Created a root context for a customer support session.  
-2. Sent multiple messages within that context, allowing the model to maintain state.  
-3. Updated the context with relevant metadata based on the conversation.  
-4. Retrieved context information to review the conversation history.  
-5. Archived the context when the conversation was complete.  
+1. Created a root context for a customer support session.
+1. Sent multiple messages within that context, allowing the model to maintain state.
+1. Updated the context with relevant metadata based on the conversation.
+1. Retrieved context information to understand the conversation history.
+1. Archived the context when the conversation was complete.
 
 ## Example: Root Context Implementation for financial analysis
 
-In this example, we will create a root context for a financial analysis session, showing how to maintain state across multiple interactions.
+In this example, we will create a root context for a financial analysis session, demonstrating how to maintain state across multiple interactions.
 
 ### Java Implementation
 
@@ -220,17 +224,17 @@ public class RootContextsDemo {
 }
 ```
 
-In the code above we have:
+In the preceding code, we've:
 
-1. Created a root context for a financial analysis session.  
-2. Sent multiple messages within that context, allowing the model to maintain state.  
-3. Updated the context with relevant metadata based on the conversation.  
-4. Generated a summary of the analysis session and stored it in the context metadata.  
-5. Archived the context when the conversation was complete.  
+1. Created a root context for a financial analysis session.
+2. Sent multiple messages within that context, allowing the model to maintain state.
+3. Updated the context with relevant metadata based on the conversation.
+4. Generated a summary of the analysis session and stored it in the context metadata.
+5. Archived the context when the conversation was complete.
 
 ## Example: Root Context Management
 
-Effectively managing root contexts is essential for maintaining conversation history and state. Below is an example of how to implement root context management.
+Managing root contexts effectively is crucial for maintaining conversation history and state. Below is an example of how to implement root context management.
 
 ### JavaScript Implementation
 
@@ -473,14 +477,19 @@ async function demonstrateContextSession() {
 demonstrateContextSession();
 ```
 
-In the code above we have:
+In the preceding code we've:
 
-1. Created a root context for a product support conversation using the function `createConversationContext`. In this case, the context is about database performance issues.  
-2. Sent multiple messages within that context, allowing the model to maintain state with the function `sendMessage`. The messages cover slow query performance and index configuration.  
-3. Updated the context with relevant metadata based on the conversation.  
-4. Generated a summary of the conversation and stored it in the context metadata with the function `generateContextSummary`.  
-5. Archived the context when the conversation was complete with the function `archiveContext`.  
-6. Handled errors gracefully to ensure robustness.  
+1. Created a root context for a product support conversation with the function `createConversationContext`. In this case, the context is about database performance issues.
+
+1. Sent multiple messages within that context, allowing the model to maintain state with the function `sendMessage`. The messages being sent are about slow query performance and index configuration.
+
+1. Updated the context with relevant metadata based on the conversation.
+
+1. Generated a summary of the conversation and stored it in the context metadata with the function `generateContextSummary`.
+
+1. Archived the context when the conversation was complete with the function `archiveContext`.
+
+1. Handled errors gracefully to ensure robustness.
 
 ## Root Context for Multi-Turn Assistance
 
@@ -613,29 +622,43 @@ if __name__ == "__main__":
     asyncio.run(demo_assistant_session())
 ```
 
-In the code above we have:
+In the preceding code we've:
 
-1. Created a root context for a technical support session with the function `create_session`. The context includes user information such as name and technical level.  
-2. Sent multiple messages within that context, allowing the model to maintain state with the function `send_message`. The messages address issues with the auto-scaling feature.  
-3. Retrieved conversation history using the function `get_conversation_history`, which provides context information and messages.  
-4. Ended the session by archiving the context and generating a summary with the function `end_session`. The summary captures key points from the conversation.  
+1. Created a root context for a technical support session with the function `create_session`. The context includes user information such as name and technical level.
+
+1. Sent multiple messages within that context, allowing the model to maintain state with the function `send_message`. The messages being sent are about issues with the auto-scaling feature.
+
+1. Retrieved conversation history using the function `get_conversation_history`, which provides context information and messages.
+
+1. Ended the session by archiving the context and generating a summary with the function `end_session`. The summary captures key points from the conversation.
 
 ## Root Context Best Practices
 
 Here are some best practices for managing root contexts effectively:
 
-- **Create Focused Contexts**: Use separate root contexts for different conversation topics or domains to keep things clear.  
-- **Set Expiration Policies**: Implement policies to archive or delete old contexts to manage storage and comply with data retention rules.  
-- **Store Relevant Metadata**: Use context metadata to save important information about the conversation that might be useful later.  
-- **Use Context IDs Consistently**: Once a context is created, use its ID consistently for all related requests to maintain continuity.  
-- **Generate Summaries**: When a context grows large, consider creating summaries to capture essential information while managing context size.  
-- **Implement Access Control**: For multi-user systems, apply proper access controls to ensure privacy and security of conversation contexts.  
-- **Handle Context Limitations**: Be aware of context size limits and implement strategies for managing very long conversations.  
-- **Archive When Complete**: Archive contexts when conversations are finished to free up resources while preserving conversation history.  
+- **Create Focused Contexts**: Create separate root contexts for different conversation purposes or domains to maintain clarity.
 
-## What’s next
+- **Set Expiration Policies**: Implement policies to archive or delete old contexts to manage storage and comply with data retention policies.
+
+- **Store Relevant Metadata**: Use context metadata to store important information about the conversation that might be useful later.
+
+- **Use Context IDs Consistently**: Once a context is created, use its ID consistently for all related requests to maintain continuity.
+
+- **Generate Summaries**: When a context grows large, consider generating summaries to capture essential information while managing context size.
+
+- **Implement Access Control**: For multi-user systems, implement proper access controls to ensure privacy and security of conversation contexts.
+
+- **Handle Context Limitations**: Be aware of context size limitations and implement strategies for handling very long conversations.
+
+- **Archive When Complete**: Archive contexts when conversations are complete to free resources while preserving the conversation history.
+
+## What's next
 
 - [5.5 Routing](../mcp-routing/README.md)
 
-**Disclaimer**:  
-This document has been translated using the AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+---
+
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**Disclaimer**:
+This document has been translated using AI translation service [Co-op Translator](https://github.com/Azure/co-op-translator). While we strive for accuracy, please be aware that automated translations may contain errors or inaccuracies. The original document in its native language should be considered the authoritative source. For critical information, professional human translation is recommended. We are not liable for any misunderstandings or misinterpretations arising from the use of this translation.
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

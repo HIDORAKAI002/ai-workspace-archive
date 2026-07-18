@@ -1,63 +1,66 @@
-# 🎯 GitHub मोडेलहरू (.NET) संग योजना र डिजाइन ढाँचाहरू
+# 🎯 Azure OpenAI (Responses API) सँग योजना र डिजाइन ढाँचा (.NET)  
 
-## 📋 सिक्ने उद्देश्यहरू
+## 📋 सिकाइका उद्देश्यहरू  
 
-यो नोटबुकले Microsoft Agent Framework प्रयोग गरेर बुद्धिमान एजेन्टहरू निर्माण गर्नका लागि उद्यम-स्तरको योजना र डिजाइन ढाँचाहरू प्रदर्शन गर्दछ। तपाईंले जटिल समस्याहरूलाई टुक्रा-टुक्रा पार्न, बहु-चरण समाधान योजना बनाउन, र .NET को उद्यम सुविधाहरू प्रयोग गरेर परिष्कृत कार्यप्रवाहहरू कार्यान्वयन गर्न सिक्नुहुनेछ।
+यो नोटबुकले Azure OpenAI (Responses API) सँग .NET मा Microsoft Agent Framework प्रयोग गरेर बुद्धिमान एजेन्टहरू निर्माण गर्नका लागि उद्यम-ग्रेड योजना र डिजाइन ढाँचाहरू देखाउँछ। तपाईंले एजेन्टहरू कसरी जटिल समस्याहरूलाई तोडफोड गर्ने, बहु-चरण समाधानहरूको योजना बनाउने, र .NET का उद्यम सुविधाहरू प्रयोग गरेर जटिल कार्यप्रवाह सञ्चालन गर्ने सिक्नुहुनेछ।  
 
-## ⚙️ पूर्वापेक्षा र सेटअप
+## ⚙️ पूर्वआवश्यकताहरू र सेटअप  
 
-**विकास वातावरण:**
-- .NET 9.0 SDK वा उच्च संस्करण
-- Visual Studio 2022 वा VS Code C# एक्सटेन्सनसहित
-- GitHub Models API पहुँच
+**विकास वातावरण:**  
+- .NET 9.0 SDK वा माथि  
+- Visual Studio 2022 वा C# एक्सटेन्सन सहित VS Code  
+- Azure OpenAI स्रोत र मोडेल डिप्लोयमेन्ट सहित Azure सदस्यता  
+- Azure CLI — `az login` प्रयोग गरी साइन इन गर्नुहोस्  
 
-**आवश्यक निर्भरताहरू:**
+**आवश्यक निर्भरता:**  
 ```xml
-<PackageReference Include="Microsoft.Extensions.AI" Version="9.9.0" />
-<PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.9.0-preview.1.25458.4" />
+<PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
+<PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
+<PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.*-*" />
+<PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
+<PackageReference Include="Azure.Identity" Version="1.13.1" />
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
-
-**Environment Configuration (.env फाइल):**
+  
+**पर्यावरण कन्फिगरेसन (.env फाइल):**  
 ```env
-GITHUB_TOKEN=your_github_personal_access_token
-GITHUB_ENDPOINT=https://models.inference.ai.azure.com
-GITHUB_MODEL_ID=gpt-4o-mini
+AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
 ```
+  
+## कोड चलाउने तरिका  
 
-## कोड चलाउने तरिका
-
-यो पाठमा .NET Single File App कार्यान्वयन समावेश छ। यसलाई चलाउन:
+यो पाठमा .NET सिंगल फाइल एप इम्प्लिमेन्टेसन समावेश गरिएको छ। चलाउनका लागि:  
 
 ```bash
-# Make the file executable (Linux/macOS)
+# फाइललाई चलाउन मिल्ने बनाउनुहोस् (Linux/macOS)
 chmod +x 07-dotnet-agent-framework.cs
 
-# Run the application
+# एप्लिकेसन चलाउनुहोस्
 ./07-dotnet-agent-framework.cs
 ```
-
-वा dotnet run कमाण्ड प्रयोग गर्नुहोस्:
+  
+वा dotnet run कमाण्ड प्रयोग गर्नुहोस्:  
 
 ```bash
 dotnet run 07-dotnet-agent-framework.cs
 ```
+  
+## कोड इम्प्लिमेन्टेसन  
 
-## कोड कार्यान्वयन
+पूर्ण इम्प्लिमेन्टेसन `07-dotnet-agent-framework.cs` मा उपलब्ध छ, जसले देखाउँछ:  
 
-पूर्ण कार्यान्वयन `07-dotnet-agent-framework.cs` मा उपलब्ध छ, जसले निम्न कुराहरू प्रदर्शन गर्दछ:
+- DotNetEnv प्रयोग गरी वातावरण कन्फिगरेसन लोड गर्नु  
+- Azure OpenAI क्लाइन्ट सेटअप गर्नु र `GetChatClient().AsAIAgent()` प्रयोग गरी AI एजेन्ट बनाउनु  
+- JSON सिरियलाइजेसन सहित संरचित डाटा मोडेलहरू (Plan र TravelPlan) परिभाषित गर्नु  
+- JSON स्कीमा प्रयोग गरी संरचित आउटपुट सहित AI एजेन्ट सिर्जना गर्नु  
+- टाइप-सेफ प्रतिक्रियाहरू सहित योजना अनुरोधहरू कार्यान्वयन गर्नु  
 
-- DotNetEnv प्रयोग गरेर वातावरण कन्फिगरेसन लोड गर्नु
-- GitHub Models को लागि OpenAI क्लाइन्ट कन्फिगर गर्नु
-- JSON सिरियलाइजेसनसहित संरचित डाटा मोडेलहरू (Plan र TravelPlan) परिभाषित गर्नु
-- JSON स्किमाको प्रयोग गरेर संरचित आउटपुटसहित AI एजेन्ट सिर्जना गर्नु
-- प्रकार-सुरक्षित प्रतिक्रियाहरूको साथ योजना अनुरोधहरू कार्यान्वयन गर्नु
+## प्रमुख अवधारणाहरू  
 
-## मुख्य अवधारणाहरू
+### टाइप-सेफ मोडेलहरूसँग संरचित योजना  
 
-### प्रकार-सुरक्षित मोडेलहरूसँग संरचित योजना
-
-एजेन्टले योजना आउटपुटको संरचना परिभाषित गर्न C# क्लासहरू प्रयोग गर्दछ:
+एजेन्टले योजना आउटपुटको संरचना परिभाषित गर्न C# क्लासहरू प्रयोग गर्दछ:  
 
 ```csharp
 public class Plan
@@ -78,14 +81,16 @@ public class TravelPlan
     public IList<Plan> Subtasks { get; set; }
 }
 ```
+  
+### संरचित आउटपुटका लागि JSON स्कीमा  
 
-### संरचित आउटपुटका लागि JSON स्किमा
-
-एजेन्टलाई TravelPlan स्किमासँग मेल खाने प्रतिक्रियाहरू फर्काउन कन्फिगर गरिएको छ:
+एजेन्टले TravelPlan स्कीमासँग मेल खाने प्रतिक्रियाहरू फर्काउन कन्फिगर गरिएको छ:  
 
 ```csharp
-ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_INSTRUCTIONS)
+ChatClientAgentOptions agentOptions = new()
 {
+    Name = AGENT_NAME,
+    Description = AGENT_INSTRUCTIONS,
     ChatOptions = new()
     {
         ResponseFormat = ChatResponseFormatJson.ForJsonSchema(
@@ -95,23 +100,25 @@ ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_
     }
 };
 ```
+  
+### योजना एजेन्ट निर्देशनहरू  
 
-### योजना एजेन्ट निर्देशनहरू
+एजेन्टले समन्वयकर्ताको रूपमा काम गर्दछ, विशेष प्रकारका उप-एजेन्टहरूलाई कार्यहरू सुम्पिन्छ:  
 
-एजेन्टले समन्वयकर्ताको रूपमा काम गर्दछ, विशेष उप-एजेन्टहरूलाई कार्यहरू सुम्पिन्छ:
+- FlightBooking: उडान बुकिङ र उडान जानकारीका लागि  
+- HotelBooking: होटेल बुकिङ र होटेल जानकारीका लागि  
+- CarRental: कार बुकिङ र कार भाडा जानकारीका लागि  
+- ActivitiesBooking: गतिविधि बुकिङ र गतिविधि जानकारीका लागि  
+- DestinationInfo: गन्तव्यहरूको जानकारी प्रदान गर्न  
+- DefaultAgent: सामान्य अनुरोधहरू सम्हाल्न  
 
-- FlightBooking: उडान बुक गर्न र उडान जानकारी प्रदान गर्न
-- HotelBooking: होटल बुक गर्न र होटल जानकारी प्रदान गर्न
-- CarRental: कार बुक गर्न र कार भाडा जानकारी प्रदान गर्न
-- ActivitiesBooking: गतिविधिहरू बुक गर्न र गतिविधि जानकारी प्रदान गर्न
-- DestinationInfo: गन्तव्यहरूको बारेमा जानकारी प्रदान गर्न
-- DefaultAgent: सामान्य अनुरोधहरू ह्यान्डल गर्न
+## अपेक्षित परिणाम  
 
-## अपेक्षित आउटपुट
-
-जब तपाईं यात्रा योजना अनुरोधसहित एजेन्ट चलाउनुहुन्छ, यसले अनुरोधलाई विश्लेषण गर्नेछ र TravelPlan स्किमासँग मेल खाने संरचित योजना उत्पन्न गर्नेछ, विशेष एजेन्टहरूलाई उपयुक्त कार्यहरू सुम्पेर।
+जब तपाईं एजेन्टलाई यात्रा योजना अनुरोधसहित चलाउनुहुन्छ, यसले अनुरोध विश्लेषण गरी विशेषज्ञ एजेन्टहरूलाई उपयुक्त कार्यहरू सुम्पेर JSON ढाँचामा TravelPlan स्कीमासँग मेल खाने संरचित योजना उत्पादन गर्नेछ।  
 
 ---
 
-**अस्वीकरण**:  
-यो दस्तावेज़ AI अनुवाद सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) प्रयोग गरेर अनुवाद गरिएको छ। हामी शुद्धताको लागि प्रयास गर्छौं, तर कृपया ध्यान दिनुहोस् कि स्वचालित अनुवादमा त्रुटिहरू वा अशुद्धताहरू हुन सक्छ। यसको मूल भाषा मा रहेको दस्तावेज़लाई आधिकारिक स्रोत मानिनुपर्छ। महत्वपूर्ण जानकारीको लागि, व्यावसायिक मानव अनुवाद सिफारिस गरिन्छ। यस अनुवादको प्रयोगबाट उत्पन्न हुने कुनै पनि गलतफहमी वा गलत व्याख्याको लागि हामी जिम्मेवार हुने छैनौं।
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**अस्वीकरण**:
+यो दस्तावेज़ AI अनुवाद सेवा [Co-op Translator](https://github.com/Azure/co-op-translator) प्रयोग गरेर अनुवाद गरिएको हो। हामी सही हुन प्रयास गर्छौं, तर कृपया जानकार हुनुस् कि स्वचालित अनुवादमा त्रुटिहरू वा अशुद्धताहरू हुन सक्छन्। मूल दस्तावेज़ यसको मूल भाषामा आधिकारिक स्रोत मानिनुपर्छ। महत्वपूर्ण जानकारीका लागि व्यावसायिक मानव अनुवाद सिफारिस गरिन्छ। यस अनुवादको प्रयोगबाट उत्पन्न कुनै पनि गलत बुझाइ वा त्रुटिको लागि हामी जिम्मेवार छैनौं।
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

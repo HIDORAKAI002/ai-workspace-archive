@@ -188,6 +188,7 @@ function App() {
     }
   }, [settings, setSettings]);
 
+
   useEffect(() => {
     if (
       settings.selectedDesignSystemId &&
@@ -330,8 +331,8 @@ function App() {
 
     // Merge settings with params
     const updatedParams = {
-      ...requestParams,
       ...settings,
+      ...requestParams,
       designSystem: selectedDesignSystem?.content ?? null,
     };
 
@@ -570,7 +571,8 @@ function App() {
   function doCreate(
     referenceImages: string[],
     inputMode: "image" | "video",
-    textPrompt: string = ""
+    textPrompt: string = "",
+    isAssetExtractionEnabled = true
   ) {
     // Reset any existing state
     reset();
@@ -614,6 +616,7 @@ function App() {
           images: inputMode === "image" ? media : [],
           videos: inputMode === "video" ? media : [],
         },
+        isAssetExtractionEnabled,
         variantHistory,
       });
     }

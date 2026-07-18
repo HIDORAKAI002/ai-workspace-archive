@@ -2,109 +2,107 @@
 
 > _(Klik op de afbeelding hierboven om de video van deze les te bekijken)_
 
-# Ontwerp Patroon voor Gereedschap Gebruik
+# Ontwerppatroon voor Hulpmiddelengebruik
 
-Gereedschappen zijn interessant omdat ze AI-agenten een bredere reeks mogelijkheden geven. In plaats van dat de agent een beperkte set acties kan uitvoeren, kan de agent door het toevoegen van een gereedschap nu een breed scala aan acties uitvoeren. In dit hoofdstuk bekijken we het Ontwerp Patroon voor Gereedschap Gebruik, dat beschrijft hoe AI-agenten specifieke gereedschappen kunnen gebruiken om hun doelen te bereiken.
+Hulpmiddelen zijn interessant omdat ze AI-agenten in staat stellen een breder scala aan mogelijkheden te hebben. In plaats van dat de agent een beperkte set acties heeft die hij kan uitvoeren, kan de agent door een hulpmiddel toe te voegen nu een breed scala aan acties uitvoeren. In dit hoofdstuk bekijken we het Ontwerppatroon voor Hulpmiddelengebruik, dat beschrijft hoe AI-agenten specifieke hulpmiddelen kunnen gebruiken om hun doelen te bereiken.
 
 ## Introductie
 
-In deze les willen we de volgende vragen beantwoorden:
+In deze les proberen we de volgende vragen te beantwoorden:
 
-- Wat is het ontwerp patroon voor gereedschap gebruik?
-- Voor welke toepassingsgevallen kan het worden toegepast?
-- Wat zijn de elementen/bouwstenen die nodig zijn om het ontwerp patroon te implementeren?
-- Wat zijn de bijzondere overwegingen bij het gebruik van het Ontwerp Patroon voor Gereedschap Gebruik om betrouwbare AI-agenten te bouwen?
+- Wat is het ontwerppatroon voor hulpmiddelengebruik?
+- Voor welke use cases kan het worden toegepast?
+- Wat zijn de elementen/bouwstenen die nodig zijn om het ontwerppatroon te implementeren?
+- Wat zijn de speciale overwegingen voor het gebruik van het Ontwerppatroon voor Hulpmiddelengebruik om betrouwbare AI-agenten te bouwen?
 
 ## Leerdoelen
 
-Na het afronden van deze les kun je:
+Na het voltooien van deze les zul je in staat zijn om:
 
-- Het Ontwerp Patroon voor Gereedschap Gebruik en het doel ervan definiëren.
-- Toepassingsgevallen identificeren waar het Ontwerp Patroon voor Gereedschap Gebruik toepasbaar is.
-- De belangrijkste elementen begrijpen die nodig zijn om het ontwerp patroon te implementeren.
-- Overwegingen herkennen voor het waarborgen van betrouwbaarheid in AI-agenten die dit ontwerp patroon gebruiken.
+- Het Ontwerppatroon voor Hulpmiddelengebruik en het doel ervan te definiëren.
+- Use cases te identificeren waar het Ontwerppatroon voor Hulpmiddelengebruik van toepassing is.
+- De belangrijkste elementen te begrijpen die nodig zijn om het ontwerppatroon te implementeren.
+- Overwegingen te herkennen om betrouwbaarheid te waarborgen in AI-agenten die dit ontwerppatroon gebruiken.
 
-## Wat is het Ontwerp Patroon voor Gereedschap Gebruik?
+## Wat is het Ontwerppatroon voor Hulpmiddelengebruik?
 
-Het **Ontwerp Patroon voor Gereedschap Gebruik** richt zich op het geven van de mogelijkheid aan LLM's om te interacteren met externe gereedschappen om specifieke doelen te bereiken. Gereedschappen zijn code die door een agent kan worden uitgevoerd om acties uit te voeren. Een gereedschap kan een eenvoudige functie zijn zoals een rekenmachine, of een API-aanroep naar een dienst van derden zoals het opzoeken van aandelenkoersen of het weerbericht. In de context van AI-agenten zijn gereedschappen ontworpen om te worden uitgevoerd door agenten als reactie op **door het model gegenereerde functieverzoeken**.
+Het **Ontwerppatroon voor Hulpmiddelengebruik** richt zich op het geven van LLM's de mogelijkheid om met externe hulpmiddelen te interacteren om specifieke doelen te bereiken. Hulpmiddelen zijn code die door een agent kunnen worden uitgevoerd om acties te verrichten. Een hulpmiddel kan een eenvoudige functie zijn zoals een rekenmachine, of een API-aanroep naar een externe dienst zoals het opzoeken van aandelenkoersen of weersvoorspellingen. In de context van AI-agenten zijn hulpmiddelen ontworpen om door agenten te worden uitgevoerd als reactie op **door modellen gegenereerde functietoepen**.
 
-## Voor welke toepassingsgevallen kan het worden toegepast?
+## Voor welke use cases kan het worden toegepast?
 
-AI-agenten kunnen gereedschappen gebruiken om complexe taken te voltooien, informatie op te halen of beslissingen te nemen. Het ontwerp patroon voor gereedschap gebruik wordt vaak toegepast in scenario's die dynamische interactie met externe systemen vereisen, zoals databases, webservices of code-interpreters. Deze mogelijkheid is nuttig voor een aantal verschillende toepassingsgevallen, waaronder:
+AI-agenten kunnen hulpmiddelen gebruiken om complexe taken te voltooien, informatie op te halen of beslissingen te nemen. Het ontwerppatroon voor hulpmiddelengebruik wordt vaak gebruikt in scenario's die dynamische interactie met externe systemen vereisen, zoals databases, webservices of code-interpreters. Deze mogelijkheid is nuttig voor verschillende use cases, waaronder:
 
-- **Dynamische Informatieverzameling:** Agenten kunnen externe API's of databases raadplegen om up-to-date gegevens op te halen (bijv. het raadplegen van een SQLite database voor data-analyse, het ophalen van aandelenkoersen of weersinformatie).
-- **Code Uitvoering en Interpretatie:** Agenten kunnen code of scripts uitvoeren om wiskundige problemen op te lossen, rapporten te genereren of simulaties uit te voeren.
-- **Workflow Automatisering:** Het automatiseren van repetitieve of multi-staps workflows door het integreren van gereedschappen zoals taakplanners, e-maildiensten of datapijplijnen.
-- **Klantenondersteuning:** Agenten kunnen interacteren met CRM-systemen, ticketingsystemen of kennisbanken om gebruikersvragen op te lossen.
-- **Contentcreatie en Bewerking:** Agenten kunnen gebruikmaken van gereedschappen zoals grammatica-controleurs, tekstsamenvatters of contentveiligheidsevaluators om te helpen bij contentcreatietaken.
+- **Dynamische Informatieopvraging:** Agenten kunnen externe API's of databases queryen om actuele gegevens op te halen (bijv. een SQLite-database queryen voor data-analyse, het ophalen van aandelenkoersen of weerinformatie).
+- **Code-uitvoering en -interpretatie:** Agenten kunnen code of scripts uitvoeren om wiskundige problemen op te lossen, rapporten te genereren of simulaties uit te voeren.
+- **Automatisering van Workflows:** Herhalende of meervoudige stappen automatiseren door tools te integreren zoals taakplanners, e-maildiensten of datastromen.
+- **Klantenondersteuning:** Agenten kunnen interageren met CRM-systemen, ticketplatforms of kennisbanken om gebruikersvragen op te lossen.
+- **Contentgeneratie en -bewerking:** Agenten kunnen hulpmiddelen zoals grammaticacontroleurs, tekstsamenvatters of beoordelaars van contentveiligheid inzetten om te helpen bij contentcreatietaken.
 
-## Wat zijn de elementen/bouwstenen die nodig zijn om het ontwerp patroon voor gereedschap gebruik te implementeren?
+## Welke elementen/bouwstenen zijn nodig om het ontwerppatroon voor hulpmiddelengebruik te implementeren?
 
-Deze bouwstenen stellen de AI-agent in staat een breed scala van taken uit te voeren. Laten we de belangrijkste elementen bekijken die nodig zijn om het Ontwerp Patroon voor Gereedschap Gebruik te implementeren:
+Deze bouwstenen maken het mogelijk voor de AI-agent om een breed scala aan taken uit te voeren. Laten we kijken naar de belangrijkste elementen die nodig zijn om het Ontwerppatroon voor Hulpmiddelengebruik te implementeren:
 
-- **Functie/Gereedschap Schema's**: Gedetailleerde definities van beschikbare gereedschappen, inclusief functienaam, doel, vereiste parameters en verwachte outputs. Deze schema's maken het LLM mogelijk te begrijpen welke gereedschappen beschikbaar zijn en hoe geldige verzoeken te construeren.
+- **Functie-/Hulpmiddelenschema's**: Gedetailleerde definities van beschikbare hulpmiddelen, inclusief functienaam, doel, benodigde parameters en verwachte outputs. Deze schema's stellen de LLM in staat te begrijpen welke hulpmiddelen beschikbaar zijn en hoe geldige verzoeken opgebouwd moeten worden.
 
-- **Functie Uitvoeringslogica**: Bepaalt hoe en wanneer gereedschappen worden aangeroepen op basis van de intentie van de gebruiker en de context van het gesprek. Dit kan onder meer planner-modules, routeringsmechanismen of conditionele stromen omvatten die het gereedschap gebruik dynamisch bepalen.
+- **Functie-UItvoeringslogica**: Bepaalt hoe en wanneer hulpmiddelen worden aangeroepen op basis van de intentie van de gebruiker en de gesprekcontext. Dit kan planner-modules, routeringsmechanismen of conditionele flows bevatten die het gebruik van hulpmiddelen dynamisch bepalen.
 
-- **Berichten Afhandelingssysteem**: Componenten die de conversatiestroom beheren tussen gebruikersinvoer, LLM-reacties, gereedschapsoproepen en gereedschapsuitvoer.
+- **Berichtenafhandelingssysteem**: Componenten die de conversatiestroom beheren tussen gebruikersinvoer, LLM-responsen, hulpprogramma-aanroepen en hulpprogramma-uitvoer.
 
-- **Gereedschap Integratie Framework**: Infrastructuur die de agent verbindt met diverse gereedschappen, of dit nu eenvoudige functies of complexe externe diensten zijn.
+- **Hulpmiddelenintegratiekader**: Infrastructuur die de agent verbindt met verschillende hulpmiddelen, of het nu eenvoudige functies zijn of complexe externe diensten.
 
-- **Foutafhandeling & Validatie**: Mechanismen om fouten bij gereedschapsuitvoering af te handelen, parameters te valideren en onverwachte reacties te beheren.
+- **Foutafhandeling & Validatie**: Mechanismen om fouten bij het uitvoeren van hulpmiddelen af te handelen, parameters te valideren en onverwachte reacties te beheren.
 
-- **Statusbeheer**: Houdt de gesprekcontext, eerdere gereedschapsinteracties en persistente data bij om consistentie over meerdere gespreksturns te waarborgen.
+- **Statusbeheer**: Volgt de gesprekcontext, eerdere interacties met hulpmiddelen en persistente data om consistentie over meerdere beurten heen te waarborgen.
 
-Vervolgens bekijken we Functie-/Gereedschapsoproep nader.
+Vervolgens gaan we dieper in op Functie-/Hulpmiddelenaanroepen.
+ 
+### Functie-/Hulpmiddelenaanroepen
 
-### Functie-/Gereedschapsoproep
+Functieaanroepen is de primaire manier waarmee we Large Language Models (LLM's) in staat stellen om met hulpmiddelen te interacteren. Je ziet vaak 'Functie' en 'Hulpmiddel' door elkaar gebruikt worden, omdat 'functies' (herbruikbare codeblokken) de 'hulpmiddelen' zijn die agenten gebruiken om taken uit te voeren. Om de code van een functie aan te roepen, moet een LLM het verzoek van de gebruiker afwegen tegen de functiebeschrijving. Hiervoor wordt een schema met de beschrijvingen van alle beschikbare functies naar de LLM gestuurd. De LLM selecteert vervolgens de meest geschikte functie voor de taak en retourneert de naam en argumenten ervan. De geselecteerde functie wordt uitgevoerd, het antwoord wordt teruggestuurd naar de LLM, die deze informatie gebruikt om te reageren op het verzoek van de gebruiker.
 
-Functieoproep is de primaire manier waarop we Large Language Models (LLM's) in staat stellen te interacteren met gereedschappen. Je zult vaak zien dat 'Functie' en 'Gereedschap' door elkaar worden gebruikt omdat 'functies' (herbruikbare codeblokken) de 'gereedschappen' zijn die agenten gebruiken om taken uit te voeren. Om de code van een functie aan te roepen, moet een LLM de gebruikersvraag vergelijken met de functiebeschrijving. Hiervoor wordt een schema met beschrijvingen van alle beschikbare functies naar het LLM gestuurd. Het LLM selecteert vervolgens de meest geschikte functie voor de taak en retourneert de naam en argumenten. De geselecteerde functie wordt aangeroepen, het antwoord wordt teruggestuurd naar het LLM, dat deze informatie gebruikt om te reageren op de gebruikersvraag.
+Voor ontwikkelaars die functieaanroepen voor agenten willen implementeren, heb je nodig:
 
-Voor ontwikkelaars die functieoproepen voor agenten willen implementeren, zijn nodig:
-
-1. Een LLM-model dat functieoproepen ondersteunt
+1. Een LLM-model dat functieaanroepen ondersteunt
 2. Een schema met functiebeschrijvingen
 3. De code voor elke beschreven functie
 
-Laten we het voorbeeld gebruiken van het opvragen van de huidige tijd in een stad om dit te illustreren:
+Laten we het voorbeeld gebruiken van het verkrijgen van de huidige tijd in een stad om te illustreren:
 
-1. **Initialiseer een LLM die functieoproepen ondersteunt:**
+1. **Initialiseer een LLM die functieaanroepen ondersteunt:**
 
-    Niet alle modellen ondersteunen functieoproepen, dus het is belangrijk te controleren of het LLM dat je gebruikt dit doet. <a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/function-calling" target="_blank">Azure OpenAI</a> ondersteunt functieoproepen. We kunnen beginnen met het initialiseren van de Azure OpenAI-client. 
+    Niet alle modellen ondersteunen functieaanroepen, dus het is belangrijk te controleren of de LLM die je gebruikt dat doet.     <a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/function-calling" target="_blank">Azure OpenAI</a> ondersteunt functieaanroepen. We kunnen beginnen met het initiëren van de OpenAI-client via de Azure OpenAI **Responses API** (de stabiele `/openai/v1/` endpoint — geen `api_version` nodig).
 
     ```python
-    # Initialiseer de Azure OpenAI-client
-    client = AzureOpenAI(
-        azure_endpoint = os.getenv("AZURE_AI_PROJECT_ENDPOINT"), 
-        api_key=os.getenv("AZURE_OPENAI_API_KEY"),  
-        api_version="2024-05-01-preview"
+    # Initialiseer de OpenAI-client voor Azure OpenAI (Responses API, v1 eindpunt)
+    client = OpenAI(
+        base_url=f"{os.environ['AZURE_OPENAI_ENDPOINT'].rstrip('/')}/openai/v1/",
+        api_key=os.environ["AZURE_OPENAI_API_KEY"],
     )
+    deployment_name = os.environ["AZURE_OPENAI_DEPLOYMENT"]
     ```
 
-1. **Maak een Functie Schema**:
+1. **Maak een Functieschema**:
 
-    Vervolgens definiëren we een JSON-schema dat de functienaam bevat, de beschrijving van wat de functie doet, en de namen en beschrijvingen van de functieparameters.
-    We geven dit schema door aan de eerder aangemaakte client, samen met de gebruikersvraag om de tijd in San Francisco te vinden. Wat belangrijk is om op te merken, is dat een **gereedschapsoproep** wordt geretourneerd, **niet** het definitieve antwoord op de vraag. Zoals eerder vermeld geeft het LLM de naam van de geselecteerde functie en de argumenten die eraan doorgegeven worden.
+    Vervolgens definiëren we een JSON-schema dat de functienaam, de beschrijving van wat de functie doet, en de namen en beschrijvingen van de functieparameters bevat.
+    We nemen dit schema en geven het door aan de eerder gemaakte client, samen met het gebruikersverzoek om de tijd in San Francisco te vinden. Wat belangrijk is om te noteren, is dat een **hulpprogramma-aanroep** wordt geretourneerd, **niet** het uiteindelijke antwoord op de vraag. Zoals eerder vermeld geeft de LLM de naam van de functie terug die hij voor de taak heeft geselecteerd, en de argumenten die eraan worden doorgegeven.
 
     ```python
-    # Functiebeschrijving voor het model om te lezen
+    # Functiebeschrijving voor het model om te lezen (Reacties API vlakke hulpmiddelindeling)
     tools = [
         {
             "type": "function",
-            "function": {
-                "name": "get_current_time",
-                "description": "Get the current time in a given location",
-                "parameters": {
-                    "type": "object",
-                    "properties": {
-                        "location": {
-                            "type": "string",
-                            "description": "The city name, e.g. San Francisco",
-                        },
+            "name": "get_current_time",
+            "description": "Get the current time in a given location",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "location": {
+                        "type": "string",
+                        "description": "The city name, e.g. San Francisco",
                     },
-                    "required": ["location"],
                 },
-            }
+                "required": ["location"],
+            },
         }
     ]
     ```
@@ -112,35 +110,35 @@ Laten we het voorbeeld gebruiken van het opvragen van de huidige tijd in een sta
     ```python
   
     # Initiële gebruikersboodschap
-    messages = [{"role": "user", "content": "What's the current time in San Francisco"}] 
-  
-    # Eerste API-aanroep: Vraag het model de functie te gebruiken
-      response = client.chat.completions.create(
-          model=deployment_name,
-          messages=messages,
-          tools=tools,
-          tool_choice="auto",
-      )
-  
-      # Verwerk het antwoord van het model
-      response_message = response.choices[0].message
-      messages.append(response_message)
-  
-      print("Model's response:")  
+    messages = [{"role": "user", "content": "What's the current time in San Francisco"}]
 
-      print(response_message)
+    # Eerste API-aanroep: Vraag het model om de functie te gebruiken
+    response = client.responses.create(
+        model=deployment_name,
+        input=messages,
+        tools=tools,
+        tool_choice="auto",
+        store=False,
+    )
+
+    # De Responses API retourneert toolaanroepen als function_call-items in response.output.
+    # Voeg ze toe aan het gesprek zodat het model volledige context heeft bij de volgende beurt.
+    messages += response.output
+
+    print("Model's response:")
+    print(response.output)
   
     ```
 
     ```bash
     Model's response:
-    ChatCompletionMessage(content=None, role='assistant', function_call=None, tool_calls=[ChatCompletionMessageToolCall(id='call_pOsKdUlqvdyttYB67MOj434b', function=Function(arguments='{"location":"San Francisco"}', name='get_current_time'), type='function')])
+    [ResponseFunctionToolCall(arguments='{"location":"San Francisco"}', call_id='call_pOsKdUlqvdyttYB67MOj434b', name='get_current_time', type='function_call')]
     ```
   
 1. **De functicode die nodig is om de taak uit te voeren:**
 
-    Nu het LLM heeft gekozen welke functie moet worden uitgevoerd, moet de code die de taak uitvoert geïmplementeerd en uitgevoerd worden.
-    We kunnen de code implementeren om de huidige tijd op te halen in Python. We moeten ook de code schrijven om de naam en argumenten uit het response_message te extraheren om het eindresultaat te krijgen.
+    Nu de LLM heeft gekozen welke functie uitgevoerd moet worden, moet de code die de taak uitvoert geïmplementeerd en uitgevoerd worden.
+    We kunnen de code om de huidige tijd te krijgen in Python implementeren. We moeten ook code schrijven om de naam en argumenten uit het response_message te halen om het uiteindelijke resultaat te krijgen.
 
     ```python
       def get_current_time(location):
@@ -162,33 +160,36 @@ Laten we het voorbeeld gebruiken van het opvragen van de huidige tijd in een sta
     ```
 
      ```python
-     # Afhandeling van functieverzoeken
-      if response_message.tool_calls:
-          for tool_call in response_message.tool_calls:
-              if tool_call.function.name == "get_current_time":
-     
-                  function_args = json.loads(tool_call.function.arguments)
-     
-                  time_response = get_current_time(
-                      location=function_args.get("location")
-                  )
-     
-                  messages.append({
-                      "tool_call_id": tool_call.id,
-                      "role": "tool",
-                      "name": "get_current_time",
-                      "content": time_response,
-                  })
-      else:
-          print("No tool calls were made by the model.")  
-  
-      # Tweede API-aanroep: Krijg de definitieve reactie van het model
-      final_response = client.chat.completions.create(
-          model=deployment_name,
-          messages=messages,
-      )
-  
-      return final_response.choices[0].message.content
+    # Verwerk functieverzoeken
+    tool_calls = [item for item in response.output if item.type == "function_call"]
+    if tool_calls:
+        for tool_call in tool_calls:
+            if tool_call.name == "get_current_time":
+
+                function_args = json.loads(tool_call.arguments)
+
+                time_response = get_current_time(
+                    location=function_args.get("location")
+                )
+
+                # Geef het gereedschapsresultaat terug als een function_call_output-item
+                messages.append({
+                    "type": "function_call_output",
+                    "call_id": tool_call.call_id,
+                    "output": time_response,
+                })
+    else:
+        print("No tool calls were made by the model.")
+
+    # Tweede API-aanroep: Verkrijg de definitieve reactie van het model
+    final_response = client.responses.create(
+        model=deployment_name,
+        input=messages,
+        tools=tools,
+        store=False,
+    )
+
+    return final_response.output_text
      ```
 
      ```bash
@@ -197,73 +198,78 @@ Laten we het voorbeeld gebruiken van het opvragen van de huidige tijd in een sta
       The current time in San Francisco is 09:24 AM.
      ```
 
-Functieoproep staat centraal in de meeste, zo niet alle ontwerpen voor gereedschap gebruik door agenten, maar het kan soms uitdagend zijn om het zelf te implementeren.
-Zoals we hebben geleerd in [Les 2](../../../02-explore-agentic-frameworks) bieden agentische frameworks kant-en-klare bouwstenen om gereedschap gebruik te implementeren.
+Functieaanroepen vormt het hart van de meeste, zo niet alle, agenthulpmiddelen-ontwerpen, hoewel het soms uitdagend kan zijn om het helemaal vanaf nul te implementeren.
+Zoals we leerden in [Les 2](../../../02-explore-agentic-frameworks) bieden agentic frameworks ons kant-en-klare bouwstenen om hulpmiddelengebruik te implementeren.
  
-## Voorbeelden van Gereedschap Gebruik met Agentische Frameworks
+## Voorbeelden van Hulpmiddelengebruik met Agentic Frameworks
 
-Hier zijn enkele voorbeelden van hoe je het Ontwerp Patroon voor Gereedschap Gebruik kunt implementeren met verschillende agentische frameworks:
+Hier zijn enkele voorbeelden van hoe je het Ontwerppatroon voor Hulpmiddelengebruik kunt implementeren met verschillende agentic frameworks:
 
 ### Microsoft Agent Framework
 
-<a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Agent Framework</a> is een open-source AI-framework voor het bouwen van AI-agenten. Het vereenvoudigt het gebruik van functieoproepen door je toe te staan gereedschappen te definiëren als Python-functies met de `@tool` decorator. Het framework regelt de communicatie tussen het model en je code heen en weer. Het biedt ook toegang tot vooraf gebouwde gereedschappen zoals Bestandzoeker en Code Interpreter via de `AzureAIProjectAgentProvider`.
+<a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Agent Framework</a> is een open-source AI-framework voor het bouwen van AI-agenten. Het vereenvoudigt het gebruik van functieaanroepen door je in staat te stellen hulpmiddelen te definiëren als Python-functies met de `@tool` decorator. Het framework regelt de communicatie heen en weer tussen het model en je code. Het biedt ook toegang tot kant-en-klare hulpmiddelen zoals Bestandzoeken en Code-interpreter via `FoundryChatClient`.
 
-Het volgende diagram illustreert het proces van functieoproepen met het Microsoft Agent Framework:
+Het volgende diagram illustreert het proces van functieaanroepen met het Microsoft Agent Framework:
 
-![function calling](../../../translated_images/nl/functioncalling-diagram.a84006fc287f6014.webp)
+![functieaanroepen](../../../translated_images/nl/functioncalling-diagram.a84006fc287f6014.webp)
 
-In het Microsoft Agent Framework worden gereedschappen gedefinieerd als gedecoreerde functies. We kunnen de eerder geziene `get_current_time` functie omzetten naar een gereedschap door gebruik te maken van de `@tool` decorator. Het framework serialiseert automatisch de functie en de parameters, en creëert het schema om naar het LLM te sturen.
+In het Microsoft Agent Framework worden hulpmiddelen gedefinieerd als gedecoreerde functies. We kunnen de eerder bekeken `get_current_time` functie omzetten naar een hulpmiddel met behulp van de `@tool` decorator. Het framework zal automatisch de functie en de parameters serialiseren en het schema creëren om naar de LLM te sturen.
 
 ```python
+import os
 from agent_framework import tool
-from agent_framework.azure import AzureAIProjectAgentProvider
+from agent_framework.foundry import FoundryChatClient
 from azure.identity import AzureCliCredential
 
-@tool
+@tool(approval_mode="never_require")
 def get_current_time(location: str) -> str:
     """Get the current time for a given location"""
     ...
 
 # Maak de client aan
-provider = AzureAIProjectAgentProvider(credential=AzureCliCredential())
+provider = FoundryChatClient(
+    project_endpoint=os.environ["AZURE_AI_PROJECT_ENDPOINT"],
+    model=os.environ["AZURE_AI_MODEL_DEPLOYMENT_NAME"],
+    credential=AzureCliCredential(),
+)
 
-# Maak een agent aan en voer deze uit met de tool
-agent = await provider.create_agent(name="TimeAgent", instructions="Use available tools to answer questions.", tools=get_current_time)
+# Maak een agent aan en voer uit met het hulpmiddel
+agent = provider.as_agent(name="TimeAgent", instructions="Use available tools to answer questions.", tools=get_current_time)
 response = await agent.run("What time is it?")
 ```
   
-### Azure AI Agent Service
+### Microsoft Foundry Agent Service
 
-<a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Azure AI Agent Service</a> is een nieuwer agentisch framework dat is ontworpen om ontwikkelaars in staat te stellen veilig hoogwaardige, schaalbare en uitbreidbare AI-agenten te bouwen zonder dat ze de onderliggende compute- en opslagresources hoeven te beheren. Het is bijzonder nuttig voor enterprise toepassingen omdat het een volledig beheerde service met enterprise-grade beveiliging is.
+<a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Foundry Agent Service</a> is een nieuwere agentic framework die is ontworpen om ontwikkelaars in staat te stellen veilig hoogwaardige, uitbreidbare AI-agenten te bouwen, te implementeren en op te schalen zonder de onderliggende compute- en opslagresources te hoeven beheren. Het is bijzonder nuttig voor zakelijke toepassingen doordat het een volledig beheerde service met security van enterprise niveau is.
 
-Vergeleken met directe ontwikkeling met de LLM API biedt Azure AI Agent Service enkele voordelen, waaronder:
+In vergelijking met directe ontwikkeling met de LLM API biedt Microsoft Foundry Agent Service enkele voordelen, waaronder:
 
-- Automatische gereedschapsoproepen – geen noodzaak om een gereedschapsoproep te parseren, het gereedschap aan te roepen en de reactie af te handelen; dit gebeurt nu server-side
-- Veilig beheerde data – in plaats van eigen gespreksstatus te beheren, kun je vertrouwen op threads om alle benodigde informatie op te slaan
-- Gereedschappen klaar voor gebruik – Gereedschappen die je kunt gebruiken om te interacteren met je data bronnen, zoals Bing, Azure AI Search en Azure Functions.
+- Automatisch hulpmiddelen aanroepen – geen noodzaak om een hulpprogramma-aanroep te parseren, het hulpprogramma aan te roepen en het antwoord af te handelen; dit wordt nu server-side afgehandeld
+- Veilig beheerde data – in plaats van je eigen gesprekstatus te beheren, kun je vertrouwen op threads om alle benodigde informatie te bewaren
+- Kant-en-klare hulpmiddelen – Hulpmiddelen die je kunt gebruiken om interactie te hebben met je databronnen, zoals Bing, Azure AI Search, en Azure Functions.
 
-De gereedschappen die beschikbaar zijn in Azure AI Agent Service kunnen worden onderverdeeld in twee categorieën:
+De hulpmiddelen in Microsoft Foundry Agent Service kunnen worden onderverdeeld in twee categorieën:
 
 1. Kennisgereedschappen:
     - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/bing-grounding?tabs=python&pivots=overview" target="_blank">Verankering met Bing Search</a>
-    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/file-search?tabs=python&pivots=overview" target="_blank">Bestandzoeker</a>
+    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/file-search?tabs=python&pivots=overview" target="_blank">Bestandzoeken</a>
     - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/azure-ai-search?tabs=azurecli%2Cpython&pivots=overview-azure-ai-search" target="_blank">Azure AI Search</a>
 
-2. Actiegereedschappen:
-    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/function-calling?tabs=python&pivots=overview" target="_blank">Functieoproep</a>
-    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/code-interpreter?tabs=python&pivots=overview" target="_blank">Code Interpreter</a>
-    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/openapi-spec?tabs=python&pivots=overview" target="_blank">OpenAPI gedefinieerde gereedschappen</a>
+2. Actiehulpmiddelen:
+    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/function-calling?tabs=python&pivots=overview" target="_blank">Functieaanroepen</a>
+    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/code-interpreter?tabs=python&pivots=overview" target="_blank">Code-interpreter</a>
+    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/openapi-spec?tabs=python&pivots=overview" target="_blank">OpenAPI-gedefinieerde hulpmiddelen</a>
     - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/azure-functions?pivots=overview" target="_blank">Azure Functions</a>
 
-De Agent Service stelt ons in staat deze gereedschappen samen te gebruiken als een `toolset`. Het maakt ook gebruik van `threads` die de geschiedenis van berichten van een specifieke conversatie bijhouden.
+De Agent Service stelt ons in staat deze hulpmiddelen samen als een `toolset` te gebruiken. Het maakt ook gebruik van `threads` die de geschiedenis van berichten uit een bepaald gesprek bijhouden.
 
-Stel je bent een verkoopagent bij een bedrijf genaamd Contoso. Je wilt een conversatie-agent ontwikkelen die vragen over je verkoopdata kan beantwoorden.
+Stel je voor dat je een verkoopagent bent bij een bedrijf genaamd Contoso. Je wilt een conversatieagent ontwikkelen die vragen over je verkoopgegevens kan beantwoorden.
 
-De volgende afbeelding illustreert hoe je Azure AI Agent Service kunt gebruiken om je verkoopdata te analyseren:
+De volgende afbeelding illustreert hoe je Microsoft Foundry Agent Service zou kunnen gebruiken om je verkoopgegevens te analyseren:
 
-![Agentic Service In Action](../../../translated_images/nl/agent-service-in-action.34fb465c9a84659e.webp)
+![Agentic Service In Actie](../../../translated_images/nl/agent-service-in-action.34fb465c9a84659e.webp)
 
-Om een van deze gereedschappen met de service te gebruiken, kunnen we een client maken en een gereedschap of toolset definiëren. Om dit praktisch te implementeren kunnen we onderstaande Python-code gebruiken. Het LLM kan naar de toolset kijken en beslissen of het de door een gebruiker gemaakte functie, `fetch_sales_data_using_sqlite_query`, of de kant-en-klare Code Interpreter zal gebruiken afhankelijk van het verzoek van de gebruiker.
+Om een van deze hulpmiddelen met de service te gebruiken kunnen we een client maken en een hulpmiddel of toolset definiëren. Om dit praktisch te implementeren kunnen we de volgende Python-code gebruiken. De LLM kan naar de toolset kijken en beslissen of de gebruikersgemaakte functie `fetch_sales_data_using_sqlite_query` wordt gebruikt, of de kant-en-klare Code-interpreter, afhankelijk van het gebruikersverzoek.
 
 ```python 
 import os
@@ -277,48 +283,54 @@ project_client = AIProjectClient.from_connection_string(
     conn_str=os.environ["PROJECT_CONNECTION_STRING"],
 )
 
-# Initialiseer gereedschapsset
+# Initialiseer toolset
 toolset = ToolSet()
 
-# Initialiseer functie aanroep agent met de fetch_sales_data_using_sqlite_query functie en voeg deze toe aan de gereedschapsset
+# Initialiseer function calling agent met de fetch_sales_data_using_sqlite_query functie en voeg deze toe aan de toolset
 fetch_data_function = FunctionTool(fetch_sales_data_using_sqlite_query)
 toolset.add(fetch_data_function)
 
-# Initialiseer Code Interpreter gereedschap en voeg het toe aan de gereedschapsset.
+# Initialiseer Code Interpreter-tool en voeg deze toe aan de toolset.
 code_interpreter = CodeInterpreterTool()toolset.add(code_interpreter)
 
 agent = project_client.agents.create_agent(
-    model="gpt-4o-mini", name="my-agent", instructions="You are helpful agent", 
+    model="gpt-4.1-mini", name="my-agent", instructions="You are helpful agent", 
     toolset=toolset
 )
 ```
 
-## Wat zijn de bijzondere overwegingen bij het gebruik van het Ontwerp Patroon voor Gereedschap Gebruik om betrouwbare AI-agenten te bouwen?
+## Wat zijn de speciale overwegingen bij het gebruik van het Ontwerppatroon voor Hulpmiddelengebruik om betrouwbare AI-agenten te bouwen?
 
-Een veelgehoorde zorg bij dynamisch door LLMs gegenereerde SQL is beveiliging, met name het risico op SQL-injectie of kwaadaardige acties zoals het verwijderen of manipuleren van de database. Hoewel deze zorgen terecht zijn, kunnen ze effectief worden beperkt door database toegangsrechten correct te configureren. Voor de meeste databases betekent dit het configureren van de database als alleen-lezen. Voor databaseservices zoals PostgreSQL of Azure SQL moet de app een alleen-lezen (SELECT) rol krijgen toegewezen.
+Een veelvoorkomende zorg bij dynamisch door LLM's gegenereerde SQL is veiligheid, met name het risico op SQL injectie of kwaadaardige acties, zoals het verwijderen of manipuleren van de database. Hoewel deze zorgen terecht zijn, kunnen ze effectief worden verminderd door database-toegangsrechten correct te configureren. Voor de meeste databases houdt dit in dat de database als alleen-lezen wordt geconfigureerd. Voor databaseservices zoals PostgreSQL of Azure SQL moet de app een alleen-lezen (SELECT) rol krijgen toegewezen.
 
-Het draaien van de app in een beveiligde omgeving versterkt de bescherming verder. In zakelijke scenario's wordt data meestal geëxtraheerd en getransformeerd uit operationele systemen naar een alleen-lezen database of datawarehouse met een gebruiksvriendelijk schema. Deze aanpak zorgt ervoor dat de data veilig is, geoptimaliseerd voor prestaties en toegankelijkheid, en dat de app beperkte, alleen-lezen toegang heeft.
+Het draaien van de app in een veilige omgeving verhoogt de bescherming verder. In bedrijfsscenario’s wordt data meestal geëxtraheerd en getransformeerd uit operationele systemen naar een alleen-lezen database of datawarehouse met een gebruiksvriendelijk schema. Deze aanpak zorgt ervoor dat de data veilig is, geoptimaliseerd voor prestaties en toegankelijkheid, en dat de app beperkte, alleen-lezen toegang heeft.
 
 ## Voorbeeldcodes
 
 - Python: [Agent Framework](./code_samples/04-python-agent-framework.ipynb)
 - .NET: [Agent Framework](./code_samples/04-dotnet-agent-framework.md)
 
-## Meer Vragen over het Ontwerp Patroon voor Gereedschap Gebruik?
+## Meer vragen over het Ontwerppatroon voor Hulpmiddelengebruik?
 
-Word lid van de [Microsoft Foundry Discord](https://aka.ms/ai-agents/discord) om andere leerlingen te ontmoeten, deel te nemen aan office hours en je vragen over AI Agents beantwoord te krijgen.
+Neem deel aan de [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) om andere leerlingen te ontmoeten, office hours bij te wonen en je vragen over AI Agents beantwoord te krijgen.
 
-## Aanvullende Bronnen
+## Aanvullende bronnen
 
 - <a href="https://microsoft.github.io/build-your-first-agent-with-azure-ai-agent-service-workshop/" target="_blank">Azure AI Agents Service Workshop</a>
 - <a href="https://github.com/Azure-Samples/contoso-creative-writer/tree/main/docs/workshop" target="_blank">Contoso Creative Writer Multi-Agent Workshop</a>
 - <a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Agent Framework Overzicht</a>
 
+
+## Smoke-Testen van Deze Agent (Optioneel)
+
+Nadat je hebt geleerd om agents te implementeren in [Les 16](../16-deploying-scalable-agents/README.md), kun je de `TravelToolAgent` van deze les smoke-testen (roept hij nog steeds zijn tools aan en antwoordt hij?) met [`tests/lesson-04-smoke-tests.json`](../../../tests/lesson-04-smoke-tests.json). Zie [`tests/README.md`](../tests/README.md) voor hoe je dit uitvoert.
+
 ## Vorige Les
 
-[Begrip van Agentische Ontwerppatronen](../03-agentic-design-patterns/README.md)
+[Begrijpen van Agentische Ontwerppatronen](../03-agentic-design-patterns/README.md)
 
 ## Volgende Les
+
 [Agentic RAG](../05-agentic-rag/README.md)
 
 ---

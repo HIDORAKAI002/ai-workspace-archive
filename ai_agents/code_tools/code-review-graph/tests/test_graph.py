@@ -3,8 +3,12 @@
 import logging
 import sqlite3
 import tempfile
+import time
 from pathlib import Path
 
+import pytest
+
+import code_review_graph.constants as constants_module
 from code_review_graph.graph import GraphStore
 from code_review_graph.parser import EdgeInfo, NodeInfo
 
@@ -457,6 +461,209 @@ class TestImpactRadiusSql:
         assert result["total_impacted"] == 0
 
 
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("0.75", 0.75),
+        ("", 0.6),
+        ("not-a-number", 0.6),
+        ("nan", 0.6),
+        ("inf", 0.6),
+        ("-0.1", 0.6),
+        ("0", 0.6),
+        ("1", 0.6),
+        ("1.2", 0.6),
+    ],
+)
+def test_impact_float_configuration_is_finite_and_bounded(
+    monkeypatch, raw, expected,
+):
+    monkeypatch.setenv("CRG_TEST_IMPACT_FLOAT", raw)
+    assert constants_module._bounded_float_env(
+        "CRG_TEST_IMPACT_FLOAT", 0.6, lower=0.0, upper=1.0,
+    ) == pytest.approx(expected)
+
+
+class TestWeightedImpactScoring:
+    """Best-path scoring stays ranked, bounded, and engine-independent."""
+
+    def setup_method(self):
+        self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        self.tmp.close()
+        self.store = GraphStore(self.tmp.name)
+
+    def teardown_method(self):
+        self.store.close()
+        Path(self.tmp.name).unlink(missing_ok=True)
+
+    def _add_func(self, name: str, path: str) -> str:
+        self.store.upsert_node(NodeInfo(
+            kind="Function", name=name, file_path=path,
+            line_start=1, line_end=10, language="python",
+        ))
+        return f"{path}::{name}"
+
+    def _add_edge(
+        self, kind: str, source: str, target: str, line: int = 1,
+    ) -> None:
+        self.store.upsert_edge(EdgeInfo(
+            kind=kind, source=source, target=target,
+            file_path="/seed.py", line=line,
+        ))
+
+    @staticmethod
+    def _ordered_qns(result) -> list[str]:
+        return [node.qualified_name for node in result["impacted_nodes"]]
+
+    def test_edge_weights_rank_best_path_and_engines_match(self):
+        seed = self._add_func("seed", "/seed.py")
+        called = self._add_func("called", "/called.py")
+        imported = self._add_func("imported", "/imported.py")
+        indirect = self._add_func("indirect", "/indirect.py")
+        self._add_edge("CALLS", seed, called)
+        self._add_edge("IMPORTS_FROM", seed, imported)
+        self._add_edge("CALLS", called, indirect)
+        self.store.commit()
+
+        sql = self.store.get_impact_radius_sql(["/seed.py"], max_depth=2)
+        nx_result = self.store._get_impact_radius_networkx(
+            ["/seed.py"], max_depth=2,
+        )
+
+        assert sql["impact_scores"][called] == pytest.approx(0.6)
+        assert sql["impact_scores"][indirect] == pytest.approx(0.36)
+        assert sql["impact_scores"][imported] == pytest.approx(0.3)
+        assert self._ordered_qns(sql) == [called, indirect, imported]
+        assert sql["impact_scores"] == nx_result["impact_scores"]
+        assert self._ordered_qns(sql) == self._ordered_qns(nx_result)
+
+    def test_deeper_strong_path_beats_shallow_weak_path(self):
+        seed = self._add_func("seed", "/seed.py")
+        middle = self._add_func("middle", "/middle.py")
+        target = self._add_func("target", "/target.py")
+        self._add_edge("CONTAINS", seed, target)
+        self._add_edge("CALLS", seed, middle, line=2)
+        self._add_edge("CALLS", middle, target, line=3)
+        self.store.commit()
+
+        sql = self.store.get_impact_radius_sql(["/seed.py"], max_depth=2)
+        nx_result = self.store._get_impact_radius_networkx(
+            ["/seed.py"], max_depth=2,
+        )
+
+        assert sql["impact_scores"][target] == pytest.approx(0.36)
+        assert sql["impact_scores"] == nx_result["impact_scores"]
+
+    def test_score_floor_stops_expansion_in_both_engines(self):
+        qns = [
+            self._add_func(f"node_{index}", f"/node_{index}.py")
+            for index in range(8)
+        ]
+        for index, (source, target) in enumerate(zip(qns, qns[1:])):
+            self._add_edge("CALLS", source, target, line=index + 1)
+        self.store.commit()
+
+        sql = self.store.get_impact_radius_sql(
+            ["/node_0.py"], max_depth=8,
+        )
+        nx_result = self.store._get_impact_radius_networkx(
+            ["/node_0.py"], max_depth=8,
+        )
+
+        assert qns[5] in sql["impact_scores"]
+        assert qns[6] not in sql["impact_scores"]
+        assert sql["impact_scores"] == nx_result["impact_scores"]
+
+    def test_unknown_edge_kind_uses_default_weight(self):
+        seed = self._add_func("seed", "/seed.py")
+        target = self._add_func("target", "/target.py")
+        self._add_edge("UNKNOWN_KIND", seed, target)
+        self.store.commit()
+
+        sql = self.store.get_impact_radius_sql(["/seed.py"], max_depth=1)
+        nx_result = self.store._get_impact_radius_networkx(
+            ["/seed.py"], max_depth=1,
+        )
+
+        assert sql["impact_scores"][target] == pytest.approx(0.3)
+        assert sql["impact_scores"] == nx_result["impact_scores"]
+
+    def test_truncation_is_exact_at_boundary_and_uses_sentinel(self):
+        seed = self._add_func("seed", "/seed.py")
+        targets = [
+            self._add_func(f"target_{index}", f"/target_{index}.py")
+            for index in range(3)
+        ]
+        for index, target in enumerate(targets):
+            self._add_edge("CALLS", seed, target, line=index + 1)
+        self.store.commit()
+
+        exact = self.store.get_impact_radius_sql(
+            ["/seed.py"], max_depth=1, max_nodes=3,
+        )
+        capped = self.store.get_impact_radius_sql(
+            ["/seed.py"], max_depth=1, max_nodes=2,
+        )
+
+        assert exact["truncated"] is False
+        assert exact["total_impacted"] == 3
+        assert capped["truncated"] is True
+        assert capped["total_impacted"] == 3
+        assert len(capped["impacted_nodes"]) == 2
+
+    def test_ghost_endpoint_bridges_without_consuming_limit(self):
+        seed = self._add_func("seed", "/seed.py")
+        target = self._add_func("target", "/target.py")
+        ghost = "external.package::ghost"
+        self._add_edge("CALLS", seed, ghost)
+        self._add_edge("CALLS", ghost, target, line=2)
+        self.store.commit()
+
+        result = self.store.get_impact_radius_sql(
+            ["/seed.py"], max_depth=2, max_nodes=1,
+        )
+
+        assert self._ordered_qns(result) == [target]
+        assert ghost not in result["impact_scores"]
+        assert result["truncated"] is False
+
+    def test_parallel_edges_use_strongest_weight_in_both_engines(self):
+        seed = self._add_func("seed", "/seed.py")
+        target = self._add_func("target", "/target.py")
+        self._add_edge("CALLS", seed, target, line=1)
+        self._add_edge("CONTAINS", seed, target, line=2)
+        self.store.commit()
+
+        sql = self.store.get_impact_radius_sql(["/seed.py"], max_depth=1)
+        nx_result = self.store._get_impact_radius_networkx(
+            ["/seed.py"], max_depth=1,
+        )
+        assert sql["impact_scores"][target] == pytest.approx(0.6)
+        assert sql["impact_scores"] == nx_result["impact_scores"]
+
+    def test_dense_mixed_cycle_is_bounded(self):
+        qns = [self._add_func(f"node_{i}", f"/node_{i}.py") for i in range(12)]
+        line = 1
+        for source_index, source in enumerate(qns):
+            for target_index, target in enumerate(qns):
+                if source_index == target_index:
+                    continue
+                kind = "CALLS" if (source_index + target_index) % 2 else "IMPORTS_FROM"
+                self._add_edge(kind, source, target, line=line)
+                line += 1
+        self.store.commit()
+
+        started = time.monotonic()
+        result = self.store.get_impact_radius_sql(
+            ["/node_0.py"], max_depth=25, max_nodes=20,
+        )
+        elapsed = time.monotonic() - started
+
+        assert len(result["impacted_nodes"]) == 11
+        assert result["truncated"] is False
+        assert elapsed < 5.0
+
+
 class TestGetTransitiveTestsFrontierCap:
     """Regression tests for O(N*M) query explosion in get_transitive_tests."""
 
@@ -530,3 +737,149 @@ class TestGetTransitiveTestsFrontierCap:
         assert len(indirect_default) == 1
         assert len(indirect_capped) == 1
         assert indirect_default[0]["name"] == indirect_capped[0]["name"]
+
+
+class TestResolveBareEndpoints:
+    """Only graph evidence may turn a bare call/test endpoint into a node."""
+
+    def setup_method(self):
+        self.tmp = tempfile.NamedTemporaryFile(suffix=".db", delete=False)
+        self.tmp.close()
+        self.store = GraphStore(self.tmp.name)
+
+    def teardown_method(self):
+        self.store.close()
+        Path(self.tmp.name).unlink(missing_ok=True)
+
+    def _func(self, name: str, path: str, *, is_test: bool = False) -> str:
+        self.store.upsert_node(NodeInfo(
+            kind="Test" if is_test else "Function",
+            name=name,
+            file_path=path,
+            line_start=1,
+            line_end=5,
+            language="python",
+            is_test=is_test,
+        ))
+        return f"{path}::{name}"
+
+    def _edge(
+        self, kind: str, source: str, target: str, file_path: str,
+    ) -> None:
+        self.store.upsert_edge(EdgeInfo(
+            kind=kind,
+            source=source,
+            target=target,
+            file_path=file_path,
+            line=1,
+        ))
+
+    def _endpoints(self, kind: str) -> list[tuple[str, str]]:
+        rows = self.store._conn.execute(
+            "SELECT source_qualified, target_qualified FROM edges "
+            "WHERE kind = ? ORDER BY id",
+            (kind,),
+        ).fetchall()
+        return [
+            (row["source_qualified"], row["target_qualified"])
+            for row in rows
+        ]
+
+    def test_unique_tested_by_source_without_evidence_stays_bare(self):
+        """A globally unique name in an unrelated file is still not evidence."""
+        self._func("parse", "/repo/src/app.py")
+        test_qn = self._func(
+            "test_parse", "/repo/tests/test_other.py", is_test=True,
+        )
+        self._edge("TESTED_BY", "parse", test_qn, "/repo/tests/test_other.py")
+        self.store.commit()
+
+        assert self.store.resolve_bare_tested_by_sources() == 0
+        assert self._endpoints("TESTED_BY") == [("parse", test_qn)]
+
+    def test_unique_tested_by_source_resolves_with_import_evidence(self):
+        source_qn = self._func("parse", "/repo/src/app.py")
+        test_file = "/repo/tests/test_app.py"
+        test_qn = self._func("test_parse", test_file, is_test=True)
+        self._edge("IMPORTS_FROM", test_file, "/repo/src/app.py", test_file)
+        self._edge("TESTED_BY", "parse", test_qn, test_file)
+        self.store.commit()
+
+        assert self.store.resolve_bare_tested_by_sources() == 1
+        assert self._endpoints("TESTED_BY") == [(source_qn, test_qn)]
+
+    def test_ambiguous_tested_by_source_uses_one_imported_candidate(self):
+        source_qn = self._func("parse", "/repo/src/app.py")
+        self._func("parse", "/repo/vendor/app.py")
+        test_file = "/repo/tests/test_app.py"
+        test_qn = self._func("test_parse", test_file, is_test=True)
+        self._edge("IMPORTS_FROM", test_file, "/repo/src/app.py", test_file)
+        self._edge("TESTED_BY", "parse", test_qn, test_file)
+        self.store.commit()
+
+        assert self.store.resolve_bare_tested_by_sources() == 1
+        assert self._endpoints("TESTED_BY") == [(source_qn, test_qn)]
+
+    def test_same_file_call_target_is_strong_evidence(self):
+        file_path = "/repo/src/app.py"
+        caller_qn = self._func("caller", file_path)
+        helper_qn = self._func("helper", file_path)
+        self._edge("CALLS", caller_qn, "helper", file_path)
+        self.store.commit()
+
+        assert self.store.resolve_bare_call_targets() == 1
+        assert self._endpoints("CALLS") == [(caller_qn, helper_qn)]
+
+    def test_unique_unrelated_call_target_stays_bare(self):
+        caller_file = "/repo/src/app.py"
+        caller_qn = self._func("caller", caller_file)
+        self._func("helper", "/repo/unrelated/util.py")
+        self._edge("CALLS", caller_qn, "helper", caller_file)
+        self.store.commit()
+
+        assert self.store.resolve_bare_call_targets() == 0
+        assert self._endpoints("CALLS") == [(caller_qn, "helper")]
+
+    def test_tests_for_does_not_guess_unrelated_bare_source(self):
+        source_qn = self._func("parse", "/repo/src/app.py")
+        test_file = "/repo/tests/test_other.py"
+        test_qn = self._func("test_parse", test_file, is_test=True)
+        self._edge("TESTED_BY", "parse", test_qn, test_file)
+        self.store.commit()
+
+        assert self.store.get_transitive_tests(source_qn, max_depth=0) == []
+
+    def test_tests_for_accepts_unique_import_backed_bare_source(self):
+        source_qn = self._func("parse", "/repo/src/app.py")
+        test_file = "/repo/tests/test_app.py"
+        test_qn = self._func("test_parse", test_file, is_test=True)
+        self._edge("IMPORTS_FROM", test_file, "/repo/src/app.py", test_file)
+        self._edge("TESTED_BY", "parse", test_qn, test_file)
+        self.store.commit()
+
+        results = self.store.get_transitive_tests(source_qn, max_depth=0)
+        assert [result["qualified_name"] for result in results] == [test_qn]
+
+    def test_tests_for_rejects_bare_source_with_two_imported_candidates(self):
+        first_qn = self._func("parse", "/repo/src/app.py")
+        second_qn = self._func("parse", "/repo/vendor/app.py")
+        test_file = "/repo/tests/test_app.py"
+        test_qn = self._func("test_parse", test_file, is_test=True)
+        self._edge("IMPORTS_FROM", test_file, "/repo/src/app.py", test_file)
+        self._edge("IMPORTS_FROM", test_file, "/repo/vendor/app.py", test_file)
+        self._edge("TESTED_BY", "parse", test_qn, test_file)
+        self.store.commit()
+
+        assert self.store.get_transitive_tests(first_qn, max_depth=0) == []
+        assert self.store.get_transitive_tests(second_qn, max_depth=0) == []
+
+    def test_transitive_tests_do_not_follow_unresolved_bare_callee(self):
+        hub_qn = self._func("hub", "/repo/src/hub.py")
+        self._func("parse", "/repo/unrelated/app.py")
+        test_file = "/repo/tests/test_app.py"
+        test_qn = self._func("test_parse", test_file, is_test=True)
+        self._edge("CALLS", hub_qn, "parse", "/repo/src/hub.py")
+        self._edge("TESTED_BY", "parse", test_qn, test_file)
+        self.store.commit()
+
+        assert self.store.get_transitive_tests(hub_qn, max_depth=1) == []

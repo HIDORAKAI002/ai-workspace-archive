@@ -1,39 +1,42 @@
-# 🎯 পরিকল্পনা ও ডিজাইন প্যাটার্ন GitHub মডেল (.NET) এর সাথে
+# 🎯 Azure OpenAI (Responses API) সহ পরিকল্পনা এবং ডিজাইন প্যাটার্নস (.NET)
 
 ## 📋 শেখার লক্ষ্যসমূহ
 
-এই নোটবুকটি Microsoft Agent Framework ব্যবহার করে .NET-এ বুদ্ধিমান এজেন্ট তৈরি করার জন্য এন্টারপ্রাইজ-গ্রেড পরিকল্পনা ও ডিজাইন প্যাটার্ন প্রদর্শন করে। আপনি শিখবেন কীভাবে এজেন্ট তৈরি করতে হয় যা জটিল সমস্যাগুলোকে বিশ্লেষণ করতে পারে, বহু-ধাপের সমাধান পরিকল্পনা করতে পারে এবং .NET-এর এন্টারপ্রাইজ বৈশিষ্ট্য ব্যবহার করে উন্নত কর্মপ্রবাহ সম্পাদন করতে পারে।
+এই নোটবুকটি মাইক্রোসফট এজেন্ট ফ্রেমওয়ার্ক ব্যবহার করে .NET এ Azure OpenAI (Responses API)-এর মাধ্যমে বুদ্ধিমান এজেন্ট তৈরির জন্য এন্টারপ্রাইজ-গ্রেড পরিকল্পনা এবং ডিজাইন প্যাটার্ন দেখায়। আপনি শিখবেন কীভাবে এমন এজেন্ট তৈরি করবেন যা জটিল সমস্যাগুলি ভেঙে ফেলতে পারে, বহু-ধাপ সমাধান পরিকল্পনা করতে পারে এবং .NET-এর এন্টারপ্রাইজ ফিচারগুলোর মাধ্যমে উন্নত ওয়ার্কফ্লো সম্পাদন করতে পারে।
 
 ## ⚙️ প্রয়োজনীয়তা ও সেটআপ
 
 **ডেভেলপমেন্ট পরিবেশ:**
-- .NET 9.0 SDK বা তার বেশি
-- Visual Studio 2022 অথবা VS Code C# এক্সটেনশনের সাথে
-- GitHub Models API অ্যাক্সেস
+- .NET 9.0 SDK অথবা তার উপরে
+- Visual Studio 2022 অথবা C# এক্সটেনশনসহ VS Code
+- Azure OpenAI রিসোর্স এবং মডেল ডিপ্লয়মেন্ট সহ একটি Azure সাবস্ক্রিপশন
+- Azure CLI — `az login` দিয়ে সাইন ইন করুন
 
-**প্রয়োজনীয় ডিপেন্ডেন্সি:**
+**প্রয়োজনীয় নির্ভরশীলতা:**
 ```xml
-<PackageReference Include="Microsoft.Extensions.AI" Version="9.9.0" />
-<PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.9.0-preview.1.25458.4" />
+<PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
+<PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
+<PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.*-*" />
+<PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
+<PackageReference Include="Azure.Identity" Version="1.13.1" />
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
 **পরিবেশ কনফিগারেশন (.env ফাইল):**
 ```env
-GITHUB_TOKEN=your_github_personal_access_token
-GITHUB_ENDPOINT=https://models.inference.ai.azure.com
-GITHUB_MODEL_ID=gpt-4o-mini
+AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
 ```
 
 ## কোড চালানো
 
-এই পাঠে একটি .NET Single File App বাস্তবায়ন অন্তর্ভুক্ত রয়েছে। এটি চালানোর জন্য:
+এই লেসনে একটি .NET সিঙ্গল ফাইল অ্যাপ ইমপ্লিমেন্টেশন অন্তর্ভুক্ত আছে। এটি চালাতে:
 
 ```bash
-# Make the file executable (Linux/macOS)
+# ফাইলটিকে নির্বাহযোগ্য করুন (Linux/macOS)
 chmod +x 07-dotnet-agent-framework.cs
 
-# Run the application
+# অ্যাপ্লিকেশন চালান
 ./07-dotnet-agent-framework.cs
 ```
 
@@ -43,21 +46,21 @@ chmod +x 07-dotnet-agent-framework.cs
 dotnet run 07-dotnet-agent-framework.cs
 ```
 
-## কোড বাস্তবায়ন
+## কোড ইমপ্লিমেন্টেশন
 
-সম্পূর্ণ বাস্তবায়ন `07-dotnet-agent-framework.cs` এ উপলব্ধ, যা প্রদর্শন করে:
+সম্পূর্ণ ইমপ্লিমেন্টেশন `07-dotnet-agent-framework.cs` ফাইলে পাওয়া যাবে, যা প্রদর্শন করে:
 
-- DotNetEnv ব্যবহার করে পরিবেশ কনফিগারেশন লোড করা
-- GitHub Models এর জন্য OpenAI ক্লায়েন্ট কনফিগার করা
-- JSON সিরিয়ালাইজেশন সহ গঠিত ডেটা মডেল (Plan এবং TravelPlan) সংজ্ঞায়িত করা
-- JSON স্কিমা ব্যবহার করে গঠিত আউটপুট সহ একটি AI এজেন্ট তৈরি করা
-- টাইপ-সেফ রেসপন্স সহ পরিকল্পনা অনুরোধ সম্পাদন করা
+- DotNetEnv ব্যবহার করে পরিবেশ কনফিগারেশন লোডিং
+- Azure OpenAI ক্লায়েন্ট কনফিগারেশন এবং `GetChatClient().AsAIAgent()` ব্যবহার করে AI এজেন্ট তৈরি
+- JSON সিরিয়ালাইজেশনসহ স্ট্রাকচার্ড ডেটা মডেল (Plan এবং TravelPlan) সংজ্ঞায়িতকরণ
+- JSON স্কিমা ব্যবহার করে স্ট্রাকচার্ড আউটপুট সহ AI এজেন্ট তৈরি
+- টাইপ-সেফ রেসপন্স সহ পরিকল্পনা অনুরোধ সম্পাদন
 
-## মূল ধারণা
+## মূল ধারণাসমূহ
 
-### টাইপ-সেফ মডেলের সাথে গঠিত পরিকল্পনা
+### টাইপ-সেফ মডেলস সহ স্ট্রাকচার্ড পরিকল্পনা
 
-এজেন্টটি পরিকল্পনার আউটপুটের গঠন সংজ্ঞায়িত করতে C# ক্লাস ব্যবহার করে:
+এজেন্ট পরিকল্পনার আউটপুটের কাঠামো সংজ্ঞায়িত করতে C# ক্লাস ব্যবহার করে:
 
 ```csharp
 public class Plan
@@ -79,13 +82,15 @@ public class TravelPlan
 }
 ```
 
-### গঠিত আউটপুটের জন্য JSON স্কিমা
+### স্ট্রাকচার্ড আউটপুটের জন্য JSON স্কিমা
 
-এজেন্টটি TravelPlan স্কিমার সাথে মিল রেখে রেসপন্স প্রদান করতে কনফিগার করা হয়েছে:
+এজেন্টকে TravelPlan স্কিমার সাথে মিলে এমন রেসপন্স ফেরত দেওয়ার জন্য কনফিগার করা হয়েছে:
 
 ```csharp
-ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_INSTRUCTIONS)
+ChatClientAgentOptions agentOptions = new()
 {
+    Name = AGENT_NAME,
+    Description = AGENT_INSTRUCTIONS,
     ChatOptions = new()
     {
         ResponseFormat = ChatResponseFormatJson.ForJsonSchema(
@@ -96,22 +101,24 @@ ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_
 };
 ```
 
-### পরিকল্পনা এজেন্টের নির্দেশনা
+### পরিকল্পনা এজেন্ট নির্দেশিকা
 
-এজেন্টটি একজন সমন্বয়কারী হিসেবে কাজ করে, বিশেষায়িত সাব-এজেন্টদের কাছে কাজগুলো অর্পণ করে:
+এজেন্ট সমন্বয়কারী হিসেবে কাজ করে, বিশেষায়িত সাব-এজেন্টদের কাছে টাস্ক প্রেরণ করে:
 
 - FlightBooking: ফ্লাইট বুকিং এবং ফ্লাইট তথ্য প্রদান করার জন্য
-- HotelBooking: হোটেল বুকিং এবং হোটেল তথ্য প্রদান করার জন্য
-- CarRental: গাড়ি বুকিং এবং গাড়ি ভাড়া তথ্য প্রদান করার জন্য
-- ActivitiesBooking: কার্যক্রম বুকিং এবং কার্যক্রম তথ্য প্রদান করার জন্য
-- DestinationInfo: গন্তব্য সম্পর্কে তথ্য প্রদান করার জন্য
+- HotelBooking: হোটেল বুকিং এবং হোটেল তথ্য দেওয়ার জন্য
+- CarRental: কার বুকিং এবং কার রেন্টাল তথ্যের জন্য
+- ActivitiesBooking: কার্যক্রম বুকিং এবং তথ্য প্রদানের জন্য
+- DestinationInfo: গন্তব্যস্থলের তথ্য প্রদানের জন্য
 - DefaultAgent: সাধারণ অনুরোধ পরিচালনার জন্য
 
 ## প্রত্যাশিত আউটপুট
 
-যখন আপনি একটি ভ্রমণ পরিকল্পনার অনুরোধ নিয়ে এজেন্ট চালাবেন, এটি অনুরোধ বিশ্লেষণ করবে এবং TravelPlan স্কিমার সাথে মিল রেখে JSON-এ গঠিত পরিকল্পনা তৈরি করবে, যেখানে বিশেষায়িত এজেন্টদের উপযুক্ত কাজের দায়িত্ব অর্পণ করা হবে।
+যখন আপনি একটি ভ্রমণ পরিকল্পনার অনুরোধ নিয়ে এজেন্ট চালাবেন, তখন এটি অনুরোধটি বিশ্লেষণ করবে এবং TravelPlan স্কিমার সাথে সঙ্গতিপূর্ণ JSON আকারে উপযুক্ত কাজ বরাদ্দ সহ একটি স্ট্রাকচার্ড পরিকল্পনা তৈরি করবে।
 
 ---
 
-**অস্বীকৃতি**:  
-এই নথিটি AI অনুবাদ পরিষেবা [Co-op Translator](https://github.com/Azure/co-op-translator) ব্যবহার করে অনুবাদ করা হয়েছে। আমরা যথাসাধ্য সঠিকতা নিশ্চিত করার চেষ্টা করি, তবে অনুগ্রহ করে মনে রাখবেন যে স্বয়ংক্রিয় অনুবাদে ত্রুটি বা অসঙ্গতি থাকতে পারে। নথিটির মূল ভাষায় থাকা আসল সংস্করণকে প্রামাণিক উৎস হিসেবে বিবেচনা করা উচিত। গুরুত্বপূর্ণ তথ্যের জন্য, পেশাদার মানব অনুবাদ সুপারিশ করা হয়। এই অনুবাদ ব্যবহারের ফলে কোনো ভুল বোঝাবুঝি বা ভুল ব্যাখ্যার জন্য আমরা দায়বদ্ধ নই।
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**অস্বীকৃতি**:
+এই নথিটি AI অনুবাদ পরিষেবা [Co-op Translator](https://github.com/Azure/co-op-translator) ব্যবহার করে অনূদিত হয়েছে। যদিও আমরা শুদ্ধতার জন্য চেষ্টা করি, অনুগ্রহ করে মনে রাখবেন যে স্বয়ংক্রিয় অনুবাদে ত্রুটি বা অসঙ্গতি থাকতে পারে। মূল নথিটি তার স্বভাষায় কর্তৃত্বপূর্ণ উৎস হিসেবে বিবেচিত হওয়া উচিত। গুরুত্বপূর্ণ তথ্যের জন্য পেশাদার মানব অনুবাদ সুপারিশ করা হয়। এই অনুবাদের ব্যবহারে প্রয়োজনীয় ভুল বোঝাবুঝি বা ভুল ব্যাখ্যার জন্য আমরা দায়বদ্ধ নই।
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->

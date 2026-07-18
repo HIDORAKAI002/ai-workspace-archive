@@ -30,6 +30,11 @@ describe("getModelInfo", () => {
     expect(getModelInfo("sora 2")).toEqual({ name: "Sora 2", provider: "OpenAI" });
     expect(getModelInfo("runway-gen4")).toEqual({ name: "Runway Gen-4", provider: "Runway" });
   });
+
+  it("returns correct info for MiniMax models", () => {
+    expect(getModelInfo("minimax-m3")).toEqual({ name: "MiniMax-M3", provider: "MiniMax" });
+    expect(getModelInfo("minimax-m2-7")).toEqual({ name: "MiniMax-M2.7", provider: "MiniMax" });
+  });
 });
 
 describe("isValidModelSlug", () => {
@@ -61,6 +66,7 @@ describe("getModelsByProvider", () => {
     expect(grouped).toHaveProperty("Anthropic");
     expect(grouped).toHaveProperty("Google");
     expect(grouped).toHaveProperty("xAI");
+    expect(grouped).toHaveProperty("MiniMax");
   });
 
   it("includes all OpenAI models under OpenAI provider", () => {

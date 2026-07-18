@@ -1,42 +1,42 @@
-# Maendeleo ya Huduma ya Wakala wa Azure AI
+# Maendeleo ya Huduma ya Wakala wa Microsoft Foundry
 
-Katika zoezi hili, unatumia zana za huduma ya Wakala wa Azure AI katika [mduka wa Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) kuunda wakala kwa ajili ya Kufunga Ndege. Wakala atakuwa na uwezo wa kuwasiliana na watumiaji na kutoa habari kuhusu ndege.
+Katika zoezi hili, unatumia zana za Huduma ya Wakala wa Microsoft Foundry katika [mlango wa Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) kuunda wakala wa Uhifadhi wa Ndege. Wakala atakuwa na uwezo wa kuwasiliana na watumiaji na kutoa habari kuhusu ndege.
 
-## Mahitaji ya Awali
+## Masharti ya awali
 
-Kuimaliza zoezi hili, unahitaji yafuatayo:
-1. Akaunti ya Azure yenye usajili hai. [Unda akaunti bure](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst).
-2. Unahitaji ruhusa za kuunda kitovu cha Microsoft Foundry au kuwa nacho kimeundwa kwa ajili yako.
-    - Ikiwa kazi yako ni Mchangiaji au Miliki, unaweza kufuata hatua katika mafunzo haya.
+Ili kumaliza zoezi hili, unahitaji yafuatayo:
+1. Akaunti ya Azure yenye usajili hai. [Tengeneza akaunti bure](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst).
+2. Unahitaji ruhusa za kuunda kituo cha Microsoft Foundry au kuwa nacho kimeundwa kwako.
+    - Ikiwa jukumu lako ni Mchangiaji au Mwenyeji, unaweza kufuata hatua katika mafunzo haya.
 
-## Unda kitovu cha Microsoft Foundry
+## Unda kituo cha Microsoft Foundry
 
-> **Kumbuka:** Microsoft Foundry hapo awali ilijulikana kama Azure AI Studio.
+> **Note:** Microsoft Foundry hapo awali ilijulikana kama Azure AI Studio.
 
-1. Fuata miongozo hii kutoka kwa chapisho la blogu la [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) kwa ajili ya kuunda kitovu cha Microsoft Foundry.
-2. Unapounda mradi wako, funga vidokezo vyovyote vinavyoonyeshwa na angalia ukurasa wa mradi katika mduka wa Microsoft Foundry, ambao unapaswa kuonekana kama picha ifuatayo:
+1. Fuata mwongozo huu kutoka kwenye chapisho la blogi la [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) kuunda kituo cha Microsoft Foundry.
+2. Unapounda mradi wako, funga vidokezo vyote vinavyoonyeshwa na kisha kupitia ukurasa wa mradi kwenye mlango wa Microsoft Foundry, ambao unapaswa kuonekana kama picha ifuatayo:
 
     ![Microsoft Foundry Project](../../../translated_images/sw/azure-ai-foundry.88d0c35298348c2f.webp)
 
-## Weka mfano
+## Sambaza mfano
 
-1. Katika sehemu ya kushoto ya mradi wako, kwenye sehemu ya **Mali Zangu**, chagua ukurasa wa **Modeli + vituo vya mwisho**.
-2. Katika ukurasa wa **Modeli + vituo vya mwisho**, kwenye kichupo cha **Uwekaji wa modeli**, kwenye menyu ya **+ Weka mfano**, chagua **Weka mfano msingi**.
-3. Tafuta mfano wa `gpt-4o-mini` kwenye orodha, kisha uchague na uthibitishe.
+1. Kwenye sehemu ya kushoto ya mradi wako, kwenye sehemu ya **Mali Zangu**, chagua ukurasa wa **Mifano + vituo**.
+2. Kwenye ukurasa wa **Mifano + vituo**, kwenye kichupo cha **Usambazaji wa mfano**, kwenye menyu ya **+ Sambaza mfano**, chagua **Sambaza mfano wa msingi**.
+3. Tafuta mfano wa `gpt-4.1-mini` kwenye orodha, kisha uchague na uthibitishe.
 
-    > **Kumbuka**: Kupunguza TPM kunasaidia kuepuka kutumia kwa wingi kategoria inayopatikana katika usajili unaotumia.
+    > **Note**: Kupunguza TPM husaidia kuepuka matumizi makubwa ya idhini inayopatikana katika usajili unaotumia.
 
     ![Model Deployed](../../../translated_images/sw/model-deployment.3749c53fb81e18fd.webp)
 
 ## Unda wakala
 
-Sasa baada ya kuweka mfano, unaweza kuunda wakala. Wakala ni mfano wa AI wa mazungumzo unaoweza kutumika kuwasiliana na watumiaji.
+Sasa kwamba umeeneza mfano, unaweza kuunda wakala. Wakala ni mfano wa AI wa mazungumzo unaoweza kutumika kuwasiliana na watumiaji.
 
-1. Katika sehemu ya kushoto ya mradi wako, katika sehemu ya **Jenga & Badilisha**, chagua ukurasa wa **Wakala**.
-2. Bofya **+ Unda wakala** kuunda wakala mpya. Chini ya kisanduku cha mazungumzo cha **Mipangilio ya Wakala**:
+1. Kwenye sehemu ya kushoto ya mradi wako, kwenye sehemu ya **Jenga & Binafsisha**, chagua ukurasa wa **Wakala**.
+2. Bonyeza **+ Unda wakala** kuunda wakala mpya. Chini ya kisanduku cha mazungumzo cha **Mipangilio ya Wakala**:
     - Ingiza jina la wakala, kama `FlightAgent`.
-    - Hakikisha uwekaji wa mfano wa `gpt-4o-mini` uliouunda hapo awali umechaguliwa
-    - Weka **Maelekezo** kama vile maelekezo unayotaka wakala afuate. Hapa ni mfano:
+    - Hakikisha kwamba usambazaji wa mfano `gpt-4.1-mini` uliouunda awali umechaguliwa
+    - Weka **Maelekezo** kulingana na ombi unalotaka wakala afuate. Hapa kuna mfano:
     ```
     You are FlightAgent, a virtual assistant specialized in handling flight-related queries. Your role includes assisting users with searching for flights, retrieving flight details, checking seat availability, and providing real-time flight status. Follow the instructions below to ensure clarity and effectiveness in your responses:
 
@@ -64,46 +64,46 @@ Sasa baada ya kuweka mfano, unaweza kuunda wakala. Wakala ni mfano wa AI wa mazu
     
     ```
 > [!NOTE]
-> Kwa maelekezo ya kina, unaweza kutembelea [hifadhidata hii](https://github.com/ShivamGoyal03/RoamMind) kwa habari zaidi.
+> Kwa maelekezo ya kina, unaweza kuangalia [hazina hii](https://github.com/ShivamGoyal03/RoamMind) kwa habari zaidi.
     
-> Zaidi ya hayo, unaweza kuongeza **Msingi wa Maarifa** na **Vitendo** kuboresha uwezo wa wakala kutoa taarifa zaidi na kutekeleza majukumu ya moja kwa moja kulingana na maombi ya mtumiaji. Kwa zoezi hili, unaweza kupiga hatua hizi.
+> Zaidi ya hayo, unaweza kuongeza **Msingi wa Maarifa** na **Vitendo** ili kuongeza uwezo wa wakala kutoa habari zaidi na kutekeleza kazi za kiotomatiki kulingana na maombi ya mtumiaji. Kwa zoezi hili, unaweza kuruka hatua hizi.
     
 ![Agent Setup](../../../translated_images/sw/agent-setup.9bbb8755bf5df672.webp)
 
-3. Kuunda wakala mpya wa multi-AI, bonyeza tu **Wakala Mpya**. Wakala aliyeundwa utaonyeshwa kwenye ukurasa wa Wakala.
+3. Kuunda wakala mpya anayeendeshwa na AI nyingi, bonyeza tu **Wakala Mpya**. Wakala aliyeundwa sasa utaonyeshwa kwenye ukurasa wa Wakala.
 
 
 ## Jaribu wakala
 
-Baada ya kuunda wakala, unaweza kuujaribu kuona jinsi unavyotumia maombi ya mtumiaji katika uwanja wa majaribio wa mduka wa Microsoft Foundry.
+Baada ya kuunda wakala, unaweza kuutest kwa kuona jinsi unavyojibu maswali ya watumiaji katika uwanja wa majaribio wa mlango wa Microsoft Foundry.
 
-1. Juu ya sehemu ya **Mpangilio** ya wakala wako, chagua **Jaribu katika uwanja wa majaribio**.
-2. Katika sehemu ya **Uwanja wa Majaribio**, unaweza kuwasiliana na wakala kwa kuandika maswali katika dirisha la mazungumzo. Kwa mfano, unaweza kumuuliza wakala atafute ndege kutoka Seattle kwenda New York tarehe 28.
+1. Juu ya sehemu ya **Mipangilio** kwa wakala wako, chagua **Jaribu kwenye uwanja wa majaribio**.
+2. Kwenye sehemu ya **Uwanja wa majaribio**, unaweza kuwasiliana na wakala kwa kuandika maswali kwenye dirisha la gumzo. Kwa mfano, unaweza kumuuliza wakala aitafutie ndege kutoka Seattle kwenda New York tarehe 28.
 
-    > **Kumbuka**: Wakala huenda asingetoa majibu sahihi, kwa kuwa hakuna data ya wakati halisi inayotumika katika zoezi hili. Lengo ni kujaribu uwezo wa wakala kuelewa na kujibu maswali ya watumiaji kulingana na maelekezo yaliyotolewa.
+    > **Note**: Wakala huenda asitoe majibu sahihi, kwani hakuna data za wakati halisi zinazotumika katika zoezi hili. Kusudi ni kujaribu uwezo wa wakala kuelewa na kujibu maswali ya watumiaji kulingana na maelekezo yaliyotolewa.
 
     ![Agent Playground](../../../translated_images/sw/agent-playground.dc146586de715010.webp)
 
-3. Baada ya kujaribu wakala, unaweza kuuboresha zaidi kwa kuongeza madhumuni zaidi, data za mafunzo, na vitendo kuongeza uwezo wake.
+3. Baada ya kujaribu wakala, unaweza kuubinafsisha zaidi kwa kuongeza nia zaidi, data za mafunzo, na vitendo ili kuongeza uwezo wake.
 
 ## Safisha rasilimali
 
-Mara baada ya kumaliza kujaribu wakala, unaweza kuifuta ili kuepuka gharama za ziada.
-1. Fungua [mduka wa Azure](https://portal.azure.com) na angalia maudhui ya kundi la rasilimali ambapo uliweka vituo vya hub ulivyotumia katika zoezi hili.
-2. Kwenye zana ya kazi, chagua **Futa kundi la rasilimali**.
-3. Ingiza jina la kundi la rasilimali na uthibitishe kwamba unataka kulifuta.
+Unapomaliza kujaribu wakala, unaweza kuufuta ili kuepuka gharama za ziada.
+1. Fungua [mlango wa Azure](https://portal.azure.com) na tazama maudhui ya kundi la rasilimali ambako umeeneza rasilimali za kituo kilichotumika katika zoezi hili.
+2. Kwenye kikasha cha zana, chagua **Futa kundi la rasilimali**.
+3. Andika jina la kundi la rasilimali na thibitisha kwamba unataka kulifuta.
 
 ## Rasilimali
 
 - [Nyaraka za Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst)
-- [Mduka wa Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst)
-- [Kuanzia na Azure AI Studio](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
-- [Misingi ya wakala wa AI kwenye Azure](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
+- [Mlango wa Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst)
+- [Anza na Microsoft Foundry](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
+- [Misingi ya waki wa AI kwenye Azure](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
 - [Azure AI Discord](https://aka.ms/AzureAI/Discord)
 
 ---
 
 <!-- CO-OP TRANSLATOR DISCLAIMER START -->
-**Kengele ya Kuanzisha**:
-Hati hii imetafsiriwa kwa kutumia huduma ya kutafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kupata usahihi, tafadhali fahamu kwamba tafsiri za otomatiki zinaweza kuwa na makosa au upotoshaji. Hati asili katika lugha yake ya asili inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatuna dhamana kwa kutoelewana au tafsiri potofu zinazotokana na matumizi ya tafsiri hii.
+**Kionyozo**:
+Hati hii imetafsiriwa kwa kutumia huduma ya tafsiri ya AI [Co-op Translator](https://github.com/Azure/co-op-translator). Ingawa tunajitahidi kupata usahihi, tafadhali fahamu kwamba tafsiri za kiotomatiki zinaweza kuwa na makosa au upungufu wa usahihi. Hati ya asili katika lugha yake halisi inapaswa kuchukuliwa kama chanzo cha mamlaka. Kwa taarifa muhimu, tafsiri ya kitaalamu inayofanywa na binadamu inapendekezwa. Hatutojibu kwa kuelewa vibaya au tafsiri potofu zinazotokea kutokana na matumizi ya tafsiri hii.
 <!-- CO-OP TRANSLATOR DISCLAIMER END -->

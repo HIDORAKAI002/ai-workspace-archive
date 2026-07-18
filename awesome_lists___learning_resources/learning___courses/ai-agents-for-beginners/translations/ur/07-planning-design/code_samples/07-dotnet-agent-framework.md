@@ -1,39 +1,42 @@
-# 🎯 منصوبہ بندی اور ڈیزائن پیٹرنز GitHub ماڈلز (.NET) کے ساتھ
+# 🎯 ایزور اوپن اے آئی (Responses API) کے ساتھ منصوبہ بندی اور ڈیزائن پیٹرنز (.NET)
 
 ## 📋 سیکھنے کے مقاصد
 
-یہ نوٹ بک Microsoft Agent Framework کا استعمال کرتے ہوئے .NET میں ذہین ایجنٹس بنانے کے لیے انٹرپرائز گریڈ منصوبہ بندی اور ڈیزائن پیٹرنز کو ظاہر کرتی ہے۔ آپ سیکھیں گے کہ ایجنٹس کیسے بنائیں جو پیچیدہ مسائل کو توڑ سکیں، کثیر مرحلہ حل کی منصوبہ بندی کر سکیں، اور .NET کی انٹرپرائز خصوصیات کے ساتھ پیچیدہ ورک فلو کو انجام دے سکیں۔
+یہ نوٹ بک مائیکروسافٹ ایجنٹ فریم ورک کے ذریعے .NET میں Azure OpenAI (Responses API) استعمال کرتے ہوئے ذہین ایجنٹس بنانے کے لیے انٹرپرائز گریڈ منصوبہ بندی اور ڈیزائن پیٹرنز دکھاتی ہے۔ آپ ایسے ایجنٹس بنانے سیکھیں گے جو پیچیدہ مسائل کو توڑ سکیں، کثیر النوع حل کی منصوبہ بندی کر سکیں، اور .NET کی کاروباری خصوصیات کے ساتھ پیچیدہ ورک فلو انجام دے سکیں۔
 
-## ⚙️ ضروریات اور سیٹ اپ
+## ⚙️ ضروریات اور ترتیب
 
 **ترقیاتی ماحول:**
-- .NET 9.0 SDK یا اس سے زیادہ
-- Visual Studio 2022 یا VS Code C# ایکسٹینشن کے ساتھ
-- GitHub Models API تک رسائی
+- .NET 9.0 SDK یا اس سے اعلیٰ
+- Visual Studio 2022 یا VS Code میں C# ایکسٹینشن کے ساتھ
+- Azure سبسکرپشن جس کے پاس Azure OpenAI ریسورس اور ماڈل ڈپلائمنٹ ہو
+- Azure CLI — `az login` کے ذریعے سائن ان کریں
 
-**ضروری ڈپینڈنسز:**
+**ضروری انحصار:**
 ```xml
-<PackageReference Include="Microsoft.Extensions.AI" Version="9.9.0" />
-<PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="9.9.0-preview.1.25458.4" />
+<PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
+<PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
+<PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.*-*" />
+<PackageReference Include="Azure.AI.OpenAI" Version="2.1.0" />
+<PackageReference Include="Azure.Identity" Version="1.13.1" />
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
-**ماحولیاتی کنفیگریشن (.env فائل):**
+**ماحول کی ترتیب (.env فائل):**
 ```env
-GITHUB_TOKEN=your_github_personal_access_token
-GITHUB_ENDPOINT=https://models.inference.ai.azure.com
-GITHUB_MODEL_ID=gpt-4o-mini
+AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
+AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
 ```
 
 ## کوڈ چلانا
 
-یہ سبق .NET سنگل فائل ایپ کا نفاذ شامل کرتا ہے۔ اسے چلانے کے لیے:
+یہ سبق .NET سنگل فائل ایپ کی عمل درآمد شامل کرتا ہے۔ اسے چلانے کے لیے:
 
 ```bash
-# Make the file executable (Linux/macOS)
+# فائل کو قابل اجرا بنائیں (لینکس/میك او ایس)
 chmod +x 07-dotnet-agent-framework.cs
 
-# Run the application
+# ایپلیکیشن چلائیں
 ./07-dotnet-agent-framework.cs
 ```
 
@@ -43,21 +46,21 @@ chmod +x 07-dotnet-agent-framework.cs
 dotnet run 07-dotnet-agent-framework.cs
 ```
 
-## کوڈ کا نفاذ
+## کوڈ کی عمل درآمد
 
-مکمل نفاذ `07-dotnet-agent-framework.cs` میں دستیاب ہے، جو درج ذیل کو ظاہر کرتا ہے:
+مکمل عمل درآمد `07-dotnet-agent-framework.cs` میں دستیاب ہے، جو درج ذیل دکھاتا ہے:
 
-- DotNetEnv کے ساتھ ماحولیاتی کنفیگریشن لوڈ کرنا
-- GitHub Models کے لیے OpenAI کلائنٹ کو ترتیب دینا
-- JSON سیریلائزیشن کے ساتھ منظم ڈیٹا ماڈلز (Plan اور TravelPlan) کی وضاحت کرنا
-- JSON اسکیمہ کا استعمال کرتے ہوئے منظم آؤٹ پٹ کے ساتھ AI ایجنٹ بنانا
-- ٹائپ سیف جوابات کے ساتھ منصوبہ بندی کی درخواستوں کو انجام دینا
+- DotNetEnv کے ساتھ ماحول کی ترتیب لوڈ کرنا
+- Azure OpenAI کلائنٹ کو ترتیب دینا اور `GetChatClient().AsAIAgent()` کے ذریعے AI ایجنٹ بنانا
+- ساختہ ڈیٹا ماڈلز (Plan اور TravelPlan) کی تعریف JSON سیریلائزیشن کے ساتھ
+- JSON اسکیمہ کے ذریعے ساختہ آؤٹ پٹ کے ساتھ AI ایجنٹ بنانا
+- قسم محفوظ جوابات کے ساتھ منصوبہ بندی کی درخواستیں انجام دینا
 
 ## اہم تصورات
 
-### ٹائپ سیف ماڈلز کے ساتھ منظم منصوبہ بندی
+### قسم محفوظ ماڈلز کے ساتھ ساختہ منصوبہ بندی
 
-ایجنٹ منصوبہ بندی کے آؤٹ پٹس کی ساخت کی وضاحت کے لیے C# کلاسز استعمال کرتا ہے:
+ایجنٹ منصوبہ بندی کے آؤٹ پٹ کی ساخت C# کلاسز کے ذریعے بیان کرتا ہے:
 
 ```csharp
 public class Plan
@@ -79,13 +82,15 @@ public class TravelPlan
 }
 ```
 
-### منظم آؤٹ پٹس کے لیے JSON اسکیمہ
+### ساختہ آؤٹ پٹس کے لیے JSON اسکیمہ
 
-ایجنٹ کو TravelPlan اسکیمہ سے مطابقت رکھنے والے جوابات واپس کرنے کے لیے ترتیب دیا گیا ہے:
+ایجنٹ کو ایسی جوابات واپس کرنے کے لیے ترتیب دیا گیا ہے جو TravelPlan اسکیمہ سے میل کھاتے ہیں:
 
 ```csharp
-ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_INSTRUCTIONS)
+ChatClientAgentOptions agentOptions = new()
 {
+    Name = AGENT_NAME,
+    Description = AGENT_INSTRUCTIONS,
     ChatOptions = new()
     {
         ResponseFormat = ChatResponseFormatJson.ForJsonSchema(
@@ -96,22 +101,24 @@ ChatClientAgentOptions agentOptions = new(name: AGENT_NAME, instructions: AGENT_
 };
 ```
 
-### منصوبہ بندی ایجنٹ کی ہدایات
+### منصوبہ بندی کے ایجنٹ کی ہدایات
 
-ایجنٹ کوآرڈینیٹر کے طور پر کام کرتا ہے، خصوصی سب ایجنٹس کو کام تفویض کرتا ہے:
+ایجنٹ ایک رابطہ کار کے طور پر کام کرتا ہے، خصوصی ذیلی ایجنٹس کو کام تفویض کرتا ہے:
 
 - FlightBooking: پروازیں بک کرنے اور پرواز کی معلومات فراہم کرنے کے لیے
-- HotelBooking: ہوٹل بک کرنے اور ہوٹل کی معلومات فراہم کرنے کے لیے
-- CarRental: گاڑیاں بک کرنے اور کار کرائے کی معلومات فراہم کرنے کے لیے
+- HotelBooking: ہوٹلز بک کرنے اور ہوٹل کی معلومات فراہم کرنے کے لیے
+- CarRental: گاڑیاں کرائے پر دینے اور کرایہ پر گاڑی کی معلومات فراہم کرنے کے لیے
 - ActivitiesBooking: سرگرمیاں بک کرنے اور سرگرمی کی معلومات فراہم کرنے کے لیے
 - DestinationInfo: مقامات کے بارے میں معلومات فراہم کرنے کے لیے
 - DefaultAgent: عمومی درخواستوں کو سنبھالنے کے لیے
 
-## متوقع آؤٹ پٹ
+## متوقع نتیجہ
 
-جب آپ ایجنٹ کو سفر کی منصوبہ بندی کی درخواست کے ساتھ چلائیں گے، تو یہ درخواست کا تجزیہ کرے گا اور ایک منظم منصوبہ تیار کرے گا جس میں خصوصی ایجنٹس کو مناسب کام تفویض کیے جائیں گے، جو TravelPlan اسکیمہ کے مطابق JSON میں فارمیٹ کیا جائے گا۔
+جب آپ ایجنٹ کو ایک سفر کی منصوبہ بندی کی درخواست کے ساتھ چلائیں گے، تو یہ درخواست کا تجزیہ کرے گا اور خاص ایجنٹس کو موزوں کام تفویض کے ساتھ ایک ساختہ منصوبہ تیار کرے گا، جو JSON کی شکل میں TravelPlan اسکیمہ کے مطابق ہوگا۔
 
 ---
 
-**ڈسکلیمر**:  
-یہ دستاویز AI ترجمہ سروس [Co-op Translator](https://github.com/Azure/co-op-translator) کا استعمال کرتے ہوئے ترجمہ کی گئی ہے۔ ہم درستگی کے لیے کوشش کرتے ہیں، لیکن براہ کرم آگاہ رہیں کہ خودکار ترجمے میں غلطیاں یا غیر درستیاں ہو سکتی ہیں۔ اصل دستاویز کو اس کی اصل زبان میں مستند ذریعہ سمجھا جانا چاہیے۔ اہم معلومات کے لیے، پیشہ ور انسانی ترجمہ کی سفارش کی جاتی ہے۔ ہم اس ترجمے کے استعمال سے پیدا ہونے والی کسی بھی غلط فہمی یا غلط تشریح کے ذمہ دار نہیں ہیں۔
+<!-- CO-OP TRANSLATOR DISCLAIMER START -->
+**ڈس کلیمر**:
+یہ دستاویز AI ترجمہ سروس [Co-op Translator](https://github.com/Azure/co-op-translator) کے ذریعے ترجمہ کی گئی ہے۔ جبکہ ہم درستگی کے لیے کوشاں ہیں، براہ کرم اس بات سے آگاہ رہیں کہ خودکار ترجمے میں غلطیاں یا عدم درستیاں ہو سکتی ہیں۔ اصل دستاویز اپنے مادری زبان میں مستند ماخذ سمجھی جائے گی۔ حساس معلومات کے لیے پیشہ ور انسانی ترجمہ کی سفارش کی جاتی ہے۔ اس ترجمے کے استعمال سے پیدا ہونے والی کسی بھی غلط فہمی یا غلط تشریح کی ذمہ داری ہم قبول نہیں کرتے۔
+<!-- CO-OP TRANSLATOR DISCLAIMER END -->
