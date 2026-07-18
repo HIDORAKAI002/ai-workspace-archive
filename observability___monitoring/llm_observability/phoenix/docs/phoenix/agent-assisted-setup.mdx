@@ -1,63 +1,39 @@
 ---
 title: "Agent-Assisted Setup"
 description: >-
-  Connect your app to Phoenix and get traces flowing with a single command —
-  `px setup` hands the instrumentation to your coding agent and waits until a
-  real trace arrives.
+  Add Phoenix tracing to your app with a single command — `px setup` hands the
+  instrumentation to your coding agent and waits until a real trace arrives.
 ---
 
 # Agent-Assisted Setup
 
-The fastest way to add Phoenix tracing to your application. Run one command from your app's root and Phoenix walks you through connecting, hands the instrumentation to your coding agent, and confirms a real trace arrived.
+The fastest way to add Phoenix tracing to your application. One command connects your app to Phoenix, hands the instrumentation to your coding agent, and confirms a real trace arrived — so "done" means traces are actually flowing.
 
 <Tip>
-**Get started — run this from your app's root directory:**
+**Run this from your app's root directory:**
 ```bash
 npx -y @arizeai/phoenix-cli setup
 ```
-Already have the CLI installed (`npm install -g @arizeai/phoenix-cli`)? Just run `px setup`.
+Already installed the CLI (`npm install -g @arizeai/phoenix-cli`)? Just run `px setup`.
 </Tip>
 
-## What `px setup` does
-
-`px setup` runs an interactive flow:
-
-1. **Checks git safety** — warns on a dirty tree so agent edits stay separate from your own work.
-2. **Establishes the connection** — asks where your Phoenix instance is running, handles auth, and writes a gitignored `.env.phoenix` file.
-3. **Hands off instrumentation** — passes an instrumentation task to a coding agent (Claude Code, Codex, Cursor, or OpenCode), which detects your language, LLM providers, and frameworks, then adds tracing.
-4. **Verifies traces** — waits until the Phoenix API confirms a real trace arrived, so "done" means traces are actually flowing.
-5. **Sets up tooling** — optionally points `px` at the new project and installs Phoenix [skills](/docs/phoenix/integrations/developer-tools/coding-agents#skills) so your agent can query what you captured.
-
 <Info>
-**Supported stacks:** Python, TypeScript/JavaScript, and Java — covering 30+ LLM providers, frameworks, and platforms. See the [full integration list](/docs/phoenix/integrations).
+**Supported stacks:** Python and TypeScript/JavaScript. See the [full integration list](/docs/phoenix/integrations) for the LLM providers and frameworks Phoenix instruments.
 </Info>
 
-## Re-run individual steps
+## What happens when you run it
 
-The connection questions only need answering once. Re-run a single slice on a repo that's already registered:
+`px setup` walks you through an interactive flow with five steps:
 
-```bash
-px setup instrument   # Instrument and verify traces again (any supported agent)
-px setup skills        # Install the coding-agent skills alone
-```
+1. **Checks git safety.** Warns on a dirty tree so agent edits stay separate from your own work.
+2. **Establishes the connection.** Asks where your Phoenix instance is running, handles auth, and writes a gitignored `.env.phoenix` file.
+3. **Hands off instrumentation.** Passes an instrumentation task to a coding agent (Claude Code, Codex, Cursor, or OpenCode), which detects your language, LLM providers, and frameworks, then adds tracing.
+4. **Verifies traces.** Waits until the Phoenix API confirms a real trace arrived.
+5. **Sets up tooling.** Optionally points `px` at the new project and installs Phoenix [skills](/docs/phoenix/integrations/developer-tools/coding-agents#skills) so your agent can query what you captured.
 
-## Non-interactive use (CI or agents)
+## Confirm traces are flowing
 
-Pass flags instead of answering prompts:
-
-```bash
-# Connection only — write .env.phoenix, no source changes
-px setup --no-input --endpoint http://localhost:6006 --project my-app
-
-# Instrument too — requires --agent when there's no TTY to choose one
-px setup --no-input --instrument --agent claude --yolo --format raw
-```
-
-See the [CLI reference](/docs/phoenix/sdk-api-reference/typescript/arizeai-phoenix-cli#px-setup) for the full list of flags.
-
-## Validate your setup
-
-`px setup` verifies traces automatically. To confirm manually:
+`px setup` verifies traces automatically. To check for yourself:
 
 1. Run your application and trigger at least one LLM call.
 2. Open the Phoenix UI (local: http://localhost:6006, or your Phoenix Cloud URL).
@@ -65,16 +41,35 @@ See the [CLI reference](/docs/phoenix/sdk-api-reference/typescript/arizeai-phoen
 
 If no traces appear, check the [Troubleshooting FAQ](/docs/phoenix/tracing/concepts-tracing/faqs-tracing).
 
-## Alternatives
+## Re-run a single step
 
-<CardGroup cols={2}>
-  <Card title="Paste a prompt instead" icon="clipboard">
-    No CLI? Paste this into any coding agent:
-    ```text
-    Follow the instructions from https://raw.githubusercontent.com/Arize-ai/phoenix/main/docs/PROMPT.md and ask me questions as needed.
-    ```
-  </Card>
-  <Card title="Coding Agents guide" icon="robot" href="/docs/phoenix/integrations/developer-tools/coding-agents">
-    CLI, MCP, and skills for ongoing agent workflows beyond initial setup.
-  </Card>
-</CardGroup>
+The connection questions only need answering once. On a repo that's already registered, re-run just the slice you need:
+
+```bash
+px setup instrument   # Instrument and verify traces again
+px setup skills       # Install the coding-agent skills alone
+```
+
+## Run non-interactively (CI or agents)
+
+Pass flags instead of answering prompts:
+
+```bash
+# Connection only. Writes .env.phoenix, no source changes.
+px setup --no-input --endpoint http://localhost:6006 --project my-app
+
+# Instrument too. Requires --agent when there's no TTY to choose one.
+px setup --no-input --instrument --agent claude --yolo --format raw
+```
+
+See the [CLI reference](/docs/phoenix/sdk-api-reference/typescript/arizeai-phoenix-cli#px-setup) for the full list of flags.
+
+## Use an unsupported agent
+
+`px setup` hands off to Claude Code, Codex, Cursor, and OpenCode. If your agent isn't one of those (Windsurf, Copilot, and others), paste this prompt into it instead:
+
+```text
+Follow the instructions from https://raw.githubusercontent.com/Arize-ai/phoenix/main/docs/PROMPT.md and ask me questions as needed.
+```
+
+For ongoing agent workflows beyond initial setup (CLI, MCP, and skills), see the [Coding Agents](/docs/phoenix/integrations/developer-tools/coding-agents) guide.
