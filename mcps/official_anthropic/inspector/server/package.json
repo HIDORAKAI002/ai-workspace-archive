@@ -1,6 +1,6 @@
 {
   "name": "@modelcontextprotocol/inspector-server",
-  "version": "0.22.0",
+  "version": "1.0.0",
   "description": "Server-side application for the Model Context Protocol inspector",
   "license": "SEE LICENSE IN LICENSE",
   "author": "Model Context Protocol a Series of LF Projects, LLC.",
@@ -38,7 +38,7 @@
     "@modelcontextprotocol/sdk": "^1.25.2",
     "cors": "^2.8.5",
     "express": "^5.1.0",
-    "shell-quote": "^1.8.3",
+    "shell-quote": "^1.8.4",
     "shx": "^0.3.4",
     "spawn-rx": "^5.1.2",
     "ws": "^8.18.0",
