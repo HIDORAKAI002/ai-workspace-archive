@@ -138,20 +138,6 @@ export class RoutingRunStore implements RunStore {
     return this.#routeOrNew(runId).runInTransaction(runId, fn);
   }
 
-  // A waitpoint WRITE co-locates with its run by id-shape (cuid → LEGACY, run-ops id → NEW,
-  // unclassifiable → LEGACY), mirroring how `blockRunWithWaitpointEdges` routes the edge by
-  // run id. The caller's `tx` is never forwarded: a routed write must run on the OWNING store's
-  // OWN client so the row lands in that store's database (same-store atomicity comes from the
-  // owning store opening its own transaction, never from a caller-supplied one).
-  #routeWaitpointWrite(
-    id: string | undefined,
-    _tx?: PrismaClientOrTransaction
-  ): { store: RunStore; tx?: PrismaClientOrTransaction } {
-    const store =
-      typeof id === "string" && this.#classifySafe(id) === "NEW" ? this.#new : this.#legacy;
-    return { store, tx: undefined };
-  }
-
   // Resolve which store ACTUALLY holds a waitpoint id: drain-on-read can relocate a cuid
   // waitpoint onto NEW while keeping its id, so probe the id-shape's home then the other.
   // `onPrimary` probes each store's own primary (read-your-writes callers; a fresh row may not
@@ -243,39 +229,16 @@ export class RoutingRunStore implements RunStore {
     const onPrimary = readYourWrites(argsOrClient, _client);
     const id = idFromWhere(where);
     if (id !== undefined) {
-      // Residency-classifiable (id/friendlyId): route to the owning store, then fall back to the
-      // OTHER store on a miss.
-      return this.#findRunRouted(id, where, args, onPrimary);
+      // Residency-classifiable (id/friendlyId): id-shape is destiny for a run's whole life — a run-ops
+      // id lives on NEW, a cuid on LEGACY — so read the one owning store (no cross-store fan-out).
+      const store = this.#routeOrNew(id);
+      const method = onPrimary ? "findRunOnPrimary" : "findRun";
+      return (store[method] as (...rest: unknown[]) => Promise<unknown>)(where, args);
     }
     // Unclassifiable where (e.g. spanId, idempotencyKey): the run may live on either DB,
     // so fan out NEW-first then LEGACY rather than defaulting to NEW — defaulting silently
     // misses legacy-resident runs (span detail, idempotency-dedup probe, etc.).
     return this.#findRunUnrouted(where, args, onPrimary);
-  }
-
-  // A classifiable id names its OWNING store by id-shape, but physical residency can diverge from
-  // classification (a pre-#4154 base62 run lives on #new yet classifies LEGACY). Read the owning
-  // store first — a hit is a SINGLE read (the fast path) — then, ONLY on a miss, probe the OTHER
-  // store before returning null, so a run whose residency ≠ its id-shape is found rather than 404'd.
-  // Both legs run the SAME index-covered TaskRun lookup; the fan-out cost is paid only on the (rare)
-  // miss. Mirrors #findRunUnrouted's shape but keyed on the classified owner.
-  async #findRunRouted(
-    id: string,
-    where: Prisma.TaskRunWhereInput,
-    args: unknown,
-    onPrimary: boolean
-  ): Promise<unknown> {
-    const method = onPrimary ? "findRunOnPrimary" : "findRun";
-    const owning = this.#routeOrNew(id);
-    const fromOwning = await (owning[method] as (...rest: unknown[]) => Promise<unknown>)(
-      where,
-      args
-    );
-    if (fromOwning != null) {
-      return fromOwning;
-    }
-    const other = owning === this.#new ? this.#legacy : this.#new;
-    return (other[method] as (...rest: unknown[]) => Promise<unknown>)(where, args);
   }
 
   async #findRunUnrouted(
@@ -1187,7 +1150,7 @@ export class RoutingRunStore implements RunStore {
       opts?.residency,
       RoutingRunStore.#waitpointId(data)
     );
-    // Never forward the caller's tx into a routed write (matches #routeWaitpointWrite).
+    // Never forward the caller's tx into a routed write (it runs on the owning store's own client).
     return store.createWaitpoint(args, undefined);
   }
 
@@ -1244,6 +1207,11 @@ export class RoutingRunStore implements RunStore {
       args as Record<string, unknown>
     );
     const id = RoutingRunStore.#waitpointId((args as { where?: unknown }).where);
+    // A colocated lookup (no id, resolved via `coLocateWithRunId`) is the (env,idempotencyKey) dedup
+    // probe of createDateTimeWaitpoint/createManualWaitpoint: read-your-writes within the owning
+    // run/tree. On a retry it must observe attempt 1's just-written waitpoint to short-circuit, so it
+    // reads the owning store's PRIMARY — the replica can lag and miss it, re-arming/re-blocking the run.
+    const coLocatedDedup = id === undefined && opts?.coLocateWithRunId !== undefined;
     const store =
       id !== undefined
         ? await this.#resolveWaitpointStore(id, client !== undefined)
@@ -1254,7 +1222,7 @@ export class RoutingRunStore implements RunStore {
       store !== undefined
         ? ((await store.findWaitpoint(
             scalarArgs as typeof args,
-            RoutingRunStore.#ownPrimary(store, client)
+            coLocatedDedup ? store.primaryReadClient : RoutingRunStore.#ownPrimary(store, client)
           )) as Record<string, unknown> | null)
         : (((await this.#new.findWaitpoint(
             scalarArgs as typeof args,
@@ -1701,7 +1669,7 @@ export class RoutingRunStore implements RunStore {
   ): Promise<BatchTaskRun> {
     // Route by the batch's classifiable internal id: run-ops id→NEW, cuid→LEGACY. The caller's
     // `tx` is never forwarded — the create runs on the owning store's own client so the batch and
-    // its co-resident child runs/items land on the same DB. Mirrors #routeWaitpointWrite /
+    // its co-resident child runs/items land on the same DB. Mirrors the by-id waitpoint-write routing /
     // updateBatchTaskRun.
     const store = await this.#routeOrNewForWrite(data.id);
     return store.createBatchTaskRun(data, undefined);
@@ -1718,7 +1686,7 @@ export class RoutingRunStore implements RunStore {
     const id =
       typeof args.where.id === "string" ? args.where.id : (args.where.friendlyId ?? undefined);
     // The caller's `tx` is never forwarded — the update runs on the owning store's own client so
-    // it targets the DB the batch actually lives on. Mirrors #routeWaitpointWrite.
+    // it targets the DB the batch actually lives on. Mirrors the by-id waitpoint-write routing.
     const store = this.#routeOrNew(id);
     return store.updateBatchTaskRun(args, undefined);
   }
@@ -1880,7 +1848,7 @@ export class RoutingRunStore implements RunStore {
   // WaitpointTag — a standalone entity (no run/waitpoint FK) keyed by (environmentId, name).
   // ---------------------------------------------------------------------------
 
-  // Callers never mint a tag id (defaults to cuid), so #routeWaitpointWrite always resolves LEGACY
+  // Callers never mint a tag id (defaults to cuid), so a tag write always resolves LEGACY
   // today — deliberately single-homed, like standalone waitpoint tokens. If tag-id minting is ever made
   // residency-aware, findManyWaitpointTags must de-dupe by (environmentId, name) or names will duplicate.
   upsertWaitpointTag(
