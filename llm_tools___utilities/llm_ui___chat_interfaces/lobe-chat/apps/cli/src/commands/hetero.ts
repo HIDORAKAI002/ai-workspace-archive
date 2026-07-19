@@ -28,7 +28,7 @@ import { CoalescingBatchIngester } from '../utils/CoalescingBatchIngester';
 import { log } from '../utils/logger';
 import { TrpcIngestSink } from '../utils/TrpcIngestSink';
 
-const SUPPORTED_AGENT_TYPES = new Set(['amp', 'claude-code', 'codex']);
+const SUPPORTED_AGENT_TYPES = new Set(['amp', 'claude-code', 'codex', 'opencode']);
 const CODEX_REASONING_EFFORT_CONFIG_KEY = 'model_reasoning_effort';
 const CODEX_SERVICE_TIER_CONFIG_KEY = 'service_tier';
 
@@ -123,10 +123,12 @@ const buildExtraArgs = (
               : []),
             ...(options.speed ? ['-c', `${CODEX_SERVICE_TIER_CONFIG_KEY}="${options.speed}"`] : []),
           ]
-        : [
-            ...(options.model ? ['--model', options.model] : []),
-            ...(options.effort ? ['--effort', options.effort] : []),
-          ];
+        : options.type === 'claude-code'
+          ? [
+              ...(options.model ? ['--model', options.model] : []),
+              ...(options.effort ? ['--effort', options.effort] : []),
+            ]
+          : [...(options.model ? ['--model', options.model] : [])];
   const extraArgs = [...(options.agentArg ?? []), ...selectorArgs];
 
   return extraArgs.length > 0 ? extraArgs : undefined;
@@ -377,7 +379,7 @@ const exec = async (options: ExecOptions): Promise<void> => {
   // Build the ingest sink — no-op for standalone mode, real tRPC sink for
   // server-ingest mode.  The tRPC client reads LOBEHUB_JWT (operation-scoped
   // JWT injected by the server) for authentication.
-  const agentType = options.type as 'amp' | 'claude-code' | 'codex';
+  const agentType = options.type as 'amp' | 'claude-code' | 'codex' | 'opencode';
   let sink: TrpcIngestSink | undefined;
   let serverIngester: CoalescingBatchIngester | undefined;
   // Uploader for tool_result images (CC `Read` on an image file). Reuses the
@@ -534,6 +536,7 @@ const exec = async (options: ExecOptions): Promise<void> => {
    *
    * Returns:
    *   code / signal — child exit info
+   *   cancelled      — true when this CLI received SIGINT/SIGTERM for the run
    *   sessionId     — CC session id from `system.init` (undefined on resume failure)
    *   ingestError   — true when a batch could not be flushed after retries
    *   resumeNotFound — true when a resume-not-found error was intercepted
@@ -555,6 +558,7 @@ const exec = async (options: ExecOptions): Promise<void> => {
     interceptResumeErrors: boolean,
     runLabel: string,
   ): Promise<{
+    cancelled: boolean;
     code: number | null;
     ingestError: boolean;
     resumeNotFound: boolean;
@@ -618,32 +622,17 @@ const exec = async (options: ExecOptions): Promise<void> => {
     // Ctrl-C → SIGINT to the child's process group.
     // Repeated Ctrl-C escalates to SIGKILL.
     let interrupted = false;
-    const onSigint = async () => {
+    const onSigint = () => {
       if (interrupted) {
         handle.kill('SIGKILL');
         return;
       }
       interrupted = true;
       handle.kill('SIGINT');
-      if (serverIngester && sink) {
-        try {
-          await serverIngester.drain();
-          await sink.finish({ result: 'cancelled' });
-        } catch {
-          // best-effort; process is exiting anyway
-        }
-      }
     };
-    const onSigterm = async () => {
+    const onSigterm = () => {
+      interrupted = true;
       handle.kill('SIGTERM');
-      if (serverIngester && sink) {
-        try {
-          await serverIngester.drain();
-          await sink.finish({ result: 'cancelled' });
-        } catch {
-          // best-effort
-        }
-      }
     };
     process.on('SIGINT', onSigint);
     process.on('SIGTERM', onSigterm);
@@ -734,6 +723,7 @@ const exec = async (options: ExecOptions): Promise<void> => {
     }
 
     return {
+      cancelled: interrupted,
       code,
       ingestError,
       resumeNotFound,
@@ -792,7 +782,7 @@ const exec = async (options: ExecOptions): Promise<void> => {
   // fresh session.  The server's `heteroSessionId` is updated with the new id,
   // breaking the stale-session loop.
   let result = first;
-  if (first.resumeNotFound) {
+  if (!first.cancelled && first.resumeNotFound) {
     log.info('Resume failed (session not found or context overflow) — retrying without --resume');
     result = await runOneAgent(
       {
@@ -830,7 +820,10 @@ const exec = async (options: ExecOptions): Promise<void> => {
     // still exits 0, so the exit code alone would report `success`. Treat any
     // pushed terminal error as a failed run so the topic/task is marked failed.
     const exitedClean =
-      !result.ingestError && !result.sawTerminalError && (code === 0 || signal === 'SIGTERM');
+      !result.cancelled &&
+      !result.ingestError &&
+      !result.sawTerminalError &&
+      (code === 0 || signal === 'SIGTERM');
 
     // When the run failed, pass an error detail so the server surfaces a useful
     // message instead of the generic "Agent execution failed" fallback. Prefer
@@ -845,22 +838,23 @@ const exec = async (options: ExecOptions): Promise<void> => {
     // re-deriving from the flattened message via the process-only classifier,
     // which would drop `agentType`/`code` and demote the client UI to the
     // generic error card.
-    const finishError = exitedClean
-      ? undefined
-      : result.terminalErrorData
-        ? {
-            body: { ...result.terminalErrorData },
-            message: String(result.terminalErrorData.message ?? errorDetail ?? ''),
-            type: 'AgentRuntimeError',
-          }
-        : errorDetail
-          ? buildFinishError(errorDetail.slice(-1024), 'AgentRuntimeError')
-          : undefined;
+    const finishError =
+      result.cancelled || exitedClean
+        ? undefined
+        : result.terminalErrorData
+          ? {
+              body: { ...result.terminalErrorData },
+              message: String(result.terminalErrorData.message ?? errorDetail ?? ''),
+              type: 'AgentRuntimeError',
+            }
+          : errorDetail
+            ? buildFinishError(errorDetail.slice(-1024), 'AgentRuntimeError')
+            : undefined;
 
     try {
       await sink.finish({
         error: finishError,
-        result: exitedClean ? 'success' : 'error',
+        result: result.cancelled ? 'cancelled' : exitedClean ? 'success' : 'error',
         sessionId,
       });
     } catch (err) {
@@ -889,7 +883,7 @@ export function registerHeteroCommand(program: Command) {
   const hetero = program
     .command('hetero')
     .description(
-      'Run heterogeneous agent CLIs (Amp / Claude Code / Codex) and stream their output',
+      'Run heterogeneous agent CLIs (Amp / Claude Code / Codex / OpenCode) and stream their output',
     );
 
   hetero
@@ -923,7 +917,7 @@ export function registerHeteroCommand(program: Command) {
     )
     .option(
       '-c, --command <bin>',
-      'Override the agent CLI binary name (default: `amp`, `claude`, or `codex`)',
+      'Override the agent CLI binary name (default: `amp`, `claude`, `codex`, or `opencode`)',
     )
     .option(
       '--operation-id <id>',
