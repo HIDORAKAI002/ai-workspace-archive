@@ -68,6 +68,7 @@ from litellm.litellm_core_utils.request_timeout_resolver import (
 )
 from litellm.litellm_core_utils.core_helpers import (
     _get_parent_otel_span_from_kwargs,
+    coerce_token_limit,
     get_metadata_variable_name_from_kwargs,
 )
 from litellm.litellm_core_utils.coroutine_checker import coroutine_checker
@@ -8535,7 +8536,8 @@ class Router:
         Return (max_input_tokens, max_output_tokens) explicitly configured in a concrete
         deployment's model_info for model_name, via O(1) index lookup.
 
-        Returns (None, None) for wildcard-expanded or unknown names. Unlike
+        Returns (None, None) for wildcard-expanded or unknown names, and treats a
+        malformed configured value as absent rather than failing the listing. Unlike
         get_model_group_info, this never triggers pattern matching or deep copies, so it
         is safe to call per listed model on the /v1/models hot path.
         """
@@ -8544,11 +8546,9 @@ class Router:
             return (None, None)
 
         model_info = deployment.model_info
-        max_input = model_info.get("max_input_tokens")
-        max_output = model_info.get("max_output_tokens")
         return (
-            int(max_input) if max_input is not None else None,
-            int(max_output) if max_output is not None else None,
+            coerce_token_limit(model_info.get("max_input_tokens")),
+            coerce_token_limit(model_info.get("max_output_tokens")),
         )
 
     def get_deployment_credentials_with_provider(
