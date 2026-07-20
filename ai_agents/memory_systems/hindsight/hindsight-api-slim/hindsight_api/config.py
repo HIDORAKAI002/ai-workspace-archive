@@ -374,6 +374,7 @@ ENV_EMBEDDINGS_LITELLM_SDK_MODEL = "HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_MODEL"
 ENV_EMBEDDINGS_LITELLM_SDK_API_BASE = "HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_API_BASE"
 ENV_EMBEDDINGS_LITELLM_SDK_OUTPUT_DIMENSIONS = "HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_OUTPUT_DIMENSIONS"
 ENV_EMBEDDINGS_LITELLM_SDK_ENCODING_FORMAT = "HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_ENCODING_FORMAT"
+ENV_EMBEDDINGS_LITELLM_SDK_MAX_INPUT_TOKENS = "HINDSIGHT_API_EMBEDDINGS_LITELLM_SDK_MAX_INPUT_TOKENS"
 ENV_RERANKER_LITELLM_SDK_API_KEY = "HINDSIGHT_API_RERANKER_LITELLM_SDK_API_KEY"
 ENV_RERANKER_LITELLM_SDK_MODEL = "HINDSIGHT_API_RERANKER_LITELLM_SDK_MODEL"
 ENV_RERANKER_LITELLM_SDK_API_BASE = "HINDSIGHT_API_RERANKER_LITELLM_SDK_API_BASE"
@@ -620,6 +621,7 @@ ENV_RETAIN_MAX_CONCURRENT = "HINDSIGHT_API_RETAIN_MAX_CONCURRENT"
 
 # Reflect agent settings
 ENV_REFLECT_MAX_ITERATIONS = "HINDSIGHT_API_REFLECT_MAX_ITERATIONS"
+ENV_REFLECT_PROMPT_CACHE_ENABLED = "HINDSIGHT_API_REFLECT_PROMPT_CACHE_ENABLED"
 ENV_REFLECT_MAX_CONTEXT_TOKENS = "HINDSIGHT_API_REFLECT_MAX_CONTEXT_TOKENS"
 ENV_REFLECT_WALL_TIMEOUT = "HINDSIGHT_API_REFLECT_WALL_TIMEOUT"
 ENV_REFLECT_MISSION = "HINDSIGHT_API_REFLECT_MISSION"
@@ -919,6 +921,10 @@ DEFAULT_RERANKER_LITELLM_MAX_TOKENS_PER_DOC: int | None = None
 # LiteLLM SDK defaults
 DEFAULT_EMBEDDINGS_LITELLM_SDK_MODEL = "cohere/embed-english-v3.0"
 DEFAULT_EMBEDDINGS_LITELLM_SDK_ENCODING_FORMAT = "float"
+# Opt-in per-text input truncation (tiktoken cl100k_base tokens). Off by default;
+# set to the embedding model's real input limit (e.g. 8192 for Bedrock Titan V2)
+# to keep oversized content from permanently failing the embed call. See #2501.
+DEFAULT_EMBEDDINGS_LITELLM_SDK_MAX_INPUT_TOKENS: int | None = None
 DEFAULT_RERANKER_LITELLM_SDK_MODEL = "cohere/rerank-english-v3.0"
 
 DEFAULT_HOST = "0.0.0.0"
@@ -1068,6 +1074,10 @@ DEFAULT_RETAIN_MAX_CONCURRENT = 4  # Max concurrent retain DB phases (HNSW reads
 
 # Reflect agent settings
 DEFAULT_REFLECT_MAX_ITERATIONS = 10  # Max tool call iterations before forcing response
+# Step-by-step context caching for the reflect tool loop (Gemini). On by default;
+# requires the global prompt cache (HINDSIGHT_API_LLM_PROMPT_CACHE_ENABLED) to also
+# be on. Set false to force reflect to run uncached even when prompt caching is on.
+DEFAULT_REFLECT_PROMPT_CACHE_ENABLED = True
 DEFAULT_REFLECT_MAX_CONTEXT_TOKENS = 100_000  # Max accumulated context tokens before forcing final prompt
 DEFAULT_REFLECT_WALL_TIMEOUT = 300  # Wall-clock timeout in seconds for the entire reflect operation (5 minutes)
 DEFAULT_REFLECT_SOURCE_FACTS_MAX_TOKENS = -1  # Token budget for source facts in search_observations (-1 = disabled)
@@ -1720,6 +1730,7 @@ class HindsightConfig:
     embeddings_litellm_sdk_api_base: str | None
     embeddings_litellm_sdk_output_dimensions: int | None
     embeddings_litellm_sdk_encoding_format: str | None
+    embeddings_litellm_sdk_max_input_tokens: int | None
     # Gemini/Vertex AI embeddings
     embeddings_gemini_api_key: str | None
     embeddings_gemini_model: str
@@ -1951,6 +1962,7 @@ class HindsightConfig:
     reflect_max_iterations: int
     reflect_max_context_tokens: int
     reflect_wall_timeout: int
+    reflect_prompt_cache_enabled: bool
 
     # OpenTelemetry tracing configuration
     otel_traces_enabled: bool
@@ -2612,6 +2624,9 @@ class HindsightConfig:
             embeddings_litellm_sdk_encoding_format=os.getenv(
                 ENV_EMBEDDINGS_LITELLM_SDK_ENCODING_FORMAT, DEFAULT_EMBEDDINGS_LITELLM_SDK_ENCODING_FORMAT
             ),
+            embeddings_litellm_sdk_max_input_tokens=int(v)
+            if (v := os.getenv(ENV_EMBEDDINGS_LITELLM_SDK_MAX_INPUT_TOKENS))
+            else DEFAULT_EMBEDDINGS_LITELLM_SDK_MAX_INPUT_TOKENS,
             # Gemini/Vertex AI embeddings (with fallback to LLM keys)
             embeddings_gemini_api_key=os.getenv(ENV_EMBEDDINGS_GEMINI_API_KEY) or os.getenv(ENV_LLM_API_KEY),
             embeddings_gemini_model=os.getenv(ENV_EMBEDDINGS_GEMINI_MODEL, DEFAULT_EMBEDDINGS_GEMINI_MODEL),
@@ -2999,6 +3014,10 @@ class HindsightConfig:
             retain_max_concurrent=int(os.getenv(ENV_RETAIN_MAX_CONCURRENT, str(DEFAULT_RETAIN_MAX_CONCURRENT))),
             # Reflect agent settings
             reflect_max_iterations=int(os.getenv(ENV_REFLECT_MAX_ITERATIONS, str(DEFAULT_REFLECT_MAX_ITERATIONS))),
+            reflect_prompt_cache_enabled=os.getenv(
+                ENV_REFLECT_PROMPT_CACHE_ENABLED, str(DEFAULT_REFLECT_PROMPT_CACHE_ENABLED)
+            ).lower()
+            in ("1", "true", "yes", "on"),
             reflect_max_context_tokens=int(
                 os.getenv(ENV_REFLECT_MAX_CONTEXT_TOKENS, str(DEFAULT_REFLECT_MAX_CONTEXT_TOKENS))
             ),
