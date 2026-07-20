@@ -79,6 +79,11 @@ a {
   mask-image: url("./icons/github.svg");
 }
 
+.icon-star {
+  -webkit-mask-image: url("./icons/star.svg");
+  mask-image: url("./icons/star.svg");
+}
+
 .icon-search {
   -webkit-mask-image: url("./icons/search.svg");
   mask-image: url("./icons/search.svg");
@@ -129,10 +134,6 @@ a {
   transform: translateY(0);
 }
 
-.site-header {
-  border-bottom: 1px solid var(--border);
-}
-
 .header-inner {
   display: flex;
   min-height: 72px;
@@ -158,46 +159,51 @@ a {
   height: 32px;
 }
 
-.header-nav {
+.header-actions {
   display: flex;
-  align-items: stretch;
-  align-self: stretch;
-  gap: 32px;
+  align-items: center;
 }
 
-.header-nav > a {
-  position: relative;
+.github-link {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  min-height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   color: var(--text);
-  font-size: 15px;
-  font-weight: 620;
   text-decoration: none;
+  transition: border-color 160ms ease, background 160ms ease;
 }
 
-.header-nav > a::after {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: 2px;
-  background: var(--accent);
-  content: "";
-  opacity: 0;
-  transform: scaleX(0.65);
-  transition: opacity 160ms ease, transform 160ms ease;
-}
-
-.header-nav > a:hover::after,
-.header-nav > a.active::after {
-  opacity: 1;
-  transform: scaleX(1);
+.github-link:hover {
+  border-color: var(--border-strong);
+  background: var(--surface);
 }
 
 .github-link .icon {
   width: 20px;
   height: 20px;
+}
+
+.github-stars {
+  display: inline-flex;
+  min-width: 38px;
+  align-items: center;
+  gap: 5px;
+  padding-left: 10px;
+  border-left: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 650;
+  line-height: 1;
+}
+
+.github-stars .icon {
+  width: 14px;
+  height: 14px;
 }
 
 .hero {
@@ -373,7 +379,7 @@ a {
 .category-button:focus-visible,
 .load-more:focus-visible,
 .empty-state button:focus-visible,
-.header-nav a:focus-visible,
+.github-link:focus-visible,
 .brand:focus-visible,
 .site-footer a:focus-visible {
   outline: 3px solid var(--focus);
@@ -611,15 +617,24 @@ a {
     height: 26px;
   }
 
-  .header-nav {
-    gap: 18px;
+  .github-link {
+    gap: 7px;
+    padding-inline: 0;
+    border-color: transparent;
   }
 
-  .header-nav > a:not(.github-link) {
-    display: none;
+  .github-link:hover {
+    border-color: transparent;
+    background: transparent;
   }
 
-  .github-label {
+  .github-stars {
+    min-width: 0;
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .github-stars .icon {
     display: none;
   }
 
