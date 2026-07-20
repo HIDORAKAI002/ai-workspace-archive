@@ -219,6 +219,7 @@ export async function searchController(
       {
         teamId: req.auth.team_id,
         origin: req.body.origin,
+        integration: req.body.integration,
         apiKeyId: req.acuc?.api_key_id ?? null,
         flags: req.acuc?.flags ?? null,
         requestId: agentRequestId ?? jobId,

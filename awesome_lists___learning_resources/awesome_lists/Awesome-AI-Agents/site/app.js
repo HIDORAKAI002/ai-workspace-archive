@@ -8,6 +8,7 @@ const CATEGORIES = [
   "Research",
 ];
 const PAGE_SIZE = 24;
+const GITHUB_STARS_CACHE_KEY = "awesome-ai-agents:github-stars";
 
 const state = {
   resources: [],
@@ -24,6 +25,8 @@ const elements = {
   loadMore: document.querySelector("#load-more"),
   reset: document.querySelector("#reset-button"),
   search: document.querySelector("#search-input"),
+  githubLink: document.querySelector(".github-link"),
+  githubStars: document.querySelector("#github-stars-count"),
 };
 
 const externalIcon = `
@@ -37,6 +40,50 @@ const initialsFor = (name) => {
 };
 
 const normalized = (value) => value.trim().toLocaleLowerCase();
+
+const renderGitHubStars = (count) => {
+  const formattedCount = new Intl.NumberFormat("en-US").format(count);
+  elements.githubStars.textContent = formattedCount;
+  elements.githubLink.setAttribute(
+    "aria-label",
+    `View Awesome AI Agents on GitHub, ${formattedCount} stars`,
+  );
+  elements.githubLink.title = `${formattedCount} GitHub stars`;
+};
+
+const updateGitHubStars = async () => {
+  try {
+    const cached = JSON.parse(localStorage.getItem(GITHUB_STARS_CACHE_KEY));
+    if (Number.isInteger(cached?.count)) renderGitHubStars(cached.count);
+  } catch {
+    localStorage.removeItem(GITHUB_STARS_CACHE_KEY);
+  }
+
+  try {
+    const repository = elements.githubLink.dataset.repository;
+    const response = await fetch(`https://api.github.com/repos/${repository}`, {
+      cache: "no-store",
+      headers: {
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+      },
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+    const data = await response.json();
+    if (!Number.isInteger(data.stargazers_count)) {
+      throw new Error("GitHub response did not include a star count");
+    }
+
+    renderGitHubStars(data.stargazers_count);
+    localStorage.setItem(
+      GITHUB_STARS_CACHE_KEY,
+      JSON.stringify({ count: data.stargazers_count }),
+    );
+  } catch (error) {
+    console.warn("Unable to refresh GitHub stars:", error);
+  }
+};
 
 const filteredResources = () => {
   const query = normalized(state.query);
@@ -206,4 +253,5 @@ const initialize = async () => {
   }
 };
 
+updateGitHubStars();
 initialize();
