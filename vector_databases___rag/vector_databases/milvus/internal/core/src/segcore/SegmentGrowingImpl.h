@@ -218,6 +218,16 @@ class SegmentGrowingImpl : public SegmentGrowing {
         return *schema_;
     }
 
+    FieldId
+    get_primary_key_field_id() const {
+        return primary_key_field_id_;
+    }
+
+    DataType
+    get_primary_key_data_type() const {
+        return primary_key_data_type_;
+    }
+
     // return count of index that has index, i.e., [0, num_chunk_index) have built index
     int64_t
     num_chunk_index(FieldId field_id) const {
@@ -430,10 +440,13 @@ class SegmentGrowingImpl : public SegmentGrowing {
                                ->Register()),
           segcore_config_(segcore_config),
           schema_(std::move(schema)),
+          primary_key_field_id_(schema_->get_primary_field_id().value_or(
+              FieldId(INVALID_FIELD_ID))),
+          primary_key_data_type_(
+              primary_key_field_id_.get() == INVALID_FIELD_ID
+                  ? DataType::NONE
+                  : schema_->operator[](primary_key_field_id_).get_data_type()),
           index_meta_(indexMeta),
-          retain_insert_record_chunks_for_flush_(
-              ShouldRetainInsertRecordChunksForFlush(*schema_,
-                                                     segcore_config_)),
           insert_record_(
               *schema_, segcore_config.get_chunk_rows(), mmap_descriptor_),
           indexing_record_(
@@ -586,6 +599,11 @@ class SegmentGrowingImpl : public SegmentGrowing {
         return true;
     }
 
+    bool
+    CanReadRawVectorFromIndex(FieldId field_id) const {
+        return indexing_record_.HasRawData(field_id);
+    }
+
     std::pair<std::vector<OffsetMap::OffsetType>, bool>
     find_first_n(int64_t limit, const BitsetTypeView& bitset) const override {
         return insert_record_.pk2offset_->find_first_n(limit, bitset);
@@ -644,6 +662,7 @@ class SegmentGrowingImpl : public SegmentGrowing {
 
     std::shared_ptr<const IArrayOffsets>
     GetArrayOffsets(FieldId field_id) const override {
+        std::shared_lock lock(array_offsets_map_mutex_);
         auto it = array_offsets_map_.find(field_id);
         if (it != array_offsets_map_.end()) {
             return it->second;
@@ -841,30 +860,12 @@ class SegmentGrowingImpl : public SegmentGrowing {
     InitializeArrayOffsets();
 
  private:
-    static bool
-    ShouldRetainInsertRecordChunksForFlush(
-        const Schema& schema, const SegcoreConfig& segcore_config) {
-        if (!segcore_config.get_storage_v3_enabled()) {
-            return false;
-        }
-        if (segcore_config.get_enable_growing_source_flush()) {
-            return true;
-        }
-        return std::any_of(schema.get_fields().begin(),
-                           schema.get_fields().end(),
-                           [](const auto& field) {
-                               return field.second.get_data_type() ==
-                                      DataType::TEXT;
-                           });
-    }
-
     storage::MmapChunkDescriptorPtr mmap_descriptor_ = nullptr;
     SegcoreConfig segcore_config_;
     SchemaPtr schema_;
+    FieldId primary_key_field_id_{INVALID_FIELD_ID};
+    DataType primary_key_data_type_{DataType::NONE};
     IndexMetaPtr index_meta_;
-    // Segment-level sticky decision. Once a growing segment is created, raw
-    // chunks must not start/stop being retained because global config changes.
-    bool retain_insert_record_chunks_for_flush_;
 
     // inserted fields data and row_ids, timestamps
     InsertRecord<false> insert_record_;
@@ -892,6 +893,8 @@ class SegmentGrowingImpl : public SegmentGrowing {
     // Representative field_id for each struct (used to extract array lengths during Insert)
     // One field_id per struct, since all fields in the same struct have identical array lengths
     std::unordered_set<FieldId> struct_representative_fields_;
+
+    mutable std::shared_mutex array_offsets_map_mutex_;
 
     // Tracked resource usage for refund-then-charge pattern
     // This stores the last estimated resource usage that was charged to the cache manager
