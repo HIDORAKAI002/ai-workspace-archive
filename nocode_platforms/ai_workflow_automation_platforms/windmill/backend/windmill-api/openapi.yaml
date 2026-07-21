@@ -1,7 +1,7 @@
 openapi: "3.0.3"
 
 info:
-  version: 1.763.0
+  version: 1.764.0
   title: Windmill API
 
   contact:
@@ -5183,6 +5183,45 @@ paths:
                     type: integer
                     nullable: true
 
+  /w/{workspace}/workspaces/git_sync_deploy_mode:
+    get:
+      summary: Get how local changes deploy to this workspace via git sync
+      operationId: getGitSyncDeployMode
+      tags:
+        - workspace
+      parameters:
+        - $ref: "#/components/parameters/WorkspaceId"
+        - name: branch
+          in: query
+          required: false
+          description: The branch the caller would push.
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Git sync deploy mode
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - configured
+                  - deploy_on_push
+                properties:
+                  configured:
+                    type: boolean
+                    description: At least one git-sync repository is configured.
+                  deploy_on_push:
+                    type: boolean
+                    description: >-
+                      True means a `git push` is confirmed to deploy via
+                      auto-pull: exactly one licensed, deliverable repository
+                      tracks the branch. False is *not confirmed* rather than a
+                      definite no — it also covers unlicensed, ambiguous
+                      (several repos track it), and conservative false-negatives;
+                      determine the deploy path another way (CI `git push`, or
+                      `wmill sync push`).
+
   /w/{workspace}/workspaces/edit_git_sync_config:
     post:
       summary: edit workspace git sync settings
@@ -6505,10 +6544,10 @@ paths:
         "400":
           description: invalid input or request closed
 
-  /w/{workspace}/workspaces/log_chat:
+  /w/{workspace}/workspaces/log_feature_usage:
     post:
-      summary: log AI chat message
-      operationId: logAiChat
+      summary: log anonymous feature usage telemetry events
+      operationId: logFeatureUsage
       tags:
         - workspace
       parameters:
@@ -6520,19 +6559,26 @@ paths:
             schema:
               type: object
               required:
-                - session_id
-                - provider
-                - model
-                - mode
+                - events
               properties:
-                session_id:
-                  type: string
-                provider:
-                  type: string
-                model:
-                  type: string
-                mode:
-                  type: string
+                events:
+                  type: array
+                  items:
+                    type: object
+                    required:
+                      - feature
+                      - kind
+                    properties:
+                      feature:
+                        type: string
+                      kind:
+                        type: string
+                      key:
+                        type: string
+                      entity_id:
+                        type: string
+                      value:
+                        type: integer
       responses:
         "204":
           description: logged

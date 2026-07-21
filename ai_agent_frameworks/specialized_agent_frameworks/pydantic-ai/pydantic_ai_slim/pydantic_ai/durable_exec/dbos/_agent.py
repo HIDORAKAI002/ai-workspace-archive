@@ -6,6 +6,7 @@ from contextvars import ContextVar
 from typing import TYPE_CHECKING, Any, Literal, cast, overload
 
 from dbos import DBOS, DBOSConfiguredInstance
+from typing_extensions import deprecated
 
 from pydantic_ai import (
     AbstractToolset,
@@ -51,6 +52,16 @@ DBOSParallelExecutionMode = Literal['sequential', 'parallel_ordered_events']
 """
 
 
+@deprecated(
+    """`DBOSAgent` is deprecated in favor of the `DBOSDurability` capability. Migrate each constructor argument as follows:
+- With the capability, call `agent.run()` inside a `@DBOS.workflow`; the wrapper did this automatically.
+- `wrapped=` → use the wrapped agent's configuration on a regular `Agent(..., capabilities=[DBOSDurability(...)])`.
+- `name=` → set `name=` on `Agent`, or `name=` on `DBOSDurability`.
+- `event_stream_handler=` → pass `event_stream_handler=` to `DBOSDurability`; it runs inside steps, exactly like before.
+- `mcp_step_config=` → set `mcp_step_config=` on `DBOSDurability`.
+- `model_step_config=` → set `model_step_config=` on `DBOSDurability`.
+- `parallel_execution_mode=` → set `parallel_execution_mode=` on `DBOSDurability`."""
+)
 @DBOS.dbos_class()
 class DBOSAgent(WrapperAgent[AgentDepsT, OutputDataT], DBOSConfiguredInstance):
     _parallel_execution_mode: ParallelExecutionMode
@@ -118,7 +129,7 @@ class DBOSAgent(WrapperAgent[AgentDepsT, OutputDataT], DBOSConfiguredInstance):
             try:
                 from pydantic_ai.mcp import MCPToolset
 
-                from ._mcp_toolset import DBOSMCPToolset
+                from ._mcp_toolset import dbosify_mcp_toolset
             except ImportError:
                 pass
             else:
@@ -140,7 +151,7 @@ class DBOSAgent(WrapperAgent[AgentDepsT, OutputDataT], DBOSConfiguredInstance):
                             'Set a distinct `id` on each `MCPToolset` (or the `Capability`/`MCP` that contributes it) to disambiguate them.'
                         )
                     seen_mcp_ids.add(toolset.id)
-                    return DBOSMCPToolset(
+                    return dbosify_mcp_toolset(
                         wrapped=toolset,
                         step_name_prefix=dbosagent_name,
                         step_config=self._mcp_step_config,
@@ -225,7 +236,7 @@ class DBOSAgent(WrapperAgent[AgentDepsT, OutputDataT], DBOSConfiguredInstance):
             spec: dict[str, Any] | AgentSpec | None = None,
         ) -> AgentRunResult[Any]:
             with self._dbos_overrides(toolsets, event_stream_handler=event_stream_handler):
-                return super(DBOSAgent, self).run_sync(
+                return super(DBOSAgent, self).run_sync(  # pyright: ignore[reportDeprecated]
                     user_prompt,
                     output_type=output_type,
                     message_history=message_history,
@@ -439,7 +450,7 @@ class DBOSAgent(WrapperAgent[AgentDepsT, OutputDataT], DBOSConfiguredInstance):
             infer_name: Whether to try to infer the agent name from the call frame if it's not set.
             toolsets: Optional additional toolsets for this run.
             event_stream_handler: Optional event stream handler to use for this run.
-            capabilities: Optional additional [capabilities](https://ai.pydantic.dev/capabilities/) for this run, merged with the agent's configured capabilities.
+            capabilities: Optional additional [capabilities](https://ai.pydantic.dev/capabilities/overview/) for this run, merged with the agent's configured capabilities.
             spec: Optional agent spec to apply for this run.
 
         Returns:
@@ -579,7 +590,7 @@ class DBOSAgent(WrapperAgent[AgentDepsT, OutputDataT], DBOSConfiguredInstance):
             infer_name: Whether to try to infer the agent name from the call frame if it's not set.
             toolsets: Optional additional toolsets for this run.
             event_stream_handler: Optional event stream handler to use for this run.
-            capabilities: Optional additional [capabilities](https://ai.pydantic.dev/capabilities/) for this run, merged with the agent's configured capabilities.
+            capabilities: Optional additional [capabilities](https://ai.pydantic.dev/capabilities/overview/) for this run, merged with the agent's configured capabilities.
             spec: Optional agent spec to apply for this run.
 
         Returns:
@@ -718,7 +729,7 @@ class DBOSAgent(WrapperAgent[AgentDepsT, OutputDataT], DBOSConfiguredInstance):
             infer_name: Whether to try to infer the agent name from the call frame if it's not set.
             toolsets: Optional additional toolsets for this run.
             event_stream_handler: Optional event stream handler to use for this run. It will receive all the events up until the final result is found, which you can then read or stream from inside the context manager.
-            capabilities: Optional additional [capabilities](https://ai.pydantic.dev/capabilities/) for this run, merged with the agent's configured capabilities.
+            capabilities: Optional additional [capabilities](https://ai.pydantic.dev/capabilities/overview/) for this run, merged with the agent's configured capabilities.
             spec: Optional agent spec to apply for this run.
 
         Returns:
@@ -877,7 +888,7 @@ class DBOSAgent(WrapperAgent[AgentDepsT, OutputDataT], DBOSConfiguredInstance):
                 [`Agent.__init__`][pydantic_ai.agent.Agent.__init__] for semantics of the two enforcement paths.
             infer_name: Whether to try to infer the agent name from the call frame if it's not set.
             toolsets: Optional additional toolsets for this run.
-            capabilities: Optional additional [capabilities](https://ai.pydantic.dev/capabilities/) for this run, merged with the agent's configured capabilities.
+            capabilities: Optional additional [capabilities](https://ai.pydantic.dev/capabilities/overview/) for this run, merged with the agent's configured capabilities.
             spec: Optional agent spec to apply for this run.
 
         Returns:
@@ -1049,7 +1060,7 @@ class DBOSAgent(WrapperAgent[AgentDepsT, OutputDataT], DBOSConfiguredInstance):
                 [`Agent.__init__`][pydantic_ai.agent.Agent.__init__] for semantics of the two enforcement paths.
             infer_name: Whether to try to infer the agent name from the call frame if it's not set.
             toolsets: Optional additional toolsets for this run.
-            capabilities: Optional additional [capabilities](https://ai.pydantic.dev/capabilities/) for this run, merged with the agent's configured capabilities.
+            capabilities: Optional additional [capabilities](https://ai.pydantic.dev/capabilities/overview/) for this run, merged with the agent's configured capabilities.
             spec: Optional agent spec to apply for this run.
 
         Returns:

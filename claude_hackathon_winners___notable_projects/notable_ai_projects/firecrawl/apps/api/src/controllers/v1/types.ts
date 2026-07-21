@@ -1256,7 +1256,7 @@ export type AuthCreditUsageChunk = {
   api_key: string;
   api_key_id: number;
   team_id: string;
-  org_id?: string | null;
+  org_id: string;
   plan_priority: {
     bucketLimit: number;
     planModifier: number;
@@ -1452,6 +1452,7 @@ function fromLegacyCrawlerOptions(
     internalOptions: {
       v0CrawlOnlyUrls: x.returnOnlyUrls,
       teamId,
+      orgId: null,
     },
   };
 }
@@ -1517,6 +1518,7 @@ export function fromLegacyScrapeOptions(
       atsv: pageOptions.atsv,
       v0DisableJsDom: pageOptions.disableJsDom,
       teamId,
+      orgId: null,
     },
     // TODO: fallback, fetchPageContent, replaceAllPathsWithAbsolutePaths, includeLinks
   };
