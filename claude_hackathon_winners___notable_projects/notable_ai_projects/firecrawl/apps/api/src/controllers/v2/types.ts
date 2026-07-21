@@ -1663,6 +1663,7 @@ function fromV0CrawlerOptions(
     internalOptions: {
       v0CrawlOnlyUrls: x.returnOnlyUrls,
       teamId,
+      orgId: null,
     },
   };
 }
@@ -1727,6 +1728,7 @@ export function fromV0ScrapeOptions(
       atsv: pageOptions.atsv,
       v0DisableJsDom: pageOptions.disableJsDom,
       teamId,
+      orgId: null,
       ...(extractorOptions !== undefined &&
       extractorOptions.mode.includes("llm-extraction")
         ? {
@@ -1839,6 +1841,7 @@ export function fromV1ScrapeOptions(
     }),
     internalOptions: {
       teamId,
+      orgId: null,
       v1Agent: v1ScrapeOptions.agent,
       v1JSONSystemPrompt: (
         v1ScrapeOptions.jsonOptions || v1ScrapeOptions.extract

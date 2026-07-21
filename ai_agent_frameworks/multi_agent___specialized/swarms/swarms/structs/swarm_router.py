@@ -133,20 +133,6 @@ def _msg_autosave_after_exec_failed(err: Exception) -> str:
     return f"Failed to autosave after execution: {err}"
 
 
-def _msg_run_error(name: str, err: Exception, tb: str) -> str:
-    return (
-        f"\n[SwarmRouter ERROR] '{name}' failed to execute the task on the selected swarm.\n"
-        f"Reason: {err}\n"
-        f"Traceback:\n{tb}\n\n"
-        "Troubleshooting steps:\n"
-        "  - Double-check your SwarmRouter configuration (swarm_type, agents, parameters).\n"
-        "  - Ensure all individual agents are properly configured and initialized.\n"
-        "  - Review the error message and traceback above for clues.\n\n"
-        "For detailed documentation on SwarmRouter configuration, usage, and available swarm types, please visit:\n"
-        f"  {_DOCS_URL}\n"
-    )
-
-
 def _msg_batch_run_error(err: Exception, tb: str) -> str:
     return f"SwarmRouter: Error executing batch task on swarm: {err} Traceback: {tb}"
 
@@ -158,7 +144,6 @@ SwarmType = Literal[
     "ConcurrentWorkflow",
     "GroupChat",
     "MultiAgentRouter",
-    "AutoSwarmBuilder",
     "HierarchicalSwarm",
     "auto",
     "MajorityVoting",
@@ -181,9 +166,6 @@ class SwarmRouterConfig(BaseModel):
     description: str = Field(
         description="Description of the SwarmRouter's purpose",
     )
-    # max_loops: int = Field(
-    #     description="Maximum number of execution loops"
-    # )
     swarm_type: SwarmType = Field(
         description="Type of swarm to use",
     )
@@ -254,8 +236,6 @@ class SwarmRouter(SerializableMixin):
         rearrange_flow (str, optional): Required when
             ``swarm_type="AgentRearrange"``. Flow-DSL string like
             ``"A -> B, C -> D"``.
-        shared_memory_system (Any, optional): A memory backend to inject into
-            every agent's ``long_term_memory``.
         output_type (OutputType, optional): How the final swarm output is
             formatted. Defaults to ``"dict-all-except-first"``.
         multi_agent_collab_prompt (bool, optional): Append the multi-agent
@@ -281,8 +261,6 @@ class SwarmRouter(SerializableMixin):
             multi-loop refinement. Defaults to ``1``.
         heavy_swarm_timeout (int, optional): Per-worker wall-clock cap (seconds)
             for ``HeavySwarm``. Defaults to ``900``.
-        telemetry_enabled (bool, optional): When ``True`` snapshot each agent's
-            config into ``self.agent_config``. Defaults to ``False``.
         council_judge_model_name (str, optional): Judge model for
             ``CouncilAsAJudge``.
         verbose (bool, optional): Emit info/debug logs (reliability check,
@@ -290,6 +268,13 @@ class SwarmRouter(SerializableMixin):
         worker_tools (List[Callable], optional): Tools passed to ``HeavySwarm``
             workers.
         chairman_model (str, optional): Chairman model for ``LLMCouncil``.
+        director_model_name (str, optional): Model name for the director agent
+            when ``swarm_type="HierarchicalSwarm"``. Defaults to ``"gpt-5.4"``.
+        director_settings (Optional[Dict[str, Any]], optional): Additional
+            ``Agent`` keyword arguments forwarded to the ``HierarchicalSwarm``
+            director (e.g. ``system_prompt``, ``temperature``, ``top_p``).
+            Overrides ``director_model_name`` and other legacy director
+            configuration when the corresponding key is present.
 
     Attributes:
         agents (List[Union[Agent, Callable]]): The configured agent roster.
@@ -329,9 +314,8 @@ class SwarmRouter(SerializableMixin):
         swarm_type: SwarmType = "SequentialWorkflow",  # "ConcurrentWorkflow" # "auto"
         autosave: bool = False,
         rearrange_flow: str = None,
-        shared_memory_system: Any = None,
-        output_type: OutputType = "dict-all-except-first",
-        multi_agent_collab_prompt: bool = True,
+        output_type: OutputType = "dict",
+        multi_agent_collab_prompt: bool = False,
         list_all_agents: bool = False,
         conversation: Any = None,
         agents_config: Optional[Dict[Any, Any]] = None,
@@ -341,12 +325,13 @@ class SwarmRouter(SerializableMixin):
         heavy_swarm_variant: SwarmVariant = "default",
         heavy_swarm_max_loops: int = 1,
         heavy_swarm_timeout: int = 900,
-        telemetry_enabled: bool = False,
         council_judge_model_name: str = "gpt-5.4",  # Add missing model_name attribute
         verbose: bool = False,
         worker_tools: List[Callable] = None,
         chairman_model: str = "gpt-5.1",
         autosave_use_timestamp: bool = True,
+        director_model_name: str = "gpt-5.4",
+        director_settings: Optional[Dict[str, Any]] = None,
         *args,
         **kwargs,
     ):
@@ -361,7 +346,7 @@ class SwarmRouter(SerializableMixin):
            ``config.json``.
         3. Runs :meth:`reliability_check`, which validates ``swarm_type``,
            ``rearrange_flow``, and ``max_loops``, then calls :meth:`setup` to
-           wire shared memory and collaboration prompts.
+           wire collaboration prompts and agent listing.
 
         Raises:
             SwarmRouterConfigError: If the configuration fails validation.
@@ -374,7 +359,6 @@ class SwarmRouter(SerializableMixin):
         self.swarm_type = swarm_type
         self.autosave = autosave
         self.rearrange_flow = rearrange_flow
-        self.shared_memory_system = shared_memory_system
         self.output_type = output_type
         self.logs = []
         self.multi_agent_collab_prompt = multi_agent_collab_prompt
@@ -387,7 +371,6 @@ class SwarmRouter(SerializableMixin):
         self.heavy_swarm_worker_model_name = (
             heavy_swarm_worker_model_name
         )
-        self.telemetry_enabled = telemetry_enabled
         self.council_judge_model_name = council_judge_model_name  # Add missing model_name attribute
         self.verbose = verbose
         self.worker_tools = worker_tools
@@ -398,8 +381,9 @@ class SwarmRouter(SerializableMixin):
         self.heavy_swarm_max_loops = heavy_swarm_max_loops
         self.heavy_swarm_timeout = heavy_swarm_timeout
         self.chairman_model = chairman_model
-        self.autosave = autosave
         self.autosave_use_timestamp = autosave_use_timestamp
+        self.director_model_name = director_model_name
+        self.director_settings = director_settings
         self.swarm_workspace_dir = None
 
         # Initialize swarm factory for O(1) lookup performance
@@ -454,9 +438,8 @@ class SwarmRouter(SerializableMixin):
             * ``rearrange_flow`` is provided when ``swarm_type="AgentRearrange"``.
             * ``max_loops != 0``.
 
-        On success, calls :meth:`setup` to apply shared memory, collaboration
-        prompts, and agent listing, and (if ``telemetry_enabled``) snapshots
-        :meth:`agent_config`.
+        On success, calls :meth:`setup` to apply collaboration prompts and
+        agent listing.
 
         Raises:
             SwarmRouterConfigError: If any check above fails. The error is also
@@ -502,9 +485,6 @@ class SwarmRouter(SerializableMixin):
 
             self.setup()
 
-            if self.telemetry_enabled:
-                self.agent_config = self.agent_config()
-
         except SwarmRouterConfigError as e:
             self._log(
                 "error",
@@ -515,15 +495,10 @@ class SwarmRouter(SerializableMixin):
     def setup(self):
         """Apply post-validation configuration to the agent roster.
 
-        Conditionally wires up shared memory, appends the multi-agent
-        collaboration preamble, and (if enabled) lists every agent to every
-        other agent. Called from :meth:`reliability_check`; not intended to be
-        called directly.
+        Appends the multi-agent collaboration preamble and (if enabled) lists
+        every agent to every other agent. Called from
+        :meth:`reliability_check`; not intended to be called directly.
         """
-        # Handle shared memory
-        if self.shared_memory_system is not None:
-            self.activate_shared_memory()
-
         if self.multi_agent_collab_prompt is True:
             self.update_system_prompt_for_agent_in_swarm()
 
@@ -549,22 +524,6 @@ class SwarmRouter(SerializableMixin):
             self._log("error", _msg_fetch_history_error(e))
             return None
 
-    def activate_shared_memory(self):
-        """Attach ``self.shared_memory_system`` to every agent's
-        ``long_term_memory``.
-
-        Idempotent — running it twice with the same memory system is a no-op
-        for downstream behavior.
-        """
-        self._log("info", "Activating shared memory with all agents ")
-
-        for agent in self.agents:
-            agent.long_term_memory = self.shared_memory_system
-
-        self._log(
-            "info", "All agents now have the same memory system"
-        )
-
     def _initialize_swarm_factory(self) -> Dict[str, Callable]:
         """Build the dispatch table used to instantiate swarm types.
 
@@ -588,6 +547,22 @@ class SwarmRouter(SerializableMixin):
             "DebateWithJudge": self._create_debate_with_judge,
             "RoundRobin": self._create_round_robin_swarm,
             "PlannerWorkerSwarm": self._create_planner_worker_swarm,
+        }
+
+    def _base_kwargs(self, **extra) -> Dict[str, Any]:
+        """Constructor kwargs shared by most swarm factories.
+
+        Returns the ``name``/``description``/``agents``/``max_loops``/
+        ``output_type`` set common to nearly every swarm type; pass ``extra``
+        to add or override per-swarm keys (e.g. ``verbose``, ``flow``).
+        """
+        return {
+            "name": self.name,
+            "description": self.description,
+            "agents": self.agents,
+            "max_loops": self.max_loops,
+            "output_type": self.output_type,
+            **extra,
         }
 
     def _create_heavy_swarm(self, *args, **kwargs):
@@ -632,13 +607,8 @@ class SwarmRouter(SerializableMixin):
     def _create_agent_rearrange(self, *args, **kwargs):
         """Create an ``AgentRearrange`` using ``rearrange_flow``."""
         return AgentRearrange(
-            name=self.name,
-            description=self.description,
-            agents=self.agents,
-            max_loops=self.max_loops,
-            flow=self.rearrange_flow,
-            output_type=self.output_type,
             *args,
+            **self._base_kwargs(flow=self.rearrange_flow),
             **kwargs,
         )
 
@@ -663,12 +633,11 @@ class SwarmRouter(SerializableMixin):
     def _create_hierarchical_swarm(self, *args, **kwargs):
         """Create a ``HierarchicalSwarm`` from the configured agents."""
         return HierarchicalSwarm(
-            name=self.name,
-            description=self.description,
-            agents=self.agents,
-            max_loops=self.max_loops,
-            output_type=self.output_type,
             *args,
+            **self._base_kwargs(
+                director_model_name=self.director_model_name,
+                director_settings=self.director_settings,
+            ),
             **kwargs,
         )
 
@@ -687,26 +656,13 @@ class SwarmRouter(SerializableMixin):
 
     def _create_majority_voting(self, *args, **kwargs):
         """Create a ``MajorityVoting`` swarm from the configured agents."""
-        return MajorityVoting(
-            name=self.name,
-            description=self.description,
-            agents=self.agents,
-            max_loops=self.max_loops,
-            output_type=self.output_type,
-            *args,
-            **kwargs,
-        )
+        return MajorityVoting(*args, **self._base_kwargs(), **kwargs)
 
     def _create_group_chat(self, *args, **kwargs):
         """Create a ``GroupChat`` from the configured agents."""
         return GroupChat(
-            name=self.name,
-            description=self.description,
-            agents=self.agents,
-            max_loops=self.max_loops,
-            output_type=self.output_type,
-            verbose=self.verbose,
             *args,
+            **self._base_kwargs(verbose=self.verbose),
             **kwargs,
         )
 
@@ -716,33 +672,19 @@ class SwarmRouter(SerializableMixin):
             name=self.name,
             description=self.description,
             agents=self.agents,
-            shared_memory_system=self.shared_memory_system,
             output_type=self.output_type,
         )
 
     def _create_sequential_workflow(self, *args, **kwargs):
         """Create a ``SequentialWorkflow`` from the configured agents."""
         return SequentialWorkflow(
-            name=self.name,
-            description=self.description,
-            agents=self.agents,
-            max_loops=self.max_loops,
-            shared_memory_system=self.shared_memory_system,
-            output_type=self.output_type,
-            *args,
-            **kwargs,
+            *args, **self._base_kwargs(), **kwargs
         )
 
     def _create_concurrent_workflow(self, *args, **kwargs):
         """Create a ``ConcurrentWorkflow`` from the configured agents."""
         return ConcurrentWorkflow(
-            name=self.name,
-            description=self.description,
-            agents=self.agents,
-            max_loops=self.max_loops,
-            output_type=self.output_type,
-            *args,
-            **kwargs,
+            *args, **self._base_kwargs(), **kwargs
         )
 
     def _create_round_robin_swarm(self, *args, **kwargs):
@@ -760,13 +702,8 @@ class SwarmRouter(SerializableMixin):
     def _create_planner_worker_swarm(self, *args, **kwargs):
         """Create a ``PlannerWorkerSwarm`` from the configured agents."""
         return PlannerWorkerSwarm(
-            name=self.name,
-            description=self.description,
-            agents=self.agents,
-            max_loops=self.max_loops,
-            output_type=self.output_type,
-            verbose=self.verbose,
             *args,
+            **self._base_kwargs(verbose=self.verbose),
             **kwargs,
         )
 
@@ -789,11 +726,6 @@ class SwarmRouter(SerializableMixin):
             self.max_loops,
             self.output_type,
             self.rearrange_flow,
-            (
-                id(self.shared_memory_system)
-                if self.shared_memory_system is not None
-                else None
-            ),
             self.verbose,
             self.chairman_model,
             self.heavy_swarm_question_agent_model_name,
@@ -872,14 +804,6 @@ class SwarmRouter(SerializableMixin):
                 agent.system_prompt = ""
             agent.system_prompt += MULTI_AGENT_COLLAB_PROMPT_TWO
 
-    def agent_config(self):
-        """Return serialized configuration for each configured agent."""
-        agent_config = {}
-        for agent in self.agents:
-            agent_config[agent.agent_name] = agent.to_dict()
-
-        return agent_config
-
     def list_agents_to_eachother(self):
         """Add the configured agent roster to the swarm conversation."""
         if self.swarm_type == "SequentialWorkflow":
@@ -934,10 +858,7 @@ class SwarmRouter(SerializableMixin):
         if img is not None:
             args["img"] = img
 
-        if self.swarm_type == "BatchedGridWorkflow":
-            result = self.swarm.run(**args, **kwargs)
-        else:
-            result = self.swarm.run(**args, **kwargs)
+        result = self.swarm.run(**args, **kwargs)
 
         # Autosave after successful execution
         if self.autosave and self.swarm_workspace_dir:
