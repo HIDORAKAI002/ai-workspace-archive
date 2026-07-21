@@ -36,9 +36,18 @@ from openai import APIConnectionError, APIStatusError, AsyncOpenAI, LengthFinish
 
 from hindsight_api.config import DEFAULT_LLM_TIMEOUT, ENV_LLM_TIMEOUT
 from hindsight_api.engine.bank_attribution import apply_bank_attribution
-from hindsight_api.engine.llm_interface import LLMInterface, OutputTooLongError, ProviderRateLimitResetError
+from hindsight_api.engine.llm_interface import (
+    LLM_TOOL_CHOICE_AUTO,
+    LLMInterface,
+    LLMToolChoice,
+    LLMToolChoiceMode,
+    OutputTooLongError,
+    ProviderRateLimitResetError,
+)
 from hindsight_api.engine.llm_trace import LLMResponseUsage, stash_response_usage
+from hindsight_api.engine.providers.llm_debug import dump_request_on_4xx
 from hindsight_api.engine.response_models import LLMToolCall, LLMToolCallResult, TokenUsage
+from hindsight_api.engine.structured_output import strict_json_schema
 from hindsight_api.metrics import get_metrics_collector
 from hindsight_api.worker.stage import set_stage
 
@@ -818,7 +827,7 @@ class OpenAICompatibleLLM(LLMInterface):
         if response_format is not None:
             schema = None
             if hasattr(response_format, "model_json_schema"):
-                schema = response_format.model_json_schema()
+                schema = strict_json_schema(response_format) if strict_schema else response_format.model_json_schema()
 
             if strict_schema and schema is not None:
                 # Use OpenAI's strict JSON schema enforcement
@@ -1040,6 +1049,9 @@ class OpenAICompatibleLLM(LLMInterface):
                     logger.error(f"Auth error (HTTP {e.status_code}), not retrying: {str(e)}")
                     raise
 
+                # Diagnostic dump (opt-in) of the exact request behind any 4xx.
+                dump_request_on_4xx(scope=scope, provider=self.provider, model=self.model, err=e, request=call_params)
+
                 _raise_provider_quota_defer(
                     e, provider=self.provider, model=self.model, scope=scope, max_backoff=max_backoff
                 )
@@ -1130,7 +1142,7 @@ class OpenAICompatibleLLM(LLMInterface):
         max_retries: int = 5,
         initial_backoff: float = 1.0,
         max_backoff: float = 30.0,
-        tool_choice: str | dict[str, Any] = "auto",
+        tool_choice: LLMToolChoice = LLM_TOOL_CHOICE_AUTO,
     ) -> LLMToolCallResult:
         """
         Make an LLM API call with tool/function calling support.
@@ -1144,45 +1156,33 @@ class OpenAICompatibleLLM(LLMInterface):
             max_retries: Maximum retry attempts.
             initial_backoff: Initial backoff time in seconds.
             max_backoff: Maximum backoff time in seconds.
-            tool_choice: How to choose tools - "auto", "none", "required", or specific function.
+            tool_choice: Canonical tool-selection policy.
 
         Returns:
             LLMToolCallResult with content and/or tool_calls.
         """
         start_time = time.time()
 
-        request_tool_choice: str | dict[str, Any] | None = tool_choice
-
-        # Normalize named tool_choice dicts to "required" + filter tools.
-        # Some providers (e.g. LM Studio, Ollama) reject the OpenAI named format
-        # {"type": "function", "function": {"name": "..."}}.  The semantics are
-        # identical to tool_choice="required" with the tools list restricted to
-        # just the requested tool, so we apply that transformation where supported.
-        if isinstance(request_tool_choice, dict) and request_tool_choice.get("type") == "function":
-            forced_name = request_tool_choice.get("function", {}).get("name")
-            if forced_name:
-                filtered = [t for t in tools if t.get("function", {}).get("name") == forced_name]
-                if len(filtered) != 1:
-                    raise ValueError(
-                        f"Named tool_choice must reference exactly one declared tool; "
-                        f"found {len(filtered)} definitions for {forced_name!r}"
-                    )
-                tools = filtered
-                request_tool_choice = "required"
+        request_tool_choice: str | None
+        if tool_choice.mode is LLMToolChoiceMode.NAMED:
+            forced_name = tool_choice.selected_function_name
+            filtered = [tool for tool in tools if tool.get("function", {}).get("name") == forced_name]
+            if len(filtered) != 1:
+                raise ValueError(
+                    f"Named tool_choice must reference exactly one declared tool; "
+                    f"found {len(filtered)} definitions for {forced_name!r}"
+                )
+            tools = filtered
+            request_tool_choice = LLMToolChoiceMode.REQUIRED.value
+        elif tool_choice.mode is LLMToolChoiceMode.AUTO:
+            request_tool_choice = None
+        else:
+            request_tool_choice = tool_choice.mode.value
 
         # DeepSeek accepts tool calls but rejects explicit required/named
         # tool_choice values. The tools list has already been narrowed for
         # forced calls, so omitting tool_choice preserves the practical behavior.
-        if "deepseek" in self.model.lower() and request_tool_choice != "auto":
-            request_tool_choice = None
-
-        # "auto" is the OpenAI API default — omitting tool_choice is semantically
-        # identical. Some providers (e.g. DeepSeek's reasoner pathway, which
-        # deepseek-v4-flash falls into when thinking mode is enabled) reject the
-        # parameter outright, returning HTTP 400 even for value "auto". Sending it
-        # only when the caller asks for a non-default behaviour avoids those 400s
-        # without changing semantics for compliant providers.
-        if request_tool_choice == "auto":
+        if "deepseek" in self.model.lower() and tool_choice.mode is not LLMToolChoiceMode.AUTO:
             request_tool_choice = None
 
         # LM Studio and Ollama silently drop tool_choice="required", returning an
@@ -1192,7 +1192,7 @@ class OpenAICompatibleLLM(LLMInterface):
         # filtered tool above, so the call stays practically forced even under
         # auto. Generic OpenAI-compatible endpoints retain the canonical
         # ``required`` contract regardless of whether they use a custom base URL.
-        if request_tool_choice == "required" and self._drops_tool_choice_required():
+        if request_tool_choice == LLMToolChoiceMode.REQUIRED.value and self._drops_tool_choice_required():
             request_tool_choice = None
 
         # DeepSeek tool-call replies can carry provider-specific reasoning_content.
@@ -1351,6 +1351,10 @@ class OpenAICompatibleLLM(LLMInterface):
                         f"not retrying: {_summarize_status_error(e)}"
                     )
                     raise
+
+                # Diagnostic dump (opt-in) of the exact request behind any 4xx.
+                dump_request_on_4xx(scope=scope, provider=self.provider, model=self.model, err=e, request=call_params)
+
                 _raise_provider_quota_defer(
                     e, provider=self.provider, model=self.model, scope=scope, max_backoff=max_backoff
                 )

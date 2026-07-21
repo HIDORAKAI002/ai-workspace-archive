@@ -15,6 +15,7 @@ import time
 from typing import TYPE_CHECKING, Any, Awaitable, Callable
 
 from ...config import get_config
+from ..llm_interface import LLM_TOOL_CHOICE_AUTO, LLMToolChoice
 from .models import DirectiveInfo, LLMCall, ReflectAgentResult, StructuredOutputResult, TokenUsageSummary, ToolCall
 from .prompts import (
     _extract_directive_rules,
@@ -332,6 +333,7 @@ OUTPUT:"""
             ],
             response_format=DynamicModel,
             scope="reflect_structured",
+            strict_schema=get_config().llm_strict_schema_reflect,
             max_completion_tokens=max_tokens,
             max_retries=1,
             initial_backoff=0.25,
@@ -893,11 +895,11 @@ async def _run_reflect_agent_inner(
 
         if stop_forcing_from_iteration is not None and iteration >= stop_forcing_from_iteration:
             # A fresh mental model already short-circuited the forced path.
-            iter_tool_choice: str | dict = "auto"
+            iter_tool_choice = LLM_TOOL_CHOICE_AUTO
         elif iteration < len(forced_sequence):
-            iter_tool_choice = {"type": "function", "function": {"name": forced_sequence[iteration]}}
+            iter_tool_choice = LLMToolChoice.named(forced_sequence[iteration])
         else:
-            iter_tool_choice = "auto"
+            iter_tool_choice = LLM_TOOL_CHOICE_AUTO
 
         # Will the NEXT turn be an ``auto`` turn (the only kind that references a
         # cache)? The cache we schedule this turn covers this turn's input and is
@@ -918,7 +920,7 @@ async def _run_reflect_agent_inner(
         # can't use a cache (Gemini rejects ``cached_content`` + ``tool_config``),
         # but the cache still advances underneath them, so the first ``auto`` turn
         # inherits a cache covering all the forced results.
-        if incremental_caching and iter_tool_choice == "auto":
+        if incremental_caching and iter_tool_choice is LLM_TOOL_CHOICE_AUTO:
             await _resolve_pending_cache()
 
         call_msg_count = len(messages)
@@ -929,7 +931,7 @@ async def _run_reflect_agent_inner(
                 scope="reflect_tool_call",
                 tool_choice=iter_tool_choice,
             )
-            if incremental_caching and iter_tool_choice == "auto" and rolling_cache_name is not None:
+            if incremental_caching and iter_tool_choice is LLM_TOOL_CHOICE_AUTO and rolling_cache_name is not None:
                 ct_kwargs["cached_prefix"] = rolling_cache_name
                 ct_kwargs["cached_prefix_message_count"] = rolling_cache_boundary
             result = await llm_config.call_with_tools(**ct_kwargs)
@@ -1174,7 +1176,6 @@ async def _run_reflect_agent_inner(
                     {
                         "role": "tool",
                         "tool_call_id": done_call.id,
-                        "name": done_call.name,  # Required by Gemini
                         "content": json.dumps(
                             {
                                 "error": "You must search for information first. Use search_mental_models(), search_observations(), or recall() before providing your final answer."
@@ -1240,7 +1241,6 @@ async def _run_reflect_agent_inner(
                     {
                         "role": "tool",
                         "tool_call_id": tc.id,
-                        "name": tc.name,
                         "content": json.dumps(
                             {
                                 "error": f"Tool '{_normalize_tool_name(tc.name)}' is not available. Use only the tools provided to you."
@@ -1344,7 +1344,6 @@ async def _run_reflect_agent_inner(
                     {
                         "role": "tool",
                         "tool_call_id": tc.id,
-                        "name": tc.name,  # Required by Gemini
                         "content": json.dumps(output, default=str, ensure_ascii=False),
                     }
                 )

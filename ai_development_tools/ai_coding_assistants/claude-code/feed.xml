@@ -6,7 +6,33 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-07-20T22:13:53Z</updated>
+  <updated>2026-07-21T21:35:04Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.217</id>
+    <title>Claude Code v2.1.217</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.217"/>
+    <updated>2026-07-21T21:35:04Z</updated>
+    <content type="html">&lt;p&gt;• Added emoji shortcode autocomplete in the prompt input: type :heart: to insert ❤️, or :hea for suggestions — disable with the emojiCompletionEnabled setting&lt;/p&gt;
+&lt;p&gt;• Added warnings when transcript writes are failing (e.g. disk full) or when session saving is off due to an inherited environment variable, instead of losing transcripts silently&lt;/p&gt;
+&lt;p&gt;• Fixed a memory leak where truncated MCP tool outputs kept the full untruncated result in memory for the rest of the session&lt;/p&gt;
+&lt;p&gt;• Fixed Windows auto-update failures that could leave claude.exe missing; failed updates now restore the preserved executable automatically&lt;/p&gt;
+&lt;p&gt;• Fixed background session isolation not canonicalizing symlinked working directories, which could let sessions escape their workspace folder&lt;/p&gt;
+&lt;p&gt;• Fixed auto-compact never triggering for Claude Opus 4.8 on Bedrock and /compact failing once over the limit&lt;/p&gt;
+&lt;p&gt;• Fixed corporate mTLS, TLS-verify, OAuth scope, and proxy settings being ignored in Claude Desktop sessions&lt;/p&gt;
+&lt;p&gt;• Fixed screen reader mode's startup announcement being cut off by the first prompt render, and the thinking status row re-rendering every few seconds to update elapsed time and token counts&lt;/p&gt;
+&lt;p&gt;• Fixed managed settings that set OTEL_EXPORTER_OTLP_ENDPOINT not governing all signals — lower-scope signal-specific overrides no longer redirect telemetry away from the managed endpoint&lt;/p&gt;
+&lt;p&gt;• Fixed --resume/--continue and /resume failing with a TypeError when a transcript has a malformed attachment entry&lt;/p&gt;
+&lt;p&gt;• Fixed Remote Control sessions not showing a pending permission prompt or dialog to viewers that connected after it appeared&lt;/p&gt;
+&lt;p&gt;• Fixed background shells sometimes becoming impossible to stop after a session is sent to the background (/background or ←) or when the session exits on a heavily loaded machine, most visible on Windows&lt;/p&gt;
+&lt;p&gt;• Fixed a CLAUDE.md or SKILL.md paths frontmatter value with many brace groups OOM-killing or stalling the CLI at startup — brace expansion is now budget-bounded&lt;/p&gt;
+&lt;p&gt;• Fixed the transcript preview sitting flush against the input area when attaching to a starting background session; it now leaves the same one-line gap as the live layout, so the transcript no longer shifts when the session takes over&lt;/p&gt;
+&lt;p&gt;• Improved footer PR badge links to be clickable hyperlinks even when terminal support can't be detected (e.g. over ssh/tmux); set FORCE_HYPERLINK=0 to opt out&lt;/p&gt;
+&lt;p&gt;• Changed the login-expiry warning to appear 3 days before expiry instead of 5&lt;/p&gt;
+&lt;p&gt;• Capped the frontend-design plugin suggestion tip at 3 lifetime impressions instead of repeating indefinitely&lt;/p&gt;
+&lt;p&gt;• Added a cap on concurrently-running subagents (default 20, override with CLAUDE_CODE_MAX_CONCURRENT_SUBAGENTS) so one message can't fan out unbounded background agents&lt;/p&gt;
+&lt;p&gt;• Changed subagents to no longer spawn nested subagents by default; set CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH to allow deeper nesting&lt;/p&gt;
+&lt;p&gt;• Fixed --max-budget-usd not stopping background subagents: once the cap is reached, new spawns are denied and running background agents are halted&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.216</id>
     <title>Claude Code v2.1.216</title>
@@ -265,6 +291,7 @@
 &lt;p&gt;• Added vimInsertModeRemaps setting: map two-key insert-mode sequences like jj to Escape in vim mode&lt;/p&gt;
 &lt;p&gt;• Added CLAUDE_CODE_PROCESS_WRAPPER: agent view and the background service now honor a corporate launcher by running every Claude Code self-spawn through a required wrapper executable&lt;/p&gt;
 &lt;p&gt;• Added mouse-click support for multi-select menus and "Other" input rows in fullscreen mode&lt;/p&gt;
+&lt;p&gt;• Changed the Fable 5 usage-credits consent prompt to start with the decline option focused&lt;/p&gt;
 &lt;p&gt;• Fixed fast mode staying off after switching back to a model that supports it — it now restores automatically when enabled in settings&lt;/p&gt;
 &lt;p&gt;• Fixed replies typed to a background agent being lost when delivery fails — the text is now saved and delivered when the session restarts&lt;/p&gt;
 &lt;p&gt;• Fixed background-session attach failing permanently ("Couldn't start the background daemon") after an update replaced the binary a running claude agents process was launched from&lt;/p&gt;
@@ -578,38 +605,5 @@
     <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.197"/>
     <updated>2026-06-30T17:56:29Z</updated>
     <content type="html">&lt;p&gt;• Introducing Claude Sonnet 5: now the default model in Claude Code, with a native 1M-token context window and promotional pricing of $2/$10 per Mtok through August 31. Update to version 2.1.197 for access. https://www.anthropic.com/news/claude-sonnet-5&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.196</id>
-    <title>Claude Code v2.1.196</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.196"/>
-    <updated>2026-06-29T23:27:24Z</updated>
-    <content type="html">&lt;p&gt;• Added support for organization default models — admins set it in the org console; it shows as "Org default" (or "Role default") in /model when you haven't picked one yourself&lt;/p&gt;
-&lt;p&gt;• Added readable default names for sessions at start, making them easier to identify and message&lt;/p&gt;
-&lt;p&gt;• Added clickable file attachments in chat — Cmd/Ctrl-click reveals the file in Finder/Explorer&lt;/p&gt;
-&lt;p&gt;• Security: claude mcp list/get no longer spawn .mcp.json servers that a repo self-approved via a committed .claude/settings.json; untrusted workspaces show ⏸ Pending approval&lt;/p&gt;
-&lt;p&gt;• Fixed waking a background job permanently deleting its conversation and re-running the original prompt when the transcript probe misread a real transcript; the file is now set aside, never deleted&lt;/p&gt;
-&lt;p&gt;• Fixed the rate-limit warning flickering off and rate-limit telemetry being over-counted when multiple parallel requests were in flight at the moment a usage limit was hit&lt;/p&gt;
-&lt;p&gt;• Fixed duplicate recap lines after a background session's turn: a schema-rejected StructuredOutput attempt no longer renders alongside its retry&lt;/p&gt;
-&lt;p&gt;• Fixed PowerShell git diff/git grep, egrep/fgrep, and quoted search patterns containing | being reported as failures when they exit 1, matching Bash behavior&lt;/p&gt;
-&lt;p&gt;• Fixed multiple claude agents side panel issues: keyboard focus getting stuck when opening an agent, background jobs losing their subagent types on every open, and sessions showing incorrect status while actively running&lt;/p&gt;
-&lt;p&gt;• Fixed claude agents --dangerously-skip-permissions silently falling back to auto mode instead of showing the bypass disclaimer and applying bypass mode to spawned agents&lt;/p&gt;
-&lt;p&gt;• Fixed mid-turn crash recovery for Remote sessions — sessions interrupted by a server restart now auto-resume on the next worker&lt;/p&gt;
-&lt;p&gt;• Fixed sessions moved with /cd reappearing in the old directory's resume list after a non-graceful exit when the old path contained special characters&lt;/p&gt;
-&lt;p&gt;• Fixed claude plugin validate skipping local plugins whose source is "." and stopping after the first error class&lt;/p&gt;
-&lt;p&gt;• Fixed Esc Esc at an idle prompt not opening the rewind menu (regression); use Ctrl+C or Ctrl+X Ctrl+K to stop background agents&lt;/p&gt;
-&lt;p&gt;• Fixed MCP OAuth requesting the authorization server's full scopes_supported catalog when no scope is specified, causing invalid_scope failures on GitLab self-hosted and other enterprise IdPs&lt;/p&gt;
-&lt;p&gt;• Fixed /context showing 0 tokens for all tool groups on Bedrock&lt;/p&gt;
-&lt;p&gt;• Fixed /deep-research misreporting verifier failures as "all claims refuted" instead of unverified&lt;/p&gt;
-&lt;p&gt;• Fixed plugin dependency version pins not being honored when the marketplace was added as a local folder path backed by a git repo&lt;/p&gt;
-&lt;p&gt;• Fixed claude agents session status: completed rows no longer flip between "Done" and "Needs your input", stalled agents are now labeled "Needs attention", and results that mention a PR show a clickable link&lt;/p&gt;
-&lt;p&gt;• Fixed voice dictation swallowing spaces and spuriously starting a recording during very fast typing when voice mode is enabled&lt;/p&gt;
-&lt;p&gt;• Improved background session reliability: long-running commands and workflows now survive the session's process being stopped, restarted, or updated — including on Windows, where background shells are handed off instead of being killed&lt;/p&gt;
-&lt;p&gt;• Improved background agents: workers killed by a daemon restart are now automatically resumed from where they left off the next time the agents view opens&lt;/p&gt;
-&lt;p&gt;• Improved /code-review workflow: merged five cleanup finders into one, cutting token usage by roughly 25%&lt;/p&gt;
-&lt;p&gt;• Reduced per-frame rendering work in the terminal UI by skipping no-op subtree walks during streaming&lt;/p&gt;
-&lt;p&gt;• The streaming idle watchdog is now on by default for all providers — it aborts and retries when a response stream produces no events for 5 minutes. Set CLAUDE_ENABLE_STREAM_WATCHDOG=0 to disable.&lt;/p&gt;
-&lt;p&gt;• Remote Control is now disabled when ANTHROPIC_BASE_URL points at a non-Anthropic host, matching the existing behavior under CLAUDE_CODE_USE_BEDROCK/_VERTEX/_FOUNDRY&lt;/p&gt;
-&lt;p&gt;• Changed opening the agents view from a foreground session to require a single ← press instead of two, matching the behavior in background sessions&lt;/p&gt;</content>
   </entry>
 </feed>
