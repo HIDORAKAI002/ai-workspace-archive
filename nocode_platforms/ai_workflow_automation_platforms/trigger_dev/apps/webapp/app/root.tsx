@@ -1,12 +1,16 @@
 import type { LinksFunction, LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import type { ShouldRevalidateFunction } from "@remix-run/react";
-import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "@remix-run/react";
 import { type UseDataFunctionReturn, typedjson, useTypedLoaderData } from "remix-typedjson";
 import { ExternalScripts } from "remix-utils/external-scripts";
 import type { ToastMessage } from "~/models/message.server";
 import { commitSession, getSession } from "~/models/message.server";
-import tailwindStylesheetUrl from "~/tailwind.css";
+// Fonts imported here so Vite rebases the urls and emits the woff2 assets
+import "non.geist";
+import "non.geist/mono";
+import tailwindStylesheetUrl from "~/tailwind.css?url";
 import { RouteErrorDisplay } from "./components/ErrorDisplay";
+import { GlobalShortcuts } from "./components/GlobalShortcuts";
 import { StaleAssetRecovery } from "./components/StaleAssetRecovery";
 import { AppContainer, MainCenteredContainer } from "./components/layout/AppLayout";
 import { ShortcutsProvider } from "./components/primitives/ShortcutsProvider";
@@ -139,13 +143,13 @@ export default function App() {
         <body className="h-full overflow-hidden bg-background-dimmed antialiased">
           <ShortcutsProvider>
             <TimezoneSetter />
+            <GlobalShortcuts />
             <Outlet />
             <Toast />
           </ShortcutsProvider>
           <ScrollRestoration />
           <ExternalScripts />
           <Scripts />
-          <LiveReload />
         </body>
       </html>
     </>

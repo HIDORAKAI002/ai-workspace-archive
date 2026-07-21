@@ -194,7 +194,7 @@ wheels = [
 
 [[package]]
 name = "anthropic"
-version = "0.102.0"
+version = "0.117.0"
 source = { editable = "." }
 dependencies = [
     { name = "anyio" },
@@ -220,6 +220,9 @@ aws = [
 bedrock = [
     { name = "boto3" },
     { name = "botocore" },
+]
+google-cloud = [
+    { name = "google-auth", extra = ["requests"] },
 ]
 mcp = [
     { name = "mcp", marker = "python_full_version >= '3.10'" },
@@ -270,9 +273,10 @@ requires-dist = [
     { name = "botocore", marker = "extra == 'bedrock'", specifier = ">=1.31.57" },
     { name = "distro", specifier = ">=1.7.0,<2" },
     { name = "docstring-parser", specifier = ">=0.15,<1" },
+    { name = "google-auth", extras = ["requests"], marker = "extra == 'google-cloud'", specifier = ">=2,<3" },
     { name = "google-auth", extras = ["requests"], marker = "extra == 'vertex'", specifier = ">=2,<3" },
     { name = "httpx", specifier = ">=0.25.0,<1" },
-    { name = "httpx-aiohttp", marker = "extra == 'aiohttp'", specifier = ">=0.1.9" },
+    { name = "httpx-aiohttp", marker = "extra == 'aiohttp'", specifier = ">=0.1.9,<1" },
     { name = "jiter", specifier = ">=0.4.0,<1" },
     { name = "mcp", marker = "python_full_version >= '3.10' and extra == 'mcp'", specifier = ">=1.0" },
     { name = "pydantic", specifier = ">=1.9.0,<3" },
@@ -280,14 +284,14 @@ requires-dist = [
     { name = "standardwebhooks", marker = "extra == 'webhooks'", specifier = ">=1.0.1,<2" },
     { name = "typing-extensions", specifier = ">=4.14,<5" },
 ]
-provides-extras = ["aiohttp", "vertex", "aws", "bedrock", "mcp", "webhooks"]
+provides-extras = ["aiohttp", "vertex", "google-cloud", "aws", "bedrock", "mcp", "webhooks"]
 
 [package.metadata.requires-dev]
 dev = [
     { name = "boto3-stubs", specifier = ">=1" },
     { name = "dirty-equals", specifier = ">=0.6.0" },
     { name = "griffe", specifier = ">=1" },
-    { name = "http-snapshot", extras = ["httpx"], specifier = "==0.1.8" },
+    { name = "http-snapshot", extras = ["httpx"], specifier = "==0.1.9" },
     { name = "importlib-metadata", specifier = ">=6.7.0" },
     { name = "inline-snapshot", specifier = ">=0.28.0" },
     { name = "mypy", specifier = "==1.17" },
@@ -1011,14 +1015,14 @@ wheels = [
 
 [[package]]
 name = "http-snapshot"
-version = "0.1.8"
+version = "0.1.9"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "inline-snapshot" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/37/a4/bd9cea69146855b47aefec010f36b99741208e5f2dcbf522e44f0f66ce2a/http_snapshot-0.1.8.tar.gz", hash = "sha256:1f0dc437fea4e13179f26290216bb402096a44f3b29969022a78c2e71fddfc28", size = 12988, upload-time = "2026-02-19T18:19:46.727Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/30/6d/10494f06ba67f9d74f98b25f9db3ae339969b6049e30144d7f161a1b33ac/http_snapshot-0.1.9.tar.gz", hash = "sha256:22e6a1f0ff2836e14c33724213422d6351fe9513aafbbc5e0608cad9a2c5363c", size = 11155, upload-time = "2026-02-24T21:11:28.89Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/26/19/7b2a6ccded7bf19a23c5512f08a6042d5900b3d9d9b88708baf08f9abd80/http_snapshot-0.1.8-py3-none-any.whl", hash = "sha256:5d10e9cad9fe26fda8d1ebcd2adb66589dd3fd0fd58e7960c61c08c483d31457", size = 14058, upload-time = "2026-02-19T18:19:45.225Z" },
+    { url = "https://files.pythonhosted.org/packages/8a/be/2a84ec7f2ac134e7628235768f488f157918f484a9254fa7fa3348d4afbf/http_snapshot-0.1.9-py3-none-any.whl", hash = "sha256:62df93b7c429bd8d836e4dad48b36c473ca88d13652985267a01de9ec4c865c3", size = 12730, upload-time = "2026-02-24T21:11:27.059Z" },
 ]
 
 [package.optional-dependencies]

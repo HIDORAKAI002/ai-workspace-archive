@@ -15,8 +15,10 @@ pub(crate) mod agent_tools;
 /// identically to `/init`.
 pub mod collections;
 pub mod config;
+pub(crate) mod foundation_chroma;
 pub(crate) mod routes;
 pub mod server;
+pub mod trajectories;
 pub(crate) mod wiki;
 
 pub use frontend_core::{ac, auth, errors, middleware as server_middleware, traced_json};

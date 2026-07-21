@@ -1,12 +1,18 @@
+import {
+  ComponentBadgeProvider,
+  type RenderComponentBadge,
+} from '@dagster-io/dg-docs-components/ComponentBadgeContext';
 import ComponentPageContents from '@dagster-io/dg-docs-components/ComponentPageContents';
 import PackagePageDetails from '@dagster-io/dg-docs-components/PackagePageDetails';
 import {Contents} from '@dagster-io/dg-docs-components/types';
+import {Tag} from '@dagster-io/ui-components';
 import {HTMLProps, memo, useCallback, useMemo} from 'react';
 import {Link} from 'react-router-dom';
 
 import {useQuery} from '../apollo-client';
 import {CODE_LOCATION_COMPONENT_TYPES_QUERY} from './CodeLocationComponentTypesQuery';
 import {CodeLocationDocsPackageTree} from './CodeLocationDocsPackageTree';
+import {useFeatureFlags} from '../app/useFeatureFlags';
 import styles from './css/CodeLocationDocsRoot.module.css';
 import {
   CodeLocationComponentTypesQuery,
@@ -22,8 +28,31 @@ interface Props {
   componentName?: string;
 }
 
+// Badges the component types that opt into UI creation/editing via
+// `ComponentFormConfig(editable=True)`. The tree uses a compact, icon-only tag;
+// the header shows the full label.
+const renderComponentBadge: RenderComponentBadge = (component, options) => {
+  if (!component.isAppManaged) {
+    return null;
+  }
+  return (
+    <Tag
+      intent="success"
+      icon="edit"
+      tooltipText="This component can be created and edited from the UI form."
+    >
+      {options?.compact ? undefined : 'Creatable in UI'}
+    </Tag>
+  );
+};
+
+// When the instance UI is gated off, components can't be created from the UI,
+// so the "Creatable in UI" badge would be misleading — render nothing.
+const renderNoBadge: RenderComponentBadge = () => null;
+
 export const CodeLocationComponentsCatalogSubtab = memo(
   ({repoAddress, packageName, componentName}: Props) => {
+    const {flagComponentInstanceUI} = useFeatureFlags();
     const {data, loading} = useQuery<
       CodeLocationComponentTypesQuery,
       CodeLocationComponentTypesQueryVariables
@@ -53,6 +82,7 @@ export const CodeLocationComponentsCatalogSubtab = memo(
           description: c.description ?? null,
           owners: c.owners ?? [],
           tags: c.tags ?? [],
+          isAppManaged: c.isAppManaged,
         });
       }
       return Array.from(byNamespace.values()).sort((a, b) =>
@@ -111,18 +141,22 @@ export const CodeLocationComponentsCatalogSubtab = memo(
     }
 
     return (
-      <div className={styles.contentContainer}>
-        <div className={styles.sidebar}>
-          <CodeLocationDocsPackageTree
-            loading={loading}
-            contents={contents}
-            repoAddress={repoAddress}
-            pathname={pathname}
-            linkPrefix="/components/library"
-          />
+      <ComponentBadgeProvider
+        value={flagComponentInstanceUI ? renderComponentBadge : renderNoBadge}
+      >
+        <div className={styles.contentContainer}>
+          <div className={styles.sidebar}>
+            <CodeLocationDocsPackageTree
+              loading={loading}
+              contents={contents}
+              repoAddress={repoAddress}
+              pathname={pathname}
+              linkPrefix="/components/library"
+            />
+          </div>
+          <div className={styles.main}>{mainContent()}</div>
         </div>
-        <div className={styles.main}>{mainContent()}</div>
-      </div>
+      </ComponentBadgeProvider>
     );
   },
 );
