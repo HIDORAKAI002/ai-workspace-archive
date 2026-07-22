@@ -2,14 +2,14 @@
 
 ## 📋 Tujuan Pembelajaran
 
-Notebook ini menunjukkan pola perencanaan dan desain tingkat perusahaan untuk membangun agen cerdas menggunakan Microsoft Agent Framework di .NET dengan Azure OpenAI (Responses API). Anda akan belajar membuat agen yang dapat menguraikan masalah kompleks, merencanakan solusi multi-langkah, dan menjalankan alur kerja canggih dengan fitur perusahaan .NET.
+Buku catatan ini mendemonstrasikan pola perencanaan dan desain tingkat perusahaan untuk membangun agen cerdas menggunakan Microsoft Agent Framework dalam .NET dengan Azure OpenAI (Responses API). Anda akan belajar membuat agen yang dapat memecah masalah kompleks, merencanakan solusi multi-langkah, dan menjalankan alur kerja canggih dengan fitur perusahaan .NET.
 
 ## ⚙️ Prasyarat & Pengaturan
 
 **Lingkungan Pengembangan:**
 - .NET 9.0 SDK atau lebih tinggi
 - Visual Studio 2022 atau VS Code dengan ekstensi C#
-- Langganan Azure dengan sumber daya Azure OpenAI dan penerapan model
+- Langganan Azure dengan sumber daya Azure OpenAI dan penempatan model
 - Azure CLI — masuk dengan `az login`
 
 **Dependensi yang Diperlukan:**
@@ -25,15 +25,15 @@ Notebook ini menunjukkan pola perencanaan dan desain tingkat perusahaan untuk me
 **Konfigurasi Lingkungan (file .env):**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
 ## Menjalankan Kode
 
-Pelajaran ini mencakup implementasi Aplikasi File Tunggal .NET. Untuk menjalankannya:
+Pelajaran ini mencakup implementasi .NET Single File App. Untuk menjalankannya:
 
 ```bash
-# Jadikan file dapat dieksekusi (Linux/macOS)
+# Buat file dapat dijalankan (Linux/macOS)
 chmod +x 07-dotnet-agent-framework.cs
 
 # Jalankan aplikasi
@@ -48,19 +48,19 @@ dotnet run 07-dotnet-agent-framework.cs
 
 ## Implementasi Kode
 
-Implementasi lengkap tersedia di `07-dotnet-agent-framework.cs`, yang menunjukkan:
+Implementasi lengkap tersedia di `07-dotnet-agent-framework.cs`, yang mendemonstrasikan:
 
 - Memuat konfigurasi lingkungan dengan DotNetEnv
 - Mengonfigurasi klien Azure OpenAI dan membuat agen AI menggunakan `GetChatClient().AsAIAgent()`
 - Mendefinisikan model data terstruktur (Plan dan TravelPlan) dengan serialisasi JSON
-- Membuat agen AI dengan output terstruktur menggunakan skema JSON
-- Menjalankan permintaan perencanaan dengan respons tipe aman
+- Membuat agen AI dengan keluaran terstruktur menggunakan skema JSON
+- Menjalankan permintaan perencanaan dengan respons tipe-aman
 
-## Konsep Utama
+## Konsep Kunci
 
 ### Perencanaan Terstruktur dengan Model Tipe-Aman
 
-Agen menggunakan kelas C# untuk mendefinisikan struktur output perencanaan:
+Agen menggunakan kelas C# untuk mendefinisikan struktur keluaran perencanaan:
 
 ```csharp
 public class Plan
@@ -82,7 +82,7 @@ public class TravelPlan
 }
 ```
 
-### Skema JSON untuk Output Terstruktur
+### Skema JSON untuk Keluaran Terstruktur
 
 Agen dikonfigurasi untuk mengembalikan respons yang sesuai dengan skema TravelPlan:
 
@@ -105,14 +105,14 @@ ChatClientAgentOptions agentOptions = new()
 
 Agen bertindak sebagai koordinator, mendelegasikan tugas ke sub-agen khusus:
 
-- FlightBooking: Untuk pemesanan penerbangan dan memberikan informasi penerbangan
-- HotelBooking: Untuk pemesanan hotel dan memberikan informasi hotel
-- CarRental: Untuk pemesanan mobil dan memberikan informasi penyewaan mobil
-- ActivitiesBooking: Untuk pemesanan aktivitas dan memberikan informasi aktivitas
+- FlightBooking: Untuk memesan penerbangan dan memberikan informasi penerbangan
+- HotelBooking: Untuk memesan hotel dan memberikan informasi hotel
+- CarRental: Untuk memesan mobil dan memberikan informasi penyewaan mobil
+- ActivitiesBooking: Untuk memesan aktivitas dan memberikan informasi aktivitas
 - DestinationInfo: Untuk memberikan informasi tentang destinasi
 - DefaultAgent: Untuk menangani permintaan umum
 
-## Output yang Diharapkan
+## Keluaran yang Diharapkan
 
 Saat Anda menjalankan agen dengan permintaan perencanaan perjalanan, ia akan menganalisis permintaan dan menghasilkan rencana terstruktur dengan penugasan tugas yang sesuai ke agen khusus, diformat sebagai JSON yang sesuai dengan skema TravelPlan.
 

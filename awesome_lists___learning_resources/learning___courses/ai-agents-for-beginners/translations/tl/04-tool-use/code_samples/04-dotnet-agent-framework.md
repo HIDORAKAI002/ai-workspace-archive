@@ -1,51 +1,51 @@
 # 🛠️ Advanced Tool Use with Azure OpenAI (Responses API) (.NET)
 
-## 📋 Mga Layunin sa Pagkatuto
+## 📋 Mga Layunin sa Pag-aaral
 
-Ipinapakita ng notebook na ito ang mga pattern ng enterprise-grade tool integration gamit ang Microsoft Agent Framework sa .NET kasama ang Azure OpenAI (Responses API). Matututuhan mong bumuo ng mga sopistikadong ahente na may maraming espesyal na tool, gamit ang malakas na pagta-type ng C# at mga enterprise feature ng .NET.
+Ipinapakita ng notebook na ito ang mga pattern ng enterprise-grade tool integration gamit ang Microsoft Agent Framework sa .NET kasama ang Azure OpenAI (Responses API). Matututuhan mong bumuo ng mga sopistikadong ahente na may maraming espesyal na kasangkapan, gamit ang malakas na type ng C# at mga tampok sa enterprise ng .NET.
 
-### Mga Advanced na Kakayahan sa Tool na Iyong Mamahalaan
+### Mga Advanced na Kakayahan sa Tool na Iyong Mahahawakan
 
-- 🔧 **Multi-Tool Architecture**: Pagtatayo ng mga ahente na may maraming espesyal na kakayahan
+- 🔧 **Multi-Tool Architecture**: Pagbuo ng mga ahente na may maraming espesyal na kakayahan
 - 🎯 **Type-Safe Tool Execution**: Paggamit ng compile-time validation ng C#
-- 📊 **Enterprise Tool Patterns**: Disenyo ng production-ready tool at paghawak ng error
-- 🔗 **Tool Composition**: Pagsasama-sama ng mga tool para sa komplikadong workflows ng negosyo
+- 📊 **Enterprise Tool Patterns**: Disenyo ng production-ready na tool at pamamahala ng error
+- 🔗 **Tool Composition**: Pagsamahin ang mga tool para sa kumplikadong mga workflow ng negosyo
 
 ## 🎯 Mga Benepisyo ng .NET Tool Architecture
 
 ### Mga Tampok ng Enterprise Tool
 
-- **Compile-Time Validation**: Pinatitibay ng malakas na pagta-type ang kawastuhan ng mga parameter ng tool
+- **Compile-Time Validation**: Matibay na typing para matiyak ang katumpakan ng parameter ng tool
 - **Dependency Injection**: Integrasyon ng IoC container para sa pamamahala ng tool
-- **Async/Await Patterns**: Hindi nagpapabara na pagtakbo ng tool gamit ang tamang pamamahala ng resources
-- **Structured Logging**: Nakapaloob na logging integration para sa pagsubaybay ng pagpapatakbo ng tool
+- **Async/Await Patterns**: Hindi nakaka-block na pagpapatupad ng tool na may tamang pamamahala ng resources
+- **Structured Logging**: Naka-built in na logging para sa pagsubaybay ng pagpapatupad ng tool
 
-### Mga Pattern na Handa sa Produksyon
+### Mga Pattern na Handang-Gamitin sa Produksyon
 
 - **Exception Handling**: Komprehensibong pamamahala ng error gamit ang typed exceptions
-- **Resource Management**: Tamang pag-dispose at pamamahala ng memorya
-- **Performance Monitoring**: Nakapaloob na metrics at performance counters
-- **Configuration Management**: Type-safe configuration na may validation
+- **Resource Management**: Mga wastong pattern ng disposal at pamamahala ng memorya
+- **Performance Monitoring**: Naka-built in na metrics at performance counters
+- **Configuration Management**: Type-safe na configuration na may validation
 
 ## 🔧 Teknikal na Arkitektura
 
-### Pangunahing Bahagi ng .NET Tool
+### Mga Pangunahing Komponent ng .NET Tool
 
-- **Microsoft.Extensions.AI**: Pinagsamang abstraction layer ng tool
-- **Microsoft.Agents.AI**: Enterprise-grade na pag-orchestrate ng tool
-- **Azure OpenAI (Responses API)**: Mabilis na API client na may connection pooling
+- **Microsoft.Extensions.AI**: Nagkakaisang abstraction layer para sa tool
+- **Microsoft.Agents.AI**: Enterprise-grade na tool orchestration
+- **Azure OpenAI (Responses API)**: Mataas na performance na API client na may connection pooling
 
-### Pipeline ng Pagpapatakbo ng Tool
+### Pipeline ng Pagpapatupad ng Tool
 
 ```mermaid
 graph LR
-    A[Kahilingan ng User] --> B[Pagsusuri ng Ahente]
+    A[Kahilingan ng Gumagamit] --> B[Pagsusuri ng Ahente]
     B --> C[Pagpili ng Kasangkapan]
-    C --> D[Pagpapatotoo ng Uri]
+    C --> D[Pagpapatunay ng Uri]
     B --> E[Pagbubuklod ng Parameter]
     E --> F[Pagsasagawa ng Kasangkapan]
     C --> F
-    F --> G[Pagpoproseso ng Resulta]
+    F --> G[Pagproseso ng Resulta]
     D --> G
     G --> H[Tugon]
 ```
@@ -54,56 +54,56 @@ graph LR
 
 ### 1. **Mga Tool sa Pagproseso ng Data**
 
-- **Input Validation**: Malakas na pagta-type gamit ang data annotations
-- **Transform Operations**: Type-safe na conversion at pag-format ng data
-- **Business Logic**: Mga tool para sa domain-specific na kalkulasyon at pagsusuri
-- **Output Formatting**: Structured na pagbuo ng tugon
+- **Input Validation**: Matibay na typing gamit ang data annotations
+- **Transform Operations**: Type-safe na konbersyon at pag-format ng data
+- **Business Logic**: Mga tool sa espesipikong kalkulasyon at pagsusuri ng domain
+- **Output Formatting**: Naka-istrukturang paggawa ng tugon
 
 ### 2. **Mga Tool sa Integrasyon**
 
-- **API Connectors**: Integrasyon ng RESTful service gamit ang HttpClient
+- **API Connectors**: Integrasyon ng RESTful na serbisyo gamit ang HttpClient
 - **Database Tools**: Integrasyon ng Entity Framework para sa pag-access ng data
 - **File Operations**: Ligtas na mga operasyon sa file system na may validation
-- **External Services**: Mga pattern ng integrasyon ng third-party na serbisyo
+- **External Services**: Mga pattern para sa integrasyon ng third-party na serbisyo
 
 ### 3. **Mga Utility Tool**
 
-- **Text Processing**: Mga utility para sa manipulasyon at pag-format ng string
-- **Date/Time Operations**: Mga kalkulasyon sa petsa/oras na nakaangkop sa kultura
-- **Mathematical Tools**: Tumpak na kalkulasyon at mga operasyon sa estadistika
-- **Validation Tools**: Pag-validate ng mga patakaran sa negosyo at bersipikasyon ng data
+- **Text Processing**: Mga utility para sa pagmanipula at pag-format ng string
+- **Date/Time Operations**: Mga kalkulasyon ng petsa/oras na may kaalaman sa kultura
+- **Mathematical Tools**: Mga tumpak na kalkulasyon at estadistikang operasyon
+- **Validation Tools**: Pag-validate ng mga patakaran sa negosyo at beripikasyon ng data
 
-Handa ka na bang bumuo ng mga enterprise-grade na ahente na may makapangyarihan, type-safe na kakayahan ng tool sa .NET? Tara, i-arkitekto natin ang mga propesyonal na solusyon! 🏢⚡
+Handa ka na bang bumuo ng mga enterprise-grade na ahente na may makapangyarihan at type-safe na mga kakayahan sa tool sa .NET? Gawin nating arkitektura ang mga propesyonal na solusyon! 🏢⚡
 
 ## 🚀 Pagsisimula
 
 ### Mga Kinakailangan
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) o mas mataas
-- Isang [Azure subscription](https://azure.microsoft.com/free/) na may Azure OpenAI resource at deployment ng modelo
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) o mas mataas pa
+- Isang [Azure subscription](https://azure.microsoft.com/free/) na may Azure OpenAI resource at model deployment
 - Ang [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — mag-sign in gamit ang `az login`
 
-### Mga Kailangang Environment Variable
+### Kinakailangang Mga Variable sa Kapaligiran
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Pagkatapos mag-sign in upang makakuha ng token ang AzureCliCredential
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Mag-sign in muna upang makakuha ng token ang AzureCliCredential
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Pagkatapos mag-sign in para makakuha ng token ang AzureCliCredential
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Mag-sign in muna upang makakuha ng token ang AzureCliCredential
 az login
 ```
 
-### Sample Code
+### Halimbawang Code
 
-Para patakbuhin ang halimbawa ng code,
+Upang patakbuhin ang halimbawa ng code,
 
 ```bash
 # zsh/bash
@@ -117,7 +117,7 @@ O gamit ang dotnet CLI:
 dotnet run ./04-dotnet-agent-framework.cs
 ```
 
-Tingnan ang [`04-dotnet-agent-framework.cs`](../../../../04-tool-use/code_samples/04-dotnet-agent-framework.cs) para sa buong code.
+Tingnan ang [`04-dotnet-agent-framework.cs`](../../../../04-tool-use/code_samples/04-dotnet-agent-framework.cs) para sa kompletong code.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -168,7 +168,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

@@ -2,44 +2,44 @@
 
 ## 📋 Læringsmål
 
-Denne notesbog demonstrerer virksomhedsklare værktøjsintegrationsmønstre ved brug af Microsoft Agent Framework i .NET med Azure OpenAI (Responses API). Du vil lære at bygge sofistikerede agenter med flere specialiserede værktøjer ved at udnytte C#'s stærke typning og .NET's virksomhedsfeatures.
+Denne notesbog demonstrerer enterprise-klasse værktøjsintegrationsmønstre ved brug af Microsoft Agent Framework i .NET med Azure OpenAI (Responses API). Du vil lære at bygge sofistikerede agenter med flere specialiserede værktøjer, der udnytter C#'s stærke typning og .NET's enterprise-funktioner.
 
 ### Avancerede Værktøjsevner Du Vil Mestre
 
-- 🔧 **Multi-Værktøjsarkitektur**: Byg agenter med flere specialiserede kapaciteter
-- 🎯 **Typesikker Værktøjsudførelse**: Udnyt C#'s kompiletidsvalidering
-- 📊 **Virksomhedsværktøjsmønstre**: Produktionsklar værktøjsdesign og fejlhåndtering
-- 🔗 **Værktøjssammensætning**: Kombiner værktøjer til komplekse forretningsarbejdsgange
+- 🔧 **Multi-Værktøjsarkitektur**: Opbygning af agenter med flere specialiserede kapaciteter
+- 🎯 **Type-sikker Værktøjsudførelse**: Udnyttelse af C#'s kompileringstid-validering
+- 📊 **Enterprise Værktøjsmønstre**: Produktionsklar værktøjsdesign og fejlhåndtering
+- 🔗 **Værktøjssammensætning**: Kombination af værktøjer til komplekse forretningsarbejdsgange
 
 ## 🎯 Fordele ved .NET Værktøjsarkitektur
 
-### Virksomhedsværktøjsegenskaber
+### Enterprise Værktøjsfunktioner
 
-- **Kompiletidsvalidering**: Stærk typning sikrer korrekthed af værktøjsparametre
-- **Dependency Injection**: IoC-containertilslutning til værktøjsstyring
-- **Async/Await-mønstre**: Ikke-blokerende værktøjsudførelse med korrekt ressourcestyring
+- **Kompileringstid-validering**: Stærk typning sikrer korrekthed i værktøjsparametre
+- **Dependency Injection**: IoC-containerintegration til værktøjsstyring
+- **Async/Await-mønstre**: Ikke-blokerende værktøjsudførelse med korrekt ressourcehåndtering
 - **Struktureret Logning**: Indbygget logningsintegration til overvågning af værktøjsudførelse
 
 ### Produktionsklare Mønstre
 
-- **Undtagelseshåndtering**: Omfattende fejlhåndtering med typed undtagelser
-- **Ressourcestyring**: Korrekte designmønstre for bortskaffelse og hukommelsesstyring
-- **Ydelsesovervågning**: Indbyggede metrics og ydelsestællere
-- **Konfigurationsstyring**: Typesikker konfiguration med validering
+- **Fejlhåndtering**: Omfattende fejlstyring med typede undtagelser
+- **Ressourcehåndtering**: Korrekte destruktionsmønstre og hukommelsesstyring
+- **Ydelsesovervågning**: Indbyggede målinger og ydelsesindikatorer
+- **Konfigurationsstyring**: Type-sikker konfiguration med validering
 
 ## 🔧 Teknisk Arkitektur
 
-### Kernekomponenter i .NET Værktøj
+### Kerne .NET Værktøjskomponenter
 
-- **Microsoft.Extensions.AI**: Fælles værktøjsabstraktionslag
-- **Microsoft.Agents.AI**: Virksomhedsklare værktøjsorkestrering
-- **Azure OpenAI (Responses API)**: High-performance API-klient med connection pooling
+- **Microsoft.Extensions.AI**: Forenet værktøjsabstraktionslag
+- **Microsoft.Agents.AI**: Enterprise-klasse værktøjsorkestrering
+- **Azure OpenAI (Responses API)**: Højtydende API-klient med forbindelsepooling
 
 ### Værktøjsudførelsespipeline
 
 ```mermaid
 graph LR
-    A[Brugeranmodning] --> B[Agentanalyse]
+    A[Brugerforespørgsel] --> B[Agentanalyse]
     B --> C[Værktøjsvalg]
     C --> D[Typevalidering]
     B --> E[Parameterbinding]
@@ -52,35 +52,35 @@ graph LR
 
 ## 🛠️ Værktøjskategorier & Mønstre
 
-### 1. **Databehandlingsværktøjer**
+### 1. **Data Processing Tools**
 
-- **Inputvalidering**: Stærk typning med dataannotationer
-- **Transformationsoperationer**: Typesikker datakonvertering og formatering
-- **Forretningslogik**: Domænespecifikke beregnings- og analyseværktøjer
-- **Outputformatering**: Struktureret responsgenerering
+- **Inputvalidering**: Stærk typning med dataannoteringer
+- **Transformationsoperationer**: Type-sikker datakonvertering og formatering
+- **Forretningslogik**: Domaine-specifikke beregnings- og analysetools
+- **Outputformatering**: Struktureret svargenerering
 
 ### 2. **Integrationsværktøjer**
 
-- **API-forbindelser**: RESTful serviceintegration med HttpClient
-- **Databaseværktøjer**: Entity Framework integration til dataadgang
-- **Filoperationer**: Sikker filsystemoperation med validering
-- **Eksterne tjenester**: Integrationsmønstre for tredjepartstjenester
+- **API Connectors**: RESTful serviceintegration med HttpClient
+- **Databaseværktøjer**: Entity Framework-integration til dataadgang
+- **Filoperationer**: Sikker filsystemhåndtering med validering
+- **Eksterne Tjenester**: Tredjepartsservice-integrationsmønstre
 
-### 3. **Utility-værktøjer**
+### 3. **Utility Tools**
 
-- **Tekstbehandling**: Strengmanipulation og formateringsværktøjer
-- **Dato-/tidsoperationer**: Kulturbevidste dato-/tidsberegninger
+- **Tekstbehandling**: Stringmanipulation og formatteringsværktøjer
+- **Dato/Tids-Operationer**: Kulturbevidste dato/tids-beregninger
 - **Matematiske værktøjer**: Præcisionsberegninger og statistiske operationer
-- **Valideringsværktøjer**: Validering af forretningsregler og dataverifikation
+- **Valideringsværktøjer**: Forretningsregelvalidering og dataverificering
 
-Klar til at bygge virksomhedsklare agenter med kraftfulde, typesikre værktøjsevner i .NET? Lad os arkitektere nogle professionelle løsninger! 🏢⚡
+Klar til at bygge enterprise-klasse agenter med kraftfulde, type-sikre værktøjsfunktioner i .NET? Lad os arkitektere nogle professionelle løsninger! 🏢⚡
 
 ## 🚀 Kom godt i gang
 
 ### Forudsætninger
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) eller nyere
-- Et [Azure-abonnement](https://azure.microsoft.com/free/) med en Azure OpenAI-ressource og en modeludrulning
+- Et [Azure abonnement](https://azure.microsoft.com/free/) med en Azure OpenAI-ressource og en modeludrulning
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — log ind med `az login`
 
 ### Påkrævede Miljøvariabler
@@ -88,20 +88,20 @@ Klar til at bygge virksomhedsklare agenter med kraftfulde, typesikre værktøjse
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Log derefter ind, så AzureCliCredential kan hente et token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Log derefter ind, så AzureCliCredential kan få et token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Log derefter ind, så AzureCliCredential kan få en token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Log ind, så AzureCliCredential kan få en token
 az login
 ```
 
-### Eksempelkode
+### Eksempel Kode
 
 For at køre kodeeksemplet,
 
@@ -168,7 +168,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

@@ -2,48 +2,48 @@
 
 ## 📋 Tổng quan Kịch bản
 
-Ví dụ này minh họa cách xây dựng một đại lý lập kế hoạch du lịch thông minh sử dụng Microsoft Agent Framework cho .NET. Đại lý này có thể tự động tạo lịch trình chuyến đi theo ngày được cá nhân hóa cho các điểm đến ngẫu nhiên trên khắp thế giới.
+Ví dụ này minh họa cách xây dựng một đại lý thông minh lên kế hoạch du lịch sử dụng Microsoft Agent Framework cho .NET. Đại lý có thể tự động tạo lộ trình chuyến đi trong ngày cá nhân hóa cho các điểm đến ngẫu nhiên trên toàn thế giới.
 
-### Các Năng lực Chính:
+### Các khả năng chính:
 
 - 🎲 **Chọn điểm đến ngẫu nhiên**: Sử dụng công cụ tùy chỉnh để chọn các điểm nghỉ dưỡng
-- 🗺️ **Lập kế hoạch chuyến đi thông minh**: Tạo lịch trình chi tiết theo từng ngày
-- 🔄 **Phát trực tiếp thời gian thực**: Hỗ trợ cả phản hồi ngay lập tức và phản hồi theo luồng
-- 🛠️ **Tích hợp công cụ tùy chỉnh**: Minh họa cách mở rộng khả năng của đại lý
+- 🗺️ **Lập kế hoạch chuyến đi thông minh**: Tạo lộ trình chi tiết theo ngày
+- 🔄 **Phát trực tiếp theo thời gian thực**: Hỗ trợ cả phản hồi ngay lập tức và phát trực tiếp
+- 🛠️ **Tích hợp công cụ tùy chỉnh**: Minh họa cách mở rộng khả năng đại lý
 
 ## 🔧 Kiến trúc Kỹ thuật
 
-### Công nghệ cốt lõi
+### Công nghệ Cốt lõi
 
-- **Microsoft Agent Framework**: Triển khai .NET mới nhất cho phát triển đại lý AI
-- **Azure OpenAI (Responses API)**: Sử dụng API Azure OpenAI Responses cho suy luận mô hình
+- **Microsoft Agent Framework**: Phiên bản mới nhất cho phát triển đại lý AI trên .NET
+- **Azure OpenAI (Responses API)**: Sử dụng API phản hồi Azure OpenAI để suy luận mô hình
 - **Azure Identity**: Đăng nhập bảo mật qua `AzureCliCredential` (`az login`)
-- **Cấu hình Bảo mật**: Quản lý điểm cuối dựa trên môi trường
+- **Cấu hình An toàn**: Quản lý điểm cuối dựa trên môi trường
 
-### Thành phần chính
+### Các thành phần chính
 
-1. **AIAgent**: Trình điều phối đại lý chính xử lý luồng cuộc trò chuyện
+1. **AIAgent**: Bộ điều phối chính xử lý luồng hội thoại
 2. **Công cụ Tùy chỉnh**: Hàm `GetRandomDestination()` có sẵn cho đại lý
-3. **Clients Responses**: Giao diện trò chuyện dựa trên Azure OpenAI Responses
-4. **Hỗ trợ Phát trực tiếp**: Khả năng tạo phản hồi thời gian thực
+3. **Khách hàng Phản hồi**: Giao diện hội thoại dựa trên Azure OpenAI Responses
+4. **Hỗ trợ Streaming**: Khả năng tạo phản hồi thời gian thực
 
 ### Mẫu Tích hợp
 
 ```mermaid
 graph LR
-    A[Yêu Cầu Người Dùng] --> B[Tác nhân AI]
-    B --> C[Azure OpenAI (API Phản hồi)]
-    B --> D[Công cụ GetRandomDestination]
+    A[Yêu Cầu Người Dùng] --> B[Đại Lý AI]
+    B --> C[Azure OpenAI (API Phản Hồi)]
+    B --> D[Công Cụ Chọn Đích Ngẫu Nhiên]
     C --> E[Lịch Trình Du Lịch]
     D --> E
 ```
 
 ## 🚀 Bắt đầu
 
-### Yêu cầu trước
+### Điều kiện tiên quyết
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) hoặc cao hơn
-- Một [đăng ký Azure](https://azure.microsoft.com/free/) với tài nguyên Azure OpenAI và triển khai mô hình
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) trở lên
+- Một [đăng ký Azure](https://azure.microsoft.com/free/) có tài nguyên Azure OpenAI và một triển khai mô hình
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — đăng nhập với `az login`
 
 ### Biến Môi trường Cần thiết
@@ -51,20 +51,20 @@ graph LR
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Sau đó đăng nhập để AzureCliCredential có thể lấy token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Sau đó đăng nhập để AzureCliCredential có thể lấy một token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Sau đó đăng nhập để AzureCliCredential có thể lấy được token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Sau đó đăng nhập để AzureCliCredential có thể lấy token
 az login
 ```
 
-### Mẫu Mã
+### Mã Ví dụ
 
 Để chạy ví dụ mã,
 
@@ -80,7 +80,7 @@ Hoặc sử dụng dotnet CLI:
 dotnet run ./01-dotnet-agent-framework.cs
 ```
 
-Xem [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) để xem mã đầy đủ.
+Xem [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) cho mã đầy đủ.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,19 +157,19 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 Nhận định chính
+## 🎓 Những điểm Chính Rút ra
 
-1. **Kiến trúc Đại lý**: Microsoft Agent Framework cung cấp cách tiếp cận rõ ràng, an toàn kiểu để xây dựng đại lý AI trong .NET
-2. **Tích hợp Công cụ**: Hàm được đánh dấu `[Description]` trở thành công cụ có sẵn cho đại lý
-3. **Quản lý Cấu hình**: Biến môi trường và xử lý thông tin xác thực an toàn theo chuẩn tốt nhất .NET
-4. **Azure OpenAI Responses API**: Đại lý sử dụng Azure OpenAI Responses API thông qua SDK Azure.AI.OpenAI
+1. **Kiến trúc Đại lý**: Microsoft Agent Framework cung cấp cách tiếp cận sạch, an toàn kiểu để xây dựng đại lý AI trên .NET
+2. **Tích hợp Công cụ**: Các hàm được trang trí với thuộc tính `[Description]` trở thành các công cụ có sẵn cho đại lý
+3. **Quản lý Cấu hình**: Biến môi trường và xử lý thông tin xác thực an toàn theo thực tiễn tốt nhất của .NET
+4. **Azure OpenAI Responses API**: Đại lý sử dụng API Azure OpenAI Responses qua SDK Azure.AI.OpenAI
 
 ## 🔗 Tài nguyên Bổ sung
 
 - [Tài liệu Microsoft Agent Framework](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI trong Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [Ứng dụng .NET Single File](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [Ứng dụng Đơn File .NET](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

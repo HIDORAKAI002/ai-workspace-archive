@@ -1,42 +1,42 @@
-# פיתוח שירות סוכן Microsoft Foundry
+# פיתוח שירות סוכן Microsoft Foundry  
 
-בתרגיל זה, תשתמש בכלי שירות סוכן Microsoft Foundry ב-[פורטל Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) כדי ליצור סוכן להזמנת טיסות. הסוכן יוכל לתקשר עם משתמשים ולספק מידע על טיסות.
+בתרגיל זה, תשתמש בכלי Microsoft Foundry Agent Service ב-[פורטל Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) כדי ליצור סוכן להזמנת טיסות. הסוכן יוכל לתקשר עם משתמשים ולספק מידע על טיסות.  
 
-## דרישות מוקדמות
+## דרישות מוקדמות  
 
-כדי להשלים את התרגיל, אתה צריך את הדברים הבאים:
-1. חשבון Azure עם מנוי פעיל. [צור חשבון בחינם](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst).
-2. אתה צריך הרשאות ליצירת מרכז Microsoft Foundry או שיהיה לך אחד שנוצר עבורך.
-    - אם התפקיד שלך הוא Contributor או Owner, תוכל לעקוב אחר השלבים במדריך זה.
+כדי להשלים את התרגיל, אתה זקוק לדברים הבאים:  
+1. חשבון Azure עם מנוי פעיל. [צור חשבון בחינם](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst).  
+2. הרשאות ליצירת מרכז Microsoft Foundry או שמישהו ייצור עבורך אחד.  
+    - אם התפקיד שלך הוא Contributor או Owner, תוכל לעקוב אחר השלבים במדריך זה.  
 
-## יצירת מרכז Microsoft Foundry
+## יצירת מרכז Microsoft Foundry  
 
-> **הערה:** Microsoft Foundry היה ידוע בעבר כ-Azure AI Studio.
+> **הערה:** Microsoft Foundry נקרא בעבר Azure AI Studio.  
 
-1. עקוב אחר ההנחיות מפוסט הבלוג של [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) ליצירת מרכז Microsoft Foundry.
-2. כאשר הפרויקט שלך נוצר, סגור את כל הטיפים המוצגים ועבור לדף הפרויקט בפורטל Microsoft Foundry, שצריך להיראות דומה לתמונה הבאה:
+1. עקוב אחרי ההנחיות בפוסט הבלוג של [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) ליצירת מרכז Microsoft Foundry.  
+2. כאשר הפרויקט שלך נוצר, סגור כל טיפים שמופיעים ועיין בדף הפרויקט בפורטל Microsoft Foundry, שיראה דומה לתמונה הבאה:  
 
-    ![Microsoft Foundry Project](../../../translated_images/he/azure-ai-foundry.88d0c35298348c2f.webp)
+    ![פרויקט Microsoft Foundry](../../../translated_images/he/azure-ai-foundry.88d0c35298348c2f.webp)  
 
-## פריסת מודל
+## פריסת מודל  
 
-1. בלוח בצד השמאלי של הפרויקט שלך, בקטע **My assets**, בחר את דף **Models + endpoints**.
-2. בדף **Models + endpoints**, בכרטיסיית **Model deployments**, בתפריט **+ Deploy model**, בחר **Deploy base model**.
-3. חפש את המודל `gpt-4.1-mini` ברשימה, ואז בחר ואשר אותו.
+1. בפאנל השמאלי של הפרויקט שלך, בקטגוריית **הנכסים שלי**, בחר בדף **מודלים + נקודות קצה**.  
+2. בדף **מודלים + נקודות קצה**, בכרטיסיית **פריסות מודלים**, בתפריט **+ פריסת מודל**, בחר **פריסת מודל בסיסי**.  
+3. חפש את המודל `gpt-5-mini` ברשימה, ואז בחר ואשר אותו.  
 
-    > **הערה**: הפחתת TPM עוזרת להמנע משימוש יתר במכסת המנוי שבה אתה משתמש.
+    > **הערה**: הקטנת TPM עוזרת למנוע שימוש יתר במכסת השימוש הזמינה במנוי שבו אתה משתמש.  
 
-    ![Model Deployed](../../../translated_images/he/model-deployment.3749c53fb81e18fd.webp)
+    ![מודל הופשר](../../../translated_images/he/model-deployment.3749c53fb81e18fd.webp)  
 
-## יצירת סוכן
+## יצירת סוכן  
 
-כעת כשפרסת מודל, אתה יכול ליצור סוכן. סוכן הוא מודל AI שיחתי שניתן להשתמש בו לתקשורת עם משתמשים.
+כעת כשפרסת מודל, תוכל ליצור סוכן. סוכן הוא מודל שיחה מבוסס בינה מלאכותית שניתן להשתמש בו לתקשורת עם המשתמשים.  
 
-1. בלוח בצד השמאלי של הפרויקט שלך, בקטע **Build & Customize**, בחר את דף **Agents**.
-2. לחץ על **+ Create agent** כדי ליצור סוכן חדש. בתיבת הדו-שיח **Agent Setup**:
-    - הזן שם לסוכן, לדוגמה `FlightAgent`.
-    - ודא שנפרסת מודל `gpt-4.1-mini` שיצרת קודם נבחרה.
-    - הגדר את **Instructions** לפי ההנחיה שתרצה שהסוכן יפעל לפיה. להלן דוגמה:
+1. בפאנל השמאלי של הפרויקט שלך, בקטגוריית **בנה והתאמה אישית**, בחר בדף **סוכנים**.  
+2. לחץ על **+ צור סוכן** כדי ליצור סוכן חדש. בתיבת הדו-שיח **הגדרת סוכן**:  
+    - הזן שם לסוכן, כמו `FlightAgent`.  
+    - ודא שהפריסה של המודל `gpt-5-mini` שיצרת קודם נבחרה.  
+    - הגדר את **ההוראות** בהתאם להנחיות שברצונך שהסוכן יעקוב אחריהן. הנה דוגמה:  
     ```
     You are FlightAgent, a virtual assistant specialized in handling flight-related queries. Your role includes assisting users with searching for flights, retrieving flight details, checking seat availability, and providing real-time flight status. Follow the instructions below to ensure clarity and effectiveness in your responses:
 
@@ -63,43 +63,43 @@
     - If no data is found or an error occurs, explain it to the user gently and offer alternative actions (e.g., refine search, try another query).
     
     ```
-> [!NOTE]
-> לפרומפט מפורט, תוכל לעיין ב-[מאגר זה](https://github.com/ShivamGoyal03/RoamMind) לפרטים נוספים.
+> [!NOTE]  
+> עבור הנחיית פרומפט מפורטת, תוכל לעיין ב-[מאגר זה](https://github.com/ShivamGoyal03/RoamMind) למידע נוסף.  
     
-> בנוסף, תוכל להוסיף **Knowledge Base** ו-**Actions** כדי לשפר את יכולות הסוכן לספק מידע נוסף ולבצע משימות אוטומטיות על בסיס בקשות משתמשים. בתרגיל זה, אפשר לדלג על שלבים אלה.
+> בנוסף, ניתן להוסיף **בסיס ידע** ו**פעולות** כדי לשפר את יכולות הסוכן לספק מידע נוסף ולבצע משימות אוטומטיות המבוססות על בקשות משתמש. לתרגיל זה תוכל לדלג על שלבים אלו.  
     
-![Agent Setup](../../../translated_images/he/agent-setup.9bbb8755bf5df672.webp)
+![הגדרת סוכן](../../../translated_images/he/agent-setup.9bbb8755bf5df672.webp)  
 
-3. ליצירת סוכן Multi-AI חדש, פשוט לחץ על **New Agent**. הסוכן שנוצר יוצג בדף הסוכנים.
+3. כדי ליצור סוכן עם מספר בינה מלאכותית, פשוט לחץ על **סוכן חדש**. הסוכן שנוצר יוצג אז בדף הסוכנים.  
 
 
-## בדיקת הסוכן
+## בדיקת הסוכן  
 
-לאחר יצירת הסוכן, תוכל לבדוק כיצד הוא מגיב לשאילתות משתמשים בפורטל Microsoft Foundry playground.
+לאחר יצירת הסוכן, תוכל לבדוק כיצד הוא מגיב לשאילתות משתמשים במחולל הפורטל Microsoft Foundry.  
 
-1. בראש לוח ה-**Setup** עבור הסוכן שלך, בחר **Try in playground**.
-2. בלוח ה-**Playground**, תוכל לתקשר עם הסוכן על ידי הקלדת שאילתות בחלון הצ'אט. לדוגמה, תוכל לבקש מהסוכן לחפש טיסות מסיאטל לניו יורק בתאריך 28.
+1. בראש הפאנל **הגדרה** של הסוכן, בחר ב**נסה במגרש המשחקים**.  
+2. בפאנל **מגרש המשחקים** תוכל לתקשר עם הסוכן על ידי הקלדת שאילתות בחלון הצ’אט. לדוגמה, תוכל לבקש מהסוכן לחפש טיסות מסיאטל לניו יורק בתאריך 28.  
 
-    > **הערה**: ייתכן והסוכן לא יספק תגובות מדויקות, מאחר ששום נתונים בזמן אמת אינם בשימוש בתרגיל זה. המטרה היא לבדוק את יכולת הסוכן להבין ולהגיב לשאילתות המשתמש בהתבסס על ההוראות שסופקו.
+    > **הערה**: ייתכן שהסוכן לא יספק תגובות מדויקות, מאחר שבתרגיל זה לא נעשה שימוש בנתונים בזמן אמת. המטרה היא לבדוק את יכולת הסוכן להבין ולהגיב לבקשות המשתמש על פי ההוראות שניתנו.  
 
-    ![Agent Playground](../../../translated_images/he/agent-playground.dc146586de715010.webp)
+    ![מגרש משחקים של סוכן](../../../translated_images/he/agent-playground.dc146586de715010.webp)  
 
-3. לאחר בדיקת הסוכן, תוכל להתאים אותו עוד יותר על ידי הוספת כוונות נוספות, נתוני אימון ופעולות לשיפור יכולותיו.
+3. לאחר בדיקת הסוכן, תוכל להמשיך להתאים אותו על ידי הוספת כוונות, נתוני אימון ופעולות נוספות כדי לשפר את יכולותיו.  
 
-## ניקוי משאבים
+## ניקוי משאבים  
 
-כאשר סיימת לבדוק את הסוכן, תוכל למחוק אותו כדי להימנע מהוצאות נוספות.
-1. פתח את [פורטל Azure](https://portal.azure.com) וצפה בתוכן קבוצת המשאבים שבה פרשת את משאבי המרכז בהם השתמשת בתרגיל זה.
-2. בסרגל הכלים, בחר **Delete resource group**.
-3. הזן את שם קבוצת המשאבים ואשר שברצונך למחוק אותה.
+לאחר שסיימת לבדוק את הסוכן, תוכל למחוק אותו כדי למנוע עלויות נוספות.  
+1. פתח את [פורטל Azure](https://portal.azure.com) וצפה בתוכן קבוצת המשאבים שבה פרסת את משאבי המרכז שהשתמשת בהם בתרגיל זה.  
+2. בסרגל הכלים, בחר **מחק קבוצת משאבים**.  
+3. הזן את שם קבוצת המשאבים ואשר את רצונך למחוק אותה.  
 
-## משאבים
+## משאבים  
 
-- [תיעוד Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst)
-- [פורטל Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst)
-- [התחלת עבודה עם Microsoft Foundry](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
-- [יסודות סוכני AI ב-Azure](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
-- [Azure AI Discord](https://aka.ms/AzureAI/Discord)
+- [תיעוד Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst)  
+- [פורטל Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst)  
+- [התחלה עם Microsoft Foundry](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)  
+- [יסודות סוכני בינה מלאכותית ב-Azure](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)  
+- [Azure AI Discord](https://aka.ms/AzureAI/Discord)  
 
 ---
 

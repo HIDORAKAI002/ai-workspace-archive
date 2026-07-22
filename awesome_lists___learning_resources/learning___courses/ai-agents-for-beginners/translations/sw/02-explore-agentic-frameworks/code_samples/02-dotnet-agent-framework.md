@@ -1,73 +1,73 @@
-# 🔍 Kuchunguza Microsoft Agent Framework - Mwakilishi Msingi (.NET)
+# 🔍 Kuchunguza Muundo wa Wakala wa Microsoft - Wakala Msingi (.NET)
 
 ## 📋 Malengo ya Kujifunza
 
-Mfano huu unachunguza dhana za msingi za Microsoft Agent Framework kupitia utekelezaji wa wakala wa msingi katika .NET. Utajifunza mifumo ya msingi ya mawakala na kuelewa jinsi mawakala wenye akili hufanya kazi nyuma ya pazia kwa kutumia C# na mazingira ya .NET.
+Mfano huu unachunguza dhana za msingi za Muundo wa Wakala wa Microsoft kupitia utekelezaji wa wakala wa msingi katika .NET. Utafahamu mifumo ya msingi ya wakala na kuelewa jinsi wakala wenye akili wanavyofanya kazi chini ya hood kwa kutumia C# na mfumo wa .NET.
 
 ### Utagundua Nini
 
-- 🏗️ **Msingi wa Mwakala**: Kuelewa muundo wa msingi wa mawakala wa AI katika .NET
-- 🛠️ **Uunganishaji wa Zana**: Jinsi mawakala wanavyotumia kazi za nje kuongeza uwezo  
-- 💬 **Mtiririko wa Mazungumzo**: Kusimamia mazungumzo yenye mizunguko mingi na muktadha kwa usimamizi wa mfululizo
+- 🏗️ **Muundo wa Wakala**: Kuelewa muundo wa msingi wa wakala wa AI katika .NET
+- 🛠️ **Uingizaji Zana**: Jinsi wakala wanavyotumia kazi za nje kuongeza uwezo  
+- 💬 **Mtiririko wa Mazungumzo**: Kusimamia mazungumzo ya mizunguko mingi na muktadha kwa kusimamia thread
 - 🔧 **Mifumo ya Usanidi**: Mbinu bora za usanidi na usimamizi wa wakala katika .NET
 
-## 🎯 Dhana Muhimu Zinazoshughulikiwa
+## 🎯 Dhana Muhimu Zilizoshughulikiwa
 
-### Kanuni za Mfumo wa Mwakala
+### Kanuni za Mfumo wa Wakala
 
-- **Uhuru**: Jinsi mawakala wanavyofanya maamuzi kwa uhuru kwa kutumia muhtasari wa AI wa .NET
-- **Kujibu**: Kuwajibika kwa mabadiliko ya mazingira na maingizo ya mtumiaji
-- **Kuchukua Mchango**: Kuchukua hatua kwa msingi wa malengo na muktadha
-- **Uwezo wa Kijamii**: Kuwasiliana kupitia lugha ya asili na mfululizo wa mazungumzo
+- **Uhuru**: Jinsi wakala wanavyofanya maamuzi huru kwa kutumia abstraction za AI za .NET
+- **Majibu**: Kujibu mabadiliko ya mazingira na ingizo la mtumiaji
+- **Kuhamasisha**: Kuchukua hatua kulingana na malengo na muktadha
+- **Uwezo wa Kijamii**: Kuzungumza kupitia lugha ya asili kwa mizunguko ya mazungumzo
 
-### Vipengele vya Kiufundi
+### Sehemu za Kiufundi
 
-- **AIAgent**: Usimamizi wa msingi wa wakala na mazungumzo (.NET)
-- **Kazi za Zana**: Kupanua uwezo wa wakala kwa njia za C# na sifa
-- **Uunganishaji wa Azure OpenAI**: Kutumia modeli za lugha kupitia Azure OpenAI Responses API
-- **Usanidi Salama**: Usimamizi wa endpoint unategemea mazingira
+- **AIAgent**: Uendeshaji wa msingi wa wakala na usimamizi wa mazungumzo (.NET)
+- **Kazi za Zana**: Kupanua uwezo wa wakala kwa njia za C# na tabia
+- **Uingizaji Azure OpenAI**: Kutumia mifano ya lugha kupitia Azure OpenAI Responses API
+- **Usanidi Salama**: Usimamizi wa endpoint kulingana na mazingira
 
-## 🔧 Stack Ya Kiufundi
+## 🔧 Teknolojia Muhimu
 
 ### Teknolojia za Msingi
 
-- Microsoft Agent Framework (.NET)
-- Uunganishaji wa Azure OpenAI (Responses API)
-- Mifumo ya mteja wa Azure.AI.OpenAI
-- Usanidi unategemea mazingira kwa kutumia DotNetEnv
+- Muundo wa Wakala wa Microsoft (.NET)
+- Uingizaji Azure OpenAI (Responses API)
+- Mifano ya mteja wa Azure.AI.OpenAI
+- Usanidi kulingana na mazingira kwa kutumia DotNetEnv
 
 ### Uwezo wa Wakala
 
 - Uelewa na uzalishaji wa lugha ya asili
-- Kupiga simu za kazi na matumizi ya zana kwa sifa za C#
-- Majibu yanayotambua muktadha na vikao vya mazungumzo
-- Muundo unaoweza kupanuliwa kwa kutumia mifumo ya uwekaji tegemezi
+- Kuitisha kazi na matumizi ya zana kwa tabia za C#
+- Majibu yanayojua muktadha katika vikao vya mazungumzo
+- Muundo unaoweza kupanuliwa na mifumo ya injection ya utegemezi
 
-## 📚 Mlinganisho wa Mfumo
+## 📚 Ulinganisho wa Mfumo
 
-Mfano huu unaonyesha mbinu ya Microsoft Agent Framework ikilinganishwa na mifumo mingine ya mawakala:
+Mfano huu unaonyesha njia ya Muundo wa Wakala wa Microsoft ukilinganisha na mifumo mingine ya wakala:
 
-| Kipengele | Microsoft Agent Framework | Mifumo Mingine |
+| Kipengele | Muundo wa Wakala wa Microsoft | Mifumo Mengine |
 |---------|-------------------------|------------------|
-| **Uunganishaji** | Eneo la Microsoft asilia | Ulinganifu wa aina mbalimbali |
+| **Uingizaji** | Mfumo wa asili wa Microsoft | Ulinganifu tofauti |
 | **Urahisi** | API safi, rahisi kuelewa | Mara nyingi usanidi mgumu |
-| **Uwezo wa Kupanua** | Uunganishaji rahisi wa zana | Inategemea mfumo |
-| **Tayari kwa Biashara** | Imetengenezwa kwa uzalishaji | Kutofautiana kwa mfumo |
+| **Uwezo wa Kupanua** | Uingizaji rahisi wa zana | Inategemea mfumo |
+| **Tayari Kwa Biashara** | Imetengenezwa kwa uzalishaji | Inatofautiana kwa mfumo |
 
-## 🚀 Kuanza
+## 🚀 Kuanzia
 
 ### Masharti
 
 - [SDK ya .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) au zaidi
-- [Usajili wa Azure](https://azure.microsoft.com/free/) ukiwa na rasilimali ya Azure OpenAI na uenezaji wa mfano
-- [CLI ya Azure](https://learn.microsoft.com/cli/azure/install-azure-cli) — ingia kwa `az login`
+- [Usajili wa Azure](https://azure.microsoft.com/free/) na rasilimali ya Azure OpenAI na usambazaji wa mfano
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — ingia kwa kutumia `az login`
 
 ### Mabadiliko ya Mazingira Yanayohitajika
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 # Kisha ingia ili AzureCliCredential ipate tokeni
 az login
 ```
@@ -75,14 +75,14 @@ az login
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Kisha ingia ili AzureCliCredential ipate tokeni
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Kisha ingia ili AzureCliCredential iweze kupata tokeni
 az login
 ```
 
-### Mfano wa Msimbo
+### Msimbo wa Mfano
 
-Ili kuendesha mfano wa msimbo,
+Kuendesha mfano wa msimbo,
 
 ```bash
 # zsh/bash
@@ -90,7 +90,7 @@ chmod +x ./02-dotnet-agent-framework.cs
 ./02-dotnet-agent-framework.cs
 ```
 
-Au kutumia CLI ya dotnet:
+Au kwa kutumia CLI ya dotnet:
 
 ```bash
 dotnet run ./02-dotnet-agent-framework.cs
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,17 +215,17 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 Vidokezo Muhimu
+## 🎓 Mambo Muhimu ya Kukumbuka
 
-1. **Msingi wa Mwakala**: Microsoft Agent Framework hutoa njia safi, salama kiutendaji ya kujenga mawakala wa AI katika .NET
-2. **Uunganishaji wa Zana**: Kazi zilizo na sifa za `[Description]` zinakuwa zana zinazopatikana kwa wakala
-3. **Muktadha wa Mazungumzo**: Usimamizi wa vikao unawezesha mazungumzo yenye mizunguko mingi na ufahamu kamili wa muktadha
-4. **Usimamizi wa Usanidi**: Mabadiliko ya mazingira na usimamizi salama wa nyaraka hufuata mbinu bora za .NET
+1. **Muundo wa Wakala**: Muundo wa Wakala wa Microsoft hutoa njia safi, salama kwa aina kujenga wakala wa AI katika .NET
+2. **Uingizaji Zana**: Kazi zilizo na tabia za `[Description]` zinakuwa zana zinazopatikana kwa wakala
+3. **Muktadha wa Mazungumzo**: Usimamizi wa vikao unaruhusu mazungumzo ya mizunguko mingi yenye ufahamu wa muktadha kamili
+4. **Usimamizi wa Usanidi**: Mabadiliko ya mazingira na usimamizi wa usalama wa nyaraka hufuata mbinu bora za .NET
 5. **Azure OpenAI Responses API**: Wakala hutumia Azure OpenAI Responses API kupitia SDK ya Azure.AI.OpenAI
 
 ## 🔗 Rasilimali Zaidi
 
-- [Nyaraka za Microsoft Agent Framework](https://learn.microsoft.com/agent-framework)
+- [Nyaraka za Muundo wa Wakala wa Microsoft](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI katika Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
 - [Programu za Faili Moja za .NET](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)

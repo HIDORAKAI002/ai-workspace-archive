@@ -1,40 +1,40 @@
-# 🌍 Inteligentny Agent Podróży z Microsoft Agent Framework (.NET)
+# 🌍 Agent Podróży AI z Microsoft Agent Framework (.NET)
 
 ## 📋 Przegląd scenariusza
 
-Ten przykład pokazuje, jak zbudować inteligentnego agenta planującego podróże przy użyciu Microsoft Agent Framework dla .NET. Agent potrafi automatycznie generować spersonalizowane plany jednodniowych wycieczek do losowych miejsc na świecie.
+Ten przykład pokazuje, jak zbudować inteligentnego agenta do planowania podróży przy użyciu Microsoft Agent Framework dla .NET. Agent może automatycznie generować spersonalizowane plany jednodniowych wycieczek do losowych miejsc na świecie.
 
-### Kluczowe funkcje:
+### Kluczowe możliwości:
 
-- 🎲 **Losowy wybór destynacji**: Używa niestandardowego narzędzia do wyboru miejsc wakacyjnych
+- 🎲 **Losowy wybór miejsca docelowego**: Wykorzystuje niestandardowe narzędzie do wybierania miejsc wakacyjnych
 - 🗺️ **Inteligentne planowanie podróży**: Tworzy szczegółowe plany dzień po dniu
-- 🔄 **Transmisja w czasie rzeczywistym**: Wspiera odpowiedzi natychmiastowe i strumieniowe
-- 🛠️ **Integracja niestandardowych narzędzi**: Pokazuje, jak rozszerzać możliwości agenta
+- 🔄 **Transmisja w czasie rzeczywistym**: Obsługuje zarówno odpowiedzi natychmiastowe, jak i strumieniowe
+- 🛠️ **Integracja niestandardowego narzędzia**: Pokazuje, jak rozszerzyć możliwości agenta
 
 ## 🔧 Architektura techniczna
 
-### Główne technologie
+### Podstawowe technologie
 
-- **Microsoft Agent Framework**: Najnowsza implementacja .NET do tworzenia AI agentów
-- **Azure OpenAI (Responses API)**: Wykorzystuje Azure OpenAI Responses API do inferencji modeli
-- **Azure Identity**: Bezpieczne logowanie przez `AzureCliCredential` (`az login`)
+- **Microsoft Agent Framework**: Najnowsza implementacja .NET do tworzenia agentów AI
+- **Azure OpenAI (Responses API)**: Wykorzystuje API odpowiedzi Azure OpenAI do inferencji modelu
+- **Azure Identity**: Bezpieczne logowanie za pomocą `AzureCliCredential` (`az login`)
 - **Bezpieczna konfiguracja**: Zarządzanie punktami końcowymi oparte na środowisku
 
 ### Kluczowe komponenty
 
-1. **AIAgent**: Główny koordynator agenta obsługujący przepływ rozmowy
-2. **Niestandardowe narzędzia**: Funkcja `GetRandomDestination()` dostępna dla agenta
-3. **Klient Responses**: Interfejs rozmowy oparty na Azure OpenAI Responses
-4. **Obsługa transmisji strumieniowej**: Możliwości generowania odpowiedzi w czasie rzeczywistym
+1. **AIAgent**: Główny orchestrator agenta obsługujący przebieg konwersacji
+2. **Niestandardowe narzędzia**: funkcja `GetRandomDestination()` dostępna dla agenta
+3. **Klient Responses**: Interfejs konwersacji oparty na Azure OpenAI Responses
+4. **Wsparcie dla strumieniowania**: Możliwość generowania odpowiedzi w czasie rzeczywistym
 
 ### Wzorzec integracji
 
 ```mermaid
 graph LR
-    A[Żądanie Użytkownika] --> B[Agent AI]
-    B --> C[Azure OpenAI (API Odpowiedzi)]
+    A[Żądanie użytkownika] --> B[Agent AI]
+    B --> C[Azure OpenAI (API odpowiedzi)]
     B --> D[Narzędzie GetRandomDestination]
-    C --> E[Plan Podróży]
+    C --> E[Plan podróży]
     D --> E
 ```
 
@@ -43,7 +43,7 @@ graph LR
 ### Wymagania wstępne
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) lub wyższy
-- Subskrypcja [Azure](https://azure.microsoft.com/free/) z zasobem Azure OpenAI i wdrożeniem modelu
+- Subskrypcja [Azure](https://azure.microsoft.com/free/) z zasobem Azure OpenAI i wdrożonym modelem
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — zaloguj się za pomocą `az login`
 
 ### Wymagane zmienne środowiskowe
@@ -51,7 +51,7 @@ graph LR
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 # Następnie zaloguj się, aby AzureCliCredential mógł uzyskać token
 az login
 ```
@@ -59,7 +59,7 @@ az login
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # Następnie zaloguj się, aby AzureCliCredential mógł uzyskać token
 az login
 ```
@@ -74,13 +74,13 @@ chmod +x ./01-dotnet-agent-framework.cs
 ./01-dotnet-agent-framework.cs
 ```
 
-Lub używając CLI dotnet:
+Lub używając dotnet CLI:
 
 ```bash
 dotnet run ./01-dotnet-agent-framework.cs
 ```
 
-Zobacz [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) dla kompletnego kodu.
+Zobacz [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) dla pełnego kodu.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,12 +157,12 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 Najważniejsze wnioski
+## 🎓 Kluczowe wnioski
 
-1. **Architektura agenta**: Microsoft Agent Framework zapewnia czyste, bezpieczne typu podejście do budowania AI agentów w .NET
-2. **Integracja narzędzi**: Funkcje oznaczone atrybutami `[Description]` stają się dostępnymi narzędziami dla agenta
-3. **Zarządzanie konfiguracją**: Zmienne środowiskowe i bezpieczne obsługiwanie poświadczeń zgodnie z najlepszymi praktykami .NET
-4. **Azure OpenAI Responses API**: Agent korzysta z Azure OpenAI Responses API przez SDK Azure.AI.OpenAI
+1. **Architektura agenta**: Microsoft Agent Framework zapewnia czyste, typowane podejście do budowy agentów AI w .NET
+2. **Integracja narzędzi**: Funkcje oznaczone atrybutem `[Description]` stają się dostępnymi narzędziami dla agenta
+3. **Zarządzanie konfiguracją**: Zmienne środowiskowe i bezpieczne zarządzanie poświadczeniami stosują najlepsze praktyki .NET
+4. **Azure OpenAI Responses API**: Agent korzysta z Azure OpenAI Responses API poprzez Azure.AI.OpenAI SDK
 
 ## 🔗 Dodatkowe zasoby
 

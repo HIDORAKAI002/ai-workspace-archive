@@ -7,60 +7,60 @@ Contoh ini menunjukkan cara membangun agen perencanaan perjalanan cerdas menggun
 ### Kemampuan Utama:
 
 - 🎲 **Pemilihan Destinasi Acak**: Menggunakan alat khusus untuk memilih tempat liburan
-- 🗺️ **Perencanaan Perjalanan Cerdas**: Membuat jadwal harian yang rinci
-- 🔄 **Streaming Waktu Nyata**: Mendukung respons segera dan streaming
-- 🛠️ **Integrasi Alat Khusus**: Menunjukkan cara memperluas kemampuan agen
+- 🗺️ **Perencanaan Perjalanan Cerdas**: Membuat rencana perjalanan rinci hari demi hari
+- 🔄 **Streaming Real-time**: Mendukung respons langsung dan streaming
+- 🛠️ **Integrasi Alat Kustom**: Menunjukkan cara memperluas kemampuan agen
 
 ## 🔧 Arsitektur Teknis
 
 ### Teknologi Inti
 
-- **Microsoft Agent Framework**: Implementasi .NET terbaru untuk pengembangan agen AI
-- **Azure OpenAI (Responses API)**: Menggunakan API Responses Azure OpenAI untuk inferensi model
-- **Azure Identity**: Masuk yang aman lewat `AzureCliCredential` (`az login`)
+- **Microsoft Agent Framework**: Implementasi terbaru .NET untuk pengembangan agen AI
+- **Azure OpenAI (Responses API)**: Menggunakan Azure OpenAI Responses API untuk inferensi model
+- **Azure Identity**: Masuk aman melalui `AzureCliCredential` (`az login`)
 - **Konfigurasi Aman**: Manajemen endpoint berbasis lingkungan
 
 ### Komponen Utama
 
-1. **AIAgent**: Orkestrator utama yang mengelola alur percakapan
-2. **Alat Khusus**: Fungsi `GetRandomDestination()` tersedia untuk agen
+1. **AIAgent**: Pengelola utama agen yang menangani alur percakapan
+2. **Alat Kustom**: Fungsi `GetRandomDestination()` tersedia untuk agen
 3. **Klien Responses**: Antarmuka percakapan berbasis Azure OpenAI Responses
-4. **Dukungan Streaming**: Kemampuan menghasilkan respons waktu nyata
+4. **Dukungan Streaming**: Kemampuan menghasilkan respons secara real-time
 
 ### Pola Integrasi
 
 ```mermaid
 graph LR
     A[Permintaan Pengguna] --> B[Agen AI]
-    B --> C[Azure OpenAI (API Respons)]
-    B --> D[Alat GetRandomDestination]
+    B --> C[Azure OpenAI (API Respon)]
+    B --> D[Alat Tujuan Acak]
     C --> E[Rencana Perjalanan]
     D --> E
 ```
 
 ## 🚀 Memulai
 
-### Persyaratan
+### Prasyarat
 
 - [SDK .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) atau lebih tinggi
-- Sebuah [langganan Azure](https://azure.microsoft.com/free/) dengan sumber daya Azure OpenAI dan deployment model
+- Sebuah [langganan Azure](https://azure.microsoft.com/free/) dengan sumber daya Azure OpenAI dan penerapan model
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — masuk dengan `az login`
 
-### Variabel Lingkungan yang Dibutuhkan
+### Variabel Lingkungan yang Diperlukan
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Kemudian masuk agar AzureCliCredential dapat memperoleh token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Kemudian masuk agar AzureCliCredential dapat mendapatkan token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Kemudian masuk agar AzureCliCredential dapat mendapatkan token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Kemudian masuk supaya AzureCliCredential dapat mendapatkan token
 az login
 ```
 
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,14 +157,14 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 Poin Penting
+## 🎓 Pokok Penting
 
-1. **Arsitektur Agen**: Microsoft Agent Framework menyediakan pendekatan yang bersih dan aman tipe untuk membangun agen AI di .NET
-2. **Integrasi Alat**: Fungsi yang diberi atribut `[Description]` menjadi alat yang tersedia untuk agen
+1. **Arsitektur Agen**: Microsoft Agent Framework menyediakan pendekatan yang bersih dan aman-jenis untuk membangun agen AI di .NET
+2. **Integrasi Alat**: Fungsi yang dihiasi dengan atribut `[Description]` menjadi alat yang tersedia untuk agen
 3. **Manajemen Konfigurasi**: Variabel lingkungan dan penanganan kredensial aman mengikuti praktik terbaik .NET
-4. **API Responses Azure OpenAI**: Agen menggunakan API Responses Azure OpenAI melalui SDK Azure.AI.OpenAI
+4. **Azure OpenAI Responses API**: Agen menggunakan Azure OpenAI Responses API melalui SDK Azure.AI.OpenAI
 
-## 🔗 Sumber Tambahan
+## 🔗 Sumber Daya Tambahan
 
 - [Dokumentasi Microsoft Agent Framework](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI di Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)

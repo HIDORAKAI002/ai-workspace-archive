@@ -1,42 +1,42 @@
-# การพัฒนาบริการ Microsoft Foundry Agent
+# การพัฒนาบริการเอเจนต์ Microsoft Foundry
 
-ในแบบฝึกหัดนี้ คุณจะใช้เครื่องมือ Microsoft Foundry Agent Service ใน [Microsoft Foundry portal](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) เพื่อสร้างเอเย่นต์สำหรับการจองเที่ยวบิน เอเย่นต์จะสามารถโต้ตอบกับผู้ใช้และให้ข้อมูลเกี่ยวกับเที่ยวบินได้
+ในแบบฝึกหัดนี้ คุณจะใช้เครื่องมือ Microsoft Foundry Agent Service ใน [Microsoft Foundry portal](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) เพื่อสร้างเอเจนต์สำหรับการจองเที่ยวบิน เอเจนต์นี้จะสามารถโต้ตอบกับผู้ใช้และให้ข้อมูลเกี่ยวกับเที่ยวบินได้
 
-## สิ่งที่ต้องเตรียม
+## ข้อกำหนดเบื้องต้น
 
-เพื่อทำแบบฝึกหัดนี้ให้เสร็จสิ้น คุณต้องมีสิ่งต่อไปนี้:
-1. บัญชี Azure พร้อมการสมัครใช้งานที่ใช้งานอยู่ [สร้างบัญชีฟรี](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst)
-2. คุณต้องมีสิทธิ์ในการสร้าง Microsoft Foundry hub หรือต้องให้มีการสร้างไว้ให้คุณ
+เพื่อทำแบบฝึกหัดนี้ให้เสร็จสมบูรณ์ คุณต้องมีสิ่งต่อไปนี้:
+1. บัญชี Azure ที่มีการสมัครใช้งานที่ใช้งานอยู่ [สร้างบัญชีฟรี](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst)
+2. คุณต้องได้รับสิทธิ์ในการสร้าง Microsoft Foundry hub หรือมีคนสร้างให้คุณ
     - หากบทบาทของคุณคือ Contributor หรือ Owner คุณสามารถทำตามขั้นตอนในบทเรียนนี้ได้
 
-## สร้าง Microsoft Foundry hub
+## การสร้าง Microsoft Foundry hub
 
-> **หมายเหตุ:** Microsoft Foundry เคยรู้จักกันในชื่อ Azure AI Studio
+> **หมายเหตุ:** Microsoft Foundry เคยถูกเรียกว่า Azure AI Studio
 
-1. ทำตามแนวทางจากโพสต์บล็อกของ [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) สำหรับการสร้าง Microsoft Foundry hub
-2. เมื่อโครงการของคุณถูกสร้างขึ้นแล้ว ให้ปิดคำแนะนำที่แสดงและตรวจสอบหน้าของโครงการใน Microsoft Foundry portal ซึ่งควรมีลักษณะคล้ายภาพด้านล่างนี้:
+1. ทำตามแนวทางจากโพสต์บล็อก [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) สำหรับการสร้าง Microsoft Foundry hub
+2. เมื่อสร้างโครงการแล้ว ให้ปิดคำแนะนำที่แสดงและตรวจสอบหน้าโครงการใน Microsoft Foundry portal ซึ่งควรจะแสดงเหมือนภาพตัวอย่างต่อไปนี้:
 
     ![Microsoft Foundry Project](../../../translated_images/th/azure-ai-foundry.88d0c35298348c2f.webp)
 
-## นำโมเดลมาใช้
+## การปรับใช้โมเดล
 
-1. ในแถบด้านซ้ายของโครงการของคุณ ในส่วน **My assets** ให้เลือกหน้าของ **Models + endpoints**
-2. ในหน้าของ **Models + endpoints** ในแท็บ **Model deployments** ในเมนู **+ Deploy model** ให้เลือก **Deploy base model**
-3. ค้นหาโมเดล `gpt-4.1-mini` ในรายการ จากนั้นเลือกและยืนยัน
+1. ในแผงด้านซ้ายสำหรับโครงการของคุณ ในส่วน **My assets** ให้เลือกหน้า **Models + endpoints**
+2. ในหน้า **Models + endpoints** ภายใต้แท็บ **Model deployments** ในเมนู **+ Deploy model** ให้เลือก **Deploy base model**
+3. ค้นหาโมเดล `gpt-5-mini` ในรายการ จากนั้นเลือกและยืนยัน
 
-    > **หมายเหตุ**: การลด TPM จะช่วยหลีกเลี่ยงการใช้โควต้าที่มีในสมัครใช้งานของคุณมากเกินไป
+    > **หมายเหตุ**: การลด TPM ช่วยป้องกันการใช้งานเกินโควต้าในการสมัครใช้งานที่คุณกำลังใช้งาน
 
     ![Model Deployed](../../../translated_images/th/model-deployment.3749c53fb81e18fd.webp)
 
-## สร้างเอเย่นต์
+## การสร้างเอเจนต์
 
-ตอนนี้คุณได้นำโมเดลมาใช้แล้ว คุณสามารถสร้างเอเย่นต์ได้ เอเย่นต์คือโมเดลปัญญาประดิษฐ์สนทนาที่สามารถใช้โต้ตอบกับผู้ใช้ได้
+ตอนนี้ที่คุณได้ปรับใช้โมเดลแล้ว คุณสามารถสร้างเอเจนต์ได้ เอเจนต์คือโมเดล AI แบบสนทนาที่ใช้โต้ตอบกับผู้ใช้ได้
 
-1. ในแถบด้านซ้ายของโครงการของคุณ ในส่วน **Build & Customize** ให้เลือกหน้าของ **Agents**
-2. คลิก **+ Create agent** เพื่อสร้างเอเย่นต์ใหม่ ในกล่องโต้ตอบ **Agent Setup**:
-    - ป้อนชื่อสำหรับเอเย่นต์ เช่น `FlightAgent`
-    - ตรวจสอบให้แน่ใจว่าได้เลือกการนำโมเดล `gpt-4.1-mini` ที่คุณได้สร้างไว้ก่อนหน้านี้แล้ว
-    - ตั้งค่า **คำแนะนำ** ตามพรอมต์ที่คุณต้องการให้เอเย่นต์ปฏิบัติตาม ตัวอย่างเช่น:
+1. ในแผงด้านซ้ายสำหรับโครงการของคุณ ในส่วน **Build & Customize** ให้เลือกหน้า **Agents**
+2. คลิก **+ Create agent** เพื่อสร้างเอเจนต์ใหม่ ในกล่องโต้ตอบ **Agent Setup**:
+    - ป้อนชื่อสำหรับเอเจนต์ เช่น `FlightAgent`
+    - ตรวจสอบให้แน่ใจว่าได้เลือกการปรับใช้โมเดล `gpt-5-mini` ที่คุณสร้างไว้ก่อนหน้า
+    - ตั้งค่า **Instructions** ตามคำสั่งที่คุณต้องการให้เอเจนต์ปฏิบัติตาม ตัวอย่างเช่น:
     ```
     You are FlightAgent, a virtual assistant specialized in handling flight-related queries. Your role includes assisting users with searching for flights, retrieving flight details, checking seat availability, and providing real-time flight status. Follow the instructions below to ensure clarity and effectiveness in your responses:
 
@@ -64,41 +64,41 @@
     
     ```
 > [!NOTE]
-> สำหรับพรอมต์ที่ละเอียด คุณสามารถดูที่ [ที่เก็บนี้](https://github.com/ShivamGoyal03/RoamMind) เพื่อข้อมูลเพิ่มเติม
+> สำหรับคำสั่งที่ละเอียด คุณสามารถตรวจสอบ [ที่เก็บนี้](https://github.com/ShivamGoyal03/RoamMind) เพื่อข้อมูลเพิ่มเติม
     
-> นอกจากนี้ คุณสามารถเพิ่ม **Knowledge Base** และ **Actions** เพื่อเสริมความสามารถของเอเย่นต์ในการให้ข้อมูลเพิ่มเติมและดำเนินการงานอัตโนมัติตามคำขอของผู้ใช้ สำหรับแบบฝึกหัดนี้ คุณสามารถข้ามขั้นตอนเหล่านี้ได้
+> นอกจากนี้ คุณสามารถเพิ่ม **Knowledge Base** และ **Actions** เพื่อเพิ่มขีดความสามารถของเอเจนต์ในการให้ข้อมูลเพิ่มเติมและทำงานอัตโนมัติตามคำขอของผู้ใช้ สำหรับแบบฝึกหัดนี้ คุณสามารถข้ามขั้นตอนเหล่านี้ได้
     
 ![Agent Setup](../../../translated_images/th/agent-setup.9bbb8755bf5df672.webp)
 
-3. เพื่อสร้างเอเย่นต์ AI หลายตัวใหม่ ให้คลิก **New Agent** เอเย่นต์ที่สร้างขึ้นใหม่จะแสดงบนหน้าของ Agents
+3. หากต้องการสร้างเอเจนต์ AI หลายตัวใหม่ ให้คลิก **New Agent** เอเจนต์ที่สร้างใหม่จะปรากฏในหน้าหน้า Agents
 
 
-## ทดสอบเอเย่นต์
+## การทดสอบเอเจนต์
 
-หลังจากสร้างเอเย่นต์แล้ว คุณสามารถทดสอบเพื่อดูว่ามันตอบสนองต่อคำถามของผู้ใช้อย่างไรใน Microsoft Foundry portal playground
+หลังจากสร้างเอเจนต์แล้ว คุณสามารถทดสอบดูว่าเอเจนต์ตอบสนองต่อคำถามของผู้ใช้อย่างไรใน Microsoft Foundry portal playground
 
-1. ที่ด้านบนของแผง **Setup** สำหรับเอเย่นต์ของคุณ ให้เลือก **Try in playground**
-2. ในแผง **Playground** คุณสามารถโต้ตอบกับเอเย่นต์โดยพิมพ์คำถามในหน้าต่างแชท เช่น คุณสามารถขอให้เอเย่นต์ค้นหาเที่ยวบินจากซีแอตเทิลไปนิวยอร์กในวันที่ 28
+1. ที่ด้านบนของแผง **Setup** สำหรับเอเจนต์ของคุณ ให้เลือก **Try in playground**
+2. ในแผง **Playground** คุณสามารถโต้ตอบกับเอเจนต์โดยพิมพ์คำถามลงในหน้าต่างแชท ตัวอย่างเช่น คุณสามารถขอให้เอเจนต์ค้นหาเที่ยวบินจาก Seattle ไป New York ในวันที่ 28
 
-    > **หมายเหตุ**: เอเย่นต์อาจไม่ให้คำตอบที่ถูกต้อง เพราะไม่มีการใช้ข้อมูลเรียลไทม์ในแบบฝึกหัดนี้ จุดประสงค์เพื่อทดสอบความสามารถของเอเย่นต์ในการเข้าใจและตอบคำถามของผู้ใช้ตามคำแนะนำที่มอบให้
+    > **หมายเหตุ**: เอเจนต์อาจไม่ให้คำตอบที่ถูกต้อง เนื่องจากไม่มีการใช้ข้อมูลเรียลไทม์ในแบบฝึกหัดนี้ จุดประสงค์คือเพื่อทดสอบความสามารถของเอเจนต์ในการเข้าใจและตอบสนองคำถามของผู้ใช้ตามคำสั่งที่กำหนด
 
     ![Agent Playground](../../../translated_images/th/agent-playground.dc146586de715010.webp)
 
-3. หลังจากทดสอบเอเย่นต์แล้ว คุณสามารถปรับแต่งเพิ่มเติมโดยการเพิ่มเจตนา ข้อมูลฝึก และการกระทำเพิ่มเติมเพื่อเสริมความสามารถ
+3. หลังทดสอบเอเจนต์ คุณสามารถปรับแต่งเพิ่มเติมโดยเพิ่มเจตนา ข้อมูลฝึกสอน และการกระทำ เพื่อเพิ่มความสามารถให้มากขึ้น
 
-## ล้างทรัพยากร
+## การลบทรัพยากร
 
-เมื่อคุณทดสอบเอเย่นต์เสร็จแล้ว คุณสามารถลบเอเย่นต์เพื่อหลีกเลี่ยงค่าใช้จ่ายเพิ่มเติม
-1. เปิด [Azure portal](https://portal.azure.com) แล้วดูเนื้อหาของกลุ่มทรัพยากรที่คุณได้ใช้นำทรัพยากร hub สำหรับแบบฝึกหัดนี้ไปใช้
-2. บนแถบเครื่องมือ ให้เลือก **Delete resource group**
-3. ป้อนชื่อกลุ่มทรัพยากรและยืนยันว่าคุณต้องการลบ
+เมื่อคุณทดสอบเอเจนต์เสร็จแล้ว คุณสามารถลบเอเจนต์เพื่อหลีกเลี่ยงค่าใช้จ่ายเพิ่มเติม
+1. เปิด [Azure portal](https://portal.azure.com) และดูเนื้อหาของ resource group ที่คุณใช้ปรับใช้ hub ในการฝึกหัดนี้
+2. ที่แถบเครื่องมือ ให้เลือก **Delete resource group**
+3. ป้อนชื่อ resource group และยืนยันว่าคุณต้องการลบ
 
-## ทรัพยากร
+## แหล่งข้อมูล
 
 - [เอกสาร Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst)
-- [พอร์ท Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst)
+- [Microsoft Foundry portal](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst)
 - [เริ่มต้นใช้งาน Microsoft Foundry](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
-- [พื้นฐานของ AI agents บน Azure](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
+- [พื้นฐานของเอเจนต์ AI บน Azure](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
 - [Azure AI Discord](https://aka.ms/AzureAI/Discord)
 
 ---

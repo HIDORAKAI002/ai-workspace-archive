@@ -1,88 +1,88 @@
-# 🔍 ការស្វែងយល់អំពី Microsoft Agent Framework - អង់់ជេនមូលដ្ឋាន (.NET)
+# 🔍 ការស្ទង់មើលលើ Microsoft Agent Framework - រូបមន្តភ្នាក់ងារមូលដ្ឋាន (.NET)
 
-## 📋 គោលបំណងការសិក្សា
+## 📋 គោលបំណងសិក្សា
 
-ឧទាហរណ៍នេះស្វែងរកគំនិតមូលដ្ឋាននៃ Microsoft Agent Framework តាមរយៈការអនុវត្តអង់់ជេនមូលដ្ឋាននៅក្នុង .NET។ អ្នកនឹងរៀនអំពីលំនាំ agentic មូលដ្ឋាន និងយល់បុគ្គលអង់់ជេនឆ្លាតវៃដំណើរការប្រកបដោយ C# និងបរិស្ថាន .NET។
+ឧទាហរណ៍នេះស្វែងយល់ពីមូលដ្ឋានគ្រឹះនៃ Microsoft Agent Framework តាមរយៈការអនុវត្តភ្នាក់ងារមូលដ្ឋានក្នុង .NET។ អ្នកនឹងរៀនពីលំនាំភ្នាក់ងារប្រភេទ agentic មូលដ្ឋាន និងយល់ពីរបៀបដែលភ្នាក់ងារខាង ឆ្លាត ដំណើរការក្រោមឆាកដោយប្រើ C# និងបរិស្ថាន .NET។
 
 ### អ្វីដែលអ្នកនឹងរកឃើញ
 
-- 🏗️ **រចនាសម្ព័ន្ធអង់់ជេន**៖ ការយល់ដឹងអំពីរចនាសម្ព័ន្ធមូលដ្ឋានរបស់អង់់ជេន AI ក្នុង .NET
-- 🛠️ **ការរួមបញ្ចូលឧបករណ៍**៖ របៀបដែលអង់់ជេនប្រើមុខងារខាងក្រៅដើម្បីពង្រីកសមត្ថភាព  
-- 💬 **ដំណើរការពិភាក្សា**៖ ការគ្រប់គ្រងការពិភាក្សាច្រើនជំហាន និងបរិបទជាមួយការគ្រប់គ្រងធ្នthread
-- 🔧 **លំនាំកំណត់រចនាសម្ព័ន្ធ**៖ ជំនាញល្អបំផុតសម្រាប់ការតំឡើង និងការគ្រប់គ្រង​អង់់ជេន​នៅ​ក្នុង .NET
+- 🏗️ **ស្ថាបត្តិភាារសភ្នាក់ងារ**: ការយល់ដឹងអំពីរចនាសម្ព័ន្ធមូលដ្ឋានរបស់ភ្នាក់ងារ AI នៅក្នុង .NET
+- 🛠️ **ការរួមបញ្ចូលឧបករណ៍**: របៀបដែលភ្នាក់ងារប្រើមុខងារចេញក្រៅដើម្បីពង្រីកសមត្ថភាព
+- 💬 **លំហូរនៃការសន្ទនា**: ការគ្រប់គ្រងការសន្ទនាច្រើនជាប់ៗគ្នា និងបរិបទជាមួយការគ្រប់គ្រងខ្សែ
+- 🔧 **លំនាំកំណត់រចនាសម្ព័ន្ធ**: ទម្លាប់ល្អបំផុតសម្រាប់ការតំឡើង និងគ្រប់គ្រងភ្នាក់ងារ នៅក្នុង .NET
 
-## 🎯 គំនិតសំខាន់ដែលគ្របដណ្តប់
+## 🎯 គំនិតស្នូលដែលគេចាប់អារម្មណ៍
 
-### គោលការណ៍ Agentic Framework
+### គោលការណ៍រចនាសម្ព័ន្ធ Agentic
 
-- **ការឯករាជ្យ**៖ របៀបដែលអង់់ជេនធ្វើការសម្រេចចិត្តដោយឯករាជ្យប្រើអាប់ស្ត្រាក់សម្រាប់ AI ក្នុង .NET
-- **ការឆ្លើយតប**៖ ឆ្លើយតបនឹងការផ្លាស់ប្តូរបរិស្ថាន និងការបញ្ចូលទិន្នន័យពីអ្នកប្រើ
-- **ការចាប់ផ្តើមមុន**៖ ប្រើប្រាស់ការប្រព្រឹត្តលើគោលដៅ និងបរិបទ
-- **សមត្ថភាពសង្គម**៖ ធ្វើអន្តរកម្មតាមភាសាធម្មជាតិក្នុងការពិភាក្សាជាមួយច្រកពិភាក្សា
+- **ឯករាជ្យភាព**: របៀបដែលភ្នាក់ងារធ្វើការសម្រេចចិត្តដោយសេរីដោយប្រើការសង្ខេប AI នៅក្នុង .NET
+- **ភាពឆ្លើយតប**: ការឆ្លើយតបនឹងការប្រែប្រួលបរិយាកាស និងការបញ្ចូលដោយអ្នកប្រើ
+- **ភាពសកម្មជាមុន**: ការទទួលយកដំណើរការដោយផ្អែកលើគោលដៅ និងបរិបទ
+- **សមត្ថភាពសង្គម**: បញ្ចូលជាមួយភាសាប្រពៃណីក្នុងការសន្ទនាដោយប្រើខ្សែសន្ទនា
 
 ### ធាតុបច្ចេកទេស
 
-- **AIAgent**៖ ការត្រួតពិនិត្យមុខងារសំខាន់ និងការគ្រប់គ្រងពិភាក្សា (.NET)
-- **មុខងារឧបករណ៍**៖ ពង្រីកសមត្ថភាពអង់់ជេនជាមួយវិធីសាស្រ្ត C# និងលក្ខណៈពិសេស
-- **ការរួមបញ្ចូល Azure OpenAI**៖ ប្រើម៉ូដែលភាសាកម្មវិធីតាមរយៈ Azure OpenAI Responses API
-- **ការកំណត់រចនាសម្ព័ន្ធសុវត្ថិភាព**៖ ការគ្រប់គ្រងចំណុចចូលដោយផ្អែកលើបរិស្ថាន
+- **AIAgent**: ការតម្លើងភ្នាក់ងារមូលដ្ឋាន និងការគ្រប់គ្រងសន្ទនា (.NET)
+- **មុខងារ ឧបករណ៍**: ពង្រីកសមត្ថភាពភ្នាក់ងារជាមួយវិធីសាស្ត្រ C# និងគុណលក្ខណៈ
+- **ការរួមបញ្ចូល Azure OpenAI**: ប្រើប្រាស់ម៉ូដែលភាសាតាមរយៈ API ចំលើយ Azure OpenAI
+- **ការកំណត់រចនាសម្ព័ន្ធមានសុវត្ថិភាព**: ការគ្រប់គ្រងចំណុចចេញដោយផ្អែកលើបរិយាកាស
 
-## 🔧 បន្ទះបច្ចេកទេស
+## 🔧 បច្ចេកវិទ្យាសំខាន់
 
-### បច្ចេកវិទ្យាជាដើម
+### បច្ចេកវិទ្យាមូលដ្ឋាន
 
 - Microsoft Agent Framework (.NET)
 - ការរួមបញ្ចូល Azure OpenAI (Responses API)
-- លំនាំអតិថិជន Azure.AI.OpenAI
-- ការកំណត់រចនាសម្ព័ន្ធផ្អែកលើបរិស្ថានជាមួយ DotNetEnv
+- លំនាំអ្នករចនាអតិថិជន Azure.AI.OpenAI
+- ការកំណត់រចនាសម្ព័ន្ធបរិយាកាសជាមួយ DotNetEnv
 
-### សមត្ថភាពអង់់ជេន
+### សមត្ថភាពភ្នាក់ងារ
 
-- ការយល់ដឹង និងបង្កើតភាសាធម្មជាតិ
-- ការហៅមុខងារ និងការប្រើប្រាស់ឧបករណ៍ជាមួយលក្ខណៈពិសេស C#
-- ការឆ្លើយតបមានបរិបទជាមួយសម័យពិភាក្សា
-- រចនាសម្ព័ន្ធបង្រួមជាមួយស្ទួយការគាំទ្រអាស្រ័យ
+- ការយល់ដឹងនិងបង្កើតភាសាប្រពៃណី
+- ការហៅមុខងារ និងការប្រើឧបករណ៍ជាមួយគុណលក្ខណៈ C#
+- ចំលើយមានបរិបទជាមួយសម័យសន្ទនា
+- រចនាសម្ព័ន្ធពង្រីកបានជាមួយលំនាំ dependency injection
 
 ## 📚 ការប្រៀបធៀប Framework
 
-ឧទាហរណ៍នេះបង្ហាញពីវិធីសាស្រ្ត Microsoft Agent Framework up compared to ក្រោយមួយ framework agentic ផ្សេងទៀត:
+ឧទាហរណ៍នេះបង្ហាញពីវិធីសាស្ត្រ Microsoft Agent Framework បើប្រៀបធៀបនឹង framework agentic ផ្សេងៗទៀត៖
 
-| លក្ខណៈ | Microsoft Agent Framework | Framework ផ្សេងទៀត |
+| លក្ខណៈពិសេស | Microsoft Agent Framework | Framework ផ្សេងៗ |
 |---------|-------------------------|------------------|
-| **ការរួមបញ្ចូល** | បរិស្ថាន Microsoft ដើម | ការចម្រុះភាពប compatibility |
-| **ភាពសាមញ្ញ** | API ស្អាត និងងាយស្រួល | ជាប់នឹងការតំឡើងស្មុគស្មាញជាធម្មតា |
-| **ភាពអាចពង្រីកបាន** | រង់ចាំការរួមបញ្ចូលឧបករណ៍ងាយស្រួល | អាស្រ័យលើ Framework |
-| **ត្រៀមខ្លួនសម្រាប់អាជីវកម្ម** | បង្កើតសម្រាប់ផលិតកម្ម | ផ្លាស់ប្តូរតាម Framework |
+| **ការរួមបញ្ចូល** | ប្រព័ន្ធ Microsoft ដើម | ភាពសមាសភាពខុសគ្នា |
+| **ភាពងាយស្រួល** | API ស្អាត និងច្បាស់លាស់ | ជាទៀងទាត់តំឡើងស្មុគស្មាញ |
+| **ការពង្រីកសមត្ថភាព** | រួមបញ្ចូលឧបករណ៍បានងាយស្រួល | អាស្រ័យលើ Framework |
+| **រួចរាល់សម្រាប់សហគ្រាស** | ត្រូវបានបង្កើតសម្រាប់ផលិតកម្ម | ខុសគ្នាតាម Framework |
 
-## 🚀 ការចាប់ផ្តើម
+## 🚀 ចាប់ផ្តើម
 
-### តម្រូវការមុន
+### លក្ខខណ្ឌមុនបង្ហាញ
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) ឬខ្ពស់ជាងនេះ
-- ការជាវ [Azure subscription](https://azure.microsoft.com/free/) ដែលមានធនធាន Azure OpenAI និងការប្រកាសម៉ូដែល
-- កម្មវិធី [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — ចូលប្រើជាមួយ `az login`
+- មាន [ចុះឈ្មោះ Azure](https://azure.microsoft.com/free/) ជាមួយធនធាន Azure OpenAI និងការតម្លើងម៉ូដែល
+- មាន [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — ចូលប្រើដោយ `az login`
 
-### អថេរបរិស្ថានត្រូវការជាក់ស្តែង
+### បរិវេណបរិយាកាសត្រូវការ
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# បន្ទាប់មកចុះឈ្មោះ ដើម្បីឱ្យ AzureCliCredential អាចទទួលបានសញ្ញាសម្គាល់(token)។
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# បន្ទាប់មកចូលប្រើ ដើម្បីឱ្យ AzureCliCredential អាចទទួលបានកូដសម្គាល់(token)
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# បន្ទាប់មកចូលដើម្បីឱ្យ AzureCliCredential អាចទទួលបានតូកិនបាន
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# បន្ទាប់មកចុះឈ្មោះចូល ដើម្បីឲ្យ AzureCliCredential អាចទទួលបាន token បាន
 az login
 ```
 
-### កូដឧទាហរណ៍
+### កូដគំរូ
 
-ដើម្បីរត់ឧទាហរណ៍កូដ,
+ដើម្បីដំណើរការឧទាហរណ៍កូដ,
 
 ```bash
 # zsh/bash
@@ -90,7 +90,7 @@ chmod +x ./02-dotnet-agent-framework.cs
 ./02-dotnet-agent-framework.cs
 ```
 
-ឬប្រើ CLI dotnet:
+រឺប្រើ CLI dotnet ៖
 
 ```bash
 dotnet run ./02-dotnet-agent-framework.cs
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,18 +215,18 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 ចំណុចសំខាន់ដែលយកទៅប្រើ
+## 🎓 ចំណុចសំខាន់ចាប់យក
 
-1. **រចនាសម្ព័ន្ធអង់់ជេន**៖ Microsoft Agent Framework ផ្តល់នូវវិធីសាស្រ្តសុពលភាព ប្រភេទសុវត្ថិភាពសម្រាប់កសាងអង់់ជេន AI នៅក្នុង .NET
-2. **ការរួមបញ្ចូលឧបករណ៍**៖ មុខងារដែលត្រូវបានតាក់តែងជាមួយលក្ខណៈពិសេស `[Description]` នឹងក្លាយជាឧបករណ៍ដែលអង់់ជេនអាចប្រើបាន
-3. **បរិបទការពិភាក្សា**៖ ការគ្រប់គ្រងសម័យបើកការពិភាក្សាច្រើនជំហានជាមួយការយល់ដឹងពេញលេញនៃបរិបទ
-4. **ការគ្រប់គ្រងកំណត់រចនាសម្ព័ន្ធ**៖ អថេរបរិស្ថាន និងការដោះស្រាយសម្ងាត់តាមបែបណែនាំល្អបំផុតរបស់ .NET
-5. **Azure OpenAI Responses API**៖ អង់់ជេនប្រើ Azure OpenAI Responses API តាមរយៈ Azure.AI.OpenAI SDK
+1. **ស្ថាបត្តិភាារសភ្នាក់ងារ**: Microsoft Agent Framework ផ្ដល់នូវវិធីសាស្ត្រស្អាត និងប្រកបដោយសុវត្ថិភាពប្រភេទសម្រាប់កសាងភ្នាក់ងារ AI នៅក្នុង .NET
+2. **ការរួមបញ្ចូលឧបករណ៍**: មុខងារដែលត្រូវបានតុបតែងជាមួយគុណលក្ខណៈ `[Description]` ក្លាយជាឧបករណ៍សម្រាប់ភ្នាក់ងារ
+3. **បរិបទសន្ទនា**: ការគ្រប់គ្រងសម័យអាចអនុញ្ញាតឲ្យមានសន្ទនាច្រើនជាប់ៗគ្នា ដោយមានការយល់ដឹងបរិបទពេញលេញ
+4. **ការគ្រប់គ្រងកំណត់រចនាសម្ព័ន្ធ**: អថេរបរិវេណ និងការគ្រប់គ្រងសញ្ញាបត្រដែលមានសុវត្ថិភាព ដំណើរការតាមទម្លាប់ល្អបំផុតក្នុង .NET
+5. **Azure OpenAI Responses API**: ភ្នាក់ងារប្រើប្រាស់ Azure OpenAI Responses API តាម SDK Azure.AI.OpenAI
 
-## 🔗 វិធីសាស្រ្តបន្ថែម
+## 🔗 ឯកសារផ្សេងទៀត
 
 - [ឯកសារ Microsoft Agent Framework](https://learn.microsoft.com/agent-framework)
-- [Azure OpenAI នៅក្នុង Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
+- [Azure OpenAI ក្នុង Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
 - [.NET Single File Apps](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 

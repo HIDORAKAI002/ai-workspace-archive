@@ -2,40 +2,40 @@
 
 ## 📋 Læringsmål
 
-Denne notatboken demonstrerer mønstre for virksomhetsgrads verktøyintegrasjon ved bruk av Microsoft Agent Framework i .NET med Azure OpenAI (Responses API). Du vil lære å bygge sofistikerte agenter med flere spesialiserte verktøy, og utnytte C# sin sterke typing og .NET sine virksomhetsfunksjoner.
+Denne notatboken demonstrerer bedriftsnivå integrasjonsmønstre for verktøy ved bruk av Microsoft Agent Framework i .NET med Azure OpenAI (Responses API). Du vil lære å bygge sofistikerte agenter med flere spesialiserte verktøy, og dra nytte av C# sin sterke typing og .NET sine bedriftsfunksjoner.
 
 ### Avanserte verktøyfunksjoner du vil mestre
 
-- 🔧 **Multi-Tool Arkitektur**: Bygge agenter med flere spesialiserte kapasiteter
-- 🎯 **Type-Sikker Verktøykjøring**: Utnytte C# sin kompileringstid-validering
-- 📊 **Virksomhetsverktøymønstre**: Produksjonsklar verktøydesign og feilbehandling
+- 🔧 **Flere verktøy-arkitektur**: Bygge agenter med flere spesialiserte evner
+- 🎯 **Type-sikker verktøyutførelse**: Utnytte C# sin kompileringstid-validering
+- 📊 **Bedriftsverktøymønstre**: Produksjonsklare verktøydesign og feilbehandling
 - 🔗 **Verktøysammensetning**: Kombinere verktøy for komplekse forretningsflyter
 
-## 🎯 Fordeler med .NET Verktøyarkitektur
+## 🎯 Fordeler med .NET verktøyarkitektur
 
-### Virksomhetsverktøyfunksjoner
+### Bedriftsverktøyfunksjoner
 
-- **Kompileringstid-validering**: Sterk typing sikrer korrekthet i verktøyparametere
-- **Avhengighetsinjeksjon**: IoC-container-integrasjon for verktøyhåndtering
-- **Async/Await-mønstre**: Ikke-blokkerende verktøykjøring med korrekt ressursstyring
-- **Strukturert logging**: Innebygd logging-integrasjon for overvåkning av verktøykjøring
+- **Kompileringstid-validering**: Sterk typing sikrer riktige verktøyparametere
+- **Dependency Injection**: IoC-kontainerintegrasjon for verktøystyring
+- **Async/Await-mønstre**: Ikke-blokkerende verktøyutførelse med korrekt ressursstyring
+- **Strukturert logging**: Innebygd logging for overvåking av verktøyutførelse
 
 ### Produksjonsklare mønstre
 
-- **Unntakshåndtering**: Omfattende feilhåndtering med typiserte unntak
-- **Ressursstyring**: Korrekte mønstre for avhending og minnehåndtering
-- **Ytelsesovervåkning**: Innebygde mål og ytelsestellere
+- **Unntakshåndtering**: Omfattende feilbehandling med typede unntak
+- **Ressursstyring**: Riktige mønstre for opprydding og minnehåndtering
+- **Ytelsesovervåkning**: Innebygde målinger og ytelsestellere
 - **Konfigurasjonsstyring**: Type-sikker konfigurasjon med validering
 
-## 🔧 Teknisk Arkitektur
+## 🔧 Teknisk arkitektur
 
-### Kjerne .NET Verktøykomponenter
+### Kjerne .NET verktøykomponenter
 
 - **Microsoft.Extensions.AI**: Enhetlig verktøyabstraksjonslag
-- **Microsoft.Agents.AI**: Virksomhetsgrads verktøyorkestrering
-- **Azure OpenAI (Responses API)**: Høyytelses API-klient med tilkoblingshåndtering
+- **Microsoft.Agents.AI**: Bedriftsnivå verktøyorchestrering
+- **Azure OpenAI (Responses API)**: Høyytelses API-klient med tilkoblingspooling
 
-### Verktøykjørings-pipeline
+### Verktøyutførelsespipeline
 
 ```mermaid
 graph LR
@@ -43,67 +43,67 @@ graph LR
     B --> C[Verktøyvalg]
     C --> D[Typevalidering]
     B --> E[Parameterbinding]
-    E --> F[Verktøykjøring]
+    E --> F[Verktøyutførelse]
     C --> F
     F --> G[Resultatbehandling]
     D --> G
     G --> H[Svar]
 ```
 
-## 🛠️ Verktøykategorier & Mønstre
+## 🛠️ Verktøykategorier & mønstre
 
 ### 1. **Databehandlingsverktøy**
 
-- **Input-validering**: Sterk typing med dataannotasjoner
+- **Inndata-validering**: Sterk typing med dataannotasjoner
 - **Transformasjonsoperasjoner**: Type-sikker datakonvertering og formatering
-- **Forretningslogikk**: Domenespesifikke beregnings- og analyserverktøy
+- **Forretningslogikk**: Domene-spesifikke kalkulasjons- og analyseverktøy
 - **Utdataformatering**: Strukturert responsgenerering
 
-### 2. **Integrasjonsverktøy** 
+### 2. **Integrasjonsverktøy**
 
-- **API-kontakter**: RESTful tjenesteintegrasjon med HttpClient
-- **Databaseverktøy**: Entity Framework-integrasjon for datatilgang
+- **API-koblinger**: RESTful tjenesteintegrasjon med HttpClient
+- **Databaseverktøy**: Entity Framework-integrasjon for dataaksess
 - **Filoperasjoner**: Sikker filsystemoperasjoner med validering
-- **Eksterne tjenester**: Mønstre for integrasjon med tredjepartstjenester
+- **Eksterne tjenester**: Mønstre for tredjeparts tjenesteintegrasjon
 
 ### 3. **Hjelpeverktøy**
 
-- **Tekstbehandling**: Strengmanipulasjon og formateringsverktøy
-- **Dato/Tid-operasjoner**: Kulturtilpassede dato/tid-beregninger
+- **Tekstbehandling**: Strengmanipulering og formateringsverktøy
+- **Dato/Tid-operasjoner**: Kultursensitive dato- og tidsberegninger
 - **Matematiske verktøy**: Presisjonsberegninger og statistiske operasjoner
-- **Valideringsverktøy**: Forretningsregelvalidering og dataverifisering
+- **Valideringsverktøy**: Forretningsregelvalidering og dataverifikasjon
 
-Klar til å bygge virksomhetsgrads agenter med kraftige, type-sikre verktøyfunksjoner i .NET? La oss arkitektere noen profesjonelle løsninger! 🏢⚡
+Klar til å bygge bedriftsnivå agenter med kraftige, type-sikre verktøyfunksjoner i .NET? La oss arkitektere noen profesjonelle løsninger! 🏢⚡
 
 ## 🚀 Komme i gang
 
 ### Forutsetninger
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) eller nyere
-- En [Azure-abonnement](https://azure.microsoft.com/free/) med en Azure OpenAI-ressurs og en modellutrulling
+- Et [Azure-abonnement](https://azure.microsoft.com/free/) med en Azure OpenAI-ressurs og en modellutrulling
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — logg inn med `az login`
 
-### Nødvendige miljøvariabler
+### Obligatoriske miljøvariabler
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Logg deretter inn slik at AzureCliCredential kan hente et token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Logg inn slik at AzureCliCredential kan hente et token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Logg inn slik at AzureCliCredential kan få en token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Logg deretter inn slik at AzureCliCredential kan få en token
 az login
 ```
 
 ### Eksempelkode
 
-For å kjøre kodeeksempelet,
+For å kjøre kodeeksemplet,
 
 ```bash
 # zsh/bash
@@ -111,7 +111,7 @@ chmod +x ./04-dotnet-agent-framework.cs
 ./04-dotnet-agent-framework.cs
 ```
 
-Eller bruke dotnet CLI:
+Eller bruk dotnet CLI:
 
 ```bash
 dotnet run ./04-dotnet-agent-framework.cs
@@ -168,7 +168,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

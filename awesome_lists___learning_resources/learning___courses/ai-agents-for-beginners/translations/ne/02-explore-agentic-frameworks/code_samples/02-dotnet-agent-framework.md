@@ -1,82 +1,82 @@
-# 🔍 माइक्रोसफ्ट एजेन्ट फ्रेमवर्कको अन्वेषण - आधारभूत एजेन्ट (.NET)
+# 🔍 Microsoft Agent Framework अन्वेषण गर्दै - आधारभूत एजेन्ट (.NET)
 
-## 📋 सिकाइ उद्देश्यहरू
+## 📋 सिक्ने उद्देश्यहरू
 
-यो उदाहरणले .NET मा एक आधारभूत एजेन्ट कार्यान्वयन मार्फत माइक्रोसफ्ट एजेन्ट फ्रेमवर्कका आधारभूत अवधारणाहरू अन्वेषण गर्दछ। तपाईंले मुख्य एजेन्टिक ढाँचाहरू सिक्नुहुनेछ र C# र .NET इकोसिस्टम प्रयोग गरेर बौद्धिक एजेन्टहरू कसरी काम गर्छन् भन्ने बुझ्नुहुनेछ।
+यो उदाहरणले Microsoft Agent Framework का मौलिक अवधारणाहरूलाई .NET मा आधारभूत एजेन्ट कार्यान्वयन मार्फत अन्वेषण गर्छ। तपाईंले मुख्य एजेन्टिक ढाँचाहरू सिक्नुहुनेछ र C# र .NET पारिस्थितिकी प्रणाली प्रयोग गरी कसरी बौद्धिक एजेन्टहरूले काम गर्छन् थाहा पाउनुहुनेछ।
 
-### के तपाईं पत्ता लगाउनुहुनेछ
+### तपाईंले के पत्ता लगाउनुहुनेछ
 
-- 🏗️ **एजेन्ट आर्किटेक्चर**: .NET मा AI एजेन्टहरूको आधारभूत संरचनाको बुझाइ
-- 🛠️ **उपकरण एकीकरण**: एजेन्टहरूले क्षमता विस्तार गर्न बाह्य कार्यहरू कसरी प्रयोग गर्छन्  
-- 💬 **वार्तालाप प्रवाह**: थ्रेड व्यवस्थापनको साथ बहु-चरण वार्तालाप र सन्दर्भ व्यवस्थापन
-- 🔧 **कॉन्फिगरेसन ढाँचाहरू**: .NET मा एजेन्ट सेटअप र व्यवस्थापनका लागि उत्तम अभ्यासहरू
+- 🏗️ **एजेन्ट वास्तुकला**: .NET मा AI एजेन्टहरूको आधारभूत संरचना बुझ्ने
+- 🛠️ **उपकरण एकीकरण**: एजेन्टहरूले क्षमताहरू विस्तार गर्न बाह्य कार्यहरू कसरी प्रयोग गर्छन्  
+- 💬 **संवाद प्रवाह**: थ्रेड व्यवस्थापनसहित बहु-चरण संवाद र सन्दर्भ व्यवस्थापन
+- 🔧 **कन्फिगरेसन ढाँचाहरू**: .NET मा एजेन्ट सेटअप र व्यवस्थापनका लागि उत्तम अभ्यासहरू
 
-## 🎯 मुख्य अवधारणाहरू समेटिएको
+## 🎯 समेटिएका प्रमुख अवधारणाहरू
 
 ### एजेन्टिक फ्रेमवर्क सिद्धान्तहरू
 
-- **स्वायत्तता**: एजेन्टहरूले .NET AI अमूर्तताहरू प्रयोग गरेर स्वतन्त्र निर्णय कसरी गर्छन्
-- **प्रतिक्रियाशीलता**: वातावरणीय परिवर्तन र प्रयोगकर्ता इनपुटहरूमा प्रतिक्रिया दिनु
-- **पूर्वसक्रियता**: लक्ष्य र सन्दर्भको आधारमा पहल लिनु
-- **सामाजिक क्षमता**: वार्तालाप थ्रेडहरूसँग प्राकृतिक भाषामा अन्तर्क्रिया
+- **स्वायत्तता**: .NET AI अमूर्तिकरणहरू प्रयोग गरी एजेन्टहरूले स्वतन्त्र निर्णय कसरी गर्छन्
+- **प्रतिक्रियाशीलता**: वातावरणीय परिवर्तन र प्रयोगकर्ता इनपुटहरूमा जवाफ दिने
+- **प्रोएक्टिभिटी**: उद्देश्यहरू र सन्दर्भका आधारमा पहल गर्ने
+- **सामाजिक क्षमता**: प्राकृतिक भाषामार्फत संवाद थ्रेडहरूको अन्तरक्रिया गर्ने
 
-### प्राविधिक घटकहरू
+### प्राविधिक कम्पोनेन्टहरू
 
-- **AIAgent**: मुख्य एजेन्ट समन्वय र वार्तालाप व्यवस्थापन (.NET)
-- **उपकरण कार्यहरू**: C# विधिहरू र विशेषताहरू मार्फत एजेन्ट क्षमताहरू विस्तार गर्नु
-- **Azure OpenAI एकीकरण**: Azure OpenAI Responses API मार्फत भाषा मोडेलहरूको उपयोग
-- **सुरक्षित कन्फिगरेसन**: वातावरण आधारित अन्तबिन्दु व्यवस्थापन
+- **AIAgent**: मुख्य एजेन्ट समन्वयन र संवाद व्यवस्थापन (.NET)
+- **उपकरण कार्यहरू**: C# विधिहरू र विशेषताहरू साथ एजेन्ट क्षमताहरू विस्तार गर्ने
+- **Azure OpenAI एकीकरण**: Azure OpenAI Responses API मार्फत भाषा मोडलहरू प्रयोग गर्ने
+- **सुरक्षित कन्फिगरेसन**: वातावरण-आधारित इन्डपोइन्ट व्यवस्थापन
 
 ## 🔧 प्राविधिक स्ट्याक
 
 ### मुख्य प्रविधिहरू
 
-- माइक्रोसफ्ट एजेन्ट फ्रेमवर्क (.NET)
+- Microsoft Agent Framework (.NET)
 - Azure OpenAI (Responses API) एकीकरण
 - Azure.AI.OpenAI क्लाइन्ट ढाँचाहरू
-- DotNetEnv सँग वातावरण आधारित कन्फिगरेसन
+- DotNetEnv द्वारा वातावरण-आधारित कन्फिगरेसन
 
 ### एजेन्ट क्षमताहरू
 
-- प्राकृतिक भाषा बुझाइ र उत्पादन
-- C# विशेषताहरूसँग कार्यकलाप कल र उपकरण प्रयोग
-- वार्तालाप सत्रहरूमा सन्दर्भ-सचेत प्रतिक्रियाहरू
-- निर्भरता इंजेक्शन ढाँचाहरू सहित विस्तारयोग्य आर्किटेक्चर
+- प्राकृतिक भाषा बुझ्ने र उत्पादन गर्ने
+- C# विशेषताहरूको साथ कार्य कल र उपकरण प्रयोग
+- संवाद सत्रहरूसँग सन्दर्भ-सचेत प्रतिक्रियाहरू
+- निर्भरता इन्जेक्सन ढाँचाहरू सहित विस्तार योग्य वास्तुकला
 
 ## 📚 फ्रेमवर्क तुलना
 
-यो उदाहरणले माइक्रोसफ्ट एजेन्ट फ्रेमवर्क दृष्टिकोणलाई अन्य एजेन्टिक फ्रेमवर्कहरूसँग तुलना गर्दछ:
+यो उदाहरणले Microsoft Agent Framework लाई अन्य एजेन्टिक फ्रेमवर्कसँग तुलना गरी देखाउँछ:
 
-| सुविधा | माइक्रोसफ्ट एजेन्ट फ्रेमवर्क | अन्य फ्रेमवर्कहरू |
+| सुविधा | Microsoft Agent Framework | अन्य फ्रेमवर्कहरू |
 |---------|-------------------------|------------------|
-| **एकीकरण** | नेटिभ माइक्रोसफ्ट इकोसिस्टम | विविध अनुकूलता |
+| **एकीकरण** | नेटिभ Microsoft पारिस्थितिकी प्रणाली | विविध अनुकूलता |
 | **सरलता** | सफा, सहज API | प्रायः जटिल सेटअप |
 | **विस्तारयोग्यता** | सजिलो उपकरण एकीकरण | फ्रेमवर्क-निर्भर |
-| **उद्यम तयार** | उत्पादनका लागि बनाइएको | फ्रेमवर्क अनुसार फरक |
+| **उद्यम तयार** | उत्पादनका लागि बनेको | फ्रेमवर्क अनुसार फरक |
 
-## 🚀 सुरुवात गर्ने तरिका
+## 🚀 सुरु गरौं
 
-### पूर्व आवश्यकताहरू
+### पूर्व-आवश्यकताहरू
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) वा माथि
-- Azure OpenAI स्रोत र मोडेल डिप्लोइमेन्ट सहितको [Azure सदस्यता](https://azure.microsoft.com/free/)
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` कमाण्डसहित लगइन गर्नुहोस्
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) वा उच्च संस्करण
+- Azure OpenAI स्रोत र मोडल तैनाती संग [Azure सदस्यता](https://azure.microsoft.com/free/)
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` बाट साइन इन गर्नुहोस्
 
 ### आवश्यक वातावरण चरहरू
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# त्यसपछि साइन इन गर्नुहोस् ताकि AzureCliCredential टोकन प्राप्त गर्न सकून्
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# त्यसपछि लगइन गर्नुहोस् ताकि AzureCliCredentialले टोकन प्राप्त गर्न सकोस्
 az login
 ```
 
 ```powershell
-# पावरशेल
+# PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# त्यसपछि साइन इन गर्नुहोस् ताकि AzureCliCredential टोकन प्राप्त गर्न सकोस्
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# त्यसपछि साइन इन गर्नुहोस् ताकि AzureCliCredential टोकन प्राप्त गर्न सक्छ।
 az login
 ```
 
@@ -96,7 +96,7 @@ chmod +x ./02-dotnet-agent-framework.cs
 dotnet run ./02-dotnet-agent-framework.cs
 ```
 
-पूर्ण कोडका लागि [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) हेर्नुहोस्।
+पुरा कोडको लागि [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) हेर्नुहोस्।
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,20 +215,20 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 मुख्य सिकाइहरू
+## 🎓 प्रमुख निष्कर्षहरू
 
-1. **एजेन्ट आर्किटेक्चर**: माइक्रोसफ्ट एजेन्ट फ्रेमवर्क .NET मा AI एजेन्टहरू निर्माण गर्न सफा, प्रकार-सुरक्षित दृष्टिकोण प्रदान गर्दछ
-2. **उपकरण एकीकरण**: `[Description]` विशेषताहरूले सजावट गरिएका कार्यहरू एजेन्टका लागि उपलब्ध उपकरणहरू बन्नेछन्
-3. **वार्तालाप सन्दर्भ**: सत्र व्यवस्थापनले पूर्ण सन्दर्भ सचेतता सहित बहु-पटक वार्तालाप सक्षम बनाउँछ
-4. **कन्फिगरेसन व्यवस्थापन**: वातावरण चरहरू र सुरक्षित प्रमाणपत्र ह्यान्डलिङ .NET का उत्तम अभ्यासहरू अनुसार हुन्छ
+1. **एजेन्ट वास्तुकला**: Microsoft Agent Framework ले .NET मा AI एजेन्टहरू निर्माण गर्न सफा, प्रकार-सुरक्षित दृष्टिकोण प्रदान गर्छ
+2. **उपकरण एकीकरण**: `[Description]` विशेषताले सजाइएको कार्यहरू एजेन्टको लागि उपलब्ध उपकरणहरू बन्छन्
+3. **संवाद सन्दर्भ**: सत्र व्यवस्थापनले पूर्ण सन्दर्भ सचेततासहित बहु-चरण संवाद सक्षम बनाउँछ
+4. **कन्फिगरेसन व्यवस्थापन**: वातावरण चरहरू र सुरक्षित क्रेडेन्शियल ह्यान्डलिङ .NET उत्तम अभ्यासहरू अनुरूप छ
 5. **Azure OpenAI Responses API**: एजेन्टले Azure.AI.OpenAI SDK मार्फत Azure OpenAI Responses API प्रयोग गर्छ
 
-## 🔗 अतिरिक्त स्रोतहरू
+## 🔗 थप स्रोतहरू
 
-- [Microsoft Agent Framework Documentation](https://learn.microsoft.com/agent-framework)
-- [Azure OpenAI in Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
+- [Microsoft Agent Framework कागजात](https://learn.microsoft.com/agent-framework)
+- [Microsoft Foundry मा Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [.NET Single File Apps](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [.NET सिंगल फाइल एप्स](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

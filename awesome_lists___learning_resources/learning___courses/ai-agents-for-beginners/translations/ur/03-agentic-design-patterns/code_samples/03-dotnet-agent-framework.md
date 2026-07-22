@@ -1,156 +1,156 @@
-# 🎨 Azure OpenAI (Responses API) کے ساتھ Agentic Design Patterns (.NET)
+# 🎨 ایجنٹک ڈیزائن پیٹرنز بذریعہ Azure OpenAI (Responses API) (.NET)
 
-## 📋 سیکھنے کے مقاصد
+## 📋 تعلمی مقاصد
 
-یہ مثال Microsoft Agent Framework کو .NET میں Azure OpenAI (Responses API) انٹیگریشن کے ساتھ استعمال کرتے ہوئے ذہین ایجنٹس بنانے کے لیے انٹرپرائز گریڈ ڈیزائن پیٹرنز کی نمائندگی کرتی ہے۔ آپ پیشہ ورانہ پیٹرنز اور فن تعمیر کے طریقے سیکھیں گے جو ایجنٹس کو پروڈکشن کے قابل، قابلِ بحالی، اور اسکیل ایبل بناتے ہیں۔
+یہ مثال Microsoft Agent Framework کو .NET میں Azure OpenAI (Responses API) انٹیگریشن کے ساتھ استعمال کرتے ہوئے ذہین ایجنٹس بنانے کے لیے انٹرپرائز گریڈ ڈیزائن پیٹرنز دکھاتی ہے۔ آپ ایسے پیشہ ورانہ پیٹرنز اور فن تعمیراتی طریقے سیکھیں گے جو ایجنٹس کو پروڈکشن-ریڈی، قابلِ دیکھ بھال، اور توسیعی بناتے ہیں۔
 
 ### انٹرپرائز ڈیزائن پیٹرنز
 
-- 🏭 **Factory Pattern**: ڈپینڈینسی انجیکشن کے ساتھ معیاری ایجنٹ تخلیق
-- 🔧 **Builder Pattern**: روانی سے ایجنٹ کی تشکیل اور سیٹ اپ
-- 🧵 **Thread-Safe Patterns**: متوازی گفتگو کا انتظام
-- 📋 **Repository Pattern**: منظم ٹول اور صلاحیت کا انتظام
+- 🏭 **فیکٹری پیٹرن**: ڈیپینڈنسی انجیکشن کے ساتھ معیاری ایجنٹ تخلیق
+- 🔧 **بلڈر پیٹرن**: فلوئنٹ ایجنٹ ترتیب اور سیٹ اپ
+- 🧵 **تھریڈ-سیف پیٹرنز**: متوازی گفتگو کا انتظام
+- 📋 **ریپوزیٹری پیٹرن**: منظم ٹول اور صلاحیت کا انتظام
 
-## 🎯 .NET مخصوص فن تعمیر کے فوائد
+## 🎯 .NET مخصوص فن تعمیراتی فوائد
 
 ### انٹرپرائز خصوصیات
 
-- **Strong Typing**: کمپائل ٹائم ویلیڈیشن اور IntelliSense کی حمایت
-- **Dependency Injection**: بلٹ ان DI کنٹینر انٹیگریشن
-- **Configuration Management**: IConfiguration اور Options پیٹرنز
-- **Async/Await**: اعلیٰ درجے کی غیر ہم عصر پروگرامنگ کی حمایت
+- **مضبوط ٹائپنگ**: کمپائل-ٹائم ویلیڈیشن اور IntelliSense سپورٹ
+- **ڈیپینڈنسی انجیکشن**: بلٹ-ان DI کنٹینر انٹیگریشن
+- **کنفیگریشن مینجمنٹ**: IConfiguration اور Options پیٹرنز
+- **Async/Await**: اولین درجے کی غیر متوقع پروگرامنگ سپورٹ
 
-### پروڈکشن ریڈی پیٹرنز
+### پروڈکشن-ریڈی پیٹرنز
 
-- **Logging Integration**: ILogger اور منظم لاگنگ سپورٹ
-- **Health Checks**: بلٹ ان مانیٹرنگ اور تشخیص
-- **Configuration Validation**: ڈیٹا اینوٹیشن کے ساتھ مضبوط ٹائپنگ
-- **Error Handling**: منظم ایکسپشن مینجمنٹ
+- **لاجنگ انٹیگریشن**: ILogger اور مستند لاگنگ سپورٹ
+- **ہیلتھ چیکس**: بلٹ-ان مانیٹرنگ اور تشخیصات
+- **کنفیگریشن ویلیڈیشن**: ڈیٹا اینوٹیشنز کے ساتھ مضبوط ٹائپنگ
+- **ایرر ہینڈلنگ**: مستند استثناء کا انتظام
 
 ## 🔧 تکنیکی فن تعمیر
 
 ### بنیادی .NET اجزاء
 
-- **Microsoft.Extensions.AI**: متحدہ AI سروس تجریدات
-- **Microsoft.Agents.AI**: انٹرپرائز ایجنٹ آرکسیسٹریشن فریم ورک
-- **Azure OpenAI (Responses API)**: اعلیٰ کارکردگی والی API کلائنٹ پیٹرنز
-- **Configuration System**: appsettings.json اور ماحول کی انٹیگریشن
+- **Microsoft.Extensions.AI**: متحد AI سروس ایبسٹریکشنز
+- **Microsoft.Agents.AI**: انٹرپرائز ایجنٹ آرکسٹریشن فریم ورک
+- **Azure OpenAI (Responses API)**: اعلیٰ کارکردگی API کلائنٹ پیٹرنز
+- **کنفیگریشن سسٹم**: appsettings.json اور ماحول کی انٹیگریشن
 
-### ڈیزائن پیٹرن کا نفاذ
+### ڈیزائن پیٹرن نفاذ
 
 ```mermaid
 graph LR
-    A[IServiceCollection] --> B[ایجنٹ بلڈر]
-    B --> C[کنفیگریشن]
+    A[آئی سروس کلیکشن] --> B[ایجنٹ بلڈر]
+    B --> C[ترتیب]
     C --> D[ٹول رجسٹری]
-    D --> E[AI ایجنٹ]
+    D --> E[اے آئی ایجنٹ]
 ```
 
-## 🏗️ انٹرپرائز پیٹرنز کی نمائش
+## 🏗️ دکھائے گئے انٹرپرائز پیٹرنز
 
 ### 1. **تخلیقی پیٹرنز**
 
-- **Agent Factory**: مرکزی ایجنٹ تخلیق مع یکساں کنفیگریشن
-- **Builder Pattern**: پیچیدہ ایجنٹ کی تشکیل کے لیے روان API
-- **Singleton Pattern**: مشترکہ وسائل اور کنفیگریشن کا انتظام
-- **Dependency Injection**: ڈھیلے جوڑ اور ٹیسٹیبلٹی
+- **ایجنٹ فیکٹری**: مسلسل ترتیب کے ساتھ مرکزی ایجنٹ تخلیق
+- **بلڈر پیٹرن**: پیچیدہ ایجنٹ کی ترتیب کے لیے فلوئنٹ API
+- **سنگلٹن پیٹرن**: مشترکہ وسائل اور کنفیگریشن مینجمنٹ
+- **ڈیپینڈنسی انجیکشن**: کمزور جوڑ اور ٹیسٹ ایبلٹی
 
 ### 2. **رویے کے پیٹرنز**
 
-- **Strategy Pattern**: آپس میں تبدیل ہونے والی ٹولز کے نفاذ کی حکمت عملی
-- **Command Pattern**: ایجنٹ آپریشنز کا انکیپسولیٹڈ انجام دہی مع انڈو/ریڈو
-- **Observer Pattern**: ایونٹ کی بنیاد پر ایجنٹ لائف سائیکل مینجمنٹ
-- **Template Method**: معیاری ایجنٹ ایکزیکیوشن ورک فلو
+- **اسٹریٹجی پیٹرن**: تبدیل ہونے والے ٹول ایکزیکیوشن اسٹریٹجیز
+- **کمانڈ پیٹرن**: انکیپسولیٹڈ ایجنٹ آپریشنز جن کے انڈو/ریڈو ہیں
+- **آبزروور پیٹرن**: واقعہ پر مبنی ایجنٹ لائف سائیکل مینجمنٹ
+- **ٹیمپلیٹ میتھڈ**: معیاری ایجنٹ ایکزیکیوشن ورک فلو
 
 ### 3. **ساختی پیٹرنز**
 
-- **Adapter Pattern**: Azure OpenAI (Responses API) انٹیگریشن پرت
-- **Decorator Pattern**: ایجنٹ صلاحیت کی بہتری
-- **Facade Pattern**: آسان بنایا گیا ایجنٹ انٹریکشن انٹرفیس
-- **Proxy Pattern**: کارکردگی کے لیے لیزی لوڈنگ اور کیشنگ
+- **ایڈاپٹر پیٹرن**: Azure OpenAI (Responses API) انٹیگریشن پرت
+- **ڈیکوریٹر پیٹرن**: ایجنٹ صلاحیت کی بہتری
+- **فیسیڈ پیٹرن**: آسان ایجنٹ انٹریکشن انٹرفیسز
+- **پراکسی پیٹرن**: کارکردگی کے لیے سست لوڈنگ اور کیشنگ
 
 ## 📚 .NET ڈیزائن اصول
 
 ### SOLID اصول
 
-- **Single Responsibility**: ہر جزو کا ایک واضح مقصد
-- **Open/Closed**: بغیر ترمیم کے قابل توسیع
-- **Liskov Substitution**: انٹرفیس پر مبنی ٹولز کا نفاذ
-- **Interface Segregation**: مرکوز اور مربوط انٹرفیسز
-- **Dependency Inversion**: خلاصہ پر منحصر، ٹھوس چیزوں پر نہیں
+- **سنگل ریسپانسبلیٹی**: ہر جزو کا ایک واضح مقصد
+- **اوپن/کلوزڈ**: ترمیم کے بغیر قابل توسیع
+- **لیسکوف سبسٹیوٹشن**: انٹرفیس پر مبنی ٹول امپلیمنٹیشنز
+- **انٹرفیس سیگریگیشن**: مرکوز اور مربوط انٹرفیسز
+- **ڈیپینڈنسی انورژن**: ابسٹریکشنز پر انحصار کریں، نہ کہ کنکریشنز پر
 
 ### کلین آرکیٹیکچر
 
-- **Domain Layer**: بنیادی ایجنٹ اور ٹول کی تجریدات
-- **Application Layer**: ایجنٹ آرکسیسٹریشن اور ورک فلو
-- **Infrastructure Layer**: Azure OpenAI (Responses API) انٹیگریشن اور خارجی خدمات
-- **Presentation Layer**: صارف کے انٹریکشن اور جواب کی فارمیٹنگ
+- **ڈومین لیئر**: بنیادی ایجنٹ اور ٹول ایبسٹریکشنز
+- **اپلیکیشن لیئر**: ایجنٹ آرکسٹریشن اور ورک فلو
+- **انفراسٹرکچر لیئر**: Azure OpenAI (Responses API) انٹیگریشن اور خارجی خدمات
+- **پریزنٹیشن لیئر**: صارف انٹریکشن اور جوابی فارمیٹنگ
 
-## 🔒 انٹرپرائز کے مدنظر نکات
+## 🔒 انٹرپرائز غور و فکر
 
 ### سیکیورٹی
 
-- **Credential Management**: IConfiguration کے ساتھ محفوظ API کلید کا انتظام
-- **Input Validation**: مضبوط ٹائپنگ اور ڈیٹا اینوٹیشن کی جانچ
-- **Output Sanitization**: محفوظ جواب کی پروسیسنگ اور فلٹرنگ
-- **Audit Logging**: جامع آپریشن ٹریکنگ
+- **کریڈینشل مینجمنٹ**: IConfiguration کے ساتھ محفوظ API کلید کا انتظام
+- **ان پٹ ویلیڈیشن**: مضبوط ٹائپنگ اور ڈیٹا اینوٹیشن ویلیڈیشن
+- **آؤٹ پٹ سینٹائزیشن**: محفوظ جواب کی پراسیسنگ اور فلٹرنگ
+- **آڈٹ لاگنگ**: جامع آپریشن ٹریکنگ
 
 ### کارکردگی
 
-- **Async Patterns**: نان بلاکنگ I/O آپریشنز
-- **Connection Pooling**: موثر HTTP کلائنٹ کا انتظام
-- **Caching**: بہتر کارکردگی کے لیے جواب کی کیشنگ
-- **Resource Management**: مناسب صفائی اور ریسورس کی چھٹی کے پیٹرنز
+- **ایسینک پیٹرنز**: نان بلاکنگ I/O آپریشنز
+- **کنکشن پولنگ**: مؤثر HTTP کلائنٹ مینجمنٹ
+- **کیشنگ**: بہتر کارکردگی کے لیے جواب کی کیشنگ
+- **وسائل کا انتظام**: مناسب تلف اور صفائی کے پیٹرنز
 
 ### توسیع پذیری
 
-- **Thread Safety**: متوازی ایجنٹ عملدرآمد کی حمایت
-- **Resource Pooling**: مؤثر وسائل کا استعمال
-- **Load Management**: شرح کی حد بندی اور بیک پریشر ہینڈلنگ
-- **Monitoring**: کارکردگی کے میٹرکس اور صحت کی جانچ
+- **تھریڈ سیفٹی**: متوازی ایجنٹ ایکزیکیوشن سپورٹ
+- **وسائل کی پولنگ**: وسائل کا مؤثر استعمال
+- **لوڈ مینجمنٹ**: ریٹ لمٹنگ اور بیک پریشر ہینڈلنگ
+- **مانیٹرنگ**: کارکردگی کے میٹرکس اور ہیلتھ چیکس
 
-## 🚀 پروڈکشن تعیناتی
+## 🚀 پروڈکشن ڈپلائمنٹ
 
-- **Configuration Management**: ماحول مخصوص ترتیبات
-- **Logging Strategy**: کو رلیشن IDs کے ساتھ منظم لاگنگ
-- **Error Handling**: عالمی استثنا ہینڈلنگ مع مناسب بحالی
-- **Monitoring**: ایپلیکیشن انسائٹس اور کارکردگی کے کاؤنٹرز
-- **Testing**: یونٹ ٹیسٹ، انٹیگریشن ٹیسٹ، اور لوڈ ٹیسٹنگ کے پیٹرنز
+- **کنفیگریشن مینجمنٹ**: ماحول کی مخصوص ترتیبات
+- **لاجنگ حکمت عملی**: مستند لاگنگ بمعہ کورلیشن IDs
+- **ایرر ہینڈلنگ**: عالمی استثناء ہینڈلنگ بمعہ مناسب بحالی
+- **مانیٹرنگ**: ایپلیکیشن انسائٹس اور کارکردگی کے کاؤنٹرز
+- **ٹیسٹنگ**: یونٹ ٹیسٹ، انٹیگریشن ٹیسٹ، اور لوڈ ٹیسٹنگ پیٹرنز
 
-کیا آپ .NET کے ساتھ انٹرپرائز گریڈ ذہین ایجنٹس بنانے کے لیے تیار ہیں؟ آئیں کچھ مضبوط فن تعمیر کریں! 🏢✨
+.NET کے ساتھ انٹرپرائز گریڈ ذہین ایجنٹس بنانے کو تیار ہیں؟ آئیں کچھ مضبوط تعمیر کریں! 🏢✨
 
-## 🚀 شروعات
+## 🚀 شروعات کریں
 
-### پیشگی ضروریات
+### پیشگی شرائط
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) یا اس سے زیادہ
-- Azure OpenAI resource اور ماڈل ڈپلائمنٹ کے ساتھ ایک [Azure سبسکرپشن](https://azure.microsoft.com/free/)
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` کے ساتھ سائن ان کریں
+- ایک [Azure سبسکرپشن](https://azure.microsoft.com/free/) جس میں Azure OpenAI ریسورس اور ماڈل ڈپلائمنٹ ہو
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` سے سائن ان کریں
 
 ### مطلوبہ ماحول کے متغیرات
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# پھر سائن ان کریں تاکہ AzureCliCredential ایک ٹوکن حاصل کر سکے۔
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# پھر سائن ان کریں تاکہ AzureCliCredential ٹوکن حاصل کر سکے
 az login
 ```
 
 ```powershell
 # پاور شیل
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# پھر سائن ان کریں تاکہ AzureCliCredential ٹوکن حاصل کر سکے
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# پھر سائن ان کریں تاکہ AzureCliCredential ایک ٹوکن حاصل کر سکے
 az login
 ```
 
 ### نمونہ کوڈ
 
-مثال کوڈ چلانے کے لیے،
+کوڈ مثال چلانے کے لیے،
 
 ```bash
-# زی شیل / باش
+# زی ایس ایچ/باش
 chmod +x ./03-dotnet-agent-framework.cs
 ./03-dotnet-agent-framework.cs
 ```
@@ -161,7 +161,7 @@ chmod +x ./03-dotnet-agent-framework.cs
 dotnet run ./03-dotnet-agent-framework.cs
 ```
 
-مکمل کوڈ کے لیے دیکھیں [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs)۔
+مکمل کوڈ کے لیے [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) دیکھیں۔
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

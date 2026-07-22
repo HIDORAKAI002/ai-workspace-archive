@@ -1,40 +1,40 @@
-# 🌍 AI Cestovní Agent s Microsoft Agent Framework (.NET)
+# 🌍 AI cestovní agent s Microsoft Agent Framework (.NET)
 
 ## 📋 Přehled scénáře
 
-Tento příklad ukazuje, jak vytvořit inteligentního cestovního agenta pomocí Microsoft Agent Framework pro .NET. Agent může automaticky generovat personalizované plány jednodenních výletů na náhodná místa po celém světě.
+Tento příklad ukazuje, jak vytvořit inteligentního agenta pro plánování cest pomocí Microsoft Agent Framework pro .NET. Agent může automaticky generovat personalizované itineráře jednodenních výletů do náhodných destinací po celém světě.
 
-### Klíčové funkce:
+### Klíčové schopnosti:
 
-- 🎲 **Výběr náhodného cíle**: Používá vlastní nástroj pro výběr dovolenkových míst
-- 🗺️ **Inteligentní plánování cest**: Vytváří podrobné itineráře den za dnem
-- 🔄 **Streamování v reálném čase**: Podpora okamžitých i streamovaných odpovědí
+- 🎲 **Výběr náhodné destinace**: Používá vlastní nástroj pro výběr dovolenkových míst
+- 🗺️ **Inteligentní plánování výletu**: Vytváří detailní itineráře po jednotlivých dnech
+- 🔄 **Přenos dat v reálném čase**: Podporuje jak okamžité, tak streamované odpovědi
 - 🛠️ **Integrace vlastních nástrojů**: Ukazuje, jak rozšířit schopnosti agenta
 
 ## 🔧 Technická architektura
 
-### Základní technologie
+### Hlavní technologie
 
-- **Microsoft Agent Framework**: Nejnovější implementace .NET pro vývoj AI agentů
-- **Azure OpenAI (Responses API)**: Používá Azure OpenAI Responses API pro inferenci modelu
+- **Microsoft Agent Framework**: Nejnovější .NET implementace pro vývoj AI agentů
+- **Azure OpenAI (Responses API)**: Používá Azure OpenAI Responses API pro inference modelu
 - **Azure Identity**: Bezpečné přihlášení přes `AzureCliCredential` (`az login`)
-- **Bezpečná konfigurace**: Správa koncových bodů na základě prostředí
+- **Bezpečná konfigurace**: Správa koncových bodů založená na prostředí
 
 ### Klíčové komponenty
 
-1. **AIAgent**: Hlavní koordinátor agenta, který ovládá tok konverzace
+1. **AIAgent**: Hlavní orchestrátor agenta, který řídí tok konverzace
 2. **Vlastní nástroje**: Funkce `GetRandomDestination()` dostupná agentovi
-3. **Responses klient**: Rozhraní konverzace založené na Azure OpenAI Responses
-4. **Podpora streamingu**: Možnosti generování odpovědí v reálném čase
+3. **Klient Responses**: Rozhraní pro konverzaci založené na Azure OpenAI Responses
+4. **Podpora streamování**: Schopnost generovat odpovědi v reálném čase
 
-### Vzor integrace
+### Vzorec integrace
 
 ```mermaid
 graph LR
-    A[Uživatelský požadavek] --> B[AI Agent]
+    A[Uživatelský požadavek] --> B[AI agent]
     B --> C[Azure OpenAI (API odpovědí)]
     B --> D[Nástroj GetRandomDestination]
-    C --> E[Cestovní plán]
+    C --> E[Cestovní itinerář]
     D --> E
 ```
 
@@ -42,25 +42,25 @@ graph LR
 
 ### Požadavky
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) nebo vyšší
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) nebo novější
 - [Azure předplatné](https://azure.microsoft.com/free/) s Azure OpenAI zdrojem a nasazením modelu
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — přihlaste se pomocí `az login`
 
-### Požadované proměnné prostředí
+### Vyžadované proměnné prostředí
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Poté se přihlaste, aby AzureCliCredential mohl získat token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Přihlaste se, aby AzureCliCredential mohl získat token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Poté se přihlaste, aby AzureCliCredential mohl získat token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Pak se přihlaste, aby AzureCliCredential mohl získat token
 az login
 ```
 
@@ -74,13 +74,13 @@ chmod +x ./01-dotnet-agent-framework.cs
 ./01-dotnet-agent-framework.cs
 ```
 
-Nebo pomocí nástroje dotnet CLI:
+Nebo pomocí dotnet CLI:
 
 ```bash
 dotnet run ./01-dotnet-agent-framework.cs
 ```
 
-Viz [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) pro kompletní kód.
+Kompletní kód naleznete v [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs).
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -159,10 +159,10 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 
 ## 🎓 Hlavní poznatky
 
-1. **Architektura agenta**: Microsoft Agent Framework poskytuje čistý, typově bezpečný přístup k tvorbě AI agentů v .NET
-2. **Integrace nástrojů**: Funkce označené atributy `[Description]` jsou pro agenta dostupné jako nástroje
-3. **Správa konfigurace**: Proměnné prostředí a bezpečné nakládání s přihlašovacími údaji odpovídá osvědčeným postupům .NET
-4. **Azure OpenAI Responses API**: Agent používá Azure OpenAI Responses API prostřednictvím Azure.AI.OpenAI SDK
+1. **Architektura agenta**: Microsoft Agent Framework poskytuje čistý, typově bezpečný přístup k vytváření AI agentů v .NET
+2. **Integrace nástrojů**: Funkce opatřené atributy `[Description]` se stanou dostupnými nástroji pro agenta
+3. **Správa konfigurace**: Proměnné prostředí a bezpečné zacházení s přihlašovacími údaji odpovídají nejlepším .NET praktikám
+4. **Azure OpenAI Responses API**: Agent používá Azure OpenAI Responses API přes Azure.AI.OpenAI SDK
 
 ## 🔗 Další zdroje
 

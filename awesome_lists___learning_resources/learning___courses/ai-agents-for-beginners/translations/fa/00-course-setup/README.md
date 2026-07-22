@@ -1,46 +1,46 @@
 # راه‌اندازی دوره
 
-## معرفی
+## مقدمه
 
-این درس به نحوه اجرای نمونه‌های کد این دوره می‌پردازد.
+این درس نحوه اجرای نمونه کدهای این دوره را پوشش می‌دهد.
 
-## پیوستن به دیگر یادگیرندگان و دریافت کمک
+## پیوستن به سایر یادگیرندگان و دریافت کمک
 
-قبل از اینکه شروع به کلون کردن مخزن خود کنید، به [کانال Discord هوش مصنوعی برای مبتدی‌ها](https://aka.ms/ai-agents/discord) بپیوندید تا در راه‌اندازی، پرسش‌های مربوط به دوره یا ارتباط با دیگر یادگیرندگان کمک دریافت کنید.
+قبل از اینکه شروع به کلون کردن مخزن خود کنید، به [کانال Discord عامل‌های هوش مصنوعی برای مبتدیان](https://aka.ms/ai-agents/discord) بپیوندید تا هرگونه کمک در راه‌اندازی، هرگونه سؤال درباره دوره، یا برای ارتباط با سایر یادگیرندگان دریافت کنید.
 
 ## کلون یا فورک این مخزن
 
-برای شروع، لطفاً مخزن گیت‌هاب را کلون یا فورک کنید. این کار نسخه‌ای از محتوای دوره را برای شما ایجاد می‌کند تا بتوانید کد را اجرا، تست و تغییر دهید!
+برای شروع، لطفاً مخزن گیت‌هاب را کلون یا فورک کنید. این کار نسخه خودتان از مطالب دوره را ایجاد می‌کند تا بتوانید کد را اجرا، تست و تنظیم کنید!
 
-این کار را می‌توانید با کلیک روی لینک <a href="https://github.com/microsoft/ai-agents-for-beginners/fork" target="_blank">فورک کردن مخزن</a> انجام دهید.
+این کار را می‌توانید با کلیک روی لینک <a href="https://github.com/microsoft/ai-agents-for-beginners/fork" target="_blank">فورک کردن مخزن</a> انجام دهید
 
 اکنون باید نسخه فورک شده خود از این دوره را در لینک زیر داشته باشید:
 
-![مخزن فورک شده](../../../translated_images/fa/forked-repo.33f27ca1901baa6a.webp)
+![Forked Repo](../../../translated_images/fa/forked-repo.33f27ca1901baa6a.webp)
 
 ### کلون سطحی (توصیه‌شده برای کارگاه / Codespaces)
 
-   > وقتی کل تاریخچه کامل و تمام فایل‌ها را دانلود می‌کنید، مخزن کامل می‌تواند بزرگ (~3 گیگابایت) باشد. اگر فقط کارگاه را شرکت می‌کنید یا فقط به چند پوشه درس نیاز دارید، کلون سطحی (یا کلون پراکنده) با قطع تاریخچه و/یا صرف‌نظر از بلاپ‌ها از بیشتر این دانلود جلوگیری می‌کند.
+  >کل مخزن ممکن است بزرگ باشد (~3 گیگابایت) وقتی تاریخچه کامل و همه فایل‌ها را دانلود می‌کنید. اگر فقط در کارگاه شرکت می‌کنید یا فقط به چند پوشه درس نیاز دارید، کلون سطحی (یا کلون پراکنده) با کوتاه کردن تاریخچه و/یا رد کردن blobها از بیشتر این دانلود جلوگیری می‌کند.
 
-#### کلون سطحی سریع — تاریخچه حداقلی، تمام فایل‌ها
+#### کلون سریع سطحی — تاریخچه حداقلی، همه فایل‌ها
 
-`<your-username>` را در دستورات زیر با URL فورک خود (یا URL اصلی اگر ترجیح می‌دهید) جایگزین کنید.
+`<your-username>` را در دستورات زیر با آدرس فورک خود (یا آدرس بالادستی اگر ترجیح می‌دهید) جایگزین کنید.
 
-برای کلون کردن فقط جدیدترین تاریخچه کامیت (دانلود کم):
+برای کلون کردن فقط تاریخچه آخرین کامیت (دانلود کوچک):
 
 ```bash|powershell
 git clone --depth 1 https://github.com/<your-username>/ai-agents-for-beginners.git
 ```
 
-برای کلون یک شاخه خاص:
+برای کلون کردن یک شاخه خاص:
 
 ```bash|powershell
 git clone --depth 1 --branch <branch-name> https://github.com/<your-username>/ai-agents-for-beginners.git
 ```
 
-#### کلون جزئی (پراکنده) — حداقل بلاپ‌ها + فقط پوشه‌های انتخابی
+#### کلون جزئی (پراکنده) — blobهای حداقل + تنها پوشه‌های انتخاب شده
 
-این روش از کلون جزئی و sparse-checkout استفاده می‌کند (نیازمند Git 2.25+ و توصیه شده با Git مدرن با پشتیبانی کلون جزئی):
+این از کلون جزئی و sparse-checkout استفاده می‌کند (نیاز به Git نسخه 2.25+ و توصیه‌شده گیت مدرن با پشتیبانی کلون جزئی):
 
 ```bash|powershell
 git clone --depth 1 --filter=blob:none --sparse https://github.com/<your-username>/ai-agents-for-beginners.git
@@ -52,16 +52,16 @@ git clone --depth 1 --filter=blob:none --sparse https://github.com/<your-usernam
 cd ai-agents-for-beginners
 ```
 
-سپس مشخص کنید کدام پوشه‌ها را می‌خواهید (مثال زیر دو پوشه را نشان می‌دهد):
+سپس مشخص کنید که کدام پوشه‌ها را می‌خواهید (نمونه زیر دو پوشه را نشان می‌دهد):
 
 ```bash|powershell
 git sparse-checkout set 00-course-setup 01-intro-to-ai-agents
 ```
 
-پس از کلون و تایید فایل‌ها، اگر فقط به فایل‌ها نیاز دارید و می‌خواهید فضا آزاد کنید (بدون تاریخچه گیت)، لطفاً متادیتای مخزن را پاک کنید (💀 غیرقابل برگشت — تمام عملکردهای Git را از دست می‌دهید: کامیت‌ها، پول‌ها، پوش‌ها و دسترسی به تاریخچه).
+پس از کلون کردن و تأیید فایل‌ها، اگر فقط به فایل‌ها نیاز دارید و می‌خواهید فضا آزاد کنید (بدون تاریخچه گیت)، لطفاً متادیتای مخزن را حذف کنید (💀 غیرقابل بازگشت — تمام عملکردهای گیت را از دست خواهید داد: بدون کامیت، پول، پوش یا دسترسی به تاریخچه).
 
 ```bash
-# زد‌شل/باش
+# زش/بش
 rm -rf .git
 ```
 
@@ -72,42 +72,42 @@ Remove-Item -Recurse -Force .git
 
 #### استفاده از GitHub Codespaces (توصیه‌شده برای جلوگیری از دانلودهای بزرگ محلی)
 
-- یک Codespace جدید برای این مخزن از طریق [رابط کاربری GitHub](https://github.com/codespaces) بسازید.  
+- ایجاد یک Codespace جدید برای این مخزن از طریق [رابط کاربری GitHub](https://github.com/codespaces).  
 
-- در ترمینال Codespace ایجاد شده، یکی از دستورات کلون سطحی/پراکنده بالا را اجرا کنید تا فقط پوشه‌های درس مورد نیاز را به فضای کاری Codespace بیاورد.
-- اختیاری: پس از کلون داخل Codespaces، برای آزادسازی فضا، پوشه .git را پاک کنید (دستورات پاکسازی بالا را ببینید).
-- توجه: اگر ترجیح می‌دهید مخزن را مستقیماً در Codespaces باز کنید (بدون کلون اضافه)، توجه داشته باشید Codespaces محیط devcontainer را می‌سازد و ممکن است بیشتر از نیاز شما منابع تخصیص دهد. کلون یک نسخه سطحی در داخل Codespace تازه کنترل بیشتری روی استفاده از دیسک به شما می‌دهد.
+- در ترمینال Codespace تازه ایجاد شده، یکی از دستورات کلون سطحی/پراکنده بالا را اجرا کنید تا فقط پوشه‌های درس مورد نیاز را به فضای کاری Codespace بیاورید.
+- اختیاری: پس از کلون در Codespaces، برای بازیابی فضای اضافی .git را حذف کنید (دستورات حذف را در بالا ببینید).
+- نکته: اگر ترجیح می‌دهید مخزن را مستقیماً در Codespaces باز کنید (بدون کلون اضافی)، توجه داشته باشید که Codespaces محیط devcontainer را ایجاد می‌کند و ممکن است بیشتر از نیاز شما برپا شود. کلون یک نسخه سطحی در یک Codespace تازه کنترل بیشتری روی استفاده از دیسک به شما می‌دهد.
 
 #### نکات
 
-- همیشه URL کلون را با فورک خود جایگزین کنید اگر می‌خواهید ویرایش یا کامیت کنید.
-- اگر بعداً به تاریخچه یا فایل‌های بیشتری نیاز داشتید، می‌توانید آنها را بازیابی کنید یا sparse-checkout را برای افزودن پوشه‌های بیشتر تنظیم کنید.
+- همیشه آدرس کلون را با فورک خود جایگزین کنید اگر می‌خواهید ویرایش یا کامیت انجام دهید.
+- اگر بعداً به تاریخچه یا فایل‌های بیشتری نیاز داشتید، می‌توانید آن‌ها را دریافت کنید یا sparse-checkout را تنظیم کنید تا پوشه‌های اضافی را شامل شود.
 
 ## اجرای کد
 
-این دوره مجموعه‌ای از دفترچه‌های جیوپیتر (Jupyter Notebooks) ارائه می‌دهد که می‌توانید برای کسب تجربه عملی در ساخت عوامل هوش مصنوعی اجرا کنید.
+این دوره مجموعه‌ای از دفترچه‌های Jupyter ارائه می‌دهد که می‌توانید برای کسب تجربه عملی در ساخت عامل‌های هوش مصنوعی اجرا کنید.
 
-نمونه‌های کد از **Microsoft Agent Framework (MAF)** با `FoundryChatClient` استفاده می‌کنند، که از طریق **Microsoft Foundry** به **Microsoft Foundry Agent Service V2** (API پاسخ‌ها) متصل می‌شود.
+نمونه‌های کد از **Microsoft Agent Framework (MAF)** با `FoundryChatClient` استفاده می‌کنند، که از طریق **Microsoft Foundry** به **Microsoft Foundry Agent Service V2** (رابط API پاسخ‌ها) متصل می‌شود.
 
-همه دفترچه‌های پایتون با برچسب `*-python-agent-framework.ipynb` مشخص شده‌اند.
+همه دفترچه‌های پایتون با نام `*-python-agent-framework.ipynb` برچسب‌گذاری شده‌اند.
 
-## نیازمندی‌ها
+## پیش‌نیازها
 
-- پایتون 3.12+
-  - **نکته:** اگر پایتون 3.12 ندارید، حتما نصب کنید. سپس محیط مجازی (venv) خود را با python3.12 بسازید تا نسخه‌های صحیح از فایل requirements.txt نصب شوند.
+- Python 3.12+
+  - **توجه**: اگر Python 3.12 نصب ندارید، حتماً آن را نصب کنید. سپس محیط مجازی خود را با استفاده از python3.12 بسازید تا نسخه‌های صحیح از فایل requirements.txt نصب شود.
   
     >مثال
 
-    ساخت دایرکتوری محیط مجازی پایتون:
+    ساخت دایرکتوری محیط مجازی Python:
 
     ```bash|powershell
     python -m venv venv
     ```
 
-    سپس محیط venv را برای:
+    سپس محیط مجازی را فعال کنید برای:
 
     ```bash
-    # زدش/باش
+    # زد شل/باش
     source venv/bin/activate
     ```
   
@@ -116,58 +116,58 @@ Remove-Item -Recurse -Force .git
     venv\Scripts\activate
     ```
 
-- دات‌نت 10+: برای نمونه کدهای دات‌نت، حتما [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) یا نسخه بالاتر نصب کنید. سپس نسخه دات‌نت خود را بررسی کنید:
+- .NET 10+: برای نمونه کدهای استفاده‌شده در .NET، مطمئن شوید [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) یا بالاتر نصب باشد. سپس نسخه SDK نصب شده‌ی خود را بررسی کنید:
 
     ```bash|powershell
     dotnet --list-sdks
     ```
 
-- **Azure CLI** — برای احراز هویت مورد نیاز است. از [aka.ms/installazurecli](https://aka.ms/installazurecli) نصب کنید.
-- **اشتراک آزور** — برای دسترسی به Microsoft Foundry و Microsoft Foundry Agent Service.
-- **پروژه Microsoft Foundry** — پروژه با مدل مستقر شده (مثلاً `gpt-4.1-mini`). مرحله [1](#مرحله-1-ساخت-پروژه-microsoft-foundry) را ببینید.
+- **Azure CLI** — برای احراز هویت لازم است. از [aka.ms/installazurecli](https://aka.ms/installazurecli) نصب کنید.
+- **اشتراک Azure** — برای دسترسی به Microsoft Foundry و Microsoft Foundry Agent Service.
+- **پروژه Microsoft Foundry** — پروژه‌ای با مدل استقرار یافته (مثلاً `gpt-5-mini`). مرحله 1 را ببینید.
 
-ما فایلی با نام `requirements.txt` در ریشه این مخزن قرار داده‌ایم که حاوی همه بسته‌های پایتون لازم برای اجرای نمونه کدهاست.
+ما یک فایل `requirements.txt` در ریشه این مخزن قرار داده‌ایم که شامل همه بسته‌های مورد نیاز پایتون برای اجرای نمونه کدهاست.
 
-شما می‌توانید با اجرای دستور زیر در ترمینال در ریشه مخزن آن‌ها را نصب کنید:
+می‌توانید آن‌ها را با اجرای دستور زیر در ترمینال خود در ریشه مخزن نصب کنید:
 
 ```bash|powershell
 pip install -r requirements.txt
 ```
 
-توصیه می‌شود برای جلوگیری از تداخل و مشکلات، یک محیط مجازی پایتون بسازید و استفاده کنید.
+توصیه می‌کنیم یک محیط مجازی پایتون بسازید تا از بروز هرگونه تعارض و مشکل جلوگیری شود.
 
-## راه‌اندازی VSCode
+## تنظیم VSCode
 
-مطمئن شوید که در VSCode از نسخه درست پایتون استفاده می‌کنید.
+مطمئن شوید در VSCode از نسخه درست پایتون استفاده می‌کنید.
 
-![تصویر](https://github.com/user-attachments/assets/a85e776c-2edb-4331-ae5b-6bfdfb98ee0e)
+![image](https://github.com/user-attachments/assets/a85e776c-2edb-4331-ae5b-6bfdfb98ee0e)
 
 ## راه‌اندازی Microsoft Foundry و Microsoft Foundry Agent Service
 
-### مرحله 1: ساخت پروژه Microsoft Foundry
+### مرحله 1: ایجاد پروژه Microsoft Foundry
 
-برای اجرای دفترچه‌ها، به یک هاب و پروژه Microsoft Foundry با یک مدل مستقر شده نیاز دارید.
+برای اجرای دفترچه‌ها به یک **هاب** و **پروژه** Microsoft Foundry با مدل مستقر نیاز دارید.
 
 1. به [ai.azure.com](https://ai.azure.com) بروید و با حساب Azure خود وارد شوید.
-2. یک **هاب** بسازید (یا از هاب موجود استفاده کنید). ببینید: [مروری بر منابع هاب](https://learn.microsoft.com/azure/ai-foundry/concepts/ai-resources).
-3. در هاب، یک **پروژه** ایجاد کنید.
-4. از **Models + Endpoints** → **Deploy model** یک مدل (مثلاً `gpt-4.1-mini`) مستقر کنید.
+2. یک **هاب** ایجاد کنید (یا از یکی موجود استفاده کنید). ببینید: [مرور منابع هاب](https://learn.microsoft.com/azure/ai-foundry/concepts/ai-resources).
+3. داخل هاب، یک **پروژه** بسازید.
+4. یک مدل استقرار دهید (مثلاً `gpt-5-mini`) از بخش **Models + Endpoints** → **Deploy model**.
 
-### مرحله 2: دریافت نقطه انتهایی پروژه و نام استقرار مدل
+### مرحله 2: دریافت آدرس نقطه انتهایی پروژه و نام استقرار مدل
 
 از پروژه خود در پرتال Microsoft Foundry:
 
-- **نقطه انتهایی پروژه** — به صفحه **Overview** بروید و URL انتهایی را کپی کنید.
+- **نقطه انتهایی پروژه** — به صفحه **Overview** رفته و URL نقطه انتهایی را کپی کنید.
 
-![رشته اتصال پروژه](../../../translated_images/fa/project-endpoint.8cf04c9975bbfbf1.webp)
+![Project Connection String](../../../translated_images/fa/project-endpoint.8cf04c9975bbfbf1.webp)
 
-- **نام استقرار مدل** — به **Models + Endpoints** بروید، مدل مستقر شده خود را انتخاب کنید و نام **Deployment** را یادداشت کنید (مثلاً `gpt-4.1-mini`).
+- **نام استقرار مدل** — به قسمت **Models + Endpoints** بروید، مدل مستقر خود را انتخاب کنید و نام **Deployment** را یادداشت کنید (مثلاً `gpt-5-mini`).
 
 ### مرحله 3: ورود به Azure با `az login`
 
-همه دفترچه‌ها برای احراز هویت از **`AzureCliCredential`** استفاده می‌کنند — کلید API نیازی نیست. این نیازمند ورود شما از طریق Azure CLI است.
+همه دفترچه‌ها برای احراز هویت از **`AzureCliCredential`** استفاده می‌کنند — نیازی به مدیریت کلیدهای API نیست. این نیاز دارد که از طریق CLI آژور وارد شوید.
 
-1. **Azure CLI را نصب کنید** اگر قبلاً انجام نداده‌اید: [aka.ms/installazurecli](https://aka.ms/installazurecli)
+1. **Azure CLI را نصب کنید** اگر هنوز نصب نکرده‌اید: [aka.ms/installazurecli](https://aka.ms/installazurecli)
 
 2. **وارد شوید** با اجرای:
 
@@ -181,7 +181,7 @@ pip install -r requirements.txt
     az login --use-device-code
     ```
 
-3. اگر خواسته شد، **اشتراک خود را انتخاب کنید** — اشتراکی که پروژه Foundry شما روی آن است را انتخاب کنید.
+3. **اشتراک خود را انتخاب کنید** اگر خواسته شد — اشتراکی که پروژه Foundry شما را شامل میشود انتخاب کنید.
 
 4. **تأیید کنید** که وارد شده‌اید:
 
@@ -189,14 +189,14 @@ pip install -r requirements.txt
     az account show
     ```
 
-> **چرا `az login`؟** دفترچه ها با استفاده از `AzureCliCredential` از پکیج `azure-identity` احراز هویت می‌کنند. این به این معنی است که جلسه Azure CLI شما اعتبارنامه‌ها را فراهم می‌کند — در فایل `.env` شما دیگر کلید API یا راز نیست. این یک [بهترین روش امنیتی](https://learn.microsoft.com/azure/developer/ai/keyless-connections) است.
+> **چرا `az login`؟** دفترچه‌ها برای احراز هویت از `AzureCliCredential` در بسته `azure-identity` استفاده می‌کنند. این به این معنی است که نشست Azure CLI شما مجوزها را فراهم می‌کند — نیاز به کلید API یا اسرار در فایل `.env` نیست. این یک [بهترین روش امنیتی](https://learn.microsoft.com/azure/developer/ai/keyless-connections) است.
 
-### مرحله 4: ساخت فایل `.env`
+### مرحله 4: ایجاد فایل `.env`
 
 فایل نمونه را کپی کنید:
 
 ```bash
-# زد شل / بش
+# زِش/باش
 cp .env.example .env
 ```
 
@@ -209,15 +209,15 @@ Copy-Item .env.example .env
 
 ```env
 AZURE_AI_PROJECT_ENDPOINT=https://<your-project>.services.ai.azure.com/api/projects/<your-project-id>
-AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-4.1-mini
+AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-5-mini
 ```
 
-| متغیر | محل پیدا کردن |
+| متغیر | محل یافتن |
 |----------|-----------------|
 | `AZURE_AI_PROJECT_ENDPOINT` | پرتال Foundry → پروژه شما → صفحه **Overview** |
-| `AZURE_AI_MODEL_DEPLOYMENT_NAME` | پرتال Foundry → **Models + Endpoints** → نام مدل مستقر شده شما |
+| `AZURE_AI_MODEL_DEPLOYMENT_NAME` | پرتال Foundry → **Models + Endpoints** → نام مدل مستقر شما |
 
-برای بیشتر درس‌ها همین کافی است! دفترچه‌ها به طور خودکار از طریق جلسه‌ی `az login` شما احراز هویت می‌شوند.
+این برای بیشتر درس‌ها کافی است! دفترچه‌ها به طور خودکار از طریق نشست `az login` شما احراز هویت می‌کنند.
 
 ### مرحله 5: نصب وابستگی‌های پایتون
 
@@ -225,50 +225,50 @@ AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-4.1-mini
 pip install -r requirements.txt
 ```
 
-توصیه می‌کنیم این را داخل محیط مجازی که ساخته‌اید اجرا کنید.
+توصیه می‌کنیم این کار را داخل محیط مجازی که قبلاً ساختید اجرا کنید.
 
 ## راه‌اندازی اضافی برای درس ۵ (Agentic RAG)
 
-درس ۵ از **Azure AI Search** برای تولید مبتنی بر بازیابی استفاده می‌کند. اگر قصد اجرای آن درس را دارید، این متغیرها را به فایل `.env` خود اضافه کنید:
+درس ۵ از **Azure AI Search** برای تولید با بازیابی پشتیبانی شده استفاده می‌کند. اگر قصد اجرای آن درس را دارید، این متغیرها را به فایل `.env` خود اضافه کنید:
 
-| متغیر | محل پیدا کردن |
+| متغیر | محل یافتن |
 |----------|-----------------|
-| `AZURE_SEARCH_SERVICE_ENDPOINT` | پرتال آزور → منبع **Azure AI Search** شما → صفحه **Overview** → URL |
-| `AZURE_SEARCH_API_KEY` | پرتال آزور → منبع **Azure AI Search** شما → **Settings** → **Keys** → کلید اولیه مدیریت |
+| `AZURE_SEARCH_SERVICE_ENDPOINT` | پرتال Azure → منبع **Azure AI Search** شما → **Overview** → URL |
+| `AZURE_SEARCH_API_KEY` | پرتال Azure → منبع **Azure AI Search** شما → **Settings** → **Keys** → کلید اصلی مدیریت |
 
-## راه‌اندازی اضافی برای درس‌هایی که مستقیماً Azure OpenAI را فرا می‌خوانند (درس‌های ۶ و ۸)
+## راه‌اندازی اضافی برای درس‌هایی که مستقیماً Azure OpenAI را فرا می‌خوانند (درس ۶ و ۸)
 
-برخی دفترچه‌ها در درس‌های ۶ و ۸ مستقیماً **Azure OpenAI** را فرا می‌خوانند (با استفاده از **Responses API**) به جای اینکه از طریق پروژه Microsoft Foundry بروند. این نمونه‌ها قبلاً از GitHub Models استفاده می‌کردند که منسوخ شده است (بازنشستگی در ژوئیه ۲۰۲۶) و از Responses API پشتیبانی نمی‌کند. اگر قصد اجرای این نمونه‌ها را دارید، این متغیرها را به فایل `.env` اضافه کنید:
+برخی دفترچه‌ها در درس‌های ۶ و ۸ مستقیماً از **Azure OpenAI** استفاده می‌کنند (با استفاده از **Responses API**) به جای رفتن از طریق پروژه Microsoft Foundry. این نمونه‌ها قبلاً از مدل‌های GitHub استفاده می‌کردند که منسوخ شده‌اند (تا جولای ۲۰۲۶ بازنشسته می‌شود) و از Responses API پشتیبانی نمی‌کنند. اگر قصد اجرای آن‌ها را دارید، این متغیرها را به فایل `.env` خود اضافه کنید:
 
-| متغیر | محل پیدا کردن |
+| متغیر | محل یافتن |
 |----------|-----------------|
-| `AZURE_OPENAI_ENDPOINT` | پرتال آزور → منبع **Azure OpenAI** شما → **Keys and Endpoint** → Endpoint (مثلاً `https://<your-resource>.openai.azure.com`) |
-| `AZURE_OPENAI_DEPLOYMENT` | نام مدل مستقر شده شما (مثلاً `gpt-4.1-mini`) که Responses API را پشتیبانی می‌کند |
-| `AZURE_OPENAI_API_KEY` | اختیاری — فقط اگر احراز هویت بر مبنای کلید به جای `az login` / شناسه Entra دارید |
+| `AZURE_OPENAI_ENDPOINT` | پرتال Azure → منبع **Azure OpenAI** شما → **Keys and Endpoint** → نقطه انتهایی (مثلاً `https://<your-resource>.openai.azure.com`) |
+| `AZURE_OPENAI_DEPLOYMENT` | نام مدل مستقر شما (مثلاً `gpt-5-mini`) که از Responses API پشتیبانی می‌کند |
+| `AZURE_OPENAI_API_KEY` | اختیاری — فقط اگر از احراز هویت مبتنی بر کلید به جای `az login` / Entra ID استفاده می‌کنید |
 
-> Responses API از نقطه انتهایی پایدار `/openai/v1/` استفاده می‌کند، بنابراین نیازی به `api-version` نیست. برای استفاده از احراز هویت بدون کلید شناسه Entra با `az login` وارد شوید.
+> Responses API از نقطه پایانی پایدار `/openai/v1/` استفاده می‌کند، بنابراین نیازی به `api-version` نیست. برای استفاده از احراز هویت بدون کلید Entra ID با `az login` وارد شوید.
 
 ## ارائه‌دهنده جایگزین: MiniMax (سازگار با OpenAI)
 
-[MiniMax](https://platform.minimaxi.com/) مدل‌های بزرگ-متنی (تا ۲۰۴ هزار توکن) را از طریق API سازگار با OpenAI ارائه می‌دهد. چون `OpenAIChatClient` فریمورک Microsoft Agent با هر نقطه انتهایی سازگار با OpenAI کار می‌کند، می‌توانید MiniMax را به جای Azure OpenAI یا OpenAI استفاده کنید.
+[MiniMax](https://platform.minimaxi.com/) مدل‌های دارای بافت بزرگ (تا ۲۰۴ هزار توکن) را از طریق API سازگار با OpenAI ارائه می‌دهد. از آنجا که `OpenAIChatClient` در Microsoft Agent Framework با هر نقطه پایانی سازگار با OpenAI کار می‌کند، می‌توانید MiniMax را به عنوان جایگزینی برای Azure OpenAI یا OpenAI استفاده کنید.
 
 این متغیرها را به فایل `.env` خود اضافه کنید:
 
-| متغیر | محل پیدا کردن |
+| متغیر | محل یافتن |
 |----------|-----------------|
 | `MINIMAX_API_KEY` | [پلتفرم MiniMax](https://platform.minimaxi.com/) → کلیدهای API |
-| `MINIMAX_BASE_URL` | مقدار پیش‌فرض `https://api.minimax.io/v1` |
+| `MINIMAX_BASE_URL` | استفاده کنید از `https://api.minimax.io/v1` (مقدار پیش‌فرض) |
 | `MINIMAX_MODEL_ID` | نام مدل برای استفاده (مثلاً `MiniMax-M3`) |
 
-**مدل‌های نمونه**: `MiniMax-M3` (توصیه شده)، `MiniMax-M2.7`، `MiniMax-M2.7-highspeed` (پاسخ‌های سریع‌تر). نام مدل‌ها و دسترسی آنها ممکن است با گذشت زمان تغییر کنند، و دسترسی به مدل خاصی ممکن است به حساب یا منطقه شما بستگی داشته باشد — برای لیست کنونی به [پلتفرم MiniMax](https://platform.minimaxi.com/) مراجعه کنید. اگر `MiniMax-M3` برای حساب شما در دسترس نیست، `MINIMAX_MODEL_ID` را به مدلی که دسترسی دارید تنظیم کنید (مثلاً `MiniMax-M2.7`).
+**نمونه مدل‌ها**: `MiniMax-M3` (توصیه‌شده)، `MiniMax-M2.7`، `MiniMax-M2.7-highspeed` (پاسخ‌های سریع‌تر). نام مدل‌ها و دسترسی ممکن است در طول زمان تغییر کند و دسترسی به مدل خاص ممکن است به حساب یا منطقه شما بستگی داشته باشد — فهرست فعلی را در [پلتفرم MiniMax](https://platform.minimaxi.com/) بررسی کنید. اگر `MiniMax-M3` برای حساب شما در دسترس نیست، `MINIMAX_MODEL_ID` را به مدلی که به آن دسترسی دارید تنظیم کنید (مثلاً `MiniMax-M2.7`).
 
-نمونه کدهایی که از `OpenAIChatClient` استفاده می‌کنند (مثل فرآیند رزرو هتل درس ۱۴) به طور خودکار پیکربندی MiniMax شما را وقتی `MINIMAX_API_KEY` تنظیم شده است، تشخیص داده و استفاده می‌کنند.
+نمونه کدهایی که از `OpenAIChatClient` استفاده می‌کنند (مثلاً جریان کاری رزرو هتل درس ۱۴) به طور خودکار پیکربندی MiniMax شما را وقتی `MINIMAX_API_KEY` تنظیم شده باشد، تشخیص داده و استفاده می‌کنند.
 
 ## ارائه‌دهنده جایگزین: Foundry Local (اجرای مدل‌ها روی دستگاه)
 
-[Foundry Local](https://foundrylocal.ai) یک محیط اجرای سبک است که مدل‌های زبان را **کاملاً روی دستگاه خودتان** دانلود، مدیریت و سرو می‌کند از طریق API سازگار با OpenAI — بدون ابری، بدون اشتراک آزور و بدون کلید API. گزینه عالی برای توسعه آفلاین، آزمایش بدون هزینه ابر یا حفظ داده‌ها روی دستگاه است.
+[Foundry Local](https://foundrylocal.ai) یک محیط اجرای سبک است که مدل‌های زبانی را **کاملاً روی دستگاه خودتان** از طریق API سازگار با OpenAI دانلود، مدیریت و ارائه می‌دهد — هیچ ابر، هیچ اشتراک Azure و هیچ کلید API لازم نیست. این گزینه عالی برای توسعه آفلاین، آزمایش بدون هزینه‌های ابری یا نگهداری داده‌ها روی دستگاه است.
 
-چون `OpenAIChatClient` در فریمورک Microsoft Agent با هر نقطه انتهایی سازگار با OpenAI کار می‌کند، Foundry Local جایگزین محلی برای Azure OpenAI است.
+از آنجا که `OpenAIChatClient` در Microsoft Agent Framework با هر نقطه پایانی سازگار با OpenAI کار می‌کند، Foundry Local یک جایگزین محلی برای Azure OpenAI است.
 
 **۱. نصب Foundry Local**
 
@@ -283,28 +283,28 @@ brew install foundrylocal
 **۲. دانلود و اجرای یک مدل** (این همچنین سرویس محلی را راه‌اندازی می‌کند):
 
 ```bash
-foundry model list          # مدل‌های موجود را مشاهده کنید
+foundry model list          # مشاهده مدل‌های موجود
 foundry model run phi-4-mini
 ```
 
-**۳. نصب SDK پایتون** برای کشف نقطه انتهای محلی:
+**۳. نصب SDK پایتون** برای کشف نقطه انتهایی محلی:
 
 ```bash
 pip install foundry-local-sdk
 ```
 
-**۴. پیکربندی Microsoft Agent Framework برای مدل محلی شما:**
+**۴. اشاره دادن Microsoft Agent Framework به مدل محلی خود:**
 
 ```python
 from foundry_local import FoundryLocalManager
 from agent_framework.openai import OpenAIChatClient
 
-# مدل را به صورت محلی دانلود (در صورت نیاز) و ارائه می‌دهد، سپس نقطه پایان/پورت را پیدا می‌کند.
+# مدل را به‌صورت محلی دانلود می‌کند (در صورت نیاز) و سرو می‌کند، سپس نقطه پایانی/پورت را کشف می‌کند.
 manager = FoundryLocalManager("phi-4-mini")
 
 chat_client = OpenAIChatClient(
-    base_url=manager.endpoint,      # مثلاً http://localhost:<port>/v1
-    api_key=manager.api_key,        # همیشه برای Foundry Local "not-required" است
+    base_url=manager.endpoint,      # برای مثال http://localhost:<port>/v1
+    api_key=manager.api_key,        # همیشه برای Foundry Local "نیاز نیست" است
     model_id=manager.get_model_info("phi-4-mini").id,
 )
 
@@ -314,49 +314,49 @@ agent = chat_client.as_agent(
 )
 ```
 
-> **توجه:** Foundry Local یک نقطه انتهایی **Chat Completions** سازگار با OpenAI ارائه می‌دهد. از آن برای توسعه محلی و سناریوهای آفلاین استفاده کنید. برای مجموعه کامل ویژگی‌های **Responses API** (گفتگوهای حالت‌دار، ارکستراسیون ابزارهای عمیق و توسعه به سبک عامل) به Azure OpenAI یا پروژه Microsoft Foundry در درس‌ها مراجعه کنید. مستندات [Foundry Local](https://foundrylocal.ai) را برای کاتالوگ مدل‌ها و پشتیبانی پلتفرم کنونی ببینید.
+> **توجه:** Foundry Local یک نقطه پایانی سازگار با OpenAI برای **Chat Completions** فراهم می‌کند. از آن برای توسعه محلی و سناریوهای آفلاین استفاده کنید. برای مجموعه کامل ویژگی‌های **Responses API** (گفتگوهای حالت‌دار، سازماندهی عمیق ابزارها و توسعه سبک عامل)، به **Azure OpenAI** یا پروژه **Microsoft Foundry** مراجعه کنید همانطور که در درس‌ها نمایش داده شده است. مستندات [Foundry Local](https://foundrylocal.ai) را برای فهرست مدل‌های فعلی و پشتیبانی پلتفرم ببینید.
+
+## راه‌اندازی اضافی برای درس ۸ (جریان کاری پایه‌گذاری Bing)
 
 
-## راه‌اندازی اضافی برای درس ۸ (روند کار Bing Grounding)
-
-دفترچه روند کاری شرطی در درس ۸ از **Bing grounding** از طریق Microsoft Foundry استفاده می‌کند. اگر قصد دارید آن نمونه را اجرا کنید، این متغیر را به فایل `.env` خود اضافه کنید:
+دفترچه کاری شرطی در درس ۸ از **بنیان‌بخشی بینگ** از طریق Microsoft Foundry استفاده می‌کند. اگر قصد دارید آن نمونه را اجرا کنید، این متغیر را به فایل `.env` خود اضافه کنید:
 
 | متغیر | محل یافتن |
 |----------|-----------------|
-| `BING_CONNECTION_ID` | پرتال Microsoft Foundry → پروژه شما → **مدیریت** → **منابع متصل** → اتصال Bing شما → شناسه اتصال را کپی کنید |
+| `BING_CONNECTION_ID` | پرتال Microsoft Foundry → پروژه شما → **مدیریت** → **منابع متصل** → اتصال بینگ شما → کپی شناسه اتصال |
 
 ## رفع اشکال
 
 ### خطاهای تأیید گواهی SSL در macOS
 
-اگر در macOS هستید و با خطایی مانند روبرو شدید:
+اگر در macOS با خطایی مانند روبه‌رو شدید:
 
 ```plaintext
 ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain
 ```
 
-این یک مشکل شناخته شده در پایتون روی macOS است که گواهی‌های SSL سیستم به صورت خودکار مورد اعتماد قرار نمی‌گیرند. راه‌حل‌های زیر را به ترتیب امتحان کنید:
+این یک مشکل شناخته‌شده در پایتون در macOS است که گواهی‌های SSL سیستم به‌طور خودکار مورد اعتماد قرار نمی‌گیرند. راه‌حل‌های زیر را به ترتیب امتحان کنید:
 
-**گزینه ۱: اجرای اسکریپت نصب گواهی‌های پایتون (توصیه شده)**
+**گزینه ۱: اجرای اسکریپت نصب گواهی‌نامه‌های پایتون (توصیه‌شده)**
 
 ```bash
-# نسخه پایتون نصب‌شده خود را به جای 3.XX قرار دهید (مثلاً 3.12 یا 3.13):
+# نسخه‌ی پایتون نصب شده خود را جایگزین 3.XX کنید (مثلاً 3.12 یا 3.13):
 /Applications/Python\ 3.XX/Install\ Certificates.command
 ```
 
-**گزینه ۲: استفاده از `connection_verify=False` در دفترچه شما (فقط برای دفترچه‌های GitHub Models)**
+**گزینه ۲: استفاده از `connection_verify=False` در دفترچه یادداشت خود (فقط برای دفترهای GitHub Models)**
 
-در دفترچه درس ۶ (`06-building-trustworthy-agents/code_samples/06-system-message-framework.ipynb`)، راه‌حلی که کامنت شده است قبلاً گنجانده شده است. هنگام ایجاد کلاینت، `connection_verify=False` را از حالت کامنت خارج کنید:
+در دفترچه یادداشت درس ۶ (`06-building-trustworthy-agents/code_samples/06-system-message-framework.ipynb`)، یک راه‌حل کامنت شده قبلاً درج شده است. هنگام ایجاد کلاینت، `connection_verify=False` را از حالت کامنت خارج کنید:
 
 ```python
 client = ChatCompletionsClient(
     endpoint=endpoint,
     credential=AzureKeyCredential(token),
-    connection_verify=False,  # اگر با خطاهای گواهی‌نامه مواجه شدید، اعتبارسنجی SSL را غیرفعال کنید
+    connection_verify=False,  # در صورت مواجهه با خطاهای گواهی، تأیید SSL را غیرفعال کنید
 )
 ```
 
-> **⚠️ هشدار:** غیرفعال کردن تأیید SSL (`connection_verify=False`) امنیت را کاهش می‌دهد زیرا اعتبارسنجی گواهی را رد می‌کند. از این فقط به عنوان راه‌حل موقت در محیط‌های توسعه استفاده کنید، هرگز در محیط تولید.
+> **⚠️ هشدار:** غیرفعال کردن تأیید SSL (`connection_verify=False`) با رد شدن از اعتبارسنجی گواهی‌نامه، امنیت را کاهش می‌دهد. این کار را فقط به عنوان یک راه‌حل موقت در محیط‌های توسعه استفاده کنید و هرگز در تولید.
 
 **گزینه ۳: نصب و استفاده از `truststore`**
 
@@ -364,7 +364,7 @@ client = ChatCompletionsClient(
 pip install truststore
 ```
 
-سپس این موارد را در بالای دفترچه یا اسکریپت خود قبل از انجام هرگونه تماس شبکه اضافه کنید:
+سپس موارد زیر را در بالای دفترچه یا اسکریپت خود قبل از هر فراخوانی شبکه‌ای اضافه کنید:
 
 ```python
 import truststore
@@ -373,13 +373,13 @@ truststore.inject_into_ssl()
 
 ## گیر کرده‌اید؟
 
-اگر در اجرای این راه‌اندازی مشکلی داشتید، به <a href="https://discord.gg/kzRShWzttr" target="_blank">دیسکورد انجمن Azure AI</a> بپیوندید یا <a href="https://github.com/microsoft/ai-agents-for-beginners/issues?WT.mc_id=academic-105485-koreyst" target="_blank">یک مسئله ایجاد کنید</a>.
+اگر در اجرای این تنظیمات با مشکلی مواجه شدید، به <a href="https://discord.gg/kzRShWzttr" target="_blank">دیـسکورد جامعه هوش مصنوعی آزور</a> بپیوندید یا <a href="https://github.com/microsoft/ai-agents-for-beginners/issues?WT.mc_id=academic-105485-koreyst" target="_blank">یک مشکل گزارش کنید</a>.
 
 ## درس بعدی
 
-اکنون آماده اجرای کد این دوره هستید. یادگیری خوبی درباره دنیای هوش مصنوعی عامل‌ها داشته باشید!
+اکنون آماده‌اید کد این دوره را اجرا کنید. از یادگیری بیشتر درباره دنیای عوامل هوش مصنوعی لذت ببرید!
 
-[معرفی به عامل‌های هوش مصنوعی و موارد استفاده آنها](../01-intro-to-ai-agents/README.md)
+[مقدمه‌ای بر عوامل هوش مصنوعی و موارد استفاده آنها](../01-intro-to-ai-agents/README.md)
 
 ---
 

@@ -3,39 +3,39 @@ name: testing-course-samples
 ---
 # Testando os Exemplos do Curso
 
-Valide se os notebooks das lições e os exemplos de código funcionam com uma configuração Microsoft Foundry / Azure OpenAI ao vivo.
-O repositório disponibiliza um executor em
+Valide que os notebooks das lições e os exemplos de código funcionam em uma configuração ativa
+Microsoft Foundry / Azure OpenAI. O repositório inclui um executor em
 [`scripts/validate-notebooks.ps1`](../../../../../scripts/validate-notebooks.ps1) que
-executa cada notebook Python em modo headless e imprime uma matriz PASS/FAIL.
+executa todos os notebooks Python de forma headless e imprime uma matriz PASS/FAIL.
 
 ## Quando usar
 - "Validar todos os notebooks / exemplos contra minha assinatura Azure."
-- "Fazer um teste rápido do curso após atualizar pacotes ou mudar modelos."
-- "Quais lições ainda passam / falham ao vivo?"
+- "Teste rápido do curso após atualizar pacotes ou mudar modelos."
+- "Quais lições ainda funcionam / falham ao vivo?"
 
-Não use este para o AI Smoke Test GitHub Action (que valida agentes *implantados*
-hospedados — veja [`tests/README.md`](../../../tests/README.md)). Esta ferramenta
+Não use isso para o GitHub Action AI Smoke Test (que valida agentes *implantados*
+hospedados — veja [`tests/README.md`](../../../tests/README.md)). Esta habilidade
 executa os notebooks localmente.
 
-## Pré-requisitos (verificar primeiro)
+## Pré-requisitos (verifique primeiro)
 1. **Python 3.12+** com dependências do curso: `python -m pip install -r requirements.txt`
-   além do executor: `python -m pip install nbconvert ipykernel`.
+   mais o executor: `python -m pip install nbconvert ipykernel`.
 2. **`.env` na raiz do repositório** (copie de [`.env.example`](../../../../../.env.example)) com pelo menos:
    - `AZURE_AI_PROJECT_ENDPOINT` — endpoint do projeto Foundry
      (`https://<account>.services.ai.azure.com/api/projects/<project>`)
-   - `AZURE_AI_MODEL_DEPLOYMENT_NAME` — um deployment não depreciado (ex. `gpt-4.1-mini`)
+   - `AZURE_AI_MODEL_DEPLOYMENT_NAME` — um deployment não depreciado (ex: `gpt-5-mini`)
    - `AZURE_OPENAI_ENDPOINT` (`https://<account>.openai.azure.com`) e `AZURE_OPENAI_DEPLOYMENT`
-     para lições que usam Azure OpenAI diretamente (Lição 06, 02-azure-openai, 14 handoff/human-loop).
-3. **`az login`** concluído — os exemplos usam autenticação `AzureCliCredential` (Entra ID, sem chave).
+     para lições que chamam Azure OpenAI diretamente (Lição 06, 02-azure-openai, 14 handoff/human-loop).
+3. **`az login`** concluído — exemplos se autenticam com `AzureCliCredential` (Entra ID, sem chave).
 4. Verifique se o deployment do modelo existe:
    `az cognitiveservices account deployment list -g <rg> -n <account> -o table`.
 
 ## Executando a validação
 ```powershell
-# Todos os notebooks Python (ignora .NET, .venv, site-packages, traduções, recursos de habilidade)
+# Todos os notebooks Python (ignora .NET, .venv, site-packages, traduções, recursos de habilidades)
 pwsh scripts/validate-notebooks.ps1
 
-# Uma única lição, com um tempo limite maior por célula
+# Uma única lição, com um tempo limite por célula mais longo
 pwsh scripts/validate-notebooks.ps1 -Filter '08-*' -Timeout 600
 
 # Apenas lista o que seria executado (sem execução)
@@ -45,29 +45,36 @@ pwsh scripts/validate-notebooks.ps1 -List
 pwsh scripts/validate-notebooks.ps1 -Python "C:/path/to/python.exe"
 ```
 O script grava cópias executadas, logs por notebook e `results.json` em
-`$env:TEMP\aiab-nbval` e encerra com o número de falhas.
+`$env:TEMP\aiab-nbval` e finaliza com o número de falhas.
+
+Falhas transitórias (limites HTTP 429 em assinaturas compartilhadas, um eventual
+problema no token `AzureCliCredential` ou um timeout) são automaticamente
+tentadas novamente (`-Retries`, padrão 2, com `-RetryDelaySeconds` de espera, padrão 20). Se um
+deployment de modelo estiver gerando 429s regularmente, verifique a cota TPM GlobalStandard da assinatura
+(`az cognitiveservices usage list -l <region>`) — aumentar a capacidade de um único
+deployment não ajuda quando a cota da *assinatura* está esgotada.
 
 ## Interpretando resultados
-- `PASS` — o notebook executou completamente sem erro em nenhuma célula.
-- `FAIL` — a primeira linha de `*Error` / `*Exception` é exibida; abra o arquivo
-  `log_*.txt` correspondente na pasta de saída para ver o rastreamento completo.
-- Uma falha individual do notebook está limitada por `-Timeout` (por célula), então uma célula
-  que requer participação humana pendurada aparece como `StdinNotImplementedError` em vez de travar.
+- `PASS` — o notebook rodou de ponta a ponta sem erro em células.
+- `FAIL` — a primeira linha `*Error` / `*Exception` é exibida; abra o
+  `log_*.txt` correspondente na pasta de saída para o traceback completo.
+- A falha de um único notebook é limitada por `-Timeout` (por célula), então uma célula
+  de intervenção humana travada aparece como `StdinNotImplementedError` ao invés de travar.
 
-## Lições que precisam de recursos extras (espera-se falha sem eles)
+## Lições que precisam de recursos extras (espera-se que falhem sem eles)
 | Lição | Requisito extra |
 |--------|-------------------|
-| 05 Agentic RAG | Azure AI Search (`AZURE_SEARCH_SERVICE_ENDPOINT`, chave) — tem um caminho de fallback na memória |
-| 11 MCP / GitHub | Servidor GitHub MCP + PAT |
+| 05 Agentic RAG | Azure AI Search (`AZURE_SEARCH_SERVICE_ENDPOINT`, chave) — possui caminho de fallback em memória |
+| 11 MCP / GitHub | Servidor MCP GitHub + PAT |
 | 13 memória (cognee) | `cognee` configurado com um provedor de modelo |
-| 15 uso do navegador | Navegadores Playwright instalados (`playwright install`) + `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME` |
-| 17 agente local | Runtime Local do Foundry + um modelo Qwen baixado (na máquina, sem nuvem) |
-| notebooks `*-dotnet-*` | kernel interativo .NET (excluído por padrão; usar `-IncludeDotnet`) |
+| 15 uso no navegador | Navegadores Playwright instalados (`playwright install`) + `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME` |
+| 17 agente local | Runtime local Foundry + modelo Qwen baixado (no dispositivo, sem nuvem) |
+| notebooks `*-dotnet-*` | kernel .NET Interactive (excluído por padrão; use `-IncludeDotnet`) |
 
-## Reportando
+## Reportando resultados
 Resuma em uma tabela PASS/FAIL agrupada por lição. Separe regressões genuínas
-(bugs de código/configuração a corrigir) de lacunas no ambiente (falta Search/Foundry Local/PAT),
-e cite os arquivos `log_*.txt` que falharam para cada falha real.
+(bugs de código/configuração a corrigir) de lacunas de ambiente (Search/Foundry Local/PAT ausentes),
+e cite o `log_*.txt` falho para cada falha real.
 
 ---
 

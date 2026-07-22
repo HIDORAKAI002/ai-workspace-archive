@@ -2,13 +2,13 @@
 
 ## 📋 Læringsmål
 
-Denne notesbog demonstrerer virksomhedsklare planlægnings- og designmønstre til opbygning af intelligente agenter ved brug af Microsoft Agent Framework i .NET med Azure OpenAI (Responses API). Du vil lære at skabe agenter, der kan nedbryde komplekse problemer, planlægge flerstegs løsninger og udføre avancerede arbejdsgange med .NET's virksomhedsfeatures.
+Denne notesbog demonstrerer virksomhedsgrade planlægnings- og designmønstre til opbygning af intelligente agenter ved hjælp af Microsoft Agent Framework i .NET med Azure OpenAI (Responses API). Du lærer at skabe agenter, som kan nedbryde komplekse problemer, planlægge flerstegs løsninger og udføre sofistikerede workflows med .NET's virksomhedsfeatures.
 
 ## ⚙️ Forudsætninger & Opsætning
 
 **Udviklingsmiljø:**
 - .NET 9.0 SDK eller nyere
-- Visual Studio 2022 eller VS Code med C# udvidelse
+- Visual Studio 2022 eller VS Code med C#-udvidelsen
 - Et Azure-abonnement med en Azure OpenAI-ressource og en modeludrulning
 - Azure CLI — log ind med `az login`
 
@@ -25,12 +25,12 @@ Denne notesbog demonstrerer virksomhedsklare planlægnings- og designmønstre ti
 **Miljøkonfiguration (.env-fil):**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
-## Kørsel af koden
+## Kørsel af Koden
 
-Denne lektion indeholder en .NET Single File App-implementering. For at køre den:
+Denne lektion inkluderer en .NET single file app-implementering. For at køre den:
 
 ```bash
 # Gør filen eksekverbar (Linux/macOS)
@@ -51,16 +51,16 @@ dotnet run 07-dotnet-agent-framework.cs
 Den komplette implementering findes i `07-dotnet-agent-framework.cs`, som demonstrerer:
 
 - Indlæsning af miljøkonfiguration med DotNetEnv
-- Konfiguration af Azure OpenAI-klienten og skabelse af en AI-agent med `GetChatClient().AsAIAgent()`
+- Konfiguration af Azure OpenAI-klienten og oprettelse af en AI-agent ved hjælp af `GetChatClient().AsAIAgent()`
 - Definition af strukturerede datamodeller (Plan og TravelPlan) med JSON-serialisering
-- Oprettelse af en AI-agent med struktureret output ved hjælp af JSON-skema
-- Udførelse af planlægningsanmodninger med typesikre svar
+- Oprettelse af en AI-agent med struktureret output via JSON-skema
+- Udførelse af planlægningsforespørgsler med typesikre svar
 
-## Centrale begreber
+## Centrale Begreber
 
-### Struktureret planlægning med typesikre modeller
+### Struktureret Planlægning med Typesikre Modeller
 
-Agenten bruger C# klasser til at definere strukturen for planlægningsoutput:
+Agenten bruger C#-klasser til at definere strukturen af planlægningsresultater:
 
 ```csharp
 public class Plan
@@ -82,9 +82,9 @@ public class TravelPlan
 }
 ```
 
-### JSON-skema til strukturerede output
+### JSON-skema for Strukturerede Output
 
-Agenten er konfigureret til at returnere svar, der matcher TravelPlan-skemaet:
+Agenten er konfigureret til at returnere svar, som matcher TravelPlan-skemaet:
 
 ```csharp
 ChatClientAgentOptions agentOptions = new()
@@ -101,20 +101,20 @@ ChatClientAgentOptions agentOptions = new()
 };
 ```
 
-### Planlægningsagentens instruktioner
+### Instruktioner til Planlægningsagenten
 
-Agenten fungerer som koordinator og delegerer opgaver til specialiserede under-agenter:
+Agenten fungerer som en koordinator, der delegerer opgaver til specialiserede underagenter:
 
-- FlightBooking: Til booking af flyrejser og levering af flyoplysninger
-- HotelBooking: Til booking af hoteller og levering af hoteloplysninger
-- CarRental: Til booking af biler og levering af billejeoplysninger
-- ActivitiesBooking: Til booking af aktiviteter og levering af aktivitetsoplysninger
-- DestinationInfo: Til levering af oplysninger om destinationer
+- FlightBooking: Til booking af flyrejser og levering af flyinformation
+- HotelBooking: Til booking af hoteller og levering af hotelinformation
+- CarRental: Til booking af biler og levering af billejeinformation
+- ActivitiesBooking: Til booking af aktiviteter og levering af aktivitetsinformation
+- DestinationInfo: Til levering af information om destinationer
 - DefaultAgent: Til håndtering af generelle forespørgsler
 
-## Forventet output
+## Forventet Output
 
-Når du kører agenten med en rejseplanlægningsforespørgsel, vil den analysere anmodningen og generere en struktureret plan med passende opgavefordeling til specialiserede agenter, formateret som JSON i overensstemmelse med TravelPlan-skemaet.
+Når du kører agenten med en rejseplanlægningsforespørgsel, vil den analysere forespørgslen og generere en struktureret plan med passende opgavefordeling til specialiserede agenter, formateret som JSON i overensstemmelse med TravelPlan-skemaet.
 
 ---
 

@@ -2,12 +2,12 @@
 
 ## 📋 Cíle učení
 
-Tento sešit ukazuje podnikové plánovací a návrhové vzory pro vytváření inteligentních agentů pomocí Microsoft Agent Framework v .NET s Azure OpenAI (Responses API). Naučíte se vytvářet agenty, kteří dokáží rozložit složité problémy, plánovat vícekroková řešení a provádět složité pracovní postupy pomocí podnikových funkcí .NET.
+Tento notebook ukazuje podnikové plánovací a návrhové vzory pro vytváření inteligentních agentů pomocí Microsoft Agent Framework v .NET s Azure OpenAI (Responses API). Naučíte se vytvářet agenty, kteří dokážou rozložit složité problémy, plánovat více kroková řešení a provádět sofistikované pracovní postupy s podnikových funkcemi .NET.
 
-## ⚙️ Předpoklady a nastavení
+## ⚙️ Požadavky a nastavení
 
 **Vývojové prostředí:**
-- .NET 9.0 SDK nebo novější
+- .NET 9.0 SDK nebo vyšší
 - Visual Studio 2022 nebo VS Code s rozšířením C#
 - Předplatné Azure s Azure OpenAI zdrojem a nasazením modelu
 - Azure CLI — přihlaste se pomocí `az login`
@@ -25,12 +25,12 @@ Tento sešit ukazuje podnikové plánovací a návrhové vzory pro vytváření 
 **Konfigurace prostředí (soubor .env):**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
 ## Spuštění kódu
 
-Tato lekce obsahuje implementaci .NET Single File App. Ke spuštění:
+Tato lekce obsahuje implementaci .NET Single File App. Pro její spuštění:
 
 ```bash
 # Udělejte soubor spustitelným (Linux/macOS)
@@ -48,19 +48,19 @@ dotnet run 07-dotnet-agent-framework.cs
 
 ## Implementace kódu
 
-Kompletní implementace je dostupná v `07-dotnet-agent-framework.cs`, která ukazuje:
+Kompletní implementace je dostupná v `07-dotnet-agent-framework.cs`, která demonstruje:
 
 - Načítání konfigurace prostředí pomocí DotNetEnv
-- Konfiguraci klienta Azure OpenAI a vytvoření AI agenta pomocí `GetChatClient().AsAIAgent()`
+- Konfiguraci Azure OpenAI klienta a vytvoření AI agenta pomocí `GetChatClient().AsAIAgent()`
 - Definování strukturovaných datových modelů (Plan a TravelPlan) s JSON serializací
 - Vytvoření AI agenta se strukturovaným výstupem pomocí JSON schématu
-- Spouštění plánovacích požadavků s typově bezpečnými odpověďmi
+- Vykonávání plánovacích požadavků s typově bezpečnými odpověďmi
 
-## Klíčové pojmy
+## Klíčové koncepty
 
 ### Strukturované plánování s typově bezpečnými modely
 
-Agent používá C# třídy pro definování struktury plánovacích výstupů:
+Agent používá C# třídy k definování struktury výsledků plánování:
 
 ```csharp
 public class Plan
@@ -82,7 +82,7 @@ public class TravelPlan
 }
 ```
 
-### JSON schéma pro strukturované výstupy
+### JSON Schéma pro strukturované výstupy
 
 Agent je nakonfigurován tak, aby vracel odpovědi odpovídající schématu TravelPlan:
 
@@ -101,20 +101,20 @@ ChatClientAgentOptions agentOptions = new()
 };
 ```
 
-### Instrukce pro plánovacího agenta
+### Instrukce plánovacího agenta
 
-Agent funguje jako koordinátor, delegující úkoly specializovaným subagentům:
+Agent vystupuje jako koordinátor, delegující úkoly specializovaným pod-agentům:
 
 - FlightBooking: Pro rezervaci letů a poskytování informací o letech
-- HotelBooking: Pro rezervaci hotelů a poskytování informací o hotelech
-- CarRental: Pro rezervaci aut a poskytování informací o půjčovnách
+- HotelBooking: Pro rezervaci hotelů a poskytování informací o hotelích
+- CarRental: Pro rezervaci aut a poskytování informací o půjčení aut
 - ActivitiesBooking: Pro rezervaci aktivit a poskytování informací o aktivitách
 - DestinationInfo: Pro poskytování informací o destinacích
 - DefaultAgent: Pro zpracování obecných požadavků
 
 ## Očekávaný výstup
 
-Při spuštění agenta s požadavkem na plánování cesty analyzuje požadavek a vygeneruje strukturovaný plán s vhodným přiřazením úkolů specializovaným agentům, formátovaný jako JSON odpovídající schématu TravelPlan.
+Když spustíte agenta s požadavkem na plánování cesty, analyzuje požadavek a vygeneruje strukturovaný plán s odpovídajícím přidělením úkolů specializovaným agentům, formátovaný jako JSON splňující schéma TravelPlan.
 
 ---
 

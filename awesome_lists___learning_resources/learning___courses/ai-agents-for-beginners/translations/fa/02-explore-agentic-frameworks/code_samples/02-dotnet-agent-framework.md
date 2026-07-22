@@ -1,73 +1,73 @@
-# 🔍 کاوش در چارچوب Agent مایکروسافت - عامل پایه (.NET)
+# 🔍 کاوش در چارچوب Microsoft Agent - عامل پایه (.NET)
 
 ## 📋 اهداف یادگیری
 
-این مثال مفاهیم پایه‌ای چارچوب Agent مایکروسافت را از طریق پیاده‌سازی یک عامل پایه در .NET بررسی می‌کند. شما الگوهای اصلی عامل‌محور را یاد می‌گیرید و درک می‌کنید که چگونه عوامل هوشمند در پس‌زمینه با استفاده از C# و اکوسیستم .NET کار می‌کنند.
+این مثال مفاهیم بنیادی چارچوب Microsoft Agent را از طریق پیاده‌سازی یک عامل پایه در .NET بررسی می‌کند. شما الگوهای اصلی عامل‌محور را خواهید آموخت و درک خواهید کرد که چگونه عوامل هوشمند زیرپوستی با استفاده از C# و اکوسیستم .NET کار می‌کنند.
 
-### چه چیزهایی کشف خواهید کرد
+### آنچه کشف خواهید کرد
 
 - 🏗️ **معماری عامل**: درک ساختار پایه عوامل هوش مصنوعی در .NET
-- 🛠️ **ادغام ابزار**: چگونگی استفاده عوامل از توابع خارجی برای گسترش قابلیت‌ها  
-- 💬 **جریان گفتگو**: مدیریت مکالمات چند مرحله‌ای و زمینه با مدیریت رشته‌ها
-- 🔧 **الگوهای پیکربندی**: بهترین شیوه‌ها برای راه‌اندازی و مدیریت عامل در .NET
+- 🛠️ **ادغام ابزار**: چگونه عوامل از توابع خارجی برای گسترش قابلیت‌ها استفاده می‌کنند  
+- 💬 **جریان مکالمه**: مدیریت گفتگوهای چند مرحله‌ای و زمینه با مدیریت رشته‌ها
+- 🔧 **الگوهای پیکربندی**: بهترین روش‌ها برای راه‌اندازی و مدیریت عامل در .NET
 
 ## 🎯 مفاهیم کلیدی پوشش داده شده
 
 ### اصول چارچوب عامل‌محور
 
-- **خودمختاری**: چگونگی تصمیم‌گیری مستقل عوامل با استفاده از انتزاعات هوش مصنوعی در .NET
+- **خودمختاری**: چگونه عوامل تصمیمات مستقل با استفاده از انتزاعات هوش مصنوعی در .NET می‌گیرند
 - **واکنش‌پذیری**: پاسخ به تغییرات محیطی و ورودی‌های کاربر
-- **پیش‌دستی**: انجام اقدامات بر اساس اهداف و زمینه
+- **فعالیت پیشدستانه**: انجام ابتکار بر اساس اهداف و زمینه
 - **توانایی اجتماعی**: تعامل از طریق زبان طبیعی با رشته‌های مکالمه
 
 ### اجزای فنی
 
 - **AIAgent**: هماهنگی اصلی عامل و مدیریت مکالمه (.NET)
 - **توابع ابزار**: گسترش قابلیت‌های عامل با متدها و ویژگی‌های C#
-- **ادغام Azure OpenAI**: بهره‌برداری از مدل‌های زبانی از طریق API پاسخ‌های Azure OpenAI
-- **پیکربندی امن**: مدیریت نقطه انتهایی مبتنی بر محیط
+- **ادغام Azure OpenAI**: استفاده از مدل‌های زبانی از طریق API پاسخ‌های Azure OpenAI
+- **پیکربندی امن**: مدیریت نقطه پایان مبتنی بر محیط
 
 ## 🔧 پشته فنی
 
-### فن‌آوری‌های اصلی
+### فناوری‌های اصلی
 
-- چارچوب Agent مایکروسافت (.NET)
+- چارچوب Microsoft Agent (.NET)
 - ادغام Azure OpenAI (API پاسخ‌ها)
 - الگوهای مشتری Azure.AI.OpenAI
 - پیکربندی مبتنی بر محیط با DotNetEnv
 
-### توانمندی‌های عامل
+### قابلیت‌های عامل
 
 - درک و تولید زبان طبیعی
-- فراخوانی تابع و استفاده از ابزارها با ویژگی‌های C#
+- فراخوانی تابع و استفاده از ابزار با ویژگی‌های C#
 - پاسخ‌های آگاه به زمینه با جلسات مکالمه
 - معماری قابل توسعه با الگوهای تزریق وابستگی
 
 ## 📚 مقایسه چارچوب‌ها
 
-این مثال رویکرد چارچوب Agent مایکروسافت را در مقایسه با سایر چارچوب‌های عامل‌محور نشان می‌دهد:
+این مثال رویکرد چارچوب Microsoft Agent را در مقایسه با سایر چارچوب‌های عامل‌محور نشان می‌دهد:
 
-| ویژگی | چارچوب Agent مایکروسافت | چارچوب‌های دیگر |
+| ویژگی | چارچوب Microsoft Agent | سایر چارچوب‌ها |
 |---------|-------------------------|------------------|
 | **ادغام** | اکوسیستم بومی مایکروسافت | سازگاری متنوع |
-| **سادگی** | رابط برنامه‌نویسی تمیز و شهودی | اغلب راه‌اندازی پیچیده |
-| **قابلیت توسعه** | ادغام آسان ابزارها | وابسته به چارچوب |
-| **آمادگی سازمانی** | ساخته شده برای تولید | متغیر بر اساس چارچوب |
+| **سادگی** | API تمیز و شهودی | اغلب راه‌اندازی پیچیده |
+| **گسترش‌پذیری** | ادغام آسان ابزار | وابسته به چارچوب |
+| **آماده سازمانی** | ساخته شده برای تولید | بسته به چارچوب متفاوت است |
 
 ## 🚀 شروع به کار
 
 ### پیش‌نیازها
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) یا بالاتر
-- یک [اشتراک Azure](https://azure.microsoft.com/free/) با منبع Azure OpenAI و استقرار مدل
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — ورود به سیستم با `az login`
+- یک [اشتراک Azure](https://azure.microsoft.com/free/) با یک منبع Azure OpenAI و استقرار مدل
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — ورود با `az login`
 
-### متغیرهای محیطی مورد نیاز
+### متغیرهای محیطی لازم
 
 ```bash
-# zsh/bash
+# زد شل / باش
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 # سپس وارد شوید تا AzureCliCredential بتواند توکن دریافت کند
 az login
 ```
@@ -75,22 +75,22 @@ az login
 ```powershell
 # پاورشل
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# سپس وارد شوید تا AzureCliCredential بتواند توکن بگیرد
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# سپس وارد شوید تا AzureCliCredential بتواند یک توکن دریافت کند
 az login
 ```
 
-### کد نمونه
+### نمونه کد
 
-برای اجرای مثال کد،
+برای اجرای نمونه کد،
 
 ```bash
-# زدش/باش
+# زی‌شل/باش
 chmod +x ./02-dotnet-agent-framework.cs
 ./02-dotnet-agent-framework.cs
 ```
 
-یا با استفاده از CLI دات‌نت:
+یا با استفاده از خط فرمان dotnet:
 
 ```bash
 dotnet run ./02-dotnet-agent-framework.cs
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -217,18 +217,18 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 
 ## 🎓 نکات کلیدی
 
-1. **معماری عامل**: چارچوب Agent مایکروسافت رویکردی تمیز و ایمن از نظر نوع برای ساخت عوامل هوش مصنوعی در .NET ارائه می‌دهد
-2. **ادغام ابزار**: توابعی که با ویژگی `[Description]` تزئین شده‌اند به عنوان ابزارهای در دسترس برای عامل فراهم می‌شوند
-3. **زمینه مکالمه**: مدیریت جلسه امکان مکالمات چند مرحله‌ای با آگاهی کامل از زمینه را فراهم می‌کند
-4. **مدیریت پیکربندی**: متغیرهای محیطی و مدیریت امن اعتبارنامه‌ها مطابق بهترین شیوه‌های .NET است
+1. **معماری عامل**: چارچوب Microsoft Agent رویکردی تمیز و نوع‌امن برای ساخت عوامل هوش مصنوعی در .NET ارائه می‌دهد
+2. **ادغام ابزار**: توابعی که با ویژگی‌های `[Description]` تزئین شده‌اند، به ابزارهای در دسترس عامل تبدیل می‌شوند
+3. **زمینه مکالمه**: مدیریت جلسه امکان گفتگوهای چند مرحله‌ای با آگاهی کامل از زمینه را فراهم می‌کند
+4. **مدیریت پیکربندی**: متغیرهای محیطی و مدیریت امن اعتبارنامه‌ها بهترین شیوه‌های .NET را دنبال می‌کنند
 5. **API پاسخ‌های Azure OpenAI**: عامل از API پاسخ‌های Azure OpenAI از طریق SDK Azure.AI.OpenAI استفاده می‌کند
 
 ## 🔗 منابع اضافی
 
-- [مستندات چارچوب Agent مایکروسافت](https://learn.microsoft.com/agent-framework)
+- [مستندات چارچوب Microsoft Agent](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI در Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [برنامه‌های تک‌فایل .NET](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [.NET Single File Apps](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

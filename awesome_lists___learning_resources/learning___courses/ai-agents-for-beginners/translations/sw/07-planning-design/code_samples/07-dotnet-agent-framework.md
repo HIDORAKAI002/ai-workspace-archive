@@ -1,15 +1,15 @@
-# 🎯 Mipango & Mifumo ya Ubunifu na Azure OpenAI (Responses API) (.NET)
+# 🎯 Mipango & Mitindo ya Ubunifu na Azure OpenAI (Responses API) (.NET)
 
 ## 📋 Malengo ya Kujifunza
 
-Daftari hili linaonyesha mifumo ya mipango na ubunifu ya kiwango cha shirika kwa kuunda mawakala wa akili kwa kutumia Microsoft Agent Framework katika .NET na Azure OpenAI (Responses API). Utajifunza kuunda mawakala ambao wanaweza kuvunja matatizo magumu, kupanga suluhisho za hatua nyingi, na kutekeleza michakato tata kwa kutumia sifa za shirika za .NET.
+Daftari hili linaonyesha mipango ya daraja la biashara na mitindo ya ubunifu kwa kujenga mawakala wa akili kwa kutumia Microsoft Agent Framework katika .NET na Azure OpenAI (Responses API). Utajifunza kuunda mawakala wanaoweza kugawanya matatizo magumu, kupanga suluhisho za hatua nyingi, na kutekeleza michakato tata kwa kutumia vipengele vya biashara vya .NET.
 
-## ⚙️ Mahitaji na Usanidi
+## ⚙️ Mahitaji ya Awali & Usanidi
 
 **Mazingira ya Maendeleo:**
-- .NET 9.0 SDK au zaidi
-- Visual Studio 2022 au VS Code yenye kiendelezi cha C#
-- Usajili wa Azure una rasilimali ya Azure OpenAI na usambazaji wa modeli
+- .NET 9.0 SDK au ya juu
+- Visual Studio 2022 au VS Code na ugani wa C#
+- Usajili wa Azure una rasilimali ya Azure OpenAI na usambazaji wa mfano
 - Azure CLI — ingia kwa kutumia `az login`
 
 **Mategemeo Yanayohitajika:**
@@ -22,18 +22,18 @@ Daftari hili linaonyesha mifumo ya mipango na ubunifu ya kiwango cha shirika kwa
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
-**Marekebisho ya Mazingira (.env file):**
+**Usanidi wa Mazingira (faili la .env):**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
-## Kukimbia Msimbo
+## Kuendesha Msimbo
 
-Somo hili linajumuisha utekelezaji wa Programu Moja ya Faili (.NET Single File App). Ili kuikimbia:
+Somo hili linajumuisha utekelezaji wa Programu Moja ya Faili ya .NET. Ili kuiendesha:
 
 ```bash
-# Fanya faili iwe inayoendeshwa (Linux/macOS)
+# Fanya faili iwe executable (Linux/macOS)
 chmod +x 07-dotnet-agent-framework.cs
 
 # Endesha programu
@@ -50,17 +50,17 @@ dotnet run 07-dotnet-agent-framework.cs
 
 Utekelezaji kamili upo katika `07-dotnet-agent-framework.cs`, unaoonyesha:
 
-- Kupakia marekebisho ya mazingira kwa kutumia DotNetEnv
+- Kupakia usanidi wa mazingira kwa kutumia DotNetEnv
 - Kusanidi mteja wa Azure OpenAI na kuunda wakala wa AI kwa kutumia `GetChatClient().AsAIAgent()`
-- Kufafanua mifano ya data iliyopangwa (Plan na TravelPlan) kwa serialization ya JSON
-- Kuunda wakala wa AI mwenye pato lililopangwa kwa kutumia schema ya JSON
-- Kutekeleza maombi ya mipango pamoja na majibu salama kwa aina
+- Kuanza mifano ya data yenye muundo (Plan na TravelPlan) kwa serialization ya JSON
+- Kuunda wakala wa AI kwa matokeo yenye muundo kwa kutumia schema ya JSON
+- Kutekeleza maombi ya mipango na majibu salama kwa aina
 
-## Misingi Muhimu
+## Dhana Muhimu
 
-### Mipango Iliyo Pangiliwa kwa Modeli Salama Kwa Aina
+### Mipango Yenye Muundo kwa Mifano Salama kwa Aina
 
-Wakala hutumia darasa za C# kubainisha muundo wa matokeo ya mipango:
+Wakala hutumia darasa za C# kufafanua muundo wa matokeo ya mipango:
 
 ```csharp
 public class Plan
@@ -82,7 +82,7 @@ public class TravelPlan
 }
 ```
 
-### Schema ya JSON kwa Matokeo Yaliyo Pangiliwa
+### Schema ya JSON kwa Matokeo Yenye Muundo
 
 Wakala amesanidiwa kurudisha majibu yanayolingana na schema ya TravelPlan:
 
@@ -103,18 +103,18 @@ ChatClientAgentOptions agentOptions = new()
 
 ### Maelekezo ya Wakala wa Mipango
 
-Wakala hufanya kazi kama mratibu, akigawa majukumu kwa mawakala maalum:
+Wakala hufanya kama mpatanishi, akigawa kazi kwa mawakala maalum:
 
-- Booking ya Ndege: Kwa kuandaa tiketi za ndege na kutoa habari za ndege
-- Booking ya Hoteli: Kwa kujaza hoteli na kutoa habari za hoteli
-- Kusaidia Kodi ya Gari: Kwa kuangalia magari na kutoa taarifa za kukodi gari
-- Booking ya Shughuli: Kwa kupanga shughuli na kutoa taarifa za shughuli
-- Taarifa za Maeneo: Kwa kutoa taarifa kuhusu maeneo
-- Wakala wa Default: Kwa kushughulikia maombi ya jumla
+- Reservation ya Ndege: Kwa kuhifadhi ndege na kutoa taarifa za ndege
+- Reservation ya Hoteli: Kwa kuhifadhi hoteli na kutoa taarifa za hoteli
+- Kukodisha Gari: Kwa kukodisha magari na kutoa taarifa za kukodisha gari
+- Reservation ya Shughuli: Kwa kuhifadhi shughuli na kutoa taarifa za shughuli
+- Taarifa za Marudio: Kwa kutoa taarifa kuhusu marudio
+- Wakala wa Kawaida: Kwa kushughulikia maombi ya jumla
 
 ## Matokeo Yanayotarajiwa
 
-Unapomfanya wakala kufanya ombi la kupanga safari, atachambua ombi hilo na kutengeneza mpango uliopangwa na ugawaji wa kazi kwa mawakala maalum, uliotumwa kama JSON inayofuata schema ya TravelPlan.
+Unapoendesha wakala na ombi la kupanga safari, atachambua ombi hilo na kuzalisha mpango wenye muundo na ugawaji wa kazi inayofaa kwa mawakala maalum, umeandaliwa kama JSON inayokubaliana na schema ya TravelPlan.
 
 ---
 

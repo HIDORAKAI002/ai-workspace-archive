@@ -2,64 +2,64 @@
 
 ## 📋 পরিস্থিতির সংক্ষিপ্ত বিবরণ
 
-এই উদাহরণটি দেখায় কীভাবে .NET-এর জন্য মাইক্রোসফ্ট এজেন্ট ফ্রেমওয়ার্ক ব্যবহার করে একটি বুদ্ধিমান ট্রাভেল পরিকল্পনা এজেন্ট তৈরি করা যায়। এজেন্টটি বিশ্বব্যাপী বিভিন্ন গন্তব্যের জন্য স্বয়ংক্রিয়ভাবে ব্যক্তিগতকৃত একদিনের ভ্রমণের পরিকল্পনা তৈরি করতে পারে।
+এই উদাহরণটি দেখায় কিভাবে .NET এর জন্য মাইক্রোসফ্ট এজেন্ট ফ্রেমওয়ার্ক ব্যবহার করে একটি বুদ্ধিমান ভ্রমণ পরিকল্পনা এজেন্ট তৈরি করতে হয়। এজেন্টটি স্বয়ংক্রিয়ভাবে বিশ্বের বিভিন্ন এলাকা থেকে ব্যক্তিগতকৃত দৈনিক ভ্রমণ পরিকল্পনা তৈরি করতে পারে।
 
-### প্রধান সক্ষমতাসমূহ:
+### মূল সক্ষমতাসমূহ:
 
-- 🎲 **স随机 গন্তব্য নির্বাচন**: ছুটির স্থান নির্বাচন করার জন্য একটি কাস্টম টুল ব্যবহার করে
-- 🗺️ **বুদ্ধিমান সফর পরিকল্পনা**: দিনের ভিত্তিতে বিস্তারিত ভ্রমণসূচি তৈরি করে
-- 🔄 **রিয়েল-টাইম স্ট্রিমিং**: সঙ্গে সঙ্গে এবং স্ট্রিমিং উভয় প্রতিক্রিয়া সমর্থন করে
-- 🛠️ **কাস্টম টুল ইন্টিগ্রেশন**: এজেন্টের সক্ষমতা বৃদ্ধির উপায় দেখায়
+- 🎲 **র‍্যান্ডম গন্তব্য নির্বাচন**: ছুটি কাটানোর জায়গা বেছে নিতে একটি কাস্টম টুল ব্যবহার করে
+- 🗺️ **বুদ্ধিমান ট্রিপ পরিকল্পনা**: বিস্তারিত দৈনিক পরিকল্পনা তৈরি করে
+- 🔄 **রিয়েল-টাইম স্ট্রিমিং**: তাত্ক্ষণিক এবং স্ট্রিমিং উভয় প্রতিক্রিয়া সমর্থন করে
+- 🛠️ **কাস্টম টুল ইন্টিগ্রেশন**: এজেন্টের সক্ষমতা বৃদ্ধির কিভাবে প্রদর্শন করা হয়
 
-## 🔧 প্রযুক্তিগত আর্কিটেকচার
+## 🔧 প্রযুক্তিগত স্থাপত্য
 
 ### মূল প্রযুক্তি
 
-- **মাইক্রোসফ্ট এজেন্ট ফ্রেমওয়ার্ক**: AI এজেন্ট উন্নয়নের জন্য সর্বশেষ .NET বাস্তবায়ন
-- **আজুর ওপেনএআই (Responses API)**: মডেল ইন্সফারেন্সের জন্য আজুর ওপেনএআই Responses API ব্যবহার
-- **আজুর আইডেন্টিটি**: `AzureCliCredential` (`az login`) দ্বারা নিরাপদ সাইন-ইন
-- **নিরাপদ কনফিগারেশন**: পরিবেশ-ভিত্তিক এন্ডপয়েন্ট ব্যবস্থাপনা
+- **মাইক্রোসফ্ট এজেন্ট ফ্রেমওয়ার্ক**: AI এজেন্ট উন্নয়নের জন্য সর্বশেষ .NET ইমপ্লিমেন্টেশন
+- **Azure OpenAI (রেসপন্সেস API)**: মডেল অনুমানের জন্য Azure OpenAI Responses API ব্যবহার করে
+- **Azure Identity**: `AzureCliCredential` (`az login`) এর মাধ্যমে সুরক্ষিত সাইন ইন
+- **সুরক্ষিত কনফিগারেশন**: পরিবেশ-ভিত্তিক এন্ডপয়েন্ট পরিচালনা
 
 ### মূল উপাদানসমূহ
 
-1. **AIAgent**: প্রধান এজেন্ট অর্কেস্ট্রেটর যা কথোপকথনের প্রবাহ নিয়ন্ত্রণ করে
+1. **AIAgent**: কথোপকথন প্রবাহ পরিচালনা করার মূল এজেন্ট অর্কেস্ট্রেটর
 2. **কাস্টম টুলস**: এজেন্টের জন্য উপলব্ধ `GetRandomDestination()` ফাংশন
-3. **Responses ক্লায়েন্ট**: আজুর ওপেনএআই Responses-ভিত্তিক কথোপকথন ইন্টারফেস
-4. **স্ট্রিমিং সমর্থন**: রিয়েল-টাইম প্রতিক্রিয়া তৈরি সক্ষমতা
+3. **রেসপন্সেস ক্লায়েন্ট**: Azure OpenAI Responses ভিত্তিক কথোপকথন ইন্টারফেস
+4. **স্ট্রিমিং সহায়তা**: রিয়েল-টাইম প্রতিক্রিয়া তৈরির সক্ষমতা
 
-### ইন্টিগ্রেশনের ধরণ
+### ইন্টিগ্রেশন প্যাটার্ন
 
 ```mermaid
 graph LR
-    A[ব্যবহারকারী অনুরোধ] --> B[এআই এজেন্ট]
-    B --> C[আজুর ওপেনএআই (প্রতিক্রিয়া এপিআই)]
+    A[ব্যবহারকারীর অনুরোধ] --> B[এআই এজেন্ট]
+    B --> C[আজিউর ওপেনএআই (রেসপন্সেস এপিআই)]
     B --> D[GetRandomDestination টুল]
-    C --> E[ভ্রমণ সময়সূচী]
+    C --> E[ভ্রমণ সূচিপত্র]
     D --> E
 ```
 
-## 🚀 শুরু করুন
+## 🚀 যাত্রা শুরু করা
 
 ### প্রয়োজনীয়তা
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) বা তার উপরে
-- আজুর ওপেনএআই রিসোর্স এবং মডেল ডিপ্লয়মেন্ট সহ একটি [আজুর সাবস্ক্রিপশন](https://azure.microsoft.com/free/)
-- [আজুর CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` দিয়ে সাইন ইন করুন
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) বা এর ওপর
+- একটি [Azure সাবস্ক্রিপশন](https://azure.microsoft.com/free/) যার সাথে একটি Azure OpenAI রিসোর্স এবং একটি মডেল ডেপ্লয়মেন্ট আছে
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` দিয়ে সাইন ইন করুন
 
-### প্রয়োজনীয় পরিবেশ পরিবর্তনশীলসমূহ
+### প্রয়োজনীয় পরিবেশ ভেরিয়েবলস
 
 ```bash
-# জেডএসএইচ/ব্যাশ
+# zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# এরপর সাইন ইন করুন যাতে AzureCliCredential একটি টোকেন পেতে পারে
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# তারপর সাইন ইন করুন যাতে AzureCliCredential একটি টোকেন পেতে পারে
 az login
 ```
 
 ```powershell
 # পাওয়ারশেল
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # তারপর সাইন ইন করুন যাতে AzureCliCredential একটি টোকেন পেতে পারে
 az login
 ```
@@ -69,7 +69,7 @@ az login
 কোড উদাহরণ চালানোর জন্য,
 
 ```bash
-# জিএসএইচ/বাশ
+# জেডএসএইচ/বাশ
 chmod +x ./01-dotnet-agent-framework.cs
 ./01-dotnet-agent-framework.cs
 ```
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,19 +157,19 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 প্রধান শেখার বিষয়সমূহ
+## 🎓 গুরুত্বপূর্ণ শিক্ষা
 
-1. **এজেন্ট আর্কিটেকচার**: মাইক্রোসফ্ট এজেন্ট ফ্রেমওয়ার্ক .NET-এ AI এজেন্ট তৈরি করার জন্য একটি পরিষ্কার, টাইপ-সেফ পদ্ধতি প্রদান করে
-2. **টুল ইন্টিগ্রেশন**: `[Description]` বৈশিষ্ট্যযুক্ত ফাংশনগুলো এজেন্টের জন্য উপলব্ধ টুল হিসেবে পরিণত হয়
-3. **কনফিগারেশন ব্যবস্থাপনা**: পরিবেশ পরিবর্তনশীল এবং নিরাপদ প্রমাণীকরণ পরিচালনা .NET-এর সেরা প্রক্রিয়াগুলো অনুসরণ করে
-4. **আজুর ওপেনএআই Responses API**: এজেন্টটি Azure.AI.OpenAI SDK এর মাধ্যমে আজুর ওপেনএআই Responses API ব্যবহার করে
+1. **এজেন্ট আর্কিটেকচার**: মাইক্রোসফ্ট এজেন্ট ফ্রেমওয়ার্ক .NET এ AI এজেন্ট তৈরির জন্য পরিষ্কার, টাইপ-সেফ পদ্ধতি প্রদান করে
+2. **টুল ইন্টিগ্রেশন**: `[Description]` অ্যাট্রিবিউট সহ ফাংশনগুলি এজেন্টের জন্য উপলব্ধ টুলে পরিণত হয়
+3. **কনফিগারেশন ম্যানেজমেন্ট**: পরিবেশ ভেরিয়েবল এবং সুরক্ষিত ক্রেডেনশিয়াল ব্যবস্থাপনা .NET-এর সেরা অনুশীলন অনুসরণ করে
+4. **Azure OpenAI Responses API**: এজেন্ট Azure.AI.OpenAI SDK-এর মাধ্যমে Azure OpenAI Responses API ব্যবহার করে
 
-## 🔗 অতিরিক্ত রিসোর্স
+## 🔗 অতিরিক্ত রিসোর্সেস
 
 - [মাইক্রোসফ্ট এজেন্ট ফ্রেমওয়ার্ক ডকুমেন্টেশন](https://learn.microsoft.com/agent-framework)
-- [মাইক্রোসফ্ট ফাউন্ড্রিতে আজুর ওপেনএআই](https://learn.microsoft.com/azure/ai-services/openai/)
+- [মাইক্রোসফ্ট ফাউন্ড্রিতে Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [.NET সিঙ্গেল ফাইল অ্যাপস](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [.NET সিঙ্গল ফাইল অ্যাপস](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

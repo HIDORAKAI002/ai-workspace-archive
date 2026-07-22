@@ -1,37 +1,37 @@
-# 🌍 AI-Matkatoimisto Microsoft Agent Frameworkilla (.NET)
+# 🌍 AI-matkatoimisto Microsoft Agent Frameworkilla (.NET)
 
-## 📋 Tapausskenaarion yleiskatsaus
+## 📋 Käsikirjoituksen yleiskatsaus
 
-Tämä esimerkki havainnollistaa, kuinka rakentaa älykäs matkanjärjestelyagentti Microsoft Agent Frameworkilla .NET:lle. Agentti voi automaattisesti luoda henkilökohtaisia päiväretkisuunnitelmia satunnaisiin kohteisiin ympäri maailmaa.
+Tässä esimerkissä näytetään, miten rakentaa älykäs matkan suunnitteluagentti Microsoft Agent Frameworkin avulla .NET:lle. Agentti voi automaattisesti luoda henkilökohtaisia päivämatka-reittejä satunnaisiin kohteisiin ympäri maailmaa.
 
 ### Keskeiset ominaisuudet:
 
 - 🎲 **Satunnainen kohteen valinta**: Käyttää mukautettua työkalua lomakohteiden valintaan
 - 🗺️ **Älykäs matkan suunnittelu**: Luo yksityiskohtaiset päiväkohtaiset matkasuunnitelmat
 - 🔄 **Reaaliaikainen suoratoisto**: Tukee sekä välittömiä että suoratoistovastauksia
-- 🛠️ **Mukautetun työkalun integrointi**: Havainnollistaa, miten agentin ominaisuuksia laajennetaan
+- 🛠️ **Mukautetun työkalun integrointi**: Havainnollistaa agentin kykyjen laajentamista
 
 ## 🔧 Tekninen arkkitehtuuri
 
 ### Keskeiset teknologiat
 
-- **Microsoft Agent Framework**: Uusin .NET:n toteutus tekoälyagenttien kehittämiseen
-- **Azure OpenAI (Responses API)**: Käyttää Azure OpenAI Responses API:a mallipäätelmään
-- **Azure Identity**: Turvallinen kirjautuminen `AzureCliCredential`-menetelmällä (`az login`)
-- **Turvallinen konfigurointi**: Ympäristöperusteinen päätepisteiden hallinta
+- **Microsoft Agent Framework**: Uusin .NET-toteutus tekoälyagenttien kehitykseen
+- **Azure OpenAI (Responses API)**: Käyttää Azure OpenAI Responses API:a mallin päätelmille
+- **Azure Identity**: Turvallinen kirjautuminen `AzureCliCredential`in (`az login`) kautta
+- **Turvallinen konfigurointi**: Ympäristöön perustuva päätepisteiden hallinta
 
 ### Keskeiset komponentit
 
-1. **AIAgent**: Pääagentin orkestroija, joka hallinnoi keskustelun kulkua
-2. **Mukautetut työkalut**: Agentin käytettävissä oleva `GetRandomDestination()`-funktio
+1. **AIAgent**: Pääagentti, joka hallinnoi keskustelun kulkua
+2. **Mukautetut työkalut**: `GetRandomDestination()` -funktio agentin käytettävissä
 3. **Responses Client**: Azure OpenAI Responses -pohjainen keskustelurajapinta
-4. **Suoratoistotuki**: Reaaliaikainen vastausten generointikyky
+4. **Suoratoistotuki**: Reaaliaikainen vastausten generointi
 
-### Integrointimalli
+### Integraatiokaava
 
 ```mermaid
 graph LR
-    A[Käyttäjän pyyntö] --> B[AI-agentti]
+    A[Käyttäjän pyyntö] --> B[tekoälyagentti]
     B --> C[Azure OpenAI (Vastaus-API)]
     B --> D[GetRandomDestination-työkalu]
     C --> E[Matkaohjelma]
@@ -40,27 +40,27 @@ graph LR
 
 ## 🚀 Aloittaminen
 
-### Esivaatimukset
+### Vaatimukset
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) tai uudempi
-- [Azure-tilaus](https://azure.microsoft.com/free/) Azure OpenAI -resurssilla ja mallin käyttöönotolla
+- [Azure-tilaus](https://azure.microsoft.com/free/) sisältäen Azure OpenAI -resurssin ja mallin käyttöönoton
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — kirjaudu sisään `az login` -komennolla
 
-### Tarvittavat ympäristömuuttujat
+### Vaaditut ympäristömuuttujat
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Kirjaudu sitten sisään, jotta AzureCliCredential voi hankkia tokenin
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Kirjaudu sitten sisään, jotta AzureCliCredential voi saada tokenin
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Kirjaudu sisään, jotta AzureCliCredential voi saada tunnuksen
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Kirjaudu sitten sisään, jotta AzureCliCredential voi saada tokenin
 az login
 ```
 
@@ -74,13 +74,13 @@ chmod +x ./01-dotnet-agent-framework.cs
 ./01-dotnet-agent-framework.cs
 ```
 
-Tai dotnet CLI:n avulla:
+Tai käyttäen dotnet CLI:tä:
 
 ```bash
 dotnet run ./01-dotnet-agent-framework.cs
 ```
 
-Katso täydellinen koodi tiedostosta [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs).
+Katso koko koodi tiedostosta [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs).
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,19 +157,19 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 Keskeiset opit
+## 🎓 Tärkeimmät opit
 
-1. **Agentin arkkitehtuuri**: Microsoft Agent Framework tarjoaa selkeän ja tyyppiä turvaavan lähestymistavan tekoälyagenttien rakentamiseen .NET:ssä
-2. **Työkalujen integrointi**: `[Description]`-attribuutilla varustetut funktiot tulevat saatavilla oleviksi työkaluiksi agentille
-3. **Konfiguraation hallinta**: Ympäristömuuttujat ja turvallinen tunnistetietojen käsittely noudattavat .NET:n parhaita käytäntöjä
+1. **Agentin arkkitehtuuri**: Microsoft Agent Framework tarjoaa selkeän ja tyyppiturvallisen tavan rakentaa tekoälyagentteja .NET:ssä
+2. **Työkalujen integrointi**: `[Description]`-attribuutilla merkityt funktiot tulevat agentin käyttöön työkaluina
+3. **Konfiguraation hallinta**: Ympäristömuuttujat ja turvallinen valtuustenkäsittely noudattavat .NET:n parhaita käytäntöjä
 4. **Azure OpenAI Responses API**: Agentti käyttää Azure OpenAI Responses API:a Azure.AI.OpenAI SDK:n kautta
 
 ## 🔗 Lisäresurssit
 
-- [Microsoft Agent Framework -dokumentaatio](https://learn.microsoft.com/agent-framework)
+- [Microsoft Agent Frameworkin dokumentaatio](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI Microsoft Foundryssa](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [.NET Single File -sovellukset](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [.NET yhden tiedoston sovellukset](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

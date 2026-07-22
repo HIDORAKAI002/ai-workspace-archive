@@ -2,15 +2,15 @@
 
 ## Introduktion
 
-Denna lektion kommer att täcka hur man kör kodexemplen i denna kurs.
+Den här lektionen kommer att täcka hur man kör kodexemplen i denna kurs.
 
 ## Gå med andra elever och få hjälp
 
-Innan du börjar klona ditt repo, gå med i [AI Agents For Beginners Discord-kanalen](https://aka.ms/ai-agents/discord) för att få hjälp med uppsättningen, alla frågor om kursen, eller för att koppla ihop med andra elever.
+Innan du börjar klona ditt repo, gå med i [AI Agents For Beginners Discord-kanal](https://aka.ms/ai-agents/discord) för att få hjälp med installation, ställa frågor om kursen eller för att koppla ihop med andra elever.
 
 ## Klona eller Forka detta Repo
 
-För att börja, vänligen klona eller forka GitHub-förrådet. Detta gör en egen version av kursmaterialet så att du kan köra, testa och justera koden!
+För att börja, klona eller forka GitHub-repositoriet. Detta gör en egen version av kursmaterialet så att du kan köra, testa och justera koden!
 
 Detta kan göras genom att klicka på länken för att <a href="https://github.com/microsoft/ai-agents-for-beginners/fork" target="_blank">forka repot</a>
 
@@ -20,33 +20,33 @@ Du bör nu ha din egen forkade version av denna kurs på följande länk:
 
 ### Shallow Clone (rekommenderas för workshop / Codespaces)
 
-  >Det fullständiga förrådet kan vara stort (~3 GB) när du laddar ner full historik och alla filer. Om du bara deltar i workshopen eller bara behöver några lektionsmappar, så undviker en shallow clone (eller en sparse clone) det mesta av nedladdningen genom att förkorta historiken och/eller hoppa över blobs.
+  >Det fullständiga repositoriet kan vara stort (~3 GB) när du laddar ner hela historiken och alla filer. Om du bara deltar i workshopen eller endast behöver några lektionmappar, undviker en shallow clone (eller en sparse clone) det mesta av nedladdningen genom att förkorta historiken och/eller hoppa över blobs.
 
-#### Snabb shallow clone – minimal historik, alla filer
+#### Snabb shallow clone — minimal historik, alla filer
 
-Byt ut `<your-username>` i kommandona nedan med din fork-URL (eller upstream-URL om du föredrar det).
+Ersätt `<your-username>` i nedanstående kommandon med din fork URL (eller upstream URL om du föredrar det).
 
-För att klona endast den senaste commit-historiken (liten nedladdning):
+För att klona endast den senaste commit historiken (liten nedladdning):
 
 ```bash|powershell
 git clone --depth 1 https://github.com/<your-username>/ai-agents-for-beginners.git
 ```
 
-För att klona en specifik gren:
+För att klona en specifik branch:
 
 ```bash|powershell
 git clone --depth 1 --branch <branch-name> https://github.com/<your-username>/ai-agents-for-beginners.git
 ```
 
-#### Partiell (sparse) clone – minimala blobs + endast utvalda mappar
+#### Partiell (sparse) clone — minimal blobs + endast valda mappar
 
-Detta använder partiell clone och sparse-checkout (kräver Git 2.25+ och rekommenderas med modern Git med stöd för partiell clone):
+Detta använder partiell kloning och sparse-checkout (kräver Git 2.25+ och rekommenderas att använda modern Git med stöd för partiell kloning):
 
 ```bash|powershell
 git clone --depth 1 --filter=blob:none --sparse https://github.com/<your-username>/ai-agents-for-beginners.git
 ```
 
-Navigera in i repomappen:
+Gå in i repomappen:
 
 ```bash|powershell
 cd ai-agents-for-beginners
@@ -58,7 +58,7 @@ Specificera sedan vilka mappar du vill ha (exemplet nedan visar två mappar):
 git sparse-checkout set 00-course-setup 01-intro-to-ai-agents
 ```
 
-Efter kloning och verifiering av filerna, om du bara behöver filerna och vill frigöra utrymme (ingen git-historik), vänligen radera repository metadata (💀irreversibelt – du förlorar all Git-funktionalitet: inga commit, pull, push eller historikåtkomst).
+Efter kloning och verifiering av filerna, om du bara behöver filer och vill frigöra utrymme (ingen git-historik), ta bort då repository-metadata (💀 irreversibelt — du kommer att förlora all Git-funktionalitet: inga commits, pulls, pushes eller tillgång till historik).
 
 ```bash
 # zsh/bash
@@ -74,18 +74,18 @@ Remove-Item -Recurse -Force .git
 
 - Skapa en ny Codespace för detta repo via [GitHub UI](https://github.com/codespaces).  
 
-- I terminalen för den nyligen skapade codespacen, kör ett av shallow/sparse clone-kommandona ovan för att bara hämta de lektionsmappar du behöver in i Codespace-arbetsytan.
-- Valfritt: efter kloning inne i Codespaces, ta bort .git för att frigöra extra utrymme (se borttagningskommandon ovan).
-- Observera: Om du föredrar att öppna repot direkt i Codespaces (utan extra kloning), var medveten om att Codespaces konstruerar devcontainer-miljön och kan fortfarande tillhandahålla mer än vad du behöver. Att klona en shallow kopia inne i en ny Codespace ger dig mer kontroll över diskutrymmet.
+- I terminalen i den nyss skapade codespacen, kör ett av shallow/sparse clone-kommandona ovan för att få bara de lektionmappar du behöver in i Codespace-arbetsytan.
+- Valfritt: efter kloning inne i Codespaces, ta bort .git för att återvinna extra utrymme (se borttagningskommandon ovan).
+- Obs: Om du föredrar att öppna repot direkt i Codespaces (utan extra clone), var medveten om att Codespaces kommer att konstruera devcontainer-miljön och kan fortfarande förbereda mer än du behöver. Att klona en shallow kopia inne i en ny Codespace ger dig mer kontroll över disk användningen.
 
 #### Tips
 
-- Byt alltid ut clone-URL med din fork om du vill redigera/commit.
+- Byt alltid ut clone URL till din fork om du vill redigera/commita.
 - Om du senare behöver mer historik eller filer kan du hämta dem eller justera sparse-checkout för att inkludera fler mappar.
 
-## Köra Koden
+## Köra koden
 
-Denna kurs erbjuder en serie Jupyter-notebooks som du kan köra för att få praktisk erfarenhet av att bygga AI-agenter.
+Denna kurs erbjuder en serie Jupyter Notebooks som du kan köra för att få praktisk erfarenhet av att bygga AI-agenter.
 
 Kodexemplen använder **Microsoft Agent Framework (MAF)** med `FoundryChatClient`, som ansluter till **Microsoft Foundry Agent Service V2** (Responses API) genom **Microsoft Foundry**.
 
@@ -94,7 +94,7 @@ Alla Python-notebooks är märkta `*-python-agent-framework.ipynb`.
 ## Krav
 
 - Python 3.12+
-  - **OBS**: Om du inte har Python3.12 installerat, se till att installera det. Skapa sedan din venv med python3.12 för att säkerställa att korrekta versioner installeras från requirements.txt-filen.
+  - **OBS**: Om du inte har Python3.12 installerat, se till att installera det. Skapa sedan din venv med python3.12 för att säkerställa att rätt versioner installeras från requirements.txt-filen.
   
     >Exempel
 
@@ -116,7 +116,7 @@ Alla Python-notebooks är märkta `*-python-agent-framework.ipynb`.
     venv\Scripts\activate
     ```
 
-- .NET 10+: För samplekoder som använder .NET, se till att du installerar [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) eller senare. Kontrollera sedan din installerade .NET SDK-version:
+- .NET 10+: För kodexemplen som använder .NET, se till att installera [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) eller senare. Kontrollera sedan din installerade .NET SDK-version:
 
     ```bash|powershell
     dotnet --list-sdks
@@ -124,17 +124,17 @@ Alla Python-notebooks är märkta `*-python-agent-framework.ipynb`.
 
 - **Azure CLI** — Krävs för autentisering. Installera från [aka.ms/installazurecli](https://aka.ms/installazurecli).
 - **Azure-prenumeration** — För åtkomst till Microsoft Foundry och Microsoft Foundry Agent Service.
-- **Microsoft Foundry-projekt** — Ett projekt med en distribuerad modell (t.ex. `gpt-4.1-mini`). Se [Steg 1](#steg-1-skapa-ett-microsoft-foundry-projekt) nedan.
+- **Microsoft Foundry-projekt** — Ett projekt med en distribuerad modell (t.ex., `gpt-5-mini`). Se [Steg 1](#steg-1-skapa-ett-microsoft-foundry-projekt) nedan.
 
-Vi har inkluderat en `requirements.txt`-fil i roten av detta repository som innehåller alla nödvändiga Python-paket för att köra kodexemplen.
+Vi har inkluderat en `requirements.txt`-fil i roten av detta repo som innehåller alla nödvändiga Python-paket för att köra kodexemplen.
 
-Du kan installera dem genom att köra följande kommando i din terminal i repositoryns rotmapp:
+Du kan installera dem genom att köra följande kommando i din terminal i roten av repot:
 
 ```bash|powershell
 pip install -r requirements.txt
 ```
 
-Vi rekommenderar att du skapar en Python virtuell miljö för att undvika eventuella konflikter och problem.
+Vi rekommenderar att skapa en Python virtuell miljö för att undvika konflikter och problem.
 
 ## Ställ in VSCode
 
@@ -142,28 +142,28 @@ Se till att du använder rätt version av Python i VSCode.
 
 ![image](https://github.com/user-attachments/assets/a85e776c-2edb-4331-ae5b-6bfdfb98ee0e)
 
-## Sätt upp Microsoft Foundry och Microsoft Foundry Agent Service
+## Ställ in Microsoft Foundry och Microsoft Foundry Agent Service
 
 ### Steg 1: Skapa ett Microsoft Foundry-projekt
 
-Du behöver en Microsoft Foundry **hub** och ett **projekt** med en distribuerad modell för att köra notebooks.
+Du behöver ett Microsoft Foundry **hub** och **projekt** med en distribuerad modell för att köra notebooks.
 
 1. Gå till [ai.azure.com](https://ai.azure.com) och logga in med ditt Azure-konto.
-2. Skapa en **hub** (eller använd en befintlig). Se: [Hub-resursöversikt](https://learn.microsoft.com/azure/ai-foundry/concepts/ai-resources).
-3. Inne i hubben, skapa ett **projekt**.
-4. Distribuera en modell (t.ex. `gpt-4.1-mini`) från **Models + Endpoints** → **Deploy model**.
+2. Skapa en **hub** (eller använd en befintlig). Se: [Hub resources overview](https://learn.microsoft.com/azure/ai-foundry/concepts/ai-resources).
+3. Inom hubben, skapa ett **projekt**.
+4. Distribuera en modell (t.ex., `gpt-5-mini`) från **Models + Endpoints** → **Deploy model**.
 
-### Steg 2: Hämta din projekts slutpunkt och modell-distributionsnamn
+### Steg 2: Hämta din projektendpoint och modellens distributionsnamn
 
 Från ditt projekt i Microsoft Foundry-portalen:
 
-- **Projektets slutpunkt** — Gå till **Översikts**-sidan och kopiera endpoint-URL:en.
+- **Projektendpoint** — Gå till **Översikt**-sidan och kopiera URL för endpoint.
 
 ![Project Connection String](../../../translated_images/sv/project-endpoint.8cf04c9975bbfbf1.webp)
 
-- **Modellens distributionsnamn** — Gå till **Models + Endpoints**, välj din distribuerade modell, och notera **Deployment name** (t.ex. `gpt-4.1-mini`).
+- **Modellens distributionsnamn** — Gå till **Models + Endpoints**, välj din distribuerade modell och notera **Deployment name** (t.ex., `gpt-5-mini`).
 
-### Steg 3: Logga in i Azure med `az login`
+### Steg 3: Logga in på Azure med `az login`
 
 Alla notebooks använder **`AzureCliCredential`** för autentisering — inga API-nycklar att hantera. Detta kräver att du är inloggad via Azure CLI.
 
@@ -181,7 +181,7 @@ Alla notebooks använder **`AzureCliCredential`** för autentisering — inga AP
     az login --use-device-code
     ```
 
-3. **Välj din prenumeration** om du blir ombedd — välj den som innehåller ditt Foundry-projekt.
+3. **Välj din prenumeration** om du blir tillfrågad — välj den som innehåller ditt Foundry-projekt.
 
 4. **Verifiera** att du är inloggad:
 
@@ -189,7 +189,7 @@ Alla notebooks använder **`AzureCliCredential`** för autentisering — inga AP
     az account show
     ```
 
-> **Varför `az login`?** Notebooks autentiserar med `AzureCliCredential` från paketet `azure-identity`. Det betyder att din Azure CLI-session tillhandahåller autentiseringsuppgifterna — inga API-nycklar eller hemligheter i din `.env`-fil. Detta är en [säkerhetsmässigt bästa praxis](https://learn.microsoft.com/azure/developer/ai/keyless-connections).
+> **Varför `az login`?** Notebooks autentiserar med `AzureCliCredential` från `azure-identity`-paketet. Detta betyder att din Azure CLI-session tillhandahåller autentiseringsuppgifterna — inga API-nycklar eller hemligheter i din `.env`-fil. Detta är en [säkerhetsbästa praxis](https://learn.microsoft.com/azure/developer/ai/keyless-connections).
 
 ### Steg 4: Skapa din `.env`-fil
 
@@ -209,15 +209,15 @@ Copy-Item .env.example .env
 
 ```env
 AZURE_AI_PROJECT_ENDPOINT=https://<your-project>.services.ai.azure.com/api/projects/<your-project-id>
-AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-4.1-mini
+AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-5-mini
 ```
 
-| Variabel | Var hittar du den |
+| Variabel | Var du hittar den |
 |----------|-----------------|
 | `AZURE_AI_PROJECT_ENDPOINT` | Foundry-portalen → ditt projekt → **Översikt**-sidan |
-| `AZURE_AI_MODEL_DEPLOYMENT_NAME` | Foundry-portalen → **Models + Endpoints** → din distribuerade modells namn |
+| `AZURE_AI_MODEL_DEPLOYMENT_NAME` | Foundry-portalen → **Models + Endpoints** → namnet på din distribuerade modell |
 
-Det är allt för de flesta lektioner! Notebooks autentiserar automatiskt via din `az login`-session.
+Det var allt för de flesta lektioner! Notebooks autentiserar automatiskt via din `az login`-session.
 
 ### Steg 5: Installera Python-beroenden
 
@@ -225,50 +225,50 @@ Det är allt för de flesta lektioner! Notebooks autentiserar automatiskt via di
 pip install -r requirements.txt
 ```
 
-Vi rekommenderar att köra detta inuti den virtuella miljö du skapade tidigare.
+Vi rekommenderar att köra detta inne i den virtuella miljö du skapade tidigare.
 
-## Ytterligare uppsättning för lektion 5 (Agentic RAG)
+## Ytterligare inställningar för lektion 5 (Agentic RAG)
 
 Lektion 5 använder **Azure AI Search** för retrieval-augmented generation. Om du planerar att köra den lektionen, lägg till dessa variabler i din `.env`-fil:
 
-| Variabel | Var hittar du den |
+| Variabel | Var du hittar den |
 |----------|-----------------|
 | `AZURE_SEARCH_SERVICE_ENDPOINT` | Azure-portalen → din **Azure AI Search**-resurs → **Översikt** → URL |
 | `AZURE_SEARCH_API_KEY` | Azure-portalen → din **Azure AI Search**-resurs → **Inställningar** → **Nycklar** → primär administratörsnyckel |
 
-## Ytterligare uppsättning för lektioner som anropar Azure OpenAI direkt (lektioner 6 och 8)
+## Ytterligare inställningar för lektioner som anropar Azure OpenAI direkt (lektioner 6 och 8)
 
-Några notebooks i lektion 6 och 8 anropar **Azure OpenAI** direkt (med **Responses API**) istället för att gå via ett Microsoft Foundry-projekt. Dessa exempel använde tidigare GitHub Models, som är föråldrat (slutar juli 2026) och stöder inte Responses API. Om du planerar att köra de exemplen, lägg till dessa variabler i din `.env`-fil:
+Vissa notebooks i lektionerna 6 och 8 anropar **Azure OpenAI** direkt (med **Responses API**) istället för via ett Microsoft Foundry-projekt. Dessa exempel använde tidigare GitHub Models, som är föråldrade (tas bort juli 2026) och inte stöder Responses API. Om du planerar att köra dessa exempel, lägg till dessa variabler i din `.env`-fil:
 
-| Variabel | Var hittar du den |
+| Variabel | Var du hittar den |
 |----------|-----------------|
-| `AZURE_OPENAI_ENDPOINT` | Azure-portalen → din **Azure OpenAI**-resurs → **Nycklar och slutpunkt** → Endpoint (t.ex. `https://<your-resource>.openai.azure.com`) |
-| `AZURE_OPENAI_DEPLOYMENT` | Namnet på din distribuerade modell (t.ex. `gpt-4.1-mini`) som stöder Responses API |
+| `AZURE_OPENAI_ENDPOINT` | Azure-portalen → din **Azure OpenAI**-resurs → **Keys and Endpoint** → Endpoint (t.ex. `https://<your-resource>.openai.azure.com`) |
+| `AZURE_OPENAI_DEPLOYMENT` | Namnet på din distribuerade modell (t.ex. `gpt-5-mini`) som stödjer Responses API |
 | `AZURE_OPENAI_API_KEY` | Valfritt — endast om du använder nyckelbaserad autentisering istället för `az login` / Entra ID |
 
-> Responses API använder den stabila `/openai/v1/`-slutpunkten, så ingen `api-version` krävs. Logga in med `az login` för att använda nyckellös Entra ID-autentisering.
+> Responses API använder den stabila `/openai/v1/`-endpointen, så ingen `api-version` krävs. Logga in med `az login` för att använda nyckellös Entra ID-autentisering.
 
 ## Alternativ leverantör: MiniMax (OpenAI-kompatibel)
 
-[MiniMax](https://platform.minimaxi.com/) tillhandahåller modeller med stort kontextfönster (upp till 204K tokens) via en OpenAI-kompatibel API. Eftersom Microsoft Agent Frameworks `OpenAIChatClient` fungerar med vilken OpenAI-kompatibel slutpunkt som helst kan du använda MiniMax som en plug-and-play-alternativ till Azure OpenAI eller OpenAI.
+[MiniMax](https://platform.minimaxi.com/) tillhandahåller modeller med stor kontext (upp till 204K tokens) via ett OpenAI-kompatibelt API. Eftersom Microsoft Agent Frameworks `OpenAIChatClient` fungerar med vilken OpenAI-kompatibel endpoint som helst, kan du använda MiniMax som ett inbyggt alternativ till Azure OpenAI eller OpenAI.
 
 Lägg till dessa variabler i din `.env`-fil:
 
-| Variabel | Var hittar du den |
+| Variabel | Var du hittar den |
 |----------|-----------------|
 | `MINIMAX_API_KEY` | [MiniMax Platform](https://platform.minimaxi.com/) → API-nycklar |
 | `MINIMAX_BASE_URL` | Använd `https://api.minimax.io/v1` (standardvärde) |
-| `MINIMAX_MODEL_ID` | Modellnamn att använda (t.ex. `MiniMax-M3`) |
+| `MINIMAX_MODEL_ID` | Modellnamn att använda (t.ex., `MiniMax-M3`) |
 
-**Exempelmodeller**: `MiniMax-M3` (rekommenderad), `MiniMax-M2.7`, `MiniMax-M2.7-highspeed` (snabbare svar). Modellnamn och tillgänglighet kan förändras över tid, och åtkomst till en given modell kan bero på ditt konto eller region — kolla [MiniMax Platform](https://platform.minimaxi.com/) för aktuell lista. Om `MiniMax-M3` inte är tillgänglig för ditt konto, ställ in `MINIMAX_MODEL_ID` på en modell du har åtkomst till (t.ex. `MiniMax-M2.7`).
+**Exempelmodeller**: `MiniMax-M3` (rekommenderad), `MiniMax-M2.7`, `MiniMax-M2.7-highspeed` (snabbare svar). Modellnamn och tillgänglighet kan ändras över tid, och tillgång till en viss modell kan bero på ditt konto eller region — kontrollera [MiniMax Platform](https://platform.minimaxi.com/) för aktuell lista. Om `MiniMax-M3` inte är tillgängligt för ditt konto, ställ in `MINIMAX_MODEL_ID` till en modell du har tillgång till (t.ex. `MiniMax-M2.7`).
 
-Kodexemplen som använder `OpenAIChatClient` (t.ex. lektion 14 hotellbokningsarbetsflöde) kommer automatiskt att känna igen och använda din MiniMax-konfiguration när `MINIMAX_API_KEY` är satt.
+Kodexemplen som använder `OpenAIChatClient` (t.ex. lektion 14 hotellbokningsarbetsflöde) kommer automatiskt att upptäcka och använda din MiniMax-konfiguration när `MINIMAX_API_KEY` är satt.
 
-## Alternativ leverantör: Foundry Local (Kör modeller på enheten)
+## Alternativ leverantör: Foundry Local (kör modeller på enheten)
 
-[Foundry Local](https://foundrylocal.ai) är en lättviktig runtime som laddar ner, hanterar och tjänar språkmodeller **helt på din egen maskin** via en OpenAI-kompatibel API — ingen moln, ingen Azure-prenumeration, och inga API-nycklar. Det är ett utmärkt alternativ för offlineutveckling, experiment utan molnkostnader eller att hålla data lokalt.
+[Foundry Local](https://foundrylocal.ai) är en lättviktsruntime som laddar ner, hanterar och tillhandahåller språkmodeller **helt på din egen enhet** via ett OpenAI-kompatibelt API — ingen moln, ingen Azure-prenumeration och inga API-nycklar. Det är ett utmärkt alternativ för offlineutveckling, experimentera utan molnkostnader eller för att hålla data på enheten.
 
-Eftersom Microsoft Agent Frameworks `OpenAIChatClient` fungerar med vilken OpenAI-kompatibel slutpunkt som helst, är Foundry Local ett plug-and-play lokalt alternativ till Azure OpenAI.
+Eftersom Microsoft Agent Frameworks `OpenAIChatClient` fungerar med vilken OpenAI-kompatibel endpoint som helst, är Foundry Local ett inbyggt lokalt alternativ till Azure OpenAI.
 
 **1. Installera Foundry Local**
 
@@ -287,19 +287,19 @@ foundry model list          # se tillgängliga modeller
 foundry model run phi-4-mini
 ```
 
-**3. Installera Python SDK** som används för att hitta den lokala slutpunkten:
+**3. Installera Python SDK** som används för att upptäcka den lokala endpointen:
 
 ```bash
 pip install foundry-local-sdk
 ```
 
-**4. Pekar Microsoft Agent Framework till din lokala modell:**
+**4. Rikta Microsoft Agent Framework till din lokala modell:**
 
 ```python
 from foundry_local import FoundryLocalManager
 from agent_framework.openai import OpenAIChatClient
 
-# Laddar ner (om nödvändigt) och tillhandahåller modellen lokalt, sedan upptäcker den slutpunkten/porten.
+# Laddar ner (om det behövs) och tillhandahåller modellen lokalt, sedan upptäcker endpoint/port.
 manager = FoundryLocalManager("phi-4-mini")
 
 chat_client = OpenAIChatClient(
@@ -314,12 +314,12 @@ agent = chat_client.as_agent(
 )
 ```
 
-> **Obs:** Foundry Local exponerar en OpenAI-kompatibel **Chat Completions**-slutpunkt. Använd den för lokal utveckling och offline-scenarier. För hela **Responses API** funktionsuppsättning (tillståndsfulla konversationer, avancerad verktygsorkestrering och agentstil utveckling), rikta in dig på **Azure OpenAI** eller ett **Microsoft Foundry**-projekt som visas i lektionerna. Se [Foundry Local dokumentationen](https://foundrylocal.ai) för aktuell modellkatalog och plattformsstöd.
+> **Obs:** Foundry Local exponerar en OpenAI-kompatibel **Chat Completions**-endpoint. Använd den för lokal utveckling och offline-scenarier. För hela **Responses API**-funktionaliteten (stateful samtal, djup verktygssamordning och agentlik utveckling) rikta in dig på **Azure OpenAI** eller ett **Microsoft Foundry**-projekt som visas i lektionerna. Se [Foundry Local dokumentation](https://foundrylocal.ai) för aktuell modellkatalog och plattformsstöd.
+
+## Ytterligare inställningar för lektion 8 (Bing Grounding Workflow)
 
 
-## Ytterligare installation för lektion 8 (Bing Grounding-arbetsflöde)
-
-Den villkorade arbetsflödesanteckningsboken i lektion 8 använder **Bing grounding** via Microsoft Foundry. Om du planerar att köra det exemplet, lägg till denna variabel i din `.env`-fil:
+Villkorsstyrda arbetsflödesanteckningsboken i lektion 8 använder **Bing-anslutning** via Microsoft Foundry. Om du planerar att köra det exemplet, lägg till denna variabel i din `.env`-fil:
 
 | Variabel | Var du hittar den |
 |----------|-----------------|
@@ -329,7 +329,7 @@ Den villkorade arbetsflödesanteckningsboken i lektion 8 använder **Bing ground
 
 ### SSL-certifikatverifieringsfel på macOS
 
-Om du är på macOS och stöter på ett fel som:
+Om du använder macOS och stöter på ett fel som:
 
 ```plaintext
 ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain
@@ -346,7 +346,7 @@ Detta är ett känt problem med Python på macOS där systemets SSL-certifikat i
 
 **Alternativ 2: Använd `connection_verify=False` i din anteckningsbok (endast för GitHub Models-anteckningsböcker)**
 
-I lektion 6-anteckningsboken (`06-building-trustworthy-agents/code_samples/06-system-message-framework.ipynb`) finns redan en kommenterad lösning inkluderad. Avkommentera `connection_verify=False` när du skapar klienten:
+I anteckningsboken för Lektion 6 (`06-building-trustworthy-agents/code_samples/06-system-message-framework.ipynb`) finns redan en utkommenterad lösning inkluderad. Avkommentera `connection_verify=False` när du skapar klienten:
 
 ```python
 client = ChatCompletionsClient(
@@ -364,22 +364,22 @@ client = ChatCompletionsClient(
 pip install truststore
 ```
 
-Lägg sedan till följande högst upp i din anteckningsbok eller skript innan du gör några nätverksanrop:
+Lägg sedan till följande högst upp i din anteckningsbok eller skript innan några nätverksanrop görs:
 
 ```python
 import truststore
 truststore.inject_into_ssl()
 ```
 
-## Fast någonstans?
+## Fastna någonstans?
 
-Om du har problem med att köra denna installation, hoppa in i vår <a href="https://discord.gg/kzRShWzttr" target="_blank">Azure AI Community Discord</a> eller <a href="https://github.com/microsoft/ai-agents-for-beginners/issues?WT.mc_id=academic-105485-koreyst" target="_blank">skapa ett ärende</a>.
+Om du har problem med att köra denna setup, gå med i vår <a href="https://discord.gg/kzRShWzttr" target="_blank">Azure AI Community Discord</a> eller <a href="https://github.com/microsoft/ai-agents-for-beginners/issues?WT.mc_id=academic-105485-koreyst" target="_blank">skapa en issue</a>.
 
 ## Nästa lektion
 
-Du är nu redo att köra kodexemplen för denna kurs. Lycka till med att lära dig mer om AI-agenternas värld! 
+Du är nu redo att köra koden för denna kurs. Lycka till med att lära dig mer om AI-agenter! 
 
-[Introduktion till AI-agenter och användningsfall för agenter](../01-intro-to-ai-agents/README.md)
+[Introduction to AI Agents and Agent Use Cases](../01-intro-to-ai-agents/README.md)
 
 ---
 

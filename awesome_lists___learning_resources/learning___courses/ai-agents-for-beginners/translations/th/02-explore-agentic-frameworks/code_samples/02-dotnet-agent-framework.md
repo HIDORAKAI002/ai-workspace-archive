@@ -2,72 +2,72 @@
 
 ## 📋 วัตถุประสงค์การเรียนรู้
 
-ตัวอย่างนี้จะสำรวจแนวคิดพื้นฐานของ Microsoft Agent Framework ผ่านการใช้งานตัวแทนพื้นฐานใน .NET คุณจะได้เรียนรู้รูปแบบตัวแทนหลักและเข้าใจวิธีการทำงานของตัวแทนอัจฉริยะด้วย C# และระบบนิเวศ .NET
+ตัวอย่างนี้สำรวจแนวคิดพื้นฐานของ Microsoft Agent Framework ผ่านการใช้งานตัวแทนพื้นฐานใน .NET คุณจะได้เรียนรู้รูปแบบตัวแทนหลักและเข้าใจการทำงานของตัวแทนอัจฉริยะเบื้องหลังโดยใช้ C# และระบบนิเวศ .NET
 
 ### สิ่งที่คุณจะค้นพบ
 
-- 🏗️ **สถาปัตยกรรมตัวแทน**: ทำความเข้าใจโครงสร้างพื้นฐานของตัวแทน AI ใน .NET
-- 🛠️ **การผนวกเครื่องมือ**: วิธีที่ตัวแทนใช้ฟังก์ชันภายนอกเพื่อขยายความสามารถ  
-- 💬 **การไหลของบทสนทนา**: การจัดการบทสนทนาแบบหลายรอบและบริบทด้วยการจัดการเธรด
-- 🔧 **รูปแบบการกำหนดค่า**: แนวทางปฏิบัติที่ดีที่สุดสำหรับการตั้งค่าและจัดการตัวแทนใน .NET
+- 🏗️ **สถาปัตยกรรมตัวแทน**: ความเข้าใจโครงสร้างพื้นฐานของตัวแทน AI ใน .NET
+- 🛠️ **การรวมเครื่องมือ**: วิธีที่ตัวแทนใช้ฟังก์ชันภายนอกเพื่อขยายความสามารถ  
+- 💬 **การไหลของการสนทนา**: การจัดการการสนทนาแบบหลายรอบและบริบทด้วยการจัดการเธรด
+- 🔧 **รูปแบบการตั้งค่า**: แนวทางปฏิบัติที่ดีที่สุดสำหรับการตั้งค่าและจัดการตัวแทนใน .NET
 
-## 🎯 แนวคิดหลักที่ครอบคลุม
+## 🎯 แนวคิดสำคัญที่ครอบคลุม
 
 ### หลักการของ Agentic Framework
 
-- **ความเป็นอิสระ**: วิธีที่ตัวแทนตัดสินใจอย่างอิสระโดยใช้การนามธรรม AI ใน .NET
-- **การตอบสนอง**: การตอบสนองต่อการเปลี่ยนแปลงของสภาพแวดล้อมและคำสั่งของผู้ใช้
+- **เอกราช**: วิธีที่ตัวแทนตัดสินใจโดยอิสระโดยใช้การนามธรรม AI ใน .NET
+- **การตอบสนอง**: การตอบสนองต่อการเปลี่ยนแปลงของสภาพแวดล้อมและป้อนข้อมูลผู้ใช้
 - **ความริเริ่ม**: การริเริ่มตามเป้าหมายและบริบท
 - **ความสามารถทางสังคม**: การโต้ตอบผ่านภาษาธรรมชาติกับเธรดการสนทนา
 
-### องค์ประกอบทางเทคนิค
+### ส่วนประกอบทางเทคนิค
 
-- **AIAgent**: การประสานตัวแทนหลักและการจัดการการสนทนา (.NET)
-- **ฟังก์ชันเครื่องมือ**: การขยายความสามารถของตัวแทนด้วยวิธีการและแอตทริบิวต์ C#
-- **การผสาน Azure OpenAI**: การใช้โมเดลภาษา ผ่าน Azure OpenAI Responses API
-- **การกำหนดค่าที่ปลอดภัย**: การจัดการ endpoint ตามสภาพแวดล้อม
+- **AIAgent**: การจัดการการประสานตัวแทนหลักและการสนทนา (.NET)
+- **ฟังก์ชันเครื่องมือ**: การขยายความสามารถของตัวแทนด้วยวิธีและแอตทริบิวต์ของ C#
+- **การรวม Azure OpenAI**: การใช้โมเดลภาษาโดย API ตอบกลับ Azure OpenAI
+- **การตั้งค่าที่ปลอดภัย**: การจัดการจุดสิ้นสุดตามสภาพแวดล้อม
 
-## 🔧 เทคโนโลยีด้านเทคนิค
+## 🔧 เทคโนโลยีที่ใช้
 
 ### เทคโนโลยีหลัก
 
 - Microsoft Agent Framework (.NET)
-- การผสาน Azure OpenAI (Responses API)
+- การรวม Azure OpenAI (Responses API)
 - รูปแบบไคลเอนต์ Azure.AI.OpenAI
-- การกำหนดค่าตามสภาพแวดล้อมด้วย DotNetEnv
+- การตั้งค่าตามสภาพแวดล้อมโดยใช้ DotNetEnv
 
 ### ความสามารถของตัวแทน
 
 - การเข้าใจและสร้างภาษาธรรมชาติ
-- การเรียกฟังก์ชันและใช้เครื่องมือด้วยแอตทริบิวต์ C#
-- การตอบสนองที่รับรู้บริบทด้วยเซสชันการสนทนา
-- สถาปัตยกรรมขยายได้ด้วยรูปแบบการฉีดพึ่งพิง
+- การเรียกฟังก์ชันและใช้งานเครื่องมือด้วยแอตทริบิวต์ C#
+- การตอบสนองโดยตระหนักถึงบริบทด้วยเซสชันการสนทนา
+- สถาปัตยกรรมที่ขยายได้ด้วยรูปแบบการฉีดพึ่งพา
 
 ## 📚 การเปรียบเทียบ Framework
 
-ตัวอย่างนี้แสดงวิธีการของ Microsoft Agent Framework เทียบกับ framework ตัวแทนอื่นๆ:
+ตัวอย่างนี้สาธิตวิธีการของ Microsoft Agent Framework เทียบกับ Framework อื่นๆ ที่เป็น agentic:
 
-| คุณสมบัติ | Microsoft Agent Framework | Framework อื่นๆ |
+| คุณสมบัติ | Microsoft Agent Framework | Framework อื่น ๆ |
 |---------|-------------------------|------------------|
-| **การผสานรวม** | ระบบนิเวศ Microsoft โดยตรง | ความเข้ากันได้หลากหลาย |
-| **ความเรียบง่าย** | API ที่สะอาดและใช้งานง่าย | การตั้งค่าที่มักซับซ้อน |
-| **การขยายตัว** | การผนวกเครื่องมือที่ง่าย | ขึ้นกับ framework |
-| **พร้อมใช้งานในองค์กร** | สร้างขึ้นสำหรับการใช้งานจริง | แตกต่างกันตาม framework |
+| **การรวมระบบ** | ระบบนิเวศของ Microsoft โดยตรง | ความเข้ากันได้หลากหลาย |
+| **ความเรียบง่าย** | API ที่สะอาดและเข้าใจง่าย | ส่วนใหญ่ตั้งค่าซับซ้อน |
+| **การขยายตัว** | รวมเครื่องมือได้ง่าย | ขึ้นอยู่กับ Framework |
+| **พร้อมสำหรับธุรกิจ** | สร้างสำหรับการผลิต | แตกต่างตาม Framework |
 
 ## 🚀 การเริ่มต้นใช้งาน
 
 ### สิ่งที่ต้องเตรียม
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) หรือสูงกว่า
-- [บัญชี Azure](https://azure.microsoft.com/free/) พร้อม Azure OpenAI resource และการใช้งานโมเดล
+- [Azure subscription](https://azure.microsoft.com/free/) ที่มี Azure OpenAI resource และการปรับใช้โมเดล
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — ลงชื่อเข้าใช้ด้วย `az login`
 
-### ตัวแปรสภาพแวดล้อมที่ต้องมี
+### ตัวแปรสภาพแวดล้อมที่ต้องการ
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 # จากนั้นลงชื่อเข้าใช้เพื่อให้ AzureCliCredential สามารถรับโทเค็นได้
 az login
 ```
@@ -75,14 +75,14 @@ az login
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # จากนั้นลงชื่อเข้าใช้เพื่อให้ AzureCliCredential สามารถรับโทเค็นได้
 az login
 ```
 
 ### ตัวอย่างโค้ด
 
-เพื่อรันตัวอย่างโค้ด,
+ในการรันตัวอย่างโค้ด,
 
 ```bash
 # zsh/bash
@@ -96,7 +96,7 @@ chmod +x ./02-dotnet-agent-framework.cs
 dotnet run ./02-dotnet-agent-framework.cs
 ```
 
-ดูที่ [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) สำหรับโค้ดทั้งหมด
+ดู [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) สำหรับโค้ดสมบูรณ์
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,13 +215,13 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 ข้อสรุปที่สำคัญ
+## 🎓 ประเด็นสำคัญที่ควรรู้
 
-1. **สถาปัตยกรรมตัวแทน**: Microsoft Agent Framework ให้แนวทางที่สะอาดและ type-safe สำหรับการสร้างตัวแทน AI ใน .NET
-2. **การผนวกเครื่องมือ**: ฟังก์ชันที่มีแอตทริบิวต์ `[Description]` จะกลายเป็นเครื่องมือที่ตัวแทนใช้ได้
-3. **บริบทการสนทนา**: การจัดการเซสชันช่วยให้การสนทนาแบบหลายรอบพร้อมบริบทเต็มรูปแบบ
-4. **การจัดการการกำหนดค่า**: ตัวแปรสภาพแวดล้อมและการจัดการข้อมูลรับรองอย่างปลอดภัยสอดคล้องกับแนวทางปฏิบัติที่ดีที่สุดของ .NET
-5. **Azure OpenAI Responses API**: ตัวแทนใช้ Azure OpenAI Responses API ผ่าน Azure.AI.OpenAI SDK
+1. **สถาปัตยกรรมตัวแทน**: Microsoft Agent Framework ให้แนวทางที่สะอาดและปลอดภัยแบบ type-safe ในการสร้างตัวแทน AI บน .NET
+2. **การรวมเครื่องมือ**: ฟังก์ชันที่มีแอตทริบิวต์ `[Description]` จะกลายเป็นเครื่องมือที่ตัวแทนสามารถใช้งานได้
+3. **บริบทการสนทนา**: การจัดการเซสชันช่วยให้สนทนาแบบหลายรอบโดยมีความรับรู้บริบทครบถ้วน
+4. **การจัดการการตั้งค่า**: ตัวแปรสภาพแวดล้อมและการจัดการข้อมูลรับรองอย่างปลอดภัยตามแนวทางที่ดีที่สุดของ .NET
+5. **Azure OpenAI Responses API**: ตัวแทนใช้ Azure OpenAI Responses API ผ่าน SDK Azure.AI.OpenAI
 
 ## 🔗 แหล่งข้อมูลเพิ่มเติม
 

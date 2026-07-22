@@ -2,87 +2,87 @@
 
 ## 📋 Oppimistavoitteet
 
-Tässä esimerkissä tutustutaan Microsoft Agent Frameworkin peruskäsitteisiin toteuttamalla perusagentti .NET:ssä. Opit keskeiset agenttiperusteiset mallit ja ymmärrät, miten älykkäät agentit toimivat taustalla käyttäen C#:ta ja .NET-ekosysteemiä.
+Tässä esimerkissä tutustutaan Microsoft Agent Frameworkin perustavanlaatuisiin käsitteisiin toteuttamalla perusagentti .NET:ssä. Opit keskeiset agenttimallit ja ymmärrät, miten älykkäät agentit toimivat kulissien takana käyttäen C#:tä ja .NET-ekosysteemiä.
 
-### Mitä Tulet Löytämään
+### Mitä Opit
 
-- 🏗️ **Agentin arkkitehtuuri**: Ymmärtäminen AI-agenttien perusrakenteesta .NET:ssä
-- 🛠️ **Työkalujen integrointi**: Kuinka agentit käyttävät ulkoisia toimintoja laajentaakseen kyvykkyyksiään  
-- 💬 **Keskustelun kulku**: Monivuoroisten keskustelujen ja kontekstin hallinta säikeiden avulla
-- 🔧 **Konfigurointimallit**: Parhaat käytännöt agentin asennukseen ja hallintaan .NET:ssä
+- 🏗️ **Agentin Arkkitehtuuri**: Ymmärtämään AI-agenttien perusrakenne .NET:ssä
+- 🛠️ **Työkalujen Integraatio**: Kuinka agentit hyödyntävät ulkopuolisia toimintoja kapasiteetin laajentamiseksi  
+- 💬 **Keskustelun Kulku**: Hallitsemaan monivaiheisia keskusteluja ja kontekstia ketjuhallinnan avulla
+- 🔧 **Konfigurointimallit**: Parhaat käytännöt agentin konfigurointiin ja hallintaan .NET:ssä
 
-## 🎯 Käsitellyt keskeiset käsitteet
+## 🎯 Keskeiset Käsitteet
 
-### Agenttiperusteiset periaatteet
+### Agenttikehikon Periaatteet
 
-- **Itsenäisyys**: Kuinka agentit tekevät itsenäisiä päätöksiä käyttämällä .NET AI -abstraktioita
-- **Reaktiivisuus**: Ympäristön muutoksiin ja käyttäjän syötteisiin vastaaminen
-- **Proaktiivisuus**: Aloitteellisuus perustuen tavoitteisiin ja kontekstiin
-- **Sosiaalinen kyky**: Vuorovaikutus luonnollisen kielen kautta keskustelusäikeissä
+- **Autonomia**: Kuinka agentit tekevät itsenäisiä päätöksiä käyttäen .NET AI -abstraktioita
+- **Reaktiivisuus**: Reagoiminen ympäristön muutoksiin ja käyttäjän syötteisiin
+- **Proaktiivisuus**: Aloitteen ottaminen tavoitteiden ja kontekstin perusteella
+- **Sosiaaliset Taidot**: Vuorovaikutus luonnollisella kielellä keskusteluketjujen kautta
 
-### Teknisiä komponentteja
+### Teknisiä Komponentteja
 
 - **AIAgent**: Keskeinen agentin orkestrointi ja keskustelun hallinta (.NET)
-- **Työkalutoiminnot**: Agentin kyvykkyyksien laajentaminen C#-metodeilla ja atribuuteilla
-- **Azure OpenAI -integraatio**: Kielenmallien hyödyntäminen Azure OpenAI Responses -rajapinnan kautta
-- **Turvallinen konfigurointi**: Ympäristöön perustuva päätepisteiden hallinta
+- **Työkaluominaisuudet**: Agentin kykyjen laajentaminen C#-metodeilla ja attribuuteilla
+- **Azure OpenAI -integraatio**: Kielen mallien hyödyntäminen Azure OpenAI Responses API:n kautta
+- **Turvallinen Konfigurointi**: Ympäristöön perustuva pisteiden hallinta
 
-## 🔧 Tekninen pinorakenne
+## 🔧 Tekninen Pino
 
-### Keskeiset teknologiat
+### Keskeiset Teknologiat
 
 - Microsoft Agent Framework (.NET)
-- Azure OpenAI (Responses API) integraatio
-- Azure.AI.OpenAI -asiakasprototyypit
-- Ympäristöön perustuva konfigurointi DotNetEnv-kirjastolla
+- Azure OpenAI (Responses API) -integraatio
+- Azure.AI.OpenAI -asiakasmallit
+- Ympäristöön perustuva konfigurointi DotNetEnvillä
 
-### Agentin kyvykkyydet
+### Agentin Ominaisuudet
 
-- Luonnollisen kielen ymmärtäminen ja generointi
-- Funktioiden kutsuminen ja työkalujen käyttö C#-attribuuteilla
-- Kontekstitietoisiin vastauksiin perustuvat keskustelusessiot
-- Laajennettava arkkitehtuuri riippuvuussuihkutuksen malleilla
+- Luonnollisen kielen ymmärtäminen ja tuottaminen
+- Funktiokutsu ja työkalujen käyttö C#-attribuuteilla
+- Kontekstin huomioivat vastaukset keskustelusessioissa
+- Laajennettava arkkitehtuuri riippuvuuden injektiomalleilla
 
-## 📚 Kehyksen vertailu
+## 📚 Kehikkojen Vertailu
 
-Tämä esimerkki havainnollistaa Microsoft Agent Framework -lähestymistapaa muihin agenttiperusteisiin kehyksiin verrattuna:
+Tämä esimerkki demonstroi Microsoft Agent Framework -lähestymistapaa verrattuna muihin agenttimallinnuskehyksiin:
 
-| Ominaisuus | Microsoft Agent Framework | Muut kehykset |
+| Ominaisuus | Microsoft Agent Framework | Muut Kehikot |
 |---------|-------------------------|------------------|
-| **Integraatio** | Microsoftin natiiviekosysteemi | Vaihteleva yhteensopivuus |
-| **Yksinkertaisuus** | Selkeä, intuitiivinen API | Usein monimutkainen asennus |
-| **Laajennettavuus** | Helppo työkalujen integrointi | Riippuu kehyksestä |
-| **Yrityskäyttövalmius** | Rakennettu tuotantoon | Riippuu kehyksestä |
+| **Integraatio** | Natiivi Microsoft-ekosysteemi | Vaihteleva yhteensopivuus |
+| **Yksinkertaisuus** | Selkeä, intuitiivinen API | Usein monimutkainen asetukset |
+| **Laajennettavuus** | Helppo työkalujen liittäminen | Riippuu kehyksestä |
+| **Yritysvalmis** | Rakennettu tuotantoon | Vaihtelee kehyksen mukaan |
 
 ## 🚀 Aloittaminen
 
 ### Esivaatimukset
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) tai uudempi
-- [Azure-tilaus](https://azure.microsoft.com/free/) Azure OpenAI -resurssilla ja mallin käyttöönotolla
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — kirjaudu sisään `az login` -komennolla
+- Azure-tili [Azure OpenAI -resurssilla](https://azure.microsoft.com/free/) ja malliasennuksella
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — kirjaudu sisään komennolla `az login`
 
-### Vaaditut ympäristömuuttujat
+### Vaaditut Ympäristömuuttujat
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Kirjaudu sitten sisään, jotta AzureCliCredential voi hankkia tokenin
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Kirjaudu sisään, jotta AzureCliCredential voi hankkia tokenin
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # Kirjaudu sitten sisään, jotta AzureCliCredential voi saada tokenin
 az login
 ```
 
 ### Esimerkkikoodi
 
-Suorita koodiesimerkki,
+Suorita koodiesimerkki seuraavasti,
 
 ```bash
 # zsh/bash
@@ -90,13 +90,13 @@ chmod +x ./02-dotnet-agent-framework.cs
 ./02-dotnet-agent-framework.cs
 ```
 
-Tai käytä dotnet CLI:tä:
+Tai käyttämällä dotnet CLI:tä:
 
 ```bash
 dotnet run ./02-dotnet-agent-framework.cs
 ```
 
-Katso täydellinen koodi tiedostosta [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs).
+Katso koko koodi tiedostosta [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs).
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,20 +215,20 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 Tärkeimmät opetukset
+## 🎓 Keskeiset Oivallukset
 
-1. **Agentin arkkitehtuuri**: Microsoft Agent Framework tarjoaa puhtaan, tyyppiturvallisen lähestymistavan AI-agenttien rakentamiseen .NET:ssä
-2. **Työkalujen integrointi**: `[Description]`-attribuutilla koristellut funktiot ovat agentin käytettävissä olevia työkaluja
-3. **Keskustelun konteksti**: Sessiomanagement mahdollistaa monivuoroiset keskustelut täydellä kontekstitietoisuudella
-4. **Konfiguraation hallinta**: Ympäristömuuttujat ja turvallinen tunnistetietojen käsittely noudattavat .NET:n parhaita käytäntöjä
-5. **Azure OpenAI Responses API**: Agentti käyttää Azure OpenAI Responses APIa Azure.AI.OpenAI SDK:n kautta
+1. **Agentin Arkkitehtuuri**: Microsoft Agent Framework tarjoaa selkeän, tyyppiturvallisen lähestymistavan AI-agenttien rakentamiseen .NET:ssä
+2. **Työkalujen Integraatio**: [Description]-attribuutilla koristellut funktiot ovat agentille käytettävissä olevia työkaluja
+3. **Keskustelukonteksti**: Istunnon hallinta mahdollistaa monivaiheiset keskustelut täydellisellä kontekstihan kalkilla
+4. **Konfiguraation Hallinta**: Ympäristömuuttujat ja turvallinen tunnistetietojen käsittely noudattavat .NET:n parhaita käytäntöjä
+5. **Azure OpenAI Responses API**: Agentti käyttää Azure OpenAI Responses API:a Azure.AI.OpenAI SDK:n kautta
 
 ## 🔗 Lisäresurssit
 
-- [Microsoft Agent Frameworkin dokumentaatio](https://learn.microsoft.com/agent-framework)
+- [Microsoft Agent Framework -dokumentaatio](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI Microsoft Foundryssa](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [.NET yksittäistiedostosovellukset](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [.NET Yhden Tiedoston Sovellukset](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

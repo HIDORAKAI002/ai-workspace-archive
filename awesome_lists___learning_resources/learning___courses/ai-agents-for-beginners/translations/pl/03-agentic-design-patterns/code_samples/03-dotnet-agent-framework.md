@@ -1,151 +1,151 @@
-# 🎨 Agentowe Wzorce Projektowe z Azure OpenAI (Responses API) (.NET)
+# 🎨 Wzorce Projektowe Agentów z Azure OpenAI (Responses API) (.NET)
 
 ## 📋 Cele Nauki
 
-Ten przykład demonstruje wzorce projektowe klasy korporacyjnej dla budowania inteligentnych agentów korzystających z Microsoft Agent Framework w .NET z integracją Azure OpenAI (Responses API). Nauczysz się profesjonalnych wzorców i podejść architektonicznych, które sprawiają, że agenci są gotowi do produkcji, łatwi w utrzymaniu i skalowalni.
+Ten przykład demonstruje wzorce projektowe klasy korporacyjnej do budowy inteligentnych agentów z użyciem Microsoft Agent Framework w .NET z integracją Azure OpenAI (Responses API). Nauczysz się profesjonalnych wzorców i podejść architektonicznych, które sprawiają, że agenci są gotowi do produkcji, łatwi w utrzymaniu i skalowalni.
 
-### Wzorce Projektowe Klasy Korporacyjnej
+### Wzorce korporacyjne
 
-- 🏭 **Wzorzec Fabryki**: Standardowe tworzenie agentów z wstrzykiwaniem zależności
-- 🔧 **Wzorzec Budowniczego**: Płynna konfiguracja i ustawienia agenta
-- 🧵 **Wzorce Bezpieczeństwa Wątków**: Równoczesne zarządzanie rozmowami
+- 🏭 **Wzorzec Fabryki**: Standaryzowane tworzenie agentów z wstrzykiwaniem zależności
+- 🔧 **Wzorzec Budowniczego**: Fluent konfiguracja i ustawienie agenta
+- 🧵 **Wzorce Wątkowo-Bezpieczne**: Równoległe zarządzanie rozmowami
 - 📋 **Wzorzec Repozytorium**: Zorganizowane zarządzanie narzędziami i możliwościami
 
 ## 🎯 Korzyści Architektoniczne Specyficzne dla .NET
 
-### Funkcje klasy korporacyjnej
+### Funkcje korporacyjne
 
 - **Silne Typowanie**: Walidacja podczas kompilacji i wsparcie IntelliSense
-- **Wstrzykiwanie Zależności**: Wbudowana integracja z kontenerem DI
-- **Zarządzanie Konfiguracją**: Wzorce IConfiguration i Options
-- **Async/Await**: Pierwszorzędne wsparcie programowania asynchronicznego
+- **Wstrzykiwanie zależności**: Wbudowana integracja kontenera DI
+- **Zarządzanie konfiguracją**: Wzorce IConfiguration i Options
+- **Async/Await**: Wsparcie programowania asynchronicznego pierwszej klasy
 
-### Wzorce Gotowe do Produkcji
+### Wzorce gotowe do produkcji
 
-- **Integracja Logowania**: Wsparcie ILogger i logowanie strukturalne
-- **Kontrole Stanu Zdrowia**: Wbudowane monitorowanie i diagnostyka
-- **Walidacja Konfiguracji**: Silne typowanie z adnotacjami danych
-- **Obsługa Błędów**: Strukturalne zarządzanie wyjątkami
+- **Integracja Logowania**: ILogger i strukturalne wsparcie logowania
+- **Kontrole zdrowia**: Wbudowany monitoring i diagnostyka
+- **Walidacja konfiguracji**: Silne typowanie z adnotacjami danych
+- **Obsługa błędów**: Strukturalne zarządzanie wyjątkami
 
 ## 🔧 Architektura Techniczna
 
-### Kluczowe Komponenty .NET
+### Podstawowe komponenty .NET
 
-- **Microsoft.Extensions.AI**: Zunifikowane abstrakcje usług AI
-- **Microsoft.Agents.AI**: Framework orkiestracji agentów klasy korporacyjnej
-- **Azure OpenAI (Responses API)**: Wzorce klienta API o wysokiej wydajności
-- **System Konfiguracji**: appsettings.json i integracja środowiskowa
+- **Microsoft.Extensions.AI**: Ujednolicone abstrakcje usług AI
+- **Microsoft.Agents.AI**: Korporacyjny framework do orkiestracji agentów
+- **Azure OpenAI (Responses API)**: Wzorce klienta API wysokiej wydajności
+- **System konfiguracji**: appsettings.json i integracja środowiskowa
 
-### Implementacja Wzorców Projektowych
+### Implementacja wzorców projektowych
 
 ```mermaid
 graph LR
-    A[IServiceCollection] --> B[Kreator Agenta]
+    A[Kolekcja usług IServiceCollection] --> B[Konstruktor agenta]
     B --> C[Konfiguracja]
-    C --> D[Rejestr Narzędzi]
+    C --> D[Rejestr narzędzi]
     D --> E[Agent AI]
 ```
 
-## 🏗️ Demonstracja Wzorców Klasy Korporacyjnej
+## 🏗️ Prezentowane wzorce korporacyjne
 
-### 1. **Wzorce Kretacyjne**
+### 1. **Wzorce kreacyjne**
 
-- **Fabryka Agentów**: Centralne tworzenie agentów ze spójną konfiguracją
-- **Wzorzec Budowniczego**: Płynne API do złożonej konfiguracji agenta
+- **Fabryka Agentów**: Centralne tworzenie agentów z jednolitą konfiguracją
+- **Wzorzec Budowniczego**: Fluent API do złożonej konfiguracji agenta
 - **Wzorzec Singleton**: Współdzielone zasoby i zarządzanie konfiguracją
-- **Wstrzykiwanie Zależności**: Luźne powiązanie i testowalność
+- **Wstrzykiwanie zależności**: Luźne powiązanie i testowalność
 
-### 2. **Wzorce Behawioralne**
+### 2. **Wzorce behawioralne**
 
-- **Wzorzec Strategii**: Zamienialne strategie wykonywania narzędzi
-- **Wzorzec Komendy**: Enkapsulowane operacje agentów z obsługą cofania/ponawiania
+- **Wzorzec Strategii**: Wymienne strategie wykonywania narzędzi
+- **Wzorzec Polecenia**: Zamknięte operacje agenta z undo/redo
 - **Wzorzec Obserwatora**: Zarządzanie cyklem życia agenta sterowane zdarzeniami
-- **Metoda Szablonowa**: Standardowe przepływy pracy wykonania agenta
+- **Metoda Szablonowa**: Standaryzowane przepływy wykonania agenta
 
-### 3. **Wzorce Strukturalne**
+### 3. **Wzorce strukturalne**
 
-- **Wzorzec Adaptera**: Warstwa integracyjna Azure OpenAI (Responses API)
-- **Wzorzec Dekoratora**: Rozszerzanie zdolności agenta
-- **Wzorzec Fasady**: Upraszczanie interfejsów interakcji z agentem
-- **Wzorzec Proxy**: Lazy loading i cache’owanie dla wydajności
+- **Wzorzec Adaptera**: Warstwa integracji Azure OpenAI (Responses API)
+- **Wzorzec Dekoratora**: Rozszerzanie możliwości agenta
+- **Wzorzec Fasady**: Uproszczone interfejsy interakcji z agentem
+- **Wzorzec Proksy**: Lenie ładowanie i buforowanie dla wydajności
 
-## 📚 Zasady Projektowania w .NET
+## 📚 Zasady projektowe .NET
 
 ### Zasady SOLID
 
-- **Pojedyncza Odpowiedzialność**: Każdy komponent ma jedno jasne zadanie
+- **Jedna odpowiedzialność**: Każdy komponent ma jedną jasną rolę
 - **Otwarte/Zamknięte**: Rozszerzalne bez modyfikacji
-- **Zasada Podstawienia Liskov**: Implementacje narzędzi oparte na interfejsach
-- **Segregacja Interfejsów**: Skoncentrowane, spójne interfejsy
-- **Odwrócenie Zależności**: Zależność od abstrakcji, nie od konkretnych klas
+- **Podstawienie Liskov**: Implementacje narzędzi oparte na interfejsach
+- **Segregacja interfejsów**: Skoncentrowane, spójne interfejsy
+- **Odwrócenie zależności**: Zależność od abstrakcji, nie od konkretnych klas
 
 ### Czysta Architektura
 
-- **Warstwa Domenowa**: Podstawowe abstrakcje agentów i narzędzi
-- **Warstwa Aplikacji**: Orkiestracja agentów i przepływy pracy
-- **Warstwa Infrastruktury**: Integracja Azure OpenAI (Responses API) i usługi zewnętrzne
-- **Warstwa Prezentacji**: Interakcja użytkownika i formatowanie odpowiedzi
+- **Warstwa domenowa**: Podstawowe abstrakcje agentów i narzędzi
+- **Warstwa aplikacji**: Orkiestracja agentów i przepływy pracy
+- **Warstwa infrastruktury**: Integracja Azure OpenAI (Responses API) i usługi zewnętrzne
+- **Warstwa prezentacji**: Interakcja użytkownika i formatowanie odpowiedzi
 
-## 🔒 Rozważania Korporacyjne
+## 🔒 Aspekty korporacyjne
 
 ### Bezpieczeństwo
 
-- **Zarządzanie Poświadczeniami**: Bezpieczne obsługiwanie kluczy API z IConfiguration
-- **Weryfikacja Danych Wejściowych**: Silne typowanie i walidacja adnotacji danych
-- **Oczyszczanie Danych Wyjściowych**: Bezpieczne przetwarzanie i filtrowanie odpowiedzi
-- **Rejestrowanie Audytu**: Kompleksowe śledzenie operacji
+- **Zarządzanie poświadczeniami**: Bezpieczne obsługiwanie kluczy API z IConfiguration
+- **Walidacja wejścia**: Silne typowanie i walidacja adnotacji danych
+- **Sanityzacja wyjścia**: Bezpieczne przetwarzanie i filtrowanie odpowiedzi
+- **Audyt logów**: Kompleksowe śledzenie operacji
 
 ### Wydajność
 
-- **Wzorce Asynchroniczne**: Operacje I/O bez blokowania
-- **Pule Połączeń**: Efektywne zarządzanie klientami HTTP
-- **Cache’owanie**: Buforowanie odpowiedzi dla lepszej wydajności
-- **Zarządzanie Zasobami**: Właściwe wzorce zwalniania i czyszczenia
+- **Wzorce asynchroniczne**: Operacje I/O bez blokowania
+- **Pule połączeń**: Efektywne zarządzanie klientem HTTP
+- **Buforowanie**: Buforowanie odpowiedzi dla poprawy wydajności
+- **Zarządzanie zasobami**: Właściwe wzorce zwalniania i czyszczenia
 
 ### Skalowalność
 
-- **Bezpieczeństwo Wątków**: Wsparcie dla równoległego wykonywania agentów
-- **Pule Zasobów**: Efektywne wykorzystanie zasobów
-- **Zarządzanie Obciążeniem**: Ograniczanie tempa i obsługa przeciążenia
-- **Monitorowanie**: Metryki wydajności i kontrole stanu zdrowia
+- **Wątkowość**: Wsparcie współbieżnego wykonywania agentów
+- **Pule zasobów**: Efektywne wykorzystanie zasobów
+- **Zarządzanie obciążeniem**: Ograniczanie prędkości i radzenie sobie z przeciążeniem
+- **Monitoring**: Metryki wydajności i kontrole stanu zdrowia
 
-## 🚀 Wdrożenie Produkcyjne
+## 🚀 Wdrożenie do produkcji
 
-- **Zarządzanie Konfiguracją**: Ustawienia specyficzne dla środowiska
-- **Strategia Logowania**: Logowanie strukturalne z identyfikatorami korelacji
-- **Obsługa Błędów**: Globalna obsługa wyjątków z właściwym odzyskiwaniem
-- **Monitorowanie**: Application Insights i liczniki wydajności
-- **Testowanie**: Testy jednostkowe, integracyjne i obciążeniowe
+- **Zarządzanie konfiguracją**: Ustawienia specyficzne dla środowiska
+- **Strategia logowania**: Strukturalne logowanie z identyfikatorami korelacji
+- **Obsługa błędów**: Globalna obsługa wyjątków z odpowiednią rekonwalescencją
+- **Monitoring**: Application Insights i liczniki wydajności
+- **Testowanie**: Testy jednostkowe, integracyjne i wzorce testów obciążeniowych
 
-Gotowy, by budować inteligentnych agentów klasy korporacyjnej z .NET? Zaprojektujmy coś solidnego! 🏢✨
+Gotowy, aby budować inteligentnych agentów klasy korporacyjnej z .NET? Stwórzmy coś solidnego! 🏢✨
 
-## 🚀 Pierwsze Kroki
+## 🚀 Rozpoczęcie pracy
 
-### Wymagania Wstępne
+### Wymagania wstępne
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) lub wyższy
-- Subskrypcja [Azure](https://azure.microsoft.com/free/) z zasobem Azure OpenAI i wdrożonym modelem
+- Subskrypcja [Azure](https://azure.microsoft.com/free/) z zasobem Azure OpenAI i wdrożeniem modelu
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — zaloguj się za pomocą `az login`
 
-### Wymagane Zmienne Środowiskowe
+### Wymagane zmienne środowiskowe
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Następnie zaloguj się, aby AzureCliCredential mógł uzyskać token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Następnie zaloguj się, aby AzureCliCredential mógł pobrać token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # Następnie zaloguj się, aby AzureCliCredential mógł uzyskać token
 az login
 ```
 
-### Przykładowy Kod
+### Przykładowy kod
 
 Aby uruchomić przykład kodu,
 
@@ -155,7 +155,7 @@ chmod +x ./03-dotnet-agent-framework.cs
 ./03-dotnet-agent-framework.cs
 ```
 
-Lub używając dotnet CLI:
+Lub za pomocą CLI dotnet:
 
 ```bash
 dotnet run ./03-dotnet-agent-framework.cs
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

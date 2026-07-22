@@ -1,18 +1,18 @@
-# 🎯 Pagpaplano at Mga Disenyong Pattern gamit ang Azure OpenAI (Responses API) (.NET)
+# 🎯 Mga Pattern sa Pagpaplano at Disenyo gamit ang Azure OpenAI (Responses API) (.NET)
 
 ## 📋 Mga Layunin sa Pagkatuto
 
-Ipinapakita ng notebook na ito ang enterprise-grade na pagpaplano at mga disenyong pattern para sa pagbuo ng mga intelihenteng ahente gamit ang Microsoft Agent Framework sa .NET kasama ang Azure OpenAI (Responses API). Matututuhan mong gumawa ng mga ahenteng maaaring magdekomponer ng mga komplikadong problema, magplano ng mga solusyong may maraming hakbang, at magpatupad ng mga sopistikadong workflow gamit ang mga enterprise na tampok ng .NET.
+Ipinapakita ng notebook na ito ang mga enterprise-grade na pattern sa pagpaplano at disenyo para sa paggawa ng mga intelligent agents gamit ang Microsoft Agent Framework sa .NET kasama ang Azure OpenAI (Responses API). Matututuhan mong gumawa ng mga agent na kayang hatiin ang mga komplikadong problema, magplano ng multi-step na mga solusyon, at magpatupad ng sopistikadong mga workflows gamit ang mga enterprise na tampok ng .NET.
 
-## ⚙️ Mga Kinakailangan at Pagsasaayos
+## ⚙️ Mga Kinakailangan at Pagsisimula
 
-**Kapaligiran para sa Pagpapaunlad:**
-- .NET 9.0 SDK o mas mataas
+**Development Environment:**
+- .NET 9.0 SDK o mas mataas pa
 - Visual Studio 2022 o VS Code na may C# extension
 - Isang Azure subscription na may Azure OpenAI resource at deployment ng modelo
 - Ang Azure CLI — mag-sign in gamit ang `az login`
 
-**Kinakailangang Dependencies:**
+**Mga Kinakailangang Dependency:**
 ```xml
 <PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
 <PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
@@ -22,15 +22,15 @@ Ipinapakita ng notebook na ito ang enterprise-grade na pagpaplano at mga disenyo
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
-**Kokonfigurasyon ng Kapaligiran (.env file):**
+**Kumpigurasyon ng Kapaligiran (.env file):**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
-## Pagpapatakbo ng Code
+## Pagpatakbo ng Code
 
-Kasama sa araling ito ang isang .NET Single File App implementation. Upang patakbuhin ito:
+Kasama sa araling ito ang implementasyon ng .NET Single File App. Para patakbuhin ito:
 
 ```bash
 # Gawing executable ang file (Linux/macOS)
@@ -40,7 +40,7 @@ chmod +x 07-dotnet-agent-framework.cs
 ./07-dotnet-agent-framework.cs
 ```
 
-O gamitin ang utos na dotnet run:
+O gamitin ang dotnet run command:
 
 ```bash
 dotnet run 07-dotnet-agent-framework.cs
@@ -48,19 +48,19 @@ dotnet run 07-dotnet-agent-framework.cs
 
 ## Implementasyon ng Code
 
-Makikita ang buong implementasyon sa `07-dotnet-agent-framework.cs`, na nagpapakita ng:
+Ang kompletong implementasyon ay makikita sa `07-dotnet-agent-framework.cs`, na nagpapakita ng:
 
-- Pag-load ng environment configuration gamit ang DotNetEnv
-- Pagko-configure ng Azure OpenAI client at paggawa ng AI agent gamit ang `GetChatClient().AsAIAgent()`
-- Pagde-define ng mga structured data model (Plan at TravelPlan) gamit ang JSON serialization
+- Pag-load ng configuration ng kapaligiran gamit ang DotNetEnv
+- Pag-configure ng Azure OpenAI client at paggawa ng AI agent gamit ang `GetChatClient().AsAIAgent()`
+- Pagdeklara ng mga structured data model (Plan at TravelPlan) gamit ang JSON serialization
 - Paglikha ng AI agent na may structured output gamit ang JSON schema
-- Pagpapatupad ng mga planning request na may type-safe na mga tugon
+- Pagpapatupad ng mga plano ng request na may type-safe na mga sagot
 
 ## Mga Pangunahing Konsepto
 
-### Structured Planning gamit ang Type-Safe na Model
+### Structured na Pagpaplano gamit ang Type-Safe na Mga Models
 
-Ginagamit ng ahente ang mga klase sa C# para tukuyin ang istruktura ng mga output ng plano:
+Ginagamit ng agent ang mga klase sa C# upang tukuyin ang istruktura ng output ng pagpaplano:
 
 ```csharp
 public class Plan
@@ -84,7 +84,7 @@ public class TravelPlan
 
 ### JSON Schema para sa Structured Outputs
 
-Nakakonpigura ang ahente para magbalik ng mga tugon na tumutugma sa TravelPlan schema:
+Ang agent ay naka-configure upang magbalik ng mga tugon na tugma sa TravelPlan schema:
 
 ```csharp
 ChatClientAgentOptions agentOptions = new()
@@ -101,20 +101,20 @@ ChatClientAgentOptions agentOptions = new()
 };
 ```
 
-### Mga Tagubilin sa Planning Agent
+### Mga Tagubilin para sa Planning Agent
 
-Gumaganap ang ahente bilang coordinator, na nagtatalaga ng mga gawain sa mga espesyalistang sub-agent:
+Gumaganap ang agent bilang coordinator, na nagdedelegate ng mga gawain sa mga specialized sub-agent:
 
-- FlightBooking: Para sa pag-book ng mga flight at pagbibigay ng impormasyon tungkol sa flight
-- HotelBooking: Para sa pag-book ng mga hotel at pagbibigay ng impormasyon tungkol sa hotel
-- CarRental: Para sa pag-book ng mga sasakyan at pagbibigay ng impormasyon tungkol sa car rental
+- FlightBooking: Para sa pag-book ng mga flight at pagbibigay ng impormasyon tungkol sa mga flight
+- HotelBooking: Para sa pag-book ng mga hotel at pagbibigay ng impormasyon tungkol sa mga hotel
+- CarRental: Para sa pag-book ng mga kotse at pagbibigay ng impormasyon tungkol sa car rental
 - ActivitiesBooking: Para sa pag-book ng mga aktibidad at pagbibigay ng impormasyon tungkol sa mga aktibidad
 - DestinationInfo: Para sa pagbibigay ng impormasyon tungkol sa mga destinasyon
-- DefaultAgent: Para sa paghawak ng mga pangkalahatang kahilingan
+- DefaultAgent: Para sa paghawak ng mga pangkalahatang request
 
 ## Inaasahang Output
 
-Kapag pinatakbo mo ang ahente gamit ang kahilingan sa pagpaplano ng paglalakbay, susuriin nito ang kahilingan at gagawa ng isang istrukturadong plano na may angkop na pagtatalaga ng mga gawain sa mga espesyalistang ahente, na nakaayos bilang JSON na sumusunod sa schema ng TravelPlan.
+Kapag pinatakbo mo ang agent gamit ang request sa pagpaplano ng paglalakbay, susuriin nito ang kahilingan at gagawa ng isang structured na plano na may angkop na pagtatalaga ng mga gawain sa mga specialized agents, at naka-format bilang JSON na sumusunod sa TravelPlan schema.
 
 ---
 

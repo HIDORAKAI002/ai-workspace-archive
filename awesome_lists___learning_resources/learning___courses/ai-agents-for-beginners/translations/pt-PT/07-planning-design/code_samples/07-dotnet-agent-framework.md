@@ -1,18 +1,18 @@
-# 🎯 Planeamento e Padrões de Design com Azure OpenAI (Responses API) (.NET)
+# 🎯 Planeamento & Padrões de Design com Azure OpenAI (Responses API) (.NET)
 
 ## 📋 Objetivos de Aprendizagem
 
-Este notebook demonstra padrões de planeamento e design ao nível empresarial para criar agentes inteligentes utilizando o Microsoft Agent Framework em .NET com Azure OpenAI (Responses API). Aprenderá a criar agentes que podem decompor problemas complexos, planear soluções multi-etapas e executar fluxos de trabalho sofisticados com as funcionalidades empresariais do .NET.
+Este notebook demonstra padrões de planeamento e design de nível empresarial para construir agentes inteligentes usando o Microsoft Agent Framework em .NET com Azure OpenAI (Responses API). Aprenderá a criar agentes que podem decompor problemas complexos, planear soluções em múltiplos passos e executar fluxos de trabalho sofisticados com as funcionalidades empresariais do .NET.
 
-## ⚙️ Pré-requisitos e Configuração
+## ⚙️ Pré-requisitos & Configuração
 
 **Ambiente de Desenvolvimento:**
-- SDK .NET 9.0 ou superior
-- Visual Studio 2022 ou VS Code com a extensão C#
-- Uma subscrição Azure com um recurso Azure OpenAI e um deployment de modelo
-- O Azure CLI — inicie sessão com `az login`
+- .NET 9.0 SDK ou superior
+- Visual Studio 2022 ou VS Code com extensão C#
+- Uma subscrição Azure com um recurso Azure OpenAI e um deploy de modelo
+- A CLI Azure — inicie sessão com `az login`
 
-**Dependências Necessárias:**
+**Dependências Requeridas:**
 ```xml
 <PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
 <PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
@@ -25,12 +25,12 @@ Este notebook demonstra padrões de planeamento e design ao nível empresarial p
 **Configuração do Ambiente (ficheiro .env):**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
 ## Executar o Código
 
-Esta lição inclui uma implementação de uma Aplicação Single File em .NET. Para a executar:
+Esta lição inclui uma implementação App Single File em .NET. Para a executar:
 
 ```bash
 # Torne o ficheiro executável (Linux/macOS)
@@ -40,7 +40,7 @@ chmod +x 07-dotnet-agent-framework.cs
 ./07-dotnet-agent-framework.cs
 ```
 
-Ou utilize o comando dotnet run:
+Ou use o comando dotnet run:
 
 ```bash
 dotnet run 07-dotnet-agent-framework.cs
@@ -51,9 +51,9 @@ dotnet run 07-dotnet-agent-framework.cs
 A implementação completa está disponível em `07-dotnet-agent-framework.cs`, que demonstra:
 
 - Carregar a configuração do ambiente com DotNetEnv
-- Configurar o cliente Azure OpenAI e criar um agente AI usando `GetChatClient().AsAIAgent()`
+- Configurar o cliente Azure OpenAI e criar um agente de IA usando `GetChatClient().AsAIAgent()`
 - Definir modelos de dados estruturados (Plan e TravelPlan) com serialização JSON
-- Criar um agente AI com saída estruturada usando esquema JSON
+- Criar um agente de IA com saída estruturada usando esquema JSON
 - Executar pedidos de planeamento com respostas tipadas de forma segura
 
 ## Conceitos-Chave
@@ -103,18 +103,18 @@ ChatClientAgentOptions agentOptions = new()
 
 ### Instruções do Agente de Planeamento
 
-O agente atua como coordenador, delegando tarefas a sub-agentes especializados:
+O agente atua como coordenador, delegando tarefas a subagentes especializados:
 
-- FlightBooking: Para reservas de voos e fornecimento de informações sobre voos
-- HotelBooking: Para reservas de hotéis e fornecimento de informações sobre hotéis
-- CarRental: Para reservas de carros e fornecimento de informações sobre aluguer de carros
-- ActivitiesBooking: Para reservas de atividades e fornecimento de informações sobre atividades
-- DestinationInfo: Para fornecer informações sobre destinos
-- DefaultAgent: Para tratar pedidos gerais
+- ReservaDeVoos: Para reservar voos e fornecer informação de voos
+- ReservaDeHotéis: Para reservar hotéis e fornecer informação de hotéis
+- AluguerDeCarros: Para reservar carros e fornecer informação de aluguer de carros
+- ReservaDeAtividades: Para reservar atividades e fornecer informação de atividades
+- InformaçõesDeDestino: Para fornecer informação sobre destinos
+- AgentePadrão: Para tratar pedidos gerais
 
 ## Saída Esperada
 
-Quando executar o agente com um pedido de planeamento de viagem, ele irá analisar o pedido e gerar um plano estruturado com atribuições adequadas de tarefas a agentes especializados, formatado como JSON conforme o esquema TravelPlan.
+Ao executar o agente com um pedido de planeamento de viagem, este irá analisar o pedido e gerar um plano estruturado com atribuições de tarefas apropriadas para agentes especializados, formatado como JSON conforme o esquema TravelPlan.
 
 ---
 

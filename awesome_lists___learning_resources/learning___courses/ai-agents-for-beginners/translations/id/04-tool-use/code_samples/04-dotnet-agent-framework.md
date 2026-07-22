@@ -2,38 +2,38 @@
 
 ## 📋 Tujuan Pembelajaran
 
-Notebook ini menunjukkan pola integrasi alat kelas perusahaan menggunakan Microsoft Agent Framework di .NET dengan Azure OpenAI (Responses API). Anda akan belajar membangun agen canggih dengan beberapa alat khusus, memanfaatkan tipe kuat C# dan fitur perusahaan .NET.
+Notebook ini menunjukkan pola integrasi alat tingkat perusahaan menggunakan Microsoft Agent Framework di .NET dengan Azure OpenAI (Responses API). Anda akan belajar membangun agen canggih dengan beberapa alat khusus, memanfaatkan tipe kuat C# dan fitur perusahaan .NET.
 
 ### Kemampuan Alat Lanjutan yang Akan Anda Kuasai
 
-- 🔧 **Arsitektur Multi-Alat**: Membangun agen dengan berbagai kemampuan khusus
+- 🔧 **Arsitektur Multi-Alat**: Membangun agen dengan beberapa kemampuan khusus
 - 🎯 **Eksekusi Alat Aman-Tipe**: Memanfaatkan validasi waktu kompilasi C#
 - 📊 **Pola Alat Perusahaan**: Desain alat siap produksi dan penanganan kesalahan
-- 🔗 **Komposisi Alat**: Menggabungkan alat untuk alur kerja bisnis yang kompleks
+- 🔗 **Komposisi Alat**: Menggabungkan alat untuk alur kerja bisnis kompleks
 
 ## 🎯 Manfaat Arsitektur Alat .NET
 
 ### Fitur Alat Perusahaan
 
-- **Validasi Waktu Kompilasi**: Tipe kuat memastikan parameter alat benar
+- **Validasi Waktu Kompilasi**: Tipe kuat memastikan ketepatan parameter alat
 - **Dependency Injection**: Integrasi kontainer IoC untuk manajemen alat
 - **Pola Async/Await**: Eksekusi alat tanpa blokir dengan pengelolaan sumber daya tepat
 - **Logging Terstruktur**: Integrasi logging bawaan untuk pemantauan eksekusi alat
 
 ### Pola Siap Produksi
 
-- **Penanganan Eksepsi**: Manajemen kesalahan menyeluruh dengan eksepsi bertipe
-- **Manajemen Sumber Daya**: Pola dispose yang tepat dan pengelolaan memori
-- **Pemantauan Kinerja**: Metode metrik dan penghitung kinerja bawaan
+- **Penanganan Exception**: Manajemen kesalahan menyeluruh dengan exception bertipe
+- **Manajemen Sumber Daya**: Pola disposal yang tepat dan manajemen memori
+- **Pemantauan Kinerja**: Metrik dan penghitung kinerja bawaan
 - **Manajemen Konfigurasi**: Konfigurasi aman-tipe dengan validasi
 
 ## 🔧 Arsitektur Teknis
 
-### Komponen Alat Inti .NET
+### Komponen Alat Utama .NET
 
 - **Microsoft.Extensions.AI**: Lapisan abstraksi alat terpadu
-- **Microsoft.Agents.AI**: Orkestrasi alat kelas perusahaan
-- **Azure OpenAI (Responses API)**: Klien API berperforma tinggi dengan koneksi pooling
+- **Microsoft.Agents.AI**: Orkestrasi alat tingkat perusahaan
+- **Azure OpenAI (Responses API)**: Klien API berkinerja tinggi dengan pooling koneksi
 
 ### Pipeline Eksekusi Alat
 
@@ -52,35 +52,35 @@ graph LR
 
 ## 🛠️ Kategori & Pola Alat
 
-### 1. **Alat Pemrosesan Data**
+### 1. **Alat Pengolahan Data**
 
 - **Validasi Input**: Tipe kuat dengan anotasi data
-- **Operasi Transformasi**: Konversi dan format data aman-tipe
-- **Logika Bisnis**: Alat penghitungan dan analisis spesifik domain
-- **Format Output**: Generasi respon terstruktur
+- **Operasi Transformasi**: Konversi dan pemformatan data yang aman-tipe
+- **Logika Bisnis**: Alat perhitungan dan analisis spesifik domain
+- **Pemformatan Output**: Generasi respons terstruktur
 
 ### 2. **Alat Integrasi**
 
 - **Konektor API**: Integrasi layanan RESTful dengan HttpClient
-- **Alat Basis Data**: Integrasi Entity Framework untuk akses data
+- **Alat Database**: Integrasi Entity Framework untuk akses data
 - **Operasi File**: Operasi sistem file aman dengan validasi
 - **Layanan Eksternal**: Pola integrasi layanan pihak ketiga
 
 ### 3. **Alat Utilitas**
 
-- **Pemrosesan Teks**: Utilitas manipulasi dan format string
-- **Operasi Tanggal/Waktu**: Perhitungan tanggal/waktu berbudaya
+- **Pengolahan Teks**: Utilitas manipulasi dan pemformatan string
+- **Operasi Tanggal/Waktu**: Perhitungan tanggal/waktu dengan kesadaran budaya
 - **Alat Matematika**: Perhitungan presisi dan operasi statistik
 - **Alat Validasi**: Validasi aturan bisnis dan verifikasi data
 
-Siap membangun agen kelas perusahaan dengan kemampuan alat kuat dan aman-tipe di .NET? Mari arsitek solusi profesional! 🏢⚡
+Siap membangun agen tingkat perusahaan dengan kemampuan alat kuat dan aman-tipe di .NET? Mari arsitek beberapa solusi profesional! 🏢⚡
 
 ## 🚀 Memulai
 
 ### Prasyarat
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) atau versi lebih tinggi
-- [Langganan Azure](https://azure.microsoft.com/free/) dengan sumber daya Azure OpenAI dan penyebaran model
+- [SDK .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) atau lebih tinggi
+- Sebuah [langganan Azure](https://azure.microsoft.com/free/) dengan sumber daya Azure OpenAI dan penyebaran model
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — masuk dengan `az login`
 
 ### Variabel Lingkungan yang Diperlukan
@@ -88,16 +88,16 @@ Siap membangun agen kelas perusahaan dengan kemampuan alat kuat dan aman-tipe di
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Kemudian masuk agar AzureCliCredential dapat mengambil token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Kemudian masuk sehingga AzureCliCredential dapat mendapatkan token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Kemudian masuk agar AzureCliCredential dapat memperoleh token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Kemudian masuk supaya AzureCliCredential dapat memperoleh token
 az login
 ```
 
@@ -111,7 +111,7 @@ chmod +x ./04-dotnet-agent-framework.cs
 ./04-dotnet-agent-framework.cs
 ```
 
-Atau menggunakan dotnet CLI:
+Atau menggunakan CLI dotnet:
 
 ```bash
 dotnet run ./04-dotnet-agent-framework.cs
@@ -168,7 +168,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

@@ -1,29 +1,29 @@
 # AGENTS.md
 
-## Project Overzicht
+## Projectoverzicht
 
-Deze repository bevat "AI Agents voor Beginners" - een uitgebreide educatieve cursus die alles leert wat nodig is om AI Agents te bouwen. De cursus bestaat uit 18 lessen (genummerd 00-18) die fundamentele kennis, ontwerppatronen, frameworks, productie-implementatie, lokale/on-device agents en beveiliging van AI agents behandelen.
+Deze repository bevat "AI Agents voor Beginners" - een uitgebreide educatieve cursus die alles leert wat nodig is om AI Agents te bouwen. De cursus bestaat uit 18 lessen (genummerd 00-18) die de basisprincipes, ontwerp patronen, frameworks, productiedeployments, lokale/apparaatgebonden agents en beveiliging van AI agents behandelen.
 
-**Belangrijke Technologieën:**
+**Belangrijke technologieën:**
 - Python 3.12+
-- Jupyter Notebooks voor interactieve leerervaring
+- Jupyter Notebooks voor interactief leren
 - AI Frameworks: Microsoft Agent Framework (MAF)
 - Azure AI Services: Microsoft Foundry, Microsoft Foundry Agent Service V2
 
 **Architectuur:**
 - Les-gebaseerde structuur (00-15+ mappen)
-- Elke les bevat: README documentatie, codevoorbeelden (Jupyter notebooks) en afbeeldingen
+- Elke les bevat: README-documentatie, codevoorbeelden (Jupyter notebooks) en afbeeldingen
 - Meertalige ondersteuning via geautomatiseerd vertaalsysteem
-- Eén Python notebook per les met gebruik van Microsoft Agent Framework
+- Eén Python notebook per les met Microsoft Agent Framework
 
-## Setup Commando's
+## Installatiecommando's
 
 ### Vereisten
 - Python 3.12 of hoger
 - Azure abonnement (voor Microsoft Foundry)
-- Azure CLI geïnstalleerd en geauthenticeerd (`az login`)
+- Azure CLI geïnstalleerd en ingelogd (`az login`)
 
-### Initiële Setup
+### Eerste installatie
 
 1. **Clone of fork de repository:**
    ```bash
@@ -33,13 +33,13 @@ Deze repository bevat "AI Agents voor Beginners" - een uitgebreide educatieve cu
    cd ai-agents-for-beginners
    ```
 
-2. **Creëer en activeer Python virtuele omgeving:**
+2. **Creëer en activeer een Python virtuele omgeving:**
    ```bash
    python3 -m venv venv
    source venv/bin/activate  # Op Windows: venv\Scripts\activate
    ```
 
-3. **Installeer afhankelijkheden:**
+3. **Installeer de dependencies:**
    ```bash
    pip install -r requirements.txt
    ```
@@ -47,24 +47,24 @@ Deze repository bevat "AI Agents voor Beginners" - een uitgebreide educatieve cu
 4. **Stel omgevingsvariabelen in:**
    ```bash
    cp .env.example .env
-   # Bewerk .env met uw API-sleutels en eindpunten
+   # Bewerk .env met je API-sleutels en eindpunten
    ```
 
-### Vereiste Omgevingsvariabelen
+### Vereiste omgevingsvariabelen
 
-Voor **Microsoft Foundry** (Vereist):
-- `AZURE_AI_PROJECT_ENDPOINT` - Microsoft Foundry project endpoint
-- `AZURE_AI_MODEL_DEPLOYMENT_NAME` - Model implementatienaam (bijv. gpt-4.1-mini)
+Voor **Microsoft Foundry** (vereist):
+- `AZURE_AI_PROJECT_ENDPOINT` - Microsoft Foundry projectendpoint
+- `AZURE_AI_MODEL_DEPLOYMENT_NAME` - Naam van modeldeployment (bijv. gpt-5-mini)
 
 Voor **Azure AI Search** (Les 05 - RAG):
 - `AZURE_SEARCH_SERVICE_ENDPOINT` - Azure AI Search endpoint
-- `AZURE_SEARCH_API_KEY` - Azure AI Search API sleutel
+- `AZURE_SEARCH_API_KEY` - Azure AI Search API-sleutel
 
-Authenticatie: Voer `az login` uit voordat je notebooks draait (gebruikt `AzureCliCredential`).
+Authenticatie: Voer `az login` uit voordat je de notebooks draait (gebruikt `AzureCliCredential`).
 
-## Ontwikkel Workflow
+## Ontwikkelworkflow
 
-### Jupyter Notebooks Uitvoeren
+### Jupyter Notebooks draaien
 
 Elke les bevat meerdere Jupyter notebooks voor verschillende frameworks:
 
@@ -76,32 +76,32 @@ Elke les bevat meerdere Jupyter notebooks voor verschillende frameworks:
 2. **Navigeer naar een lesmap** (bijv. `01-intro-to-ai-agents/code_samples/`)
 
 3. **Open en voer notebooks uit:**
-   - `*-python-agent-framework.ipynb` - Gebruik Microsoft Agent Framework (Python)
-   - `*-dotnet-agent-framework.ipynb` - Gebruik Microsoft Agent Framework (.NET)
+   - `*-python-agent-framework.ipynb` - Met Microsoft Agent Framework (Python)
+   - `*-dotnet-agent-framework.ipynb` - Met Microsoft Agent Framework (.NET)
 
 ### Werken met Microsoft Agent Framework
 
 **Microsoft Agent Framework + Microsoft Foundry:**
 - Vereist Azure abonnement
 - Gebruikt `FoundryChatClient` voor Agent Service V2 (agents zichtbaar in Foundry portal)
-- Klaar voor productie met ingebouwde observeerbaarheid
-- Bestandsstructuur: `*-python-agent-framework.ipynb`
+- Productierijp met ingebouwde observability
+- Bestands patroon: `*-python-agent-framework.ipynb`
 
 ## Testinstructies
 
-Dit is een educatieve repository met voorbeeldcode in plaats van productiecode met geautomatiseerde tests. Om je setup en wijzigingen te verifiëren:
+Dit is een educatieve repository met voorbeeldcode in plaats van productcode met geautomatiseerde tests. Om je setup en wijzigingen te verifiëren:
 
-### Handmatige Tests
+### Handmatig testen
 
-1. **Test Python omgeving:**
+1. **Test de Python-omgeving:**
    ```bash
    python --version  # Moet 3.12+ zijn
    pip list | grep -E "(agent-framework|azure-ai|azure-identity)"
    ```
 
-2. **Test notebook uitvoering:**
+2. **Test notebookuitvoering:**
    ```bash
-   # Converteer notitieboek naar script en voer uit (tests importeert)
+   # Converteer notebook naar script en voer uit (test imports)
    jupyter nbconvert --to script <lesson-folder>/code_samples/<notebook>.ipynb --stdout | python
    ```
 
@@ -110,33 +110,33 @@ Dit is een educatieve repository met voorbeeldcode in plaats van productiecode m
    python -c "import os; from dotenv import load_dotenv; load_dotenv(); print('✓ AZURE_AI_PROJECT_ENDPOINT' if os.getenv('AZURE_AI_PROJECT_ENDPOINT') else '✗ AZURE_AI_PROJECT_ENDPOINT missing')"
    ```
 
-### Individuele Notebooks Uitvoeren
+### Individuele notebooks draaien
 
-Open notebooks in Jupyter en voer cellen sequentieel uit. Elke notebook is zelfstandig en bevat:
+Open notebooks in Jupyter en voer cellen opeenvolgend uit. Elke notebook is zelfstandig en bevat:
 - Import statements
 - Configuratie laden
-- Voorbeeld implementaties van agents
-- Verwachte outputs in markdown cellen
+- Voorbeeldimplementaties van agents
+- Verwachte output in markdown cellen
 
-### Smoke-Testen van Geïmplementeerde Agents
+### Smoke-testen van gedeploide Agents
 
-Voor lessen waarin een agent als Microsoft Foundry gehoste agent is geïmplementeerd (01, 04, 05, 16), bevat de repo smoke-test catalogi onder `tests/` die worden uitgevoerd via de `.github/workflows/smoke-test.yml` workflow met de [AI Smoke Test](https://github.com/marketplace/actions/ai-smoke-test) actie. Dit is een lichte post-implementatie check (is de agent bereikbaar en volgt hij basis prompt verwachtingen?), ter aanvulling van de evaluatiepipeline in Lessen 10 en 16. Zie [tests/README.md](./tests/README.md) voor de mapping van catalogus naar les naar agent. Les 17 draait lokaal met Foundry Local en heeft geen gehost endpoint, daarom wordt deze gevalideerd door het rechtstreeks uitvoeren van zijn notebook.
+Voor lessen waarin een agent is gedeployed als een door Microsoft Foundry gehoste agent (01, 04, 05, 16), levert de repo smoke-test catalogi onder `tests/` die uitgevoerd worden via de `.github/workflows/smoke-test.yml` workflow met de [AI Smoke Test](https://github.com/marketplace/actions/ai-smoke-test) actie. Dit is een lichte post-deploy controle (is de agent bereikbaar en volgt deze basis prompt verwachtingen?), als aanvulling op de evaluatiepipeline in Lessen 10 en 16. Zie [tests/README.md](./tests/README.md) voor de mapping tussen catalogus, les en agent. Les 17 draait lokaal met Foundry Local en heeft geen gehost endpoint, dus wordt gevalideerd door het direct uitvoeren van de notebook.
 
 ## Code Stijl
 
-### Python Conventies
+### Python conventies
 
-- **Python Versie**: 3.12+
-- **Code Stijl**: Volg standaard Python PEP 8 conventies
+- **Python versie**: 3.12+
+- **Code stijl**: Volg standaard Python PEP 8 conventies
 - **Notebooks**: Gebruik duidelijke markdown cellen om concepten uit te leggen
-- **Imports**: Groepeer standaardbibliotheek, derde partij en lokale imports
+- **Imports**: Groepeer op standaardbibliotheek, third-party en lokale imports
 
-### Jupyter Notebook Conventies
+### Jupyter Notebook conventies
 
-- Voeg beschrijvende markdown cellen toe voor code cellen
-- Voeg output voorbeelden toe in notebooks ter referentie
-- Gebruik duidelijke variabelennamen die passen bij lesconcepten
-- Houd de notebook uitvoeringsvolgorde lineair (cel 1 → 2 → 3...)
+- Neem beschrijvende markdown cellen op voor codecellen
+- Voeg outputvoorbeelden toe in notebooks ter referentie
+- Gebruik duidelijke variabelenamen die overeenkomen met lesconcepten
+- Houd de uitvoering van de notebook lineair (cel 1 → 2 → 3...)
 
 ### Bestandsorganisatie
 
@@ -150,9 +150,9 @@ Voor lessen waarin een agent als Microsoft Foundry gehoste agent is geïmplement
     └── *.png
 ```
 
-## Bouwen en Implementatie
+## Build en Deploy
 
-### Documentatie Bouwen
+### Documentatie bouwen
 
 Deze repository gebruikt Markdown voor documentatie:
 - README.md bestanden in elke lesmap
@@ -164,96 +164,96 @@ Deze repository gebruikt Markdown voor documentatie:
 Gelegen in `.github/workflows/`:
 
 1. **co-op-translator.yml** - Automatische vertaling naar 50+ talen
-2. **welcome-issue.yml** - Verwelkomt nieuwe issues makers
+2. **welcome-issue.yml** - Verwelkomt nieuwe issue aanmakers
 3. **welcome-pr.yml** - Verwelkomt nieuwe pull request bijdragers
 
-### Implementatie
+### Deploy
 
-Dit is een educatieve repository - geen implementatieproces. Gebruikers:
+Dit is een educatieve repository - geen deployproces. Gebruikers:
 1. Forken of clonen de repository
 2. Draaien notebooks lokaal of in GitHub Codespaces
-3. Leren door voorbeelden te wijzigen en te experimenteren
+3. Leren door voorbeelden aan te passen en te experimenteren
 
-## Richtlijnen voor Pull Requests
+## Pull Request Richtlijnen
 
-### Voor het Indienen
+### Voor het indienen
 
 1. **Test je wijzigingen:**
-   - Voer alle betrokken notebooks volledig uit
+   - Voer de aangetaste notebooks volledig uit
    - Controleer dat alle cellen zonder fouten draaien
    - Controleer of de outputs passend zijn
 
-2. **Documentatie aanpassingen:**
-   - Werk README.md bij bij toevoegen van nieuwe concepten
-   - Voeg opmerkingen toe in notebooks voor complexe code
+2. **Documentatie updates:**
+   - Werk README.md bij bij toevoeging van nieuwe concepten
+   - Voeg commentaar toe in notebooks voor complexe code
    - Zorg dat markdown cellen het doel uitleggen
 
 3. **Bestandswijzigingen:**
-   - Vermijd het commiten van `.env` bestanden (gebruik `.env.example`)
-   - Commit geen `venv/` of `__pycache__/` mappen
-   - Bewaar notebook outputs als ze concepten illustreren
+   - Vermijd het toevoegen van `.env` bestanden (gebruik `.env.example`)
+   - Voeg geen `venv/` of `__pycache__/` mappen toe
+   - Behoud notebook outputs als ze concepten demonstreren
    - Verwijder tijdelijke bestanden en backup notebooks (`*-backup.ipynb`)
 
 ### PR Titel Formaat
 
 Gebruik beschrijvende titels:
 - `[Lesson-XX] Voeg nieuw voorbeeld toe voor <concept>`
-- `[Fix] Corrigeer typefout in lesson-XX README`
-- `[Update] Verbeter codevoorbeeld in lesson-XX`
-- `[Docs] Update setup instructies`
+- `[Fix] Corrigeer typefout in les-XX README`
+- `[Update] Verbeter codevoorbeeld in les-XX`
+- `[Docs] Werk installatie-instructies bij`
 
-### Vereiste Checks
+### Vereiste controles
 
-- Notebooks moeten foutloos uitvoerbaar zijn
+- Notebooks moeten zonder fouten uitvoeren
 - README bestanden moeten duidelijk en nauwkeurig zijn
 - Volg bestaande codepatronen in de repository
-- Zorg voor consistentie met andere lessen
+- Handhaaf consistentie met andere lessen
 
-## Aanvullende Notities
+## Aanvullende notities
 
-### Veelvoorkomende Valstrikken
+### Veelvoorkomende valkuilen
 
-1. **Python versie mismatch:**
+1. **Mismatch Python versie:**
    - Zorg dat Python 3.12+ wordt gebruikt
    - Sommige pakketten werken mogelijk niet met oudere versies
-   - Gebruik `python3 -m venv` om de Python versie expliciet te specificeren
+   - Gebruik `python3 -m venv` om expliciet Python versie te specificeren
 
 2. **Omgevingsvariabelen:**
-   - Maak altijd `.env` aan vanuit `.env.example`
-   - Commit het `.env` bestand niet (staat in `.gitignore`)
+   - Maak altijd `.env` aan op basis van `.env.example`
+   - Voeg het `.env` bestand niet toe aan git (staat in `.gitignore`)
    - Log in met `az login` voor sleutelvrije Entra ID authenticatie
 
-3. **Pakket conflicten:**
+3. **Pakketconflicten:**
    - Gebruik een verse virtuele omgeving
-   - Installeer vanuit `requirements.txt` in plaats van losse pakketten
-   - Sommige notebooks vereisen extra pakketten vermeld in hun markdown cellen
+   - Installeer vanuit `requirements.txt` in plaats van individuele pakketten
+   - Sommige notebooks vereisen extra pakketten die in markdown cellen worden vermeld
 
 4. **Azure services:**
    - Azure AI services vereisen een actief abonnement
-   - Sommige functies zijn regiogebonden
-   - Zorg dat je Azure OpenAI modelimplementatie de Responses API ondersteunt
+   - Sommige functies zijn regio-afhankelijk
+   - Zorg dat je Azure OpenAI model deployment de Responses API ondersteunt
 
-### Leerroute
+### Leerpad
 
-Aanbevolen volgorde door lessen:
-1. **00-course-setup** - Begin hier voor omgeving setup
-2. **01-intro-to-ai-agents** - Begrijp AI agent fundamenten
+Aanbevolen volgorde van lessen:
+1. **00-course-setup** - Begin hier voor het instellen van de omgeving
+2. **01-intro-to-ai-agents** - Begrijp de basisprincipes van AI agents
 3. **02-explore-agentic-frameworks** - Leer over verschillende frameworks
-4. **03-agentic-design-patterns** - Kernontwerppatronen
-5. Ga door met genummerde lessen in volgorde
+4. **03-agentic-design-patterns** - Kern ontwerppatronen
+5. Ga door met de genummerde lessen in volgorde
 
-### Framework Keuze
+### Framework selectie
 
-Kies framework op basis van je doelen:
+Kies een framework op basis van je doelen:
 - **Alle lessen**: Microsoft Agent Framework (MAF) met `FoundryChatClient`
-- **Agents registreren server-side** in Microsoft Foundry Agent Service V2 en zijn zichtbaar in het Foundry portal
+- **Agents registreren server-side** in Microsoft Foundry Agent Service V2 en zijn zichtbaar in de Foundry portal
 
-### Hulp Krijgen
+### Hulp krijgen
 
 - Word lid van de [Microsoft Foundry Community Discord](https://aka.ms/ai-agents/discord)
-- Raadpleeg les README bestanden voor specifieke aanwijzingen
-- Bekijk de hoofd [README.md](./README.md) voor cursusoverzicht
-- Raadpleeg [Course Setup](./00-course-setup/README.md) voor gedetailleerde setup instructies
+- Bekijk de les README bestanden voor specifieke aanwijzingen
+- Check de hoofd [README.md](./README.md) voor cursusoverzicht
+- Raadpleeg [Course Setup](./00-course-setup/README.md) voor gedetailleerde installatie-instructies
 
 ### Bijdragen
 
@@ -264,43 +264,43 @@ Dit is een open educatief project. Bijdragen zijn welkom:
 - Stel nieuwe lesonderwerpen voor
 - Vertaal naar extra talen
 
-Zie [GitHub Issues](https://github.com/microsoft/ai-agents-for-beginners/issues) voor actuele behoeften.
+Zie [GitHub Issues](https://github.com/microsoft/ai-agents-for-beginners/issues) voor huidige behoeften.
 
-## Projectspecifieke Context
+## Project-specifieke context
 
-### Meertalige Ondersteuning
+### Meertalige ondersteuning
 
 Deze repository gebruikt een geautomatiseerd vertaalsysteem:
-- Ondersteunt 50+ talen
+- Ondersteund in 50+ talen
 - Vertalingen in `/translations/<lang-code>/` mappen
 - GitHub Actions workflow beheert vertaalupdates
-- Bronbestanden zijn in het Engels in de repository root
+- Bronbestanden zijn in het Engels in de root van de repository
 
 ### Lesstructuur
 
-Elke les volgt een consistent patroon:
-1. Video thumbnail met link
+Elke les volgt een consistente opzet:
+1. Videominiatuur met link
 2. Geschreven lesinhoud (README.md)
 3. Codevoorbeelden in meerdere frameworks
 4. Leerdoelen en vereisten
 5. Extra leerbronnen gelinkt
 
-### Naamgeving Code Voorbeelden
+### Codevoorbeeldnaamgeving
 
 Formaat: `<lesson-number>-python-agent-framework.ipynb`
 - `01-python-agent-framework.ipynb` - Les 1, MAF Python
-- `14-sequential.ipynb` - Les 14, MAF geavanceerde patronen
+- `14-sequential.ipynb` - Les 14, geavanceerde MAF patronen
 - `16-python-agent-framework.ipynb` - Les 16, productie klantondersteuningsagent
 - `17-local-agent-foundry-local.ipynb` - Les 17, lokale agent met Foundry Local + Qwen
 
-### Speciale Mappen
+### Speciale mappen
 
 - `translated_images/` - Gelokaliseerde afbeeldingen voor vertalingen
 - `images/` - Originele afbeeldingen voor Engelse inhoud
 - `.devcontainer/` - VS Code ontwikkelcontainer configuratie
 - `.github/` - GitHub Actions workflows en sjablonen
 
-### Afhankelijkheden
+### Dependencies
 
 Belangrijke pakketten uit `requirements.txt`:
 - `agent-framework` - Microsoft Agent Framework

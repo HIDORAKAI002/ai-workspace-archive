@@ -1,31 +1,31 @@
-# 🔍 Verkennen van Microsoft Agent Framework - Basisagent (.NET)
+# 🔍 Verkenning van het Microsoft Agent Framework - Basisagent (.NET)
 
 ## 📋 Leerdoelen
 
-Dit voorbeeld onderzoekt de fundamentele concepten van het Microsoft Agent Framework via een basisimplementatie van een agent in .NET. Je leert kernpatronen van agenten en begrijpt hoe intelligente agenten werken achter de schermen met C# en het .NET-ecosysteem.
+Dit voorbeeld onderzoekt de fundamentele concepten van het Microsoft Agent Framework via een basisagentimplementatie in .NET. Je leert kernpatronen van agenten en begrijpt hoe intelligente agenten onder de motorkap werken met C# en het .NET-ecosysteem.
 
 ### Wat je zult ontdekken
 
-- 🏗️ **Agentarchitectuur**: Begrip van de basisstructuur van AI-agenten in .NET
+- 🏗️ **Agentarchitectuur**: Begrijpen van de basisstructuur van AI-agenten in .NET
 - 🛠️ **Toolintegratie**: Hoe agenten externe functies gebruiken om mogelijkheden uit te breiden  
-- 💬 **Gespreksflow**: Beheren van meervoudige gespreksturns en context met threadbeheer
-- 🔧 **Configuratiepatronen**: Best practices voor agentconfiguratie en -beheer in .NET
+- 💬 **Gespreksstroom**: Beheer van meertrapsgesprekken en context met threadbeheer
+- 🔧 **Configuratiepatronen**: Best practices voor agentinstelling en beheer in .NET
 
-## 🎯 Belangrijke begrippen behandeld
+## 🎯 Belangrijke concepten behandeld
 
-### Principes van het Agent Framework
+### Principes van het agentframework
 
-- **Autonomie**: Hoe agenten onafhankelijke beslissingen nemen met behulp van .NET AI-abstrahenten
-- **Reactiviteit**: Reageren op veranderingen in de omgeving en gebruikersinvoer
+- **Autonomie**: Hoe agenten onafhankelijk beslissingen nemen met .NET AI-abstraheringen
+- **Reactievermogen**: Reageren op omgevingsveranderingen en gebruikersinput
 - **Proactiviteit**: Initiatief nemen op basis van doelen en context
-- **Sociale vaardigheden**: Interactie via natuurlijke taal met gespreksthreads
+- **Sociale vaardigheid**: Interactie via natuurlijke taal met gesprekthreads
 
 ### Technische componenten
 
-- **AIAgent**: Kernagent orkestratie en gesprekbeheer (.NET)
-- **Toolfuncties**: Uitbreiden van agentmogelijkheden met C#-methoden en attributen
-- **Azure OpenAI-integratie**: Taalmodellen aanroepen via de Azure OpenAI Responses API
-- **Veilige configuratie**: Endpoints beheren op basis van de omgeving
+- **AIAgent**: Kernagentorkestratie en gesprekbeheer (.NET)
+- **Toolfuncties**: Uitbreiding van agentmogelijkheden met C#-methoden en attributen
+- **Azure OpenAI-integratie**: Gebruik van taalmodellen via de Azure OpenAI Responses API
+- **Veilige configuratie**: Endpointebeheer op basis van omgeving
 
 ## 🔧 Technische stack
 
@@ -33,50 +33,50 @@ Dit voorbeeld onderzoekt de fundamentele concepten van het Microsoft Agent Frame
 
 - Microsoft Agent Framework (.NET)
 - Azure OpenAI (Responses API) integratie
-- Azure.AI.OpenAI clientpatronen
-- Omgevingsconfiguratie met DotNetEnv
+- Azure.AI.OpenAI-client patronen
+- Configuratie op basis van omgeving met DotNetEnv
 
 ### Agentmogelijkheden
 
-- Begrip en genereren van natuurlijke taal
+- Begrip en generatie van natuurlijke taal
 - Functieaanroep en toolgebruik met C#-attributen
-- Contextbewuste respons met gesprekssessies
-- Uitbreidbare architectuur met dependency injection patronen
+- Contextbewuste reacties met gesprekssessies
+- Uitbreidbare architectuur met dependency injection-patronen
 
 ## 📚 Frameworkvergelijking
 
-Dit voorbeeld toont de aanpak van het Microsoft Agent Framework vergeleken met andere agentframeworks:
+Dit voorbeeld toont de benadering van het Microsoft Agent Framework vergeleken met andere agent-frameworks:
 
 | Kenmerk | Microsoft Agent Framework | Andere Frameworks |
 |---------|-------------------------|------------------|
 | **Integratie** | Native Microsoft-ecosysteem | Gevarieerde compatibiliteit |
 | **Eenvoud** | Schone, intuïtieve API | Vaak complexe setup |
-| **Uitbreidbaarheid** | Gemakkelijke toolintegratie | Afhankelijk van framework |
-| **Geschikt voor productie** | Ontworpen voor productie | Verschilt per framework |
+| **Uitbreidbaarheid** | Gemakkelijke toolintegratie | Framework-afhankelijk |
+| **Enterprise Ready** | Gebouwd voor productie | Verschilt per framework |
 
 ## 🚀 Aan de slag
 
 ### Vereisten
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) of hoger
-- Een [Azure-abonnement](https://azure.microsoft.com/free/) met een Azure OpenAI-resource en een modeluitrol
-- De [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — inloggen met `az login`
+- Een [Azure-abonnement](https://azure.microsoft.com/free/) met een Azure OpenAI-resource en een modelimplementatie
+- De [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — meld je aan met `az login`
 
 ### Vereiste omgevingsvariabelen
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Meld je dan aan zodat AzureCliCredential een token kan verkrijgen
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Log dan in zodat AzureCliCredential een token kan krijgen
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Meld je dan aan zodat AzureCliCredential een token kan krijgen
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Meld u vervolgens aan zodat AzureCliCredential een token kan krijgen
 az login
 ```
 
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,15 +215,15 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 Belangrijkste leerpunten
+## 🎓 Belangrijkste conclusies
 
-1. **Agentarchitectuur**: Het Microsoft Agent Framework biedt een schone, typesafe benadering om AI-agenten te bouwen in .NET
-2. **Toolintegratie**: Functies met `[Description]` attributen worden beschikbare tools voor de agent
-3. **Gesprekscontext**: Sessiebeheer maakt meerturn-gesprekken met volledige contextbewustzijn mogelijk
-4. **Configuratiebeheer**: Omgevingsvariabelen en veilige credentialafhandeling volgen .NET best practices
+1. **Agentarchitectuur**: Het Microsoft Agent Framework biedt een schone, typesafe aanpak voor het bouwen van AI-agenten in .NET
+2. **Toolintegratie**: Functies die zijn gedecoreerd met `[Description]`-attributen worden beschikbare tools voor de agent
+3. **Gesprekcontext**: Sessiebeheer maakt meertrapsgesprekken mogelijk met volledige contextbewustzijn
+4. **Configuratiebeheer**: Omgevingsvariabelen en veilige credentieafhandeling volgen .NET best practices
 5. **Azure OpenAI Responses API**: De agent gebruikt de Azure OpenAI Responses API via de Azure.AI.OpenAI SDK
 
-## 🔗 Aanvullende bronnen
+## 🔗 Extra bronnen
 
 - [Microsoft Agent Framework Documentatie](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI in Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)

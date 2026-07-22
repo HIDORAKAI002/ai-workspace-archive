@@ -2,30 +2,30 @@
 
 ## 📋 Gambaran Keseluruhan Senario
 
-Contoh ini menunjukkan bagaimana membina ejen perancangan perjalanan yang pintar menggunakan Microsoft Agent Framework untuk .NET. Ejen ini boleh menjana jadual perjalanan sehari yang diperibadikan secara automatik untuk destinasi rawak di seluruh dunia.
+Contoh ini menunjukkan cara membina ejen perancangan perjalanan pintar menggunakan Microsoft Agent Framework untuk .NET. Ejen ini boleh secara automatik menghasilkan jadual perjalanan sehari yang diperibadikan untuk destinasi rawak di seluruh dunia.
 
-### Keupayaan Utama:
+### Kebolehan Utama:
 
-- 🎲 **Pemilihan Destinasi Rawak**: Menggunakan alat khusus untuk memilih tempat percutian
-- 🗺️ **Perancangan Perjalanan Pintar**: Membuat jadual perjalanan terperinci hari demi hari
-- 🔄 **Penstriman Masa Nyata**: Menyokong respons segera dan streaming
-- 🛠️ **Integrasi Alat Khusus**: Menunjukkan cara untuk memperluaskan keupayaan ejen
+- 🎲 **Pemilihan Destinasi Rawak**: Menggunakan alat tersuai untuk memilih tempat percutian
+- 🗺️ **Perancangan Perjalanan Pintar**: Mencipta jadual perjalanan sehari demi sehari yang terperinci
+- 🔄 **Penstriman Masa Nyata**: Menyokong tindak balas segera dan penstriman
+- 🛠️ **Integrasi Alat Tersuai**: Menunjukkan bagaimana memperluas kebolehan ejen
 
 ## 🔧 Seni Bina Teknikal
 
 ### Teknologi Teras
 
 - **Microsoft Agent Framework**: Pelaksanaan .NET terkini untuk pembangunan ejen AI
-- **Azure OpenAI (Responses API)**: Menggunakan Azure OpenAI Responses API untuk inferens model
+- **Azure OpenAI (Responses API)**: Menggunakan API Tindak Balas Azure OpenAI untuk inferens model
 - **Azure Identity**: Log masuk selamat melalui `AzureCliCredential` (`az login`)
 - **Konfigurasi Selamat**: Pengurusan titik akhir berdasarkan persekitaran
 
 ### Komponen Utama
 
-1. **AIAgent**: Pengawal selia utama ejen yang mengendalikan aliran perbualan
-2. **Alat Khusus**: Fungsi `GetRandomDestination()` boleh digunakan oleh ejen
-3. **Klien Respons**: Antaramuka perbualan berasaskan Azure OpenAI Responses
-4. **Sokongan Penstriman**: Keupayaan menjana respons masa nyata
+1. **AIAgent**: Pengendali utama ejen yang mengendalikan aliran perbualan
+2. **Alat Tersuai**: Fungsi `GetRandomDestination()` tersedia untuk ejen
+3. **Klien Tindak Balas**: Antara muka perbualan berasaskan Azure OpenAI Responses
+4. **Sokongan Penstriman**: Kebolehan menjana tindak balas masa nyata
 
 ### Corak Integrasi
 
@@ -33,7 +33,7 @@ Contoh ini menunjukkan bagaimana membina ejen perancangan perjalanan yang pintar
 graph LR
     A[Permintaan Pengguna] --> B[Ejen AI]
     B --> C[Azure OpenAI (API Respons)]
-    B --> D[Alat GetRandomDestination]
+    B --> D[Alat Destinasi Rawak]
     C --> E[Itinerari Perjalanan]
     D --> E
 ```
@@ -43,28 +43,28 @@ graph LR
 ### Prasyarat
 
 - [SDK .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) atau lebih tinggi
-- Sebuah [langganan Azure](https://azure.microsoft.com/free/) dengan sumber Azure OpenAI dan penerapan model
-- Perisian [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — log masuk dengan `az login`
+- Sebuah [langganan Azure](https://azure.microsoft.com/free/) dengan sumber Azure OpenAI dan penempatan model
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — log masuk dengan `az login`
 
 ### Pembolehubah Persekitaran Diperlukan
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Kemudian log masuk supaya AzureCliCredential dapat mendapatkan token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Kemudian daftar masuk supaya AzureCliCredential dapat memperoleh token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # Kemudian log masuk supaya AzureCliCredential dapat mendapatkan token
 az login
 ```
 
-### Kod Sampel
+### Contoh Kod
 
 Untuk menjalankan contoh kod,
 
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -162,7 +162,7 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 1. **Seni Bina Ejen**: Microsoft Agent Framework menyediakan pendekatan yang bersih dan selamat jenis untuk membina ejen AI dalam .NET
 2. **Integrasi Alat**: Fungsi yang dihiasi dengan atribut `[Description]` menjadi alat yang tersedia untuk ejen
 3. **Pengurusan Konfigurasi**: Pembolehubah persekitaran dan pengendalian kelayakan selamat mengikut amalan terbaik .NET
-4. **Azure OpenAI Responses API**: Ejen menggunakan Azure OpenAI Responses API melalui SDK Azure.AI.OpenAI
+4. **API Tindak Balas Azure OpenAI**: Ejen menggunakan API Tindak Balas Azure OpenAI melalui SDK Azure.AI.OpenAI
 
 ## 🔗 Sumber Tambahan
 

@@ -2,61 +2,61 @@
 
 ## 📋 Obiettivi di Apprendimento
 
-Questo notebook dimostra i modelli di integrazione di strumenti di livello enterprise utilizzando il Microsoft Agent Framework in .NET con Azure OpenAI (Responses API). Imparerai a costruire agenti sofisticati con più strumenti specializzati, sfruttando il forte typing di C# e le funzionalità enterprise di .NET.
+Questo notebook dimostra modelli di integrazione di strumenti di livello enterprise utilizzando il Microsoft Agent Framework in .NET con Azure OpenAI (Responses API). Imparerai a costruire agenti sofisticati con molteplici strumenti specializzati, sfruttando il typing forte di C# e le funzionalità enterprise di .NET.
 
-### Capacità Avanzate degli Strumenti che Imparerai
+### Capacità Avanzate degli Strumenti che Dominerai
 
 - 🔧 **Architettura Multi-Strumento**: Costruire agenti con molteplici capacità specializzate
-- 🎯 **Esecuzione Strumenti Type-Safe**: Sfruttare la validazione a compile-time di C#
-- 📊 **Pattern di Strumenti Enterprise**: Progettazione di strumenti pronti per la produzione e gestione degli errori
-- 🔗 **Composizione di Strumenti**: Combinare strumenti per flussi di lavoro aziendali complessi
+- 🎯 **Esecuzione degli Strumenti Tipo-Sicura**: Sfruttare la validazione a tempo di compilazione di C#
+- 📊 **Modelli di Strumenti Enterprise**: Progettazione di strumenti pronti per la produzione e gestione degli errori
+- 🔗 **Composizione degli Strumenti**: Combinare strumenti per flussi di lavoro aziendali complessi
 
-## 🎯 Benefici dell'Architettura degli Strumenti .NET
+## 🎯 Vantaggi dell'Architettura degli Strumenti .NET
 
-### Caratteristiche degli Strumenti Enterprise
+### Caratteristiche Enterprise degli Strumenti
 
-- **Validazione a Compile-Time**: Il tipo forte garantisce la correttezza dei parametri degli strumenti
+- **Validazione a Tempo di Compilazione**: Il typing forte assicura la correttezza dei parametri degli strumenti
 - **Dependency Injection**: Integrazione del contenitore IoC per la gestione degli strumenti
-- **Pattern Async/Await**: Esecuzione non bloccante degli strumenti con corretta gestione delle risorse
-- **Logging Strutturato**: Integrazione del logging incorporato per il monitoraggio delle esecuzioni degli strumenti
+- **Modelli Async/Await**: Esecuzione non bloccante degli strumenti con gestione appropriata delle risorse
+- **Logging Strutturato**: Integrazione del logging incorporata per il monitoraggio dell'esecuzione degli strumenti
 
-### Pattern Pronti per la Produzione
+### Modelli Pronti per la Produzione
 
 - **Gestione delle Eccezioni**: Gestione completa degli errori con eccezioni tipizzate
-- **Gestione delle Risorse**: Pattern corretti di disposal e gestione della memoria
-- **Monitoraggio delle Prestazioni**: Metriche integrate e contatori delle prestazioni
-- **Gestione della Configurazione**: Configurazione type-safe con validazione
+- **Gestione delle Risorse**: Modelli corretti di disposal e gestione della memoria
+- **Monitoraggio delle Prestazioni**: Metriche incorporate e contatori di prestazioni
+- **Gestione della Configurazione**: Configurazione tipo-sicura con validazione
 
 ## 🔧 Architettura Tecnica
 
-### Componenti Principali degli Strumenti .NET
+### Componenti Core degli Strumenti .NET
 
-- **Microsoft.Extensions.AI**: Livello di astrazione unificato degli strumenti
-- **Microsoft.Agents.AI**: Orchestrazione di strumenti di livello enterprise
+- **Microsoft.Extensions.AI**: Strato unificato di astrazione degli strumenti
+- **Microsoft.Agents.AI**: Orchestrazione degli strumenti di livello enterprise
 - **Azure OpenAI (Responses API)**: Client API ad alte prestazioni con connection pooling
 
 ### Pipeline di Esecuzione degli Strumenti
 
 ```mermaid
 graph LR
-    A[Richiesta Utente] --> B[Analisi dell'Agente]
-    B --> C[Selezione dello Strumento]
-    C --> D[Validazione del Tipo]
-    B --> E[Associazione dei Parametri]
-    E --> F[Esecuzione dello Strumento]
+    A[Richiesta Utente] --> B[Analisi Agente]
+    B --> C[Selezione Strumento]
+    C --> D[Validazione Tipo]
+    B --> E[Associazione Parametri]
+    E --> F[Esecuzione Strumento]
     C --> F
-    F --> G[Elaborazione del Risultato]
+    F --> G[Elaborazione Risultati]
     D --> G
     G --> H[Risposta]
 ```
 
-## 🛠️ Categorie e Pattern degli Strumenti
+## 🛠️ Categorie & Modelli di Strumenti
 
 ### 1. **Strumenti di Elaborazione Dati**
 
-- **Validazione Input**: Typing forte con annotazioni dati
-- **Operazioni di Trasformazione**: Conversione e formattazione dati type-safe
-- **Logica di Business**: Strumenti di calcolo e analisi specifici del dominio
+- **Validazione Input**: Typing forte con annotazioni sui dati
+- **Operazioni di Trasformazione**: Conversione e formattazione dati tipo-sicure
+- **Logica di Business**: Strumenti di calcolo e analisi specifici di dominio
 - **Formattazione Output**: Generazione di risposte strutturate
 
 ### 2. **Strumenti di Integrazione**
@@ -64,31 +64,31 @@ graph LR
 - **Connettori API**: Integrazione di servizi RESTful con HttpClient
 - **Strumenti Database**: Integrazione Entity Framework per accesso ai dati
 - **Operazioni su File**: Operazioni sicure sul file system con validazione
-- **Servizi Esterni**: Pattern di integrazione di servizi di terze parti
+- **Servizi Esterni**: Modelli di integrazione per servizi di terze parti
 
-### 3. **Strumenti di Utilità**
+### 3. **Strumenti Utilità**
 
-- **Elaborazione Testo**: Utilità di manipolazione e formattazione stringhe
+- **Elaborazione Testo**: Utilità di manipolazione e formattazione di stringhe
 - **Operazioni Data/Ora**: Calcoli data/ora consapevoli della cultura
 - **Strumenti Matematici**: Calcoli di precisione e operazioni statistiche
-- **Strumenti di Validazione**: Validazione regole di business e verifica dati
+- **Strumenti di Validazione**: Validazione delle regole di business e verifica dati
 
-Pronti a costruire agenti di livello enterprise con potenti capacità type-safe degli strumenti in .NET? Costruiamo soluzioni di livello professionale! 🏢⚡
+Pronto a costruire agenti enterprise-grade con potenti capacità tipo-sicure in .NET? Progettiamo soluzioni di livello professionale! 🏢⚡
 
-## 🚀 Per Iniziare
+## 🚀 Iniziamo
 
 ### Prerequisiti
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) o versione superiore
-- Un [abbonamento Azure](https://azure.microsoft.com/free/) con una risorsa Azure OpenAI e un deployment di modello
-- La [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — accedi con `az login`
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) o superiore
+- Un [abbonamento Azure](https://azure.microsoft.com/free/) con una risorsa Azure OpenAI e un deployment modello
+- La [CLI di Azure](https://learn.microsoft.com/cli/azure/install-azure-cli) — accedi con `az login`
 
-### Variabili d'Ambiente Richieste
+### Variabili d’Ambiente Richieste
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 # Quindi accedi in modo che AzureCliCredential possa ottenere un token
 az login
 ```
@@ -96,14 +96,14 @@ az login
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # Quindi accedi in modo che AzureCliCredential possa ottenere un token
 az login
 ```
 
 ### Codice di Esempio
 
-Per eseguire l'esempio di codice,
+Per eseguire l’esempio di codice,
 
 ```bash
 # zsh/bash
@@ -168,7 +168,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

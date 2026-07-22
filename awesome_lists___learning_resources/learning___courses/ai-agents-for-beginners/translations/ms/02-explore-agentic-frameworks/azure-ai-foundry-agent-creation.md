@@ -1,42 +1,42 @@
 # Pembangunan Perkhidmatan Ejen Microsoft Foundry
 
-Dalam latihan ini, anda menggunakan alatan Perkhidmatan Ejen Microsoft Foundry di [portal Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) untuk mencipta ejen untuk Tempahan Penerbangan. Ejen ini akan dapat berinteraksi dengan pengguna dan menyediakan maklumat mengenai penerbangan.
+Dalam latihan ini, anda menggunakan alat Perkhidmatan Ejen Microsoft Foundry di [portal Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) untuk mencipta ejen untuk Tempahan Penerbangan. Ejen ini dapat berinteraksi dengan pengguna dan memberikan maklumat tentang penerbangan.
 
 ## Prasyarat
 
 Untuk melengkapkan latihan ini, anda memerlukan yang berikut:
 1. Akaun Azure dengan langganan aktif. [Cipta akaun secara percuma](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst).
-2. Anda memerlukan kebenaran untuk mencipta hab Microsoft Foundry atau mempunyai satu hab dicipta untuk anda.
-    - Jika peranan anda adalah Penyumbang atau Pemilik, anda boleh mengikuti langkah-langkah dalam tutorial ini.
+2. Anda memerlukan kebenaran untuk mencipta hab Microsoft Foundry atau mempunyai satu yang dicipta untuk anda.
+    - Jika peranan anda ialah Penyumbang atau Pemilik, anda boleh mengikuti langkah dalam tutorial ini.
 
 ## Cipta hab Microsoft Foundry
 
 > **Nota:** Microsoft Foundry sebelum ini dikenali sebagai Azure AI Studio.
 
-1. Ikuti garis panduan ini dari pos blog [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) untuk mencipta hab Microsoft Foundry.
-2. Setelah projek anda dicipta, tutup sebarang petua yang dipaparkan dan semak halaman projek dalam portal Microsoft Foundry, yang sepatutnya kelihatan seperti imej berikut:
+1. Ikuti garis panduan ini dari [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) catatan blog untuk mencipta hab Microsoft Foundry.
+2. Apabila projek anda dicipta, tutup sebarang petua yang dipaparkan dan semak halaman projek dalam portal Microsoft Foundry, yang sepatutnya kelihatan seperti imej berikut:
 
     ![Microsoft Foundry Project](../../../translated_images/ms/azure-ai-foundry.88d0c35298348c2f.webp)
 
-## Sampaikan model
+## Serahkan model
 
-1. Dalam panel di sebelah kiri untuk projek anda, di bahagian **Aset saya**, pilih halaman **Model + titik akhir**.
-2. Dalam halaman **Model + titik akhir**, di tab **Penempatan model**, pada menu **+ Sampaikan model**, pilih **Sampaikan model asas**.
-3. Cari model `gpt-4.1-mini` dalam senarai, kemudian pilih dan sahkan.
+1. Dalam panel di sebelah kiri untuk projek anda, di bahagian **My assets**, pilih halaman **Models + endpoints**.
+2. Dalam halaman **Models + endpoints**, di tab **Model deployments**, dalam menu **+ Deploy model**, pilih **Deploy base model**.
+3. Cari model `gpt-5-mini` dalam senarai, kemudian pilih dan sahkan.
 
-    > **Nota**: Mengurangkan TPM membantu mengelakkan penggunaan kuota berlebihan dalam langganan yang anda gunakan.
+    > **Nota**: Mengurangkan TPM membantu mengelakkan penggunaan kuota berlebihan yang tersedia dalam langganan yang anda gunakan.
 
     ![Model Deployed](../../../translated_images/ms/model-deployment.3749c53fb81e18fd.webp)
 
 ## Cipta ejen
 
-Sekarang bahawa anda telah menyampaikan model, anda boleh mencipta ejen. Ejen ialah model AI perbualan yang boleh digunakan untuk berinteraksi dengan pengguna.
+Sekarang anda telah menyerahkan model, anda boleh mencipta ejen. Ejen ialah model AI perbualan yang boleh digunakan untuk berinteraksi dengan pengguna.
 
-1. Dalam panel di sebelah kiri untuk projek anda, di bahagian **Bina & Sesuaikan**, pilih halaman **Ejen**.
-2. Klik **+ Cipta ejen** untuk mencipta ejen baru. Dalam kotak dialog **Penetapan Ejen**:
+1. Dalam panel di sebelah kiri untuk projek anda, di bahagian **Build & Customize**, pilih halaman **Agents**.
+2. Klik **+ Create agent** untuk mencipta ejen baru. Dalam kotak dialog **Agent Setup**:
     - Masukkan nama untuk ejen, seperti `FlightAgent`.
-    - Pastikan penempatan model `gpt-4.1-mini` yang anda buat sebelum ini dipilih
-    - Tetapkan **Arahan** mengikut arahan yang anda mahu ejen ikuti. Berikut adalah contoh:
+    - Pastikan penyerahan model `gpt-5-mini` yang anda cipta sebelum ini dipilih
+    - Tetapkan **Arahan** mengikut arahan yang anda ingin ejen ikuti. Berikut ialah contoh:
     ```
     You are FlightAgent, a virtual assistant specialized in handling flight-related queries. Your role includes assisting users with searching for flights, retrieving flight details, checking seat availability, and providing real-time flight status. Follow the instructions below to ensure clarity and effectiveness in your responses:
 
@@ -66,32 +66,32 @@ Sekarang bahawa anda telah menyampaikan model, anda boleh mencipta ejen. Ejen ia
 > [!NOTE]
 > Untuk arahan terperinci, anda boleh semak [repositori ini](https://github.com/ShivamGoyal03/RoamMind) untuk maklumat lanjut.
     
-> Selain itu, anda boleh menambah **Pangkalan Pengetahuan** dan **Tindakan** untuk meningkatkan keupayaan ejen menyediakan maklumat lebih banyak dan menjalankan tugas automatik berdasarkan permintaan pengguna. Untuk latihan ini, anda boleh abaikan langkah-langkah ini.
+> Selain itu, anda boleh menambah **Pangkalan Pengetahuan** dan **Tindakan** untuk meningkatkan keupayaan ejen memberikan lebih banyak maklumat dan melaksanakan tugas automatik berdasarkan permintaan pengguna. Untuk latihan ini, anda boleh langkau langkah-langkah ini.
     
 ![Agent Setup](../../../translated_images/ms/agent-setup.9bbb8755bf5df672.webp)
 
-3. Untuk mencipta ejen multi-AI baru, cuma klik **Ejen Baru**. Ejen yang baru dicipta kemudiannya akan dipaparkan pada halaman Ejen.
+3. Untuk mencipta ejen multi-AI baru, klik sahaja **New Agent**. Ejen yang baru dicipta akan dipaparkan pada halaman Agen.
 
 
 ## Uji ejen
 
-Selepas mencipta ejen, anda boleh mengujinya untuk melihat bagaimana ia bertindak balas kepada pertanyaan pengguna dalam taman permainan portal Microsoft Foundry.
+Selepas mencipta ejen, anda boleh mengujinya untuk melihat bagaimana ia memberi respons kepada pertanyaan pengguna dalam padang permainan portal Microsoft Foundry.
 
-1. Di bahagian atas panel **Penetapan** untuk ejen anda, pilih **Cuba dalam taman permainan**.
-2. Dalam panel **Taman permainan**, anda boleh berinteraksi dengan ejen dengan menaip pertanyaan dalam tetingkap sembang. Contohnya, anda boleh meminta ejen mencari penerbangan dari Seattle ke New York pada 28 haribulan.
+1. Di bahagian atas panel **Setup** untuk ejen anda, pilih **Try in playground**.
+2. Dalam panel **Playground**, anda boleh berinteraksi dengan ejen dengan menaip pertanyaan di tetingkap sembang. Contohnya, anda boleh minta ejen mencari penerbangan dari Seattle ke New York pada 28 haribulan.
 
-    > **Nota**: Ejen mungkin tidak memberikan jawapan tepat, kerana tiada data masa nyata digunakan dalam latihan ini. Tujuannya adalah untuk menguji keupayaan ejen memahami dan memberi jawapan kepada pertanyaan pengguna berdasarkan arahan yang diberikan.
+    > **Nota**: Ejen mungkin tidak memberikan respons yang tepat, kerana tiada data masa nyata digunakan dalam latihan ini. Tujuannya adalah untuk menguji keupayaan ejen memahami dan memberi respons kepada pertanyaan pengguna berdasarkan arahan yang diberikan.
 
     ![Agent Playground](../../../translated_images/ms/agent-playground.dc146586de715010.webp)
 
-3. Selepas menguji ejen, anda boleh terus menyesuaikannya dengan menambah niat lebih banyak, data latihan, dan tindakan untuk meningkatkan keupayaannya.
+3. Selepas menguji ejen, anda boleh menyesuaikannya lagi dengan menambah lebih banyak niat, data latihan, dan tindakan untuk meningkatkan keupayaannya.
 
 ## Bersihkan sumber
 
-Apabila anda selesai menguji ejen, anda boleh memadamkannya untuk mengelakkan kos tambahan.
-1. Buka [portal Azure](https://portal.azure.com) dan lihat kandungan kumpulan sumber di mana anda menyampaikan sumber hab yang digunakan dalam latihan ini.
-2. Di bar alat, pilih **Padam kumpulan sumber**.
-3. Masukkan nama kumpulan sumber dan sahkan bahawa anda ingin memadamnya.
+Apabila anda selesai menguji ejen, anda boleh memadamnya untuk mengelakkan kos tambahan.
+1. Buka [portal Azure](https://portal.azure.com) dan lihat kandungan kumpulan sumber di mana anda menempatkan sumber hab yang digunakan dalam latihan ini.
+2. Pada bar alat, pilih **Delete resource group**.
+3. Masukkan nama kumpulan sumber dan sahkan yang anda mahu memadamkannya.
 
 ## Sumber
 

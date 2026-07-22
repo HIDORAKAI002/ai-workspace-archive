@@ -1,15 +1,15 @@
-# 🎯 Padrões de Planejamento & Design com Azure OpenAI (API de Respostas) (.NET)
+# 🎯 Padrões de Planejamento & Design com Azure OpenAI (Responses API) (.NET)
 
 ## 📋 Objetivos de Aprendizagem
 
-Este notebook demonstra padrões de planejamento e design de nível empresarial para construir agentes inteligentes usando o Microsoft Agent Framework em .NET com Azure OpenAI (API de Respostas). Você aprenderá a criar agentes que podem decompor problemas complexos, planejar soluções de múltiplas etapas e executar fluxos de trabalho sofisticados com os recursos empresariais do .NET.
+Este notebook demonstra padrões de design e planejamento em nível empresarial para criar agentes inteligentes usando o Microsoft Agent Framework em .NET com Azure OpenAI (Responses API). Você aprenderá a criar agentes que podem decompor problemas complexos, planejar soluções em múltiplas etapas e executar fluxos de trabalho sofisticados com os recursos empresariais do .NET.
 
 ## ⚙️ Pré-requisitos & Configuração
 
 **Ambiente de Desenvolvimento:**
 - .NET 9.0 SDK ou superior
-- Visual Studio 2022 ou VS Code com a extensão C#
-- Uma assinatura Azure com um recurso Azure OpenAI e um deployment de modelo
+- Visual Studio 2022 ou VS Code com extensão C#
+- Uma assinatura do Azure com um recurso Azure OpenAI e um deployment de modelo
 - O Azure CLI — faça login com `az login`
 
 **Dependências Necessárias:**
@@ -25,12 +25,12 @@ Este notebook demonstra padrões de planejamento e design de nível empresarial 
 **Configuração do Ambiente (arquivo .env):**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
 ## Executando o Código
 
-Esta lição inclui uma implementação de Single File App em .NET. Para executá-la:
+Esta lição inclui uma implementação de Aplicativo de Arquivo Único .NET. Para executá-lo:
 
 ```bash
 # Torne o arquivo executável (Linux/macOS)
@@ -54,7 +54,7 @@ A implementação completa está disponível em `07-dotnet-agent-framework.cs`, 
 - Configuração do cliente Azure OpenAI e criação de um agente de IA usando `GetChatClient().AsAIAgent()`
 - Definição de modelos de dados estruturados (Plan e TravelPlan) com serialização JSON
 - Criação de um agente de IA com saída estruturada usando esquema JSON
-- Execução de solicitações de planejamento com respostas tipadas
+- Execução de solicitações de planejamento com respostas tipadas e seguras
 
 ## Conceitos-Chave
 
@@ -103,18 +103,18 @@ ChatClientAgentOptions agentOptions = new()
 
 ### Instruções do Agente de Planejamento
 
-O agente atua como um coordenador, delegando tarefas para sub-agentes especializados:
+O agente atua como coordenador, delegando tarefas a sub-agentes especializados:
 
-- FlightBooking: Para reservar voos e fornecer informações de voos
-- HotelBooking: Para reservar hotéis e fornecer informações de hotéis
-- CarRental: Para reservar carros e fornecer informações de aluguel de carros
-- ActivitiesBooking: Para reservar atividades e fornecer informações de atividades
+- FlightBooking: Para reservar voos e fornecer informações sobre voos
+- HotelBooking: Para reservar hotéis e fornecer informações sobre hotéis
+- CarRental: Para aluguel de carros e fornecimento de informações sobre aluguel de carros
+- ActivitiesBooking: Para reservar atividades e fornecer informações sobre atividades
 - DestinationInfo: Para fornecer informações sobre destinos
 - DefaultAgent: Para lidar com solicitações gerais
 
-## Saída Esperada
+## Resultado Esperado
 
-Quando você executar o agente com uma solicitação de planejamento de viagem, ele analisará a solicitação e gerará um plano estruturado com atribuições de tarefas apropriadas para agentes especializados, formatado como JSON conforme o esquema TravelPlan.
+Quando você executar o agente com uma solicitação de planejamento de viagem, ele analisará a solicitação e gerará um plano estruturado com atribuição apropriada de tarefas para agentes especializados, formatado como JSON em conformidade com o esquema TravelPlan.
 
 ---
 

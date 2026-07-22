@@ -1,42 +1,42 @@
 # Microsoft Foundry एजेंट सेवा विकास
 
-इस अभ्यास में, आप [Microsoft Foundry पोर्टल](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) में Microsoft Foundry एजेंट सेवा टूल्स का उपयोग करके फ्लाइट बुकिंग के लिए एक एजेंट बनाएंगे। यह एजेंट उपयोगकर्ताओं के साथ बातचीत कर सकेगा और उड़ानों के बारे में जानकारी प्रदान करेगा।
+इस अभ्यास में, आप [Microsoft Foundry पोर्टल](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) में Microsoft Foundry एजेंट सेवा टूल्स का उपयोग कर Flight Booking के लिए एक एजेंट बनाएंगे। एजेंट उपयोगकर्ताओं के साथ बातचीत करने और उड़ानों के बारे में जानकारी प्रदान करने में सक्षम होगा।
 
-## पूर्वापेक्षाएँ
+## आवश्यकताएँ
 
-इस अभ्यास को पूरा करने के लिए, आपके पास निम्नलिखित होना चाहिए:
-1. एक सक्रिय सदस्यता वाले Azure खाते। [मुफ़्त खाते बनाएं](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst)।
-2. आपके पास Microsoft Foundry हब बनाने की अनुमति होनी चाहिए या आपके लिए कोई हब बनाया हुआ होना चाहिए।
-    - यदि आपकी भूमिका Contributor या Owner है, तो आप इस ट्यूटोरियल में दिए गए चरणों का पालन कर सकते हैं।
+इस अभ्यास को पूरा करने के लिए, आपके पास निम्नलिखित होने चाहिए:
+1. एक Azure खाता जिसमें एक सक्रिय सदस्यता हो। [मुफ्त में खाता बनाएं](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst)।
+2. आपके पास Microsoft Foundry हब बनाने की अनुमति हो या आपके लिए एक बनाया गया हो।
+    - यदि आपकी भूमिका Contributor या Owner है, तो आप इस ट्यूटोरियल में दिए चरणों का पालन कर सकते हैं।
 
-## Microsoft Foundry हब बनाएँ
+## Microsoft Foundry हब बनाएं
 
-> **नोट:** Microsoft Foundry पहले Azure AI Studio के नाम से जाना जाता था।
+> **टिप्पणी:** Microsoft Foundry पहले Azure AI Studio के नाम से जाना जाता था।
 
-1. Microsoft Foundry हब बनाने के लिए [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) ब्लॉग पोस्ट में दिए गए निर्देशों का पालन करें।
+1. Microsoft Foundry हब बनाने के लिए [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) ब्लॉग पोस्ट से इन निर्देशों का पालन करें।
 2. जब आपका प्रोजेक्ट बन जाए, तो प्रदर्शित किसी भी टिप्स को बंद करें और Microsoft Foundry पोर्टल में प्रोजेक्ट पेज की समीक्षा करें, जो निम्न छवि के समान दिखना चाहिए:
 
     ![Microsoft Foundry Project](../../../translated_images/hi/azure-ai-foundry.88d0c35298348c2f.webp)
 
-## मॉडल तैनात करें
+## एक मॉडल तैनात करें
 
-1. अपने प्रोजेक्ट के लिए बाएं पैन में, **My assets** सेक्शन में, **Models + endpoints** पेज चुनें।
+1. अपने प्रोजेक्ट के बाएँ पेन में, **My assets** अनुभाग में, **Models + endpoints** पेज चुनें।
 2. **Models + endpoints** पेज में, **Model deployments** टैब में, **+ Deploy model** मेनू से **Deploy base model** चुनें।
-3. सूची में `gpt-4.1-mini` मॉडल खोजें, फिर उसे चुनें और पुष्टि करें।
+3. सूची में `gpt-5-mini` मॉडल खोजें, फिर इसे चुनें और पुष्टि करें।
 
-    > **नोट**: TPM कम करने से सदस्यता में उपलब्ध कोटा के अत्यधिक उपयोग से बचा जा सकता है।
+    > **टिप्पणी**: TPM कम करने से आप उपयोग की जा रही सदस्यता में उपलब्ध कोटा का अत्यधिक उपयोग करने से बच सकते हैं।
 
     ![Model Deployed](../../../translated_images/hi/model-deployment.3749c53fb81e18fd.webp)
 
-## एक एजेंट बनाएँ
+## एक एजेंट बनाएं
 
-अब जब आपने मॉडल तैनात कर लिया है, तो आप एक एजेंट बना सकते हैं। एजेंट एक संवादात्मक एआई मॉडल है जिसका उपयोग उपयोगकर्ताओं के साथ बातचीत करने के लिए किया जाता है।
+अब जब आपने एक मॉडल तैनात कर लिया है, तो आप एक एजेंट बना सकते हैं। एजेंट एक वार्तालाप AI मॉडल है जिसे उपयोगकर्ताओं के साथ बातचीत के लिए उपयोग किया जाता है।
 
-1. अपने प्रोजेक्ट के लिए बाएं पैन में, **Build & Customize** सेक्शन में, **Agents** पेज चुने।
-2. नया एजेंट बनाने के लिए **+ Create agent** क्लिक करें। **Agent Setup** डायलॉग बॉक्स के अंतर्गत:
-    - एजेंट का नाम दर्ज करें, जैसे `FlightAgent`।
-    - सुनिश्चित करें कि आपने पहले बनाया हुआ `gpt-4.1-mini` मॉडल तैनाती चुनी है।
-    - एजेंट को दिए जाने वाले निर्देशों के अनुसार **Instructions** सेट करें। यहाँ एक उदाहरण है:
+1. अपने प्रोजेक्ट के बाएँ पेन में, **Build & Customize** अनुभाग में, **Agents** पेज चुनें।
+2. नया एजेंट बनाने के लिए **+ Create agent** पर क्लिक करें। **Agent Setup** संवाद बॉक्स में:
+    - एजेंट के लिए एक नाम दर्ज करें, जैसे `FlightAgent`।
+    - सुनिश्चित करें कि आपने पहले जो `gpt-5-mini` मॉडल तैनात किया था, वह चयनित हो।
+    - एजेंट को पालन करने के लिए निर्देश (Instructions) अपने अनुसार सेट करें। यहाँ एक उदाहरण है:
     ```
     You are FlightAgent, a virtual assistant specialized in handling flight-related queries. Your role includes assisting users with searching for flights, retrieving flight details, checking seat availability, and providing real-time flight status. Follow the instructions below to ensure clarity and effectiveness in your responses:
 
@@ -64,41 +64,41 @@
     
     ```
 > [!NOTE]
-> एक विस्तृत प्रॉम्प्ट के लिए, आप [इस रिपॉजिटरी](https://github.com/ShivamGoyal03/RoamMind) में अतिरिक्त जानकारी देख सकते हैं।
+> अधिक विस्तृत प्रॉम्प्ट के लिए, आप [इस रिपॉजिटरी](https://github.com/ShivamGoyal03/RoamMind) को देख सकते हैं।
     
-> इसके अलावा, आप एजेंट की क्षमताएँ बढ़ाने के लिए **Knowledge Base** और **Actions** जोड़ सकते हैं ताकि वह उपयोगकर्ता अनुरोधों के आधार पर अधिक जानकारी प्रदान कर सके और स्वचालित कार्य कर सके। इस अभ्यास के लिए, आप इन चरणों को छोड़ सकते हैं।
+> इसके अलावा, आप एजेंट की क्षमताओं को बढ़ाने के लिए **Knowledge Base** और **Actions** जोड़ सकते हैं ताकि वह अधिक जानकारी प्रदान कर सके और उपयोगकर्ता के अनुरोधों के अनुसार स्वचालित कार्य कर सके। इस अभ्यास के लिए, आप इन चरणों को छोड़ सकते हैं।
     
 ![Agent Setup](../../../translated_images/hi/agent-setup.9bbb8755bf5df672.webp)
 
-3. नया मल्टी-एआई एजेंट बनाने के लिए बस **New Agent** क्लिक करें। नया एजेंट Agents पेज पर दिखाया जाएगा।
+3. नया मल्टी-AI एजेंट बनाने के लिए सीधे **New Agent** पर क्लिक करें। नया बनाया गया एजेंट Agents पेज पर दिखाई देगा।
 
 
 ## एजेंट का परीक्षण करें
 
-एजेंट बनाने के बाद, आप Microsoft Foundry पोर्टल के प्लेग्राउंड में उसके उत्तर देने की क्षमता का परीक्षण कर सकते हैं।
+एजेंट बनाने के बाद, आप Microsoft Foundry पोर्टल के playground में परीक्षण कर सकते हैं कि वह उपयोगकर्ता प्रश्नों का कैसे उत्तर देता है।
 
-1. अपने एजेंट के **Setup** पैन के शीर्ष पर, **Try in playground** चुनें।
-2. **Playground** पैन में, आप चैट विंडो में प्रश्न टाइप करके एजेंट के साथ बातचीत कर सकते हैं। उदाहरण के लिए, आप एजेंट से 28 तारीख को सिएटल से न्यूयॉर्क की उड़ानों के लिए खोज करने को कह सकते हैं।
+1. अपने एजेंट के **Setup** पेन के शीर्ष पर, **Try in playground** चुनें।
+2. **Playground** पेन में, आप चैट विंडो में प्रश्न टाइप करके एजेंट से बातचीत कर सकते हैं। उदाहरण के लिए, आप एजेंट से 28 तारीख को सिएटल से न्यूयॉर्क की उड़ानें खोजने को कह सकते हैं।
 
-    > **नोट**: एजेंट सटीक उत्तर नहीं दे सकता क्योंकि इस अभ्यास में वास्तविक समय का डेटा उपयोग नहीं किया जा रहा है। उद्देश्य एजेंट की समझने और दिए गए निर्देशों के आधार पर उत्तर देने की क्षमता का परीक्षण करना है।
+    > **टिप्पणी**: एजेंट सटीक उत्तर नहीं दे सकता है क्योंकि इस अभ्यास में वास्तविक समय का डेटा उपयोग नहीं किया जा रहा है। उद्देश्य एजेंट की उपयोगकर्ता प्रश्नों को समझने और दिए गए निर्देशों के अनुसार उत्तर देने की क्षमता का परीक्षण करना है।
 
     ![Agent Playground](../../../translated_images/hi/agent-playground.dc146586de715010.webp)
 
-3. एजेंट का परीक्षण करने के बाद, आप इसकी क्षमताओं को बढ़ाने के लिए अधिक उद्देश्यों, प्रशिक्षण डेटा और कार्य जोड़कर इसे और अधिक अनुकूलित कर सकते हैं।
+3. एजेंट का परीक्षण करने के बाद, आप इसे और बेहतर बनाने के लिए अधिक intents, प्रशिक्षण डेटा और actions जोड़ सकते हैं।
 
-## संसाधनों की सफाई करें
+## संसाधनों को साफ़ करें
 
-जब आप एजेंट का परीक्षण कर लें, तो अतिरिक्त लागत से बचने के लिए इसे हटा सकते हैं।
-1. [Azure पोर्टल](https://portal.azure.com) खोलें और उस संसाधन समूह की सामग्री देखें जहां आपने इस अभ्यास में हब संसाधन तैनात किए थे।
-2. टूलबार पर, **Delete resource group** चुनें।
+एजेंट का परीक्षण पूरा होने पर, अतिरिक्त लागत से बचने के लिए आप इसे हटा सकते हैं।
+1. [Azure पोर्टल](https://portal.azure.com) खोलें और उस रिसोर्स ग्रुप की सामग्री देखें जहाँ आपने इस अभ्यास में हब संसाधन तैनात किए हैं।
+2. टूलबार में, **Delete resource group** चुनें।
 3. संसाधन समूह का नाम दर्ज करें और पुष्टि करें कि आप इसे हटाना चाहते हैं।
 
 ## संसाधन
 
 - [Microsoft Foundry प्रलेखन](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst)
 - [Microsoft Foundry पोर्टल](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst)
-- [Microsoft Foundry के साथ शुरुआत](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
-- [Azure पर AI एजेंट के मूल सिद्धांत](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
+- [Microsoft Foundry के साथ शुरूआत](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
+- [Azure पर AI एजेंटों के मूल सिद्धांत](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
 - [Azure AI Discord](https://aka.ms/AzureAI/Discord)
 
 ---

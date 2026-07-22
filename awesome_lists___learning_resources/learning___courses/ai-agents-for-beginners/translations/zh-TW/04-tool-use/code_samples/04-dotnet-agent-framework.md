@@ -1,41 +1,41 @@
-# 🛠️ 使用 Azure OpenAI 的進階工具應用（Responses API）（.NET）
+# 🛠️ 使用 Azure OpenAI（Responses API）進行進階工具使用 (.NET)
 
 ## 📋 學習目標
 
-本筆記示範如何在 .NET 中使用 Microsoft Agent Framework 與 Azure OpenAI（Responses API）進行企業級工具整合模式。您將學會構建具備多個專門工具的複雜代理，並利用 C# 的強型別以及 .NET 的企業功能。
+此筆記本示範如何使用 .NET 中的 Microsoft Agent Framework 與 Azure OpenAI（Responses API）進行企業級工具整合模式。您將學會構建具有多重專用工具的複雜代理人，利用 C# 的強型別及 .NET 的企業特性。
 
-### 您將精通的進階工具功能
+### 您將掌握的進階工具能力
 
-- 🔧 <strong>多工具架構</strong>：構建具備多種專門能力的代理
+- 🔧 <strong>多工具架構</strong>：構建具有多重專用功能的代理人
 - 🎯 <strong>型別安全工具執行</strong>：利用 C# 的編譯時驗證
-- 📊 <strong>企業工具模式</strong>：生產就緒的工具設計與錯誤處理
-- 🔗 <strong>工具組合</strong>：整合工具以因應複雜商務流程
+- 📊 <strong>企業工具模式</strong>：可生產環境使用的工具設計與錯誤處理
+- 🔗 <strong>工具組合</strong>：結合工具以實現複雜的業務流程
 
-## 🎯 .NET 工具架構優勢
+## 🎯 .NET 工具架構的優點
 
 ### 企業工具特性
 
-- <strong>編譯時驗證</strong>：強型別確保工具參數正確性
+- <strong>編譯時驗證</strong>：強型別確保工具參數正確
 - <strong>依賴注入</strong>：IoC 容器整合以管理工具
-- **Async/Await 模式**：非阻塞工具執行及妥善資源管理
+- **非同步/等待模式**：非阻塞工具執行與適當資源管理
 - <strong>結構化日誌</strong>：內建日誌整合以監控工具執行
 
 ### 生產就緒模式
 
-- <strong>例外處理</strong>：全面錯誤管理與型別化例外
-- <strong>資源管理</strong>：完善的釋放模式及記憶體管理
-- <strong>效能監控</strong>：內建度量與效能計數器
-- <strong>設定管理</strong>：型別安全設定與驗證
+- <strong>例外處理</strong>：使用型別例外進行全面錯誤管理
+- <strong>資源管理</strong>：正確的處置模式與記憶體管理
+- <strong>效能監控</strong>：內建度量和效能計數器
+- <strong>設定管理</strong>：型別安全配置與驗證
 
 ## 🔧 技術架構
 
 ### 核心 .NET 工具元件
 
-- **Microsoft.Extensions.AI**：統一的工具抽象層
-- **Microsoft.Agents.AI**：企業級工具協調
-- **Azure OpenAI (Responses API)**：具連線池的高效能 API 用戶端
+- **Microsoft.Extensions.AI**：統一工具抽象層
+- **Microsoft.Agents.AI**：企業級工具編排
+- **Azure OpenAI (Responses API)**：高效能 API 用戶端與連接池
 
-### 工具執行管線
+### 工具執行管道
 
 ```mermaid
 graph LR
@@ -54,56 +54,56 @@ graph LR
 
 ### 1. <strong>資料處理工具</strong>
 
-- <strong>輸入驗證</strong>：利用資料註解的強型別
-- <strong>轉換作業</strong>：型別安全的資料轉換與格式化
-- <strong>商務邏輯</strong>：領域專屬計算與分析工具
+- <strong>輸入驗證</strong>：使用資料標註的強型別
+- <strong>轉換操作</strong>：型別安全的資料轉換與格式化
+- <strong>業務邏輯</strong>：領域專用的計算與分析工具
 - <strong>輸出格式化</strong>：結構化回應產生
 
-### 2. <strong>整合工具</strong>
+### 2. <strong>整合工具</strong> 
 
-- **API 連接器**：採用 HttpClient 的 RESTful 服務整合
-- <strong>資料庫工具</strong>：Entity Framework 資料訪問整合
-- <strong>檔案操作</strong>：具驗證的安全檔案系統操作
+- **API 連接器**：使用 HttpClient 進行 RESTful 服務整合
+- <strong>資料庫工具</strong>：使用 Entity Framework 的資料存取
+- <strong>檔案操作</strong>：帶驗證的安全檔案系統操作
 - <strong>外部服務</strong>：第三方服務整合模式
 
-### 3. <strong>輔助工具</strong>
+### 3. <strong>實用工具</strong>
 
 - <strong>文字處理</strong>：字串操作與格式化工具
 - **日期/時間操作**：文化感知的日期/時間計算
 - <strong>數學工具</strong>：精確計算與統計操作
-- <strong>驗證工具</strong>：商業規則驗證與資料校核
+- <strong>驗證工具</strong>：業務規則驗證與資料核查
 
-準備好在 .NET 中使用強型別的強大工具功能來打造企業級代理了嗎？讓我們一起構建專業等級的解決方案！🏢⚡
+準備好在 .NET 中建立具有強型別工具功能的企業級代理人了嗎？讓我們一起架構專業級解決方案吧！🏢⚡
 
-## 🚀 開始使用
+## 🚀 快速開始
 
 ### 先決條件
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更高版本
-- 具有 Azure OpenAI 資源與模型部署的 [Azure 訂閱](https://azure.microsoft.com/free/)
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — 使用 `az login` 登入
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更新版本
+- 具備 Azure OpenAI 資源與模型部署的 [Azure 訂閱](https://azure.microsoft.com/free/)
+- 已登入的 [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — 使用 `az login`
 
 ### 必要的環境變數
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# 然後登入，以便 AzureCliCredential 可以取得權杖
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# 然後登入以便 AzureCliCredential 可以取得權杖
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# 然後登入，讓 AzureCliCredential 可以取得權杖
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# 然後登入，以便 AzureCliCredential 可以取得權杖
 az login
 ```
 
 ### 範例程式碼
 
-執行此程式碼範例，
+執行範例程式碼，
 
 ```bash
 # zsh/bash
@@ -117,7 +117,7 @@ chmod +x ./04-dotnet-agent-framework.cs
 dotnet run ./04-dotnet-agent-framework.cs
 ```
 
-完整程式碼請參考 [`04-dotnet-agent-framework.cs`](../../../../04-tool-use/code_samples/04-dotnet-agent-framework.cs)。
+請參閱完整程式碼 [`04-dotnet-agent-framework.cs`](../../../../04-tool-use/code_samples/04-dotnet-agent-framework.cs)。
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -168,7 +168,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

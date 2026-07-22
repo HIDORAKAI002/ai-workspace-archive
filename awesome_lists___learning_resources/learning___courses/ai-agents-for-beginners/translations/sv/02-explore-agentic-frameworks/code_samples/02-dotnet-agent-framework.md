@@ -1,82 +1,82 @@
-# 🔍 Utforska Microsoft Agent Framework – Grundläggande agent (.NET)
+# 🔍 Utforska Microsoft Agent Framework - Grundläggande agent (.NET)
 
-## 📋 Lärandemål
+## 📋 Läromål
 
-Detta exempel utforskar grundläggande koncept i Microsoft Agent Framework genom en enkel agentimplementation i .NET. Du kommer att lära dig kärnmönster för agenter och förstå hur intelligenta agenter fungerar bakom kulisserna med C# och .NET-ekosystemet.
+Detta exempel utforskar grundläggande koncept i Microsoft Agent Framework genom en grundläggande agentimplementering i .NET. Du kommer att lära dig kärnmönster för agenter och förstå hur intelligenta agenter fungerar under huven med C# och .NET-ekosystemet.
 
 ### Vad du kommer att upptäcka
 
 - 🏗️ **Agentarkitektur**: Förstå den grundläggande strukturen för AI-agenter i .NET
-- 🛠️ **Verktygsintegration**: Hur agenter använder externa funktioner för att utöka kapacitet  
-- 💬 **Samtalsflöde**: Hantering av flertalsömda konversationer och kontext med trådhantering
-- 🔧 **Konfigurationsmönster**: Bästa praxis för agentinställningar och hantering i .NET
+- 🛠️ **Verktygsintegration**: Hur agenter använder externa funktioner för att utöka kapaciteter  
+- 💬 **Samtalsflöde**: Hantering av flerstegs-samtal och kontext med trådhantering
+- 🔧 **Konfigurationsmönster**: Bästa praxis för agentinställning och hantering i .NET
 
-## 🎯 Nyckelkoncept som behandlas
+## 🎯 Viktiga begrepp täckta
 
-### Principer för agentramverk
+### Principer för Agent Framework
 
-- **Autonomi**: Hur agenter fattar oberoende beslut med hjälp av .NET AI-abstraktioner
-- **Reaktivitet**: Att reagera på miljöförändringar och användarinmatningar
-- **Proaktivitet**: Att ta initiativ baserat på mål och kontext
-- **Social förmåga**: Interagera via naturligt språk med konversationstrådar
+- **Autonomi**: Hur agenter fattar självständiga beslut med .NET AI-abstraktioner
+- **Reaktivitet**: Respons på miljöförändringar och användarinmatningar
+- **Proaktivitet**: Ta initiativ baserat på mål och kontext
+- **Social förmåga**: Interagera genom naturligt språk med samtalstrådar
 
 ### Tekniska komponenter
 
-- **AIAgent**: Kärnagentens orkestrering och samtalshantering (.NET)
-- **Verktygsfunktioner**: Förlänga agentens kapaciteter med C# metoder och attribut
-- **Azure OpenAI-integration**: Utnyttja språkmodeller genom Azure OpenAI Responses API
-- **Säker konfiguration**: Miljöbaserad hantering av ändpunkter
+- **AIAgent**: Kärnagentorkestrering och samtalshantering (.NET)
+- **Verktygsfunktioner**: Utöka agentens kapabiliteter med C#-metoder och attribut
+- **Azure OpenAI-integration**: Utnyttja språkmodeller via Azure OpenAI Responses API
+- **Säker konfiguration**: Miljöbaserad endpoint-hantering
 
 ## 🔧 Teknisk stack
 
 ### Kärnteknologier
 
 - Microsoft Agent Framework (.NET)
-- Azure OpenAI (Responses API)-integration
-- Azure.AI.OpenAI-klientmönster
+- Azure OpenAI (Responses API) integration
+- Azure.AI.OpenAI klientmönster
 - Miljöbaserad konfiguration med DotNetEnv
 
-### Agentfunktioner
+### Agentkapabiliteter
 
-- Förståelse och generering av naturligt språk
-- Funktionsanrop och verktygsanvändning med C# attribut
-- Kontextmedvetna svar med konversationssessioner
-- Utbyggbar arkitektur med beroendeinjektion
+- Naturlig språkförståelse och generering
+- Funktionsanrop och verktygsanvändning med C#-attribut
+- Kontextmedvetna svar med samtalssessioner
+- Utbyggbar arkitektur med beroendeinjektionsmönster
 
 ## 📚 Ramverksjämförelse
 
-Detta exempel demonstrerar Microsoft Agent Framework-metoden jämfört med andra agentramverk:
+Detta exempel demonstrerar Microsoft Agent Frameworks tillvägagångssätt jämfört med andra agentramverk:
 
 | Funktion | Microsoft Agent Framework | Andra ramverk |
 |---------|-------------------------|------------------|
 | **Integration** | Inbyggt i Microsoft-ekosystemet | Varierande kompatibilitet |
-| **Enkelhet** | Rent, intuitivt API | Ofta komplex installation |
+| **Enkelhet** | Ren, intuitiv API | Ofta komplex uppsättning |
 | **Utbyggbarhet** | Enkel verktygsintegration | Ramverksberoende |
-| **Färdigt för företag** | Byggt för produktion | Varierar mellan ramverk |
+| **Färdig för företagsbruk** | Utvecklad för produktion | Varierar per ramverk |
 
 ## 🚀 Komma igång
 
 ### Förutsättningar
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) eller högre
-- En [Azure-prenumeration](https://azure.microsoft.com/free/) med en Azure OpenAI-resurs och en modelldistribution
-- Azure CLI ([installationsguide](https://learn.microsoft.com/cli/azure/install-azure-cli)) — logga in med `az login`
+- Ett [Azure-abonnemang](https://azure.microsoft.com/free/) med en Azure OpenAI-resurs och en modellutplacering
+- Azure CLI ([Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)) — logga in med `az login`
 
 ### Nödvändiga miljövariabler
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Logga in så att AzureCliCredential kan hämta en token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Logga in sedan så att AzureCliCredential kan hämta en token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Logga in så att AzureCliCredential kan få en token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Logga in så att AzureCliCredential kan hämta en token
 az login
 ```
 
@@ -96,7 +96,7 @@ Eller med dotnet CLI:
 dotnet run ./02-dotnet-agent-framework.cs
 ```
 
-Se [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) för fullständig kod.
+Se [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) för hela koden.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,17 +215,17 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 Viktiga slutsatser
+## 🎓 Viktiga insikter
 
-1. **Agentarkitektur**: Microsoft Agent Framework ger en ren, typ-säker metod för att bygga AI-agenter i .NET
-2. **Verktygsintegration**: Funktioner prydda med `[Description]`-attribut blir tillgängliga verktyg för agenten
-3. **Samtalskontext**: Sessionhantering möjliggör flertalsvänds konversationer med full kontextmedvetenhet
-4. **Konfigurationshantering**: Miljövariabler och säker hantering av autentiseringsuppgifter följer .NET:s bästa praxis
+1. **Agentarkitektur**: Microsoft Agent Framework erbjuder ett rent, typsäkert tillvägagångssätt för att bygga AI-agenter i .NET
+2. **Verktygsintegration**: Funktioner dekorerade med `[Description]`-attribut blir tillgängliga verktyg för agenten
+3. **Samtalskontext**: Sessionshantering möjliggör flerstegsamtal med full kontextmedvetenhet
+4. **Konfigurationshantering**: Miljövariabler och säker hantering av behörigheter följer .NET:s bästa praxis
 5. **Azure OpenAI Responses API**: Agenten använder Azure OpenAI Responses API via Azure.AI.OpenAI SDK
 
 ## 🔗 Ytterligare resurser
 
-- [Microsoft Agent Framework Dokumentation](https://learn.microsoft.com/agent-framework)
+- [Microsoft Agent Framework-dokumentation](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI i Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
 - [.NET Single File Apps](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
