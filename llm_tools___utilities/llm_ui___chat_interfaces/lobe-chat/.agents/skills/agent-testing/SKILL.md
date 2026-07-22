@@ -171,10 +171,12 @@ such as a database, cache, queue, or object store). **Universal rules:**
 the intended surface first when it is already clear from the task, then check only
 that surface. Do not block a web test on CLI auth or a desktop login state unless
 the test spans those surfaces. Run the per-surface status check from `PROJECT.md`
-§3. If a surface is signed out, **drive the sign-in yourself** — auth is
-environment mechanics the skill owns; never hand the user the sign-in click unless
-a step genuinely needs something only they can supply (a 2FA push), and then name
-the exact blocking step.
+§3. If a surface is signed out, **inject the login state directly** (seeded
+session, cookie/state restore, CLI/API-minted tokens — per `PROJECT.md` §3);
+**never drive an interactive login/OAuth flow** — those open login pages in the
+user's browser and hijack their session. When no injectable state exists, report
+auth as ❌ Blocked and ask the user for one manual sign-in, naming the exact
+blocking step.
 
 #### 2.5 Screen-recording preflight (OS-capture surfaces only)
 
