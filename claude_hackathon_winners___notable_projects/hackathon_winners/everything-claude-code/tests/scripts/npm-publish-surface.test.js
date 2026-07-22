@@ -83,6 +83,7 @@ function buildExpectedPublishPaths(repoRoot) {
     "VERSION",
     "assets/ecc-icon.svg",
     "assets/hero.png",
+    "assets/images/sponsors",
   ]
   const exclusionPaths = [
     "!**/__pycache__/**",

@@ -13,6 +13,7 @@ export * from './instance-registry-types';
 export * from './redaction-enforcement';
 export * from './redaction-enforcement-floor';
 export * from './workflow-reviews-policy';
+export * from './workflow-review-request-summary';
 export {
 	chatHubConversationModelSchema,
 	type ChatModelDto,
@@ -361,7 +362,8 @@ export {
 	InstanceAiFilesystemResponseDto,
 	instanceAiEvalSeedDataTableSchema,
 	applyBranchReadOnlyOverrides,
-	normalizeInstanceAiThreadSource,
+	INSTANCE_AI_THREAD_SOURCES,
+	INSTANCE_AI_THREAD_SOURCE_FALLBACK,
 } from './schemas/instance-ai.schema';
 
 export type {
@@ -558,6 +560,8 @@ export {
 	type EvalVersionEntry,
 	type EvalVersionsResponse,
 } from './schemas/eval-collections.schema';
+
+export { AGENT_EVALS_FLAG } from './schemas/agent-evals.schema';
 
 export {
 	aiInsightsStatusSchema,
