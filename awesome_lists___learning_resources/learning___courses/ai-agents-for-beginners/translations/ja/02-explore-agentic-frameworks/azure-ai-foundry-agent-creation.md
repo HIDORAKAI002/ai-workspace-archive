@@ -1,42 +1,42 @@
-# Microsoft Foundry エージェント サービス開発
+# Microsoft Foundry エージェントサービス開発
 
-この演習では、[Microsoft Foundry ポータル](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) の Microsoft Foundry エージェント サービスツールを使用して、フライト予約のためのエージェントを作成します。エージェントはユーザーと対話し、フライトに関する情報を提供できます。
+この演習では、[Microsoft Foundry ポータル](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) の Microsoft Foundry エージェントサービスツールを使用して、フライト予約用のエージェントを作成します。エージェントはユーザーと対話し、フライトに関する情報を提供できるようになります。
 
 ## 前提条件
 
-この演習を完了するには、以下が必要です:
-1. 有効なサブスクリプションがある Azure アカウント。[無料でアカウント作成](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst)。
-2. Microsoft Foundry ハブを作成する権限があるか、作成済みのハブがあること。
-    - ロールが Contributor または Owner の場合は、このチュートリアルの手順に従います。
+この演習を完了するには、以下が必要です：
+1. 有効なサブスクリプションを持つ Azure アカウント。[無料でアカウントを作成](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst)。
+2. Microsoft Foundry ハブを作成する権限を持っているか、作成済みのハブが必要です。
+    - 役割が Contributor または Owner の場合は、このチュートリアルの手順に従ってください。
 
-## Microsoft Foundry ハブの作成
+## Microsoft Foundry ハブを作成する
 
-> **注意:** Microsoft Foundry は以前 Azure AI Studio と呼ばれていました。
+> **注意:** Microsoft Foundry は以前は Azure AI Studio と呼ばれていました。
 
-1. [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) ブログ投稿のガイドラインに従い、Microsoft Foundry ハブを作成します。
-2. プロジェクトが作成されたら、表示されるチップを閉じ、Microsoft Foundry ポータルのプロジェクトページを確認します。以下の画像のようになっているはずです：
+1. [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) のブログ投稿のガイドラインに従い、Microsoft Foundry ハブを作成します。
+2. プロジェクトが作成されたら、表示されるヒントを閉じ、Microsoft Foundry ポータルのプロジェクトページを確認します。画面は以下の画像のようなものになります：
 
     ![Microsoft Foundry Project](../../../translated_images/ja/azure-ai-foundry.88d0c35298348c2f.webp)
 
-## モデルのデプロイ
+## モデルをデプロイする
 
-1. プロジェクト左側のペインで、<strong>マイ資産</strong> セクションの **モデル + エンドポイント** ページを選択します。
-2. **モデル + エンドポイント** ページの <strong>モデルのデプロイ</strong> タブで、**+ モデルをデプロイ** メニューから <strong>ベースモデルをデプロイ</strong> を選択します。
-3. 一覧から `gpt-4.1-mini` モデルを検索し、選択して確認します。
+1. プロジェクトの左側のペインで、**My assets** セクションの **Models + endpoints** ページを選択します。
+2. **Models + endpoints** ページの **Model deployments** タブで、**+ Deploy model** メニューから **Deploy base model** を選択します。
+3. 一覧から `gpt-5-mini` モデルを検索し、選択して確認します。
 
-    > <strong>注意</strong>: TPM を下げることで、使用しているサブスクリプションのクォータの過剰使用を回避できます。
+    > <strong>注意</strong>: TPM（トークン毎分）を減らすことで、使用中のサブスクリプションのクォータの過剰使用を防ぐことができます。
 
     ![Model Deployed](../../../translated_images/ja/model-deployment.3749c53fb81e18fd.webp)
 
-## エージェントの作成
+## エージェントを作成する
 
-モデルをデプロイしたので、エージェントを作成できます。エージェントは、ユーザーと対話できる会話型AIモデルです。
+モデルをデプロイしたので、エージェントを作成できます。エージェントは、ユーザーと対話するために使用できる会話型 AI モデルです。
 
-1. プロジェクト左側のペインで、<strong>ビルドとカスタマイズ</strong> セクションの <strong>エージェント</strong> ページを選択します。
-2. <strong>エージェントを作成</strong> をクリックして新しいエージェントを作成します。<strong>エージェント設定</strong> ダイアログボックスでは：
-    - エージェント名に例として `FlightAgent` を入力します。
-    - 先に作成した `gpt-4.1-mini` モデルのデプロイが選択されていることを確認します。
-    - エージェントが従うプロンプトとして <strong>指示</strong> を設定します。例を次に示します：
+1. プロジェクトの左側のペインで、**Build & Customize** セクションの **Agents** ページを選択します。
+2. **+ Create agent** をクリックして新しいエージェントを作成します。**Agent Setup** ダイアログボックスで：
+    - `FlightAgent` のような名前をエージェントに入力します。
+    - 先ほど作成した `gpt-5-mini` モデルのデプロイメントが選択されていることを確認します。
+    - エージェントに従わせたいプロンプトに応じて **Instructions** を設定します。例は以下の通りです：
     ```
     You are FlightAgent, a virtual assistant specialized in handling flight-related queries. Your role includes assisting users with searching for flights, retrieving flight details, checking seat availability, and providing real-time flight status. Follow the instructions below to ensure clarity and effectiveness in your responses:
 
@@ -64,41 +64,41 @@
     
     ```
 > [!NOTE]
-> 詳細なプロンプトについては、[このリポジトリ](https://github.com/ShivamGoyal03/RoamMind) を参照してください。
+> 詳細なプロンプトについては、[こちらのリポジトリ](https://github.com/ShivamGoyal03/RoamMind)をご参照ください。
     
-> さらに、<strong>ナレッジベース</strong> と <strong>アクション</strong> を追加して、ユーザーの要求に基づく情報提供や自動タスク実行機能を強化できます。この演習ではこれらのステップは省略できます。
+> また、**Knowledge Base** や **Actions** を追加してエージェントの能力を強化し、ユーザーのリクエストに基づく追加情報の提供や自動化タスクの実行を行えます。この演習ではこれらのステップはスキップできます。
     
 ![Agent Setup](../../../translated_images/ja/agent-setup.9bbb8755bf5df672.webp)
 
-3. 新しいマルチAIエージェントを作成するには、単に <strong>新エージェント</strong> をクリックします。作成されたエージェントがエージェントページに表示されます。
+3. 新しいマルチ AI エージェントを作成するには、**New Agent** をクリックします。作成されたエージェントは Agents ページに表示されます。
 
 
-## エージェントのテスト
+## エージェントをテストする
 
-エージェントを作成した後、Microsoft Foundry ポータルのプレイグラウンドでユーザーの問い合わせにどう応答するかテストできます。
+エージェントを作成したら、Microsoft Foundry ポータルのプレイグラウンドでユーザーのクエリにどのように応答するかテストできます。
 
-1. エージェントの <strong>セットアップ</strong> ペイン上部で、<strong>プレイグラウンドで試す</strong> を選択します。
-2. <strong>プレイグラウンド</strong> ペインでチャットウィンドウに問い合わせを入力してエージェントと対話します。例えば、「28日にシアトルからニューヨークへのフライトを探して」とエージェントに尋ねることができます。
+1. エージェントの **Setup** ペイン上部で、**Try in playground** を選択します。
+2. **Playground** ペインでチャットウィンドウにクエリを入力してエージェントと対話します。例として、28日にシアトルからニューヨークへのフライト検索をエージェントに依頼できます。
 
-    > <strong>注意</strong>: この演習では実データが使用されていないため、エージェントの応答が正確でない場合があります。目的は、指示に基づいてユーザーの質問を理解し応答する能力をテストすることです。
+    > <strong>注意</strong>: この演習ではリアルタイムデータは使用していないため、エージェントの応答が正確でない可能性があります。目的は、指示に基づきユーザーのクエリを理解して応答する能力をテストすることです。
 
     ![Agent Playground](../../../translated_images/ja/agent-playground.dc146586de715010.webp)
 
-3. テスト後に、さらに意図や学習データ、アクションを追加して機能を強化することも可能です。
+3. エージェントのテスト後、追加のインテント、トレーニングデータ、アクションを加えて能力を強化するなど、さらなるカスタマイズが可能です。
 
 ## リソースのクリーンアップ
 
-エージェントのテストが終わったら、追加料金発生を避けるためにエージェントを削除できます。
-1. [Azure ポータル](https://portal.azure.com) を開き、この演習で使用したハブリソースをデプロイしたリソースグループを表示します。
-2. ツールバーで <strong>リソースグループの削除</strong> を選択します。
-3. リソースグループ名を入力して削除を確認します。
+エージェントのテストが終了したら、追加コストを避けるために削除してください。
+1. [Azure ポータル](https://portal.azure.com) を開き、この演習で使用したハブリソースがデプロイされたリソースグループの内容を表示します。
+2. ツールバーで **Delete resource group** を選択します。
+3. リソースグループ名を入力し、削除を確定します。
 
-## 参考資料
+## リソース
 
 - [Microsoft Foundry ドキュメント](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst)
 - [Microsoft Foundry ポータル](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst)
-- [Microsoft Foundry の始め方](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
-- [Azure における AI エージェントの基礎](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
+- [Microsoft Foundry 入門](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
+- [Azure 上の AI エージェントの基本](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
 - [Azure AI Discord](https://aka.ms/AzureAI/Discord)
 
 ---

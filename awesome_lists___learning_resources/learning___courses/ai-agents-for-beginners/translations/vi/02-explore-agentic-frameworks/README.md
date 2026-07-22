@@ -1,73 +1,73 @@
-[![Khám phá Các Khung Công Tác Đại Lý AI](../../../translated_images/vi/lesson-2-thumbnail.c65f44c93b8558df.webp)](https://youtu.be/ODwF-EZo_O8?si=1xoy_B9RNQfrYdF7)
+[![Khám phá các khung tác nhân AI](../../../translated_images/vi/lesson-2-thumbnail.c65f44c93b8558df.webp)](https://youtu.be/ODwF-EZo_O8?si=1xoy_B9RNQfrYdF7)
 
-> _(Nhấp vào hình trên để xem video của bài học này)_
+> _(Nhấp vào hình ảnh trên để xem video bài học này)_
 
-# Khám Phá Các Khung Công Tác Đại Lý AI
+# Khám phá các khung tác nhân AI
 
-Các khung công tác đại lý AI là các nền tảng phần mềm được thiết kế để đơn giản hóa việc tạo, triển khai và quản lý các đại lý AI. Những khung công tác này cung cấp cho các nhà phát triển các thành phần, trừu tượng và công cụ có sẵn giúp hợp lý hóa việc phát triển các hệ thống AI phức tạp.
+Các khung tác nhân AI là các nền tảng phần mềm được thiết kế để đơn giản hóa việc tạo, triển khai và quản lý các tác nhân AI. Các khung này cung cấp cho nhà phát triển các thành phần dựng sẵn, các trừu tượng hóa và các công cụ giúp tinh giản việc phát triển các hệ thống AI phức tạp.
 
-Những khung công tác này giúp các nhà phát triển tập trung vào các khía cạnh riêng biệt của ứng dụng của họ bằng cách cung cấp các phương pháp tiêu chuẩn cho các thách thức phổ biến trong phát triển đại lý AI. Chúng nâng cao khả năng mở rộng, dễ tiếp cận và hiệu quả trong xây dựng hệ thống AI.
+Các khung này giúp nhà phát triển tập trung vào các khía cạnh độc đáo của ứng dụng bằng cách cung cấp các phương pháp chuẩn hóa cho các thách thức phổ biến trong phát triển tác nhân AI. Chúng nâng cao khả năng mở rộng, tính dễ tiếp cận và hiệu quả trong việc xây dựng các hệ thống AI.
 
-## Giới thiệu 
+## Giới thiệu
 
-Bài học này sẽ trình bày:
+Bài học này sẽ đề cập đến:
 
-- Các Khung Công Tác Đại Lý AI là gì và chúng cho phép các nhà phát triển đạt được điều gì?
-- Các nhóm có thể sử dụng chúng như thế nào để nhanh chóng tạo mẫu, lặp lại và cải thiện khả năng của đại lý?
-- Sự khác biệt giữa các khung công tác và công cụ được Microsoft tạo ra (<a href="https://aka.ms/ai-agents-beginners/ai-agent-service" target="_blank">Microsoft Foundry Agent Service</a> và <a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/responses" target="_blank">Microsoft Agent Framework</a>) là gì?
-- Liệu tôi có thể tích hợp trực tiếp các công cụ hệ sinh thái Azure hiện có của mình hay tôi cần các giải pháp độc lập?
+- Khung tác nhân AI là gì và chúng cho phép nhà phát triển đạt được những gì?
+- Các nhóm có thể sử dụng chúng để nhanh chóng tạo mẫu, lặp lại và cải thiện khả năng của tác nhân như thế nào?
+- Sự khác biệt giữa các khung và công cụ do Microsoft tạo ra (<a href="https://aka.ms/ai-agents-beginners/ai-agent-service" target="_blank">Microsoft Foundry Agent Service</a> và <a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/responses" target="_blank">Microsoft Agent Framework</a>) là gì?
+- Tôi có thể tích hợp các công cụ hệ sinh thái Azure hiện tại của mình trực tiếp không, hay cần các giải pháp độc lập?
 - Microsoft Foundry Agent Service là gì và nó giúp tôi như thế nào?
 
 ## Mục tiêu học tập
 
 Mục tiêu của bài học này là giúp bạn hiểu:
 
-- Vai trò của các Khung Công Tác Đại Lý AI trong phát triển AI.
-- Cách tận dụng các Khung Công Tác Đại Lý AI để xây dựng các đại lý thông minh.
-- Các khả năng chính được kích hoạt bởi các Khung Công Tác Đại Lý AI.
+- Vai trò của các khung tác nhân AI trong phát triển AI.
+- Cách tận dụng các khung tác nhân AI để xây dựng các tác nhân thông minh.
+- Các khả năng chính được kích hoạt bởi các khung tác nhân AI.
 - Sự khác biệt giữa Microsoft Agent Framework và Microsoft Foundry Agent Service.
 
-## Các Khung Công Tác Đại Lý AI là gì và chúng cho phép các nhà phát triển làm gì?
+## Khung tác nhân AI là gì và chúng cho phép nhà phát triển làm gì?
 
-Các Khung Công Tác AI truyền thống có thể giúp bạn tích hợp AI vào ứng dụng của mình và nâng cao các ứng dụng này theo các cách sau:
+Các khung AI truyền thống có thể giúp bạn tích hợp AI vào các ứng dụng của mình và làm cho các ứng dụng này tốt hơn theo các cách sau:
 
-- **Cá nhân hóa**: AI có thể phân tích hành vi và sở thích người dùng để đưa ra các đề xuất, nội dung và trải nghiệm cá nhân hóa.
-Ví dụ: Các dịch vụ phát trực tuyến như Netflix sử dụng AI để gợi ý phim và chương trình dựa trên lịch sử xem, tăng sự tương tác và hài lòng của người dùng.
-- **Tự động hóa và Hiệu quả**: AI có thể tự động hóa các tác vụ lặp đi lặp lại, hợp lý hóa quy trình làm việc và cải thiện hiệu quả vận hành.
-Ví dụ: Các ứng dụng dịch vụ khách hàng sử dụng chatbot được trang bị AI để xử lý các yêu cầu thông thường, giảm thời gian phản hồi và giải phóng nhân viên cho các vấn đề phức tạp hơn.
-- **Cải thiện Trải nghiệm Người dùng**: AI có thể nâng cao trải nghiệm người dùng tổng thể bằng cách cung cấp các tính năng thông minh như nhận diện giọng nói, xử lý ngôn ngữ tự nhiên và dự đoán văn bản.
-Ví dụ: Các trợ lý ảo như Siri và Google Assistant sử dụng AI để hiểu và phản hồi các lệnh bằng giọng nói, giúp người dùng tương tác dễ dàng hơn với thiết bị.
+- **Cá nhân hóa**: AI có thể phân tích hành vi và sở thích của người dùng để cung cấp các đề xuất, nội dung và trải nghiệm được cá nhân hóa.
+Ví dụ: Các dịch vụ phát trực tuyến như Netflix sử dụng AI để đề xuất phim và chương trình dựa trên lịch sử xem, nâng cao sự tương tác và hài lòng của người dùng.
+- **Tự động hóa và hiệu quả**: AI có thể tự động hóa các tác vụ lặp lại, tối ưu hóa quy trình làm việc và cải thiện hiệu quả vận hành.
+Ví dụ: Ứng dụng dịch vụ khách hàng sử dụng chatbot được hỗ trợ AI để xử lý các câu hỏi thường gặp, giảm thời gian phản hồi và giải phóng nhân viên cho các vấn đề phức tạp hơn.
+- **Cải thiện trải nghiệm người dùng**: AI có thể nâng cao trải nghiệm tổng thể bằng cách cung cấp các tính năng thông minh như nhận dạng giọng nói, xử lý ngôn ngữ tự nhiên và dự đoán văn bản.
+Ví dụ: Trợ lý ảo như Siri và Google Assistant sử dụng AI để hiểu và đáp ứng các lệnh thoại, giúp người dùng dễ dàng tương tác với thiết bị của họ hơn.
 
-### Nghe có vẻ tuyệt vời, vậy tại sao chúng ta cần Khung Công Tác Đại Lý AI?
+### Nghe có vẻ tuyệt vời, vậy tại sao chúng ta cần Khung tác nhân AI?
 
-Các khung công tác đại lý AI đại diện cho một thứ gì đó vượt hơn cả các khung công tác AI thông thường. Chúng được thiết kế để tạo ra các đại lý thông minh có thể tương tác với người dùng, các đại lý khác và môi trường để đạt các mục tiêu cụ thể. Những đại lý này có thể thể hiện hành vi tự chủ, quyết định và thích nghi với điều kiện thay đổi. Hãy xem một số khả năng chính mà các Khung Công Tác Đại Lý AI cung cấp:
+Khung tác nhân AI đại diện cho một điều gì đó nhiều hơn chỉ là các khung AI thông thường. Chúng được thiết kế để tạo ra các tác nhân thông minh có thể tương tác với người dùng, các tác nhân khác và môi trường để đạt được các mục tiêu cụ thể. Những tác nhân này có thể thể hiện hành vi tự động, đưa ra quyết định và thích ứng với các điều kiện thay đổi. Hãy cùng xem một số khả năng chính được các khung tác nhân AI hỗ trợ:
 
-- **Hợp tác và Phối hợp Đại lý**: Cho phép tạo nhiều đại lý AI có thể làm việc cùng nhau, giao tiếp và phối hợp để giải quyết các tác vụ phức tạp.
-- **Tự động hóa và Quản lý Tác vụ**: Cung cấp cơ chế tự động hóa các quy trình nhiều bước, phân công tác vụ và quản lý tác vụ động giữa các đại lý.
-- **Hiểu biết theo ngữ cảnh và Thích nghi**: Trang bị cho các đại lý khả năng hiểu ngữ cảnh, thích nghi với môi trường thay đổi và đưa ra quyết định dựa trên thông tin thời gian thực.
+- **Hợp tác và phối hợp tác nhân**: Cho phép tạo ra nhiều tác nhân AI có thể làm việc cùng nhau, giao tiếp và phối hợp để giải quyết các nhiệm vụ phức tạp.
+- **Tự động hóa và quản lý nhiệm vụ**: Cung cấp các cơ chế để tự động hóa các quy trình làm việc đa bước, ủy thác nhiệm vụ và quản lý nhiệm vụ động giữa các tác nhân.
+- **Hiểu và thích ứng theo ngữ cảnh**: Trang bị cho các tác nhân khả năng hiểu bối cảnh, thích ứng với môi trường thay đổi và đưa ra quyết định dựa trên thông tin thời gian thực.
 
-Tóm lại, các đại lý cho phép bạn làm được nhiều hơn, nâng cao tự động hóa lên cấp độ tiếp theo, tạo ra các hệ thống thông minh hơn có thể thích nghi và học hỏi từ môi trường.
+Tóm lại, các tác nhân cho phép bạn làm được nhiều hơn, nâng tầm tự động hóa, tạo ra các hệ thống thông minh có thể thích nghi và học hỏi từ môi trường của chúng.
 
-## Cách nhanh chóng tạo mẫu, lặp lại và cải thiện khả năng của đại lý?
+## Cách nhanh chóng tạo mẫu, lặp lại và cải thiện khả năng của tác nhân?
 
-Đây là một lĩnh vực phát triển nhanh, nhưng có một số điểm chung trong hầu hết các Khung Công Tác Đại Lý AI giúp bạn nhanh chóng tạo mẫu và lặp lại, đó là các thành phần mô-đun, công cụ hợp tác và học tập theo thời gian thực. Hãy tìm hiểu những điều này:
+Đây là một lĩnh vực phát triển nhanh, nhưng có những yếu tố chung trong hầu hết các khung tác nhân AI có thể giúp bạn nhanh chóng tạo mẫu và lặp lại, đó là các thành phần mô-đun, công cụ hợp tác và học theo thời gian thực. Hãy cùng tìm hiểu những điều này:
 
-- **Sử dụng các Thành phần Mô-đun**: SDK AI cung cấp các thành phần có sẵn như các liên kết AI và Bộ nhớ, gọi hàm qua ngôn ngữ tự nhiên hoặc plugin mã, mẫu nhắc, và nhiều hơn nữa.
-- **Tận dụng các Công cụ Hợp tác**: Thiết kế các đại lý với vai trò và nhiệm vụ cụ thể, cho phép họ kiểm thử và tinh chỉnh các quy trình làm việc hợp tác.
-- **Học theo thời gian thực**: Triển khai vòng phản hồi nơi các đại lý học từ các tương tác và điều chỉnh hành vi một cách động.
+- **Sử dụng các thành phần mô-đun**: SDK AI cung cấp các thành phần dựng sẵn như bộ kết nối AI và bộ nhớ, gọi chức năng bằng ngôn ngữ tự nhiên hoặc plugin mã, mẫu lời nhắc, và nhiều hơn nữa.
+- **Tận dụng công cụ hợp tác**: Thiết kế các tác nhân với các vai trò và nhiệm vụ cụ thể, cho phép họ thử nghiệm và tinh chỉnh quy trình làm việc hợp tác.
+- **Học theo thời gian thực**: Triển khai các vòng phản hồi nơi các tác nhân học hỏi từ các tương tác và điều chỉnh hành vi một cách động.
 
-### Sử dụng các Thành phần Mô-đun
+### Sử dụng các thành phần mô-đun
 
-Các SDK như Microsoft Agent Framework cung cấp các thành phần có sẵn như liên kết AI, định nghĩa công cụ và quản lý đại lý.
+SDK như Microsoft Agent Framework cung cấp các thành phần dựng sẵn như bộ kết nối AI, định nghĩa công cụ và quản lý tác nhân.
 
-**Cách nhóm sử dụng**: Các nhóm có thể nhanh chóng lắp ráp các thành phần này để tạo ra nguyên mẫu chức năng mà không cần bắt đầu từ đầu, cho phép thử nghiệm và lặp lại nhanh chóng.
+**Cách các nhóm có thể sử dụng**: Các nhóm có thể nhanh chóng lắp ráp các thành phần này để tạo bản mẫu chức năng mà không cần bắt đầu từ con số không, cho phép thử nghiệm và lặp lại nhanh.
 
-**Cách hoạt động trong thực tế**: Bạn có thể sử dụng một bộ phân tích cú pháp có sẵn để trích xuất thông tin từ đầu vào người dùng, một mô-đun bộ nhớ để lưu trữ và truy xuất dữ liệu, và một bộ tạo nhắc để tương tác với người dùng, tất cả mà không cần xây dựng các thành phần này từ đầu.
+**Cách thức hoạt động trong thực tế**: Bạn có thể sử dụng bộ phân tích dựng sẵn để trích xuất thông tin từ đầu vào người dùng, mô-đun bộ nhớ để lưu trữ và truy xuất dữ liệu, và bộ tạo lời nhắc để tương tác với người dùng, tất cả mà không cần xây dựng các thành phần này từ đầu.
 
-**Ví dụ mã**. Hãy xem ví dụ về cách sử dụng Microsoft Agent Framework với `FoundryChatClient` để mô hình phản hồi đầu vào người dùng với việc gọi công cụ:
+**Mã ví dụ**. Hãy xem ví dụ về cách bạn có thể sử dụng Microsoft Agent Framework với `FoundryChatClient` để mô hình phản hồi đầu vào người dùng với gọi công cụ:
 
 ``` python
-# Ví dụ về Framework Microsoft Agent bằng Python
+# Ví dụ Python về Khung làm việc Microsoft Agent
 
 import asyncio
 import os
@@ -98,27 +98,27 @@ async def main():
 
     response = await agent.run("I'd like to go to New York on January 1, 2025")
     print(response)
-    # Ví dụ đầu ra: Chuyến bay đến New York vào ngày 1 tháng 1 năm 2025 của bạn đã được đặt thành công. Chúc bạn đi đường an toàn! ✈️🗽
+    # Ví dụ kết quả: Chuyến bay của bạn đến New York vào ngày 1 tháng 1 năm 2025 đã được đặt thành công. Chúc bạn có chuyến đi an toàn! ✈️🗽
 
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-Những gì bạn có thể thấy từ ví dụ này là cách bạn có thể tận dụng bộ phân tích cú pháp có sẵn để trích xuất thông tin chính từ đầu vào người dùng, như điểm xuất phát, điểm đến và ngày của yêu cầu đặt vé máy bay. Cách tiếp cận mô-đun này giúp bạn tập trung vào logic cao hơn.
+Bạn có thể thấy từ ví dụ này cách tận dụng bộ phân tích dựng sẵn để trích xuất các thông tin chính từ đầu vào người dùng, chẳng hạn như điểm xuất phát, điểm đến và ngày tháng của yêu cầu đặt vé máy bay. Cách tiếp cận mô-đun này cho phép bạn tập trung vào logic ở cấp cao hơn.
 
-### Tận dụng Công cụ Hợp tác
+### Tận dụng công cụ hợp tác
 
-Các khung như Microsoft Agent Framework hỗ trợ việc tạo ra nhiều đại lý làm việc cùng nhau.
+Các khung như Microsoft Agent Framework hỗ trợ việc tạo nhiều tác nhân có thể làm việc chung với nhau.
 
-**Cách nhóm sử dụng**: Các nhóm có thể thiết kế các đại lý với vai trò và nhiệm vụ nhất định, giúp họ kiểm thử và tinh chỉnh các quy trình làm việc hợp tác và cải thiện hiệu quả hệ thống tổng thể.
+**Cách các nhóm có thể sử dụng**: Các nhóm có thể thiết kế các tác nhân với vai trò và nhiệm vụ cụ thể, cho phép thử nghiệm và cải thiện quy trình làm việc hợp tác và nâng cao hiệu quả hệ thống tổng thể.
 
-**Cách hoạt động trong thực tế**: Bạn có thể tạo nhóm đại lý trong đó mỗi đại lý có chức năng chuyên biệt như thu thập dữ liệu, phân tích hoặc ra quyết định. Các đại lý này có thể giao tiếp và chia sẻ thông tin để đạt mục tiêu chung, như trả lời câu hỏi người dùng hoặc hoàn thành nhiệm vụ.
+**Cách thức hoạt động trong thực tế**: Bạn có thể tạo một nhóm các tác nhân mà mỗi tác nhân đảm nhận một chức năng chuyên biệt, chẳng hạn như lấy dữ liệu, phân tích hoặc ra quyết định. Các tác nhân này có thể giao tiếp và chia sẻ thông tin để đạt được mục tiêu chung, ví dụ trả lời câu hỏi người dùng hoặc hoàn thành một nhiệm vụ.
 
-**Ví dụ mã (Microsoft Agent Framework)**:
+**Mã ví dụ (Microsoft Agent Framework)**:
 
 ```python
-# Tạo nhiều tác nhân làm việc cùng nhau sử dụng Microsoft Agent Framework
+# Tạo nhiều agent làm việc cùng nhau sử dụng Microsoft Agent Framework
 
 import os
 from agent_framework.foundry import FoundryChatClient
@@ -130,54 +130,54 @@ provider = FoundryChatClient(
     credential=AzureCliCredential(),
 )
 
-# Tác nhân truy xuất dữ liệu
+# Agent Thu Thập Dữ Liệu
 agent_retrieve = provider.as_agent(
     name="dataretrieval",
     instructions="Retrieve relevant data using available tools.",
     tools=[retrieve_tool],
 )
 
-# Tác nhân phân tích dữ liệu
+# Agent Phân Tích Dữ Liệu
 agent_analyze = provider.as_agent(
     name="dataanalysis",
     instructions="Analyze the retrieved data and provide insights.",
     tools=[analyze_tool],
 )
 
-# Chạy các tác nhân theo thứ tự trên một nhiệm vụ
+# Chạy các agent theo tuần tự trên một nhiệm vụ
 retrieval_result = await agent_retrieve.run("Retrieve sales data for Q4")
 analysis_result = await agent_analyze.run(f"Analyze this data: {retrieval_result}")
 print(analysis_result)
 ```
 
-Điều bạn thấy trong đoạn mã trước là cách tạo tác vụ có nhiều đại lý phối hợp phân tích dữ liệu. Mỗi đại lý thực hiện một chức năng cụ thể, và tác vụ được thực hiện bằng cách phối hợp các đại lý để đạt kết quả mong muốn. Bằng cách tạo các đại lý chuyên trách, bạn có thể nâng cao hiệu quả và hiệu suất tác vụ.
+Bạn sẽ thấy trong đoạn mã trên cách tạo nhiệm vụ liên quan đến nhiều tác nhân làm việc cùng nhau để phân tích dữ liệu. Mỗi tác nhân thực hiện một chức năng cụ thể, và nhiệm vụ được thực hiện bằng cách phối hợp các tác nhân để đạt kết quả mong muốn. Việc tạo các tác nhân chuyên biệt với vai trò riêng giúp cải thiện hiệu quả và hiệu suất công việc.
 
 ### Học theo thời gian thực
 
-Các khung nâng cao cung cấp khả năng hiểu ngữ cảnh thời gian thực và thích nghi.
+Các khung nâng cao cung cấp khả năng hiểu bối cảnh và thích ứng theo thời gian thực.
 
-**Cách nhóm sử dụng**: Các nhóm có thể triển khai vòng phản hồi nơi các đại lý học từ tương tác và điều chỉnh hành vi một cách động, dẫn đến cải tiến và tinh chỉnh liên tục các khả năng.
+**Cách các nhóm có thể sử dụng**: Các nhóm có thể triển khai các vòng phản hồi, nơi các tác nhân học từ các tương tác và điều chỉnh hành vi một cách linh hoạt, dẫn đến việc cải tiến và tinh chỉnh liên tục các khả năng.
 
-**Cách hoạt động trong thực tế**: Các đại lý có thể phân tích phản hồi người dùng, dữ liệu môi trường và kết quả tác vụ để cập nhật cơ sở tri thức, điều chỉnh thuật toán ra quyết định và cải thiện hiệu suất theo thời gian. Quá trình học liên tục này giúp đại lý thích nghi với điều kiện và sở thích người dùng thay đổi, nâng cao hiệu quả hệ thống tổng thể.
+**Cách thức hoạt động trong thực tế**: Các tác nhân có thể phân tích phản hồi người dùng, dữ liệu môi trường và kết quả nhiệm vụ để cập nhật cơ sở kiến thức, điều chỉnh thuật toán ra quyết định và nâng cao hiệu suất theo thời gian. Quá trình học lặp này giúp các tác nhân thích nghi với các điều kiện và sở thích người dùng thay đổi, nâng cao hiệu quả hệ thống tổng thể.
 
-## Sự khác biệt giữa Microsoft Agent Framework và Microsoft Foundry Agent Service là gì?
+## Sự khác biệt giữa Microsoft Agent Framework và Microsoft Foundry Agent Service?
 
-Có nhiều cách so sánh các phương pháp này, nhưng hãy xem một số điểm khác biệt chính về thiết kế, khả năng và trường hợp sử dụng mục tiêu:
+Có nhiều cách so sánh hai phương pháp này, nhưng hãy cùng xem một số khác biệt chính về thiết kế, khả năng và mục tiêu sử dụng:
 
 ## Microsoft Agent Framework (MAF)
 
-Microsoft Agent Framework cung cấp một SDK tinh gọn để xây dựng đại lý AI sử dụng `FoundryChatClient`. Nó cho phép các nhà phát triển tạo đại lý tận dụng các mô hình Azure OpenAI với khả năng gọi công cụ tích hợp, quản lý hội thoại, và bảo mật cấp doanh nghiệp qua Azure identity.
+Microsoft Agent Framework cung cấp một SDK tinh giản để xây dựng các tác nhân AI sử dụng `FoundryChatClient`. Nó cho phép nhà phát triển tạo tác nhân tận dụng mô hình Azure OpenAI với chức năng gọi công cụ tích hợp, quản lý cuộc trò chuyện và bảo mật cấp doanh nghiệp qua Azure Identity.
 
-**Trường hợp sử dụng**: Xây dựng đại lý AI sẵn sàng cho sản xuất với việc sử dụng công cụ, quy trình nhiều bước, và các kịch bản tích hợp doanh nghiệp.
+**Trường hợp sử dụng**: Xây dựng các tác nhân AI sẵn sàng triển khai với sử dụng công cụ, quy trình làm việc đa bước và tích hợp doanh nghiệp.
 
 Dưới đây là một số khái niệm cốt lõi quan trọng của Microsoft Agent Framework:
 
-- **Đại lý**. Một đại lý được tạo thông qua `FoundryChatClient` và cấu hình với tên, hướng dẫn, và công cụ. Đại lý có thể:
+- **Tác nhân**. Một tác nhân được tạo bởi `FoundryChatClient` và cấu hình với tên, hướng dẫn và công cụ. Tác nhân có thể:
   - **Xử lý tin nhắn người dùng** và tạo phản hồi sử dụng mô hình Azure OpenAI.
-  - **Tự động gọi công cụ** dựa trên ngữ cảnh hội thoại.
-  - **Duy trì trạng thái hội thoại** qua nhiều tương tác.
+  - **Tự động gọi công cụ** dựa trên ngữ cảnh cuộc trò chuyện.
+  - **Duy trì trạng thái cuộc trò chuyện** qua nhiều tương tác.
 
-  Đây là đoạn mã minh họa cách tạo một đại lý:
+  Dưới đây là đoạn mã minh họa cách tạo tác nhân:
 
     ```python
     import os
@@ -198,7 +198,7 @@ Dưới đây là một số khái niệm cốt lõi quan trọng của Microsof
     print(response)
     ```
 
-- **Công cụ**. Khung hỗ trợ định nghĩa công cụ dưới dạng các hàm Python mà đại lý có thể gọi tự động. Công cụ được đăng ký khi tạo đại lý:
+- **Công cụ**. Khung hỗ trợ định nghĩa công cụ dưới dạng hàm Python mà tác nhân có thể tự động gọi. Công cụ được đăng ký khi tạo tác nhân:
 
     ```python
     def get_weather(location: str) -> str:
@@ -212,7 +212,7 @@ Dưới đây là một số khái niệm cốt lõi quan trọng của Microsof
     )
     ```
 
-- **Phối hợp đa đại lý**. Bạn có thể tạo nhiều đại lý với các chuyên môn khác nhau và phối hợp công việc của họ:
+- **Phối hợp đa tác nhân**. Bạn có thể tạo nhiều tác nhân với các chuyên môn khác nhau và phối hợp công việc của họ:
 
     ```python
     planner = provider.as_agent(
@@ -230,26 +230,26 @@ Dưới đây là một số khái niệm cốt lõi quan trọng của Microsof
     result = await executor.run(f"Execute this plan: {plan}")
     ```
 
-- **Tích hợp Azure Identity**. Khung sử dụng `AzureCliCredential` (hoặc `DefaultAzureCredential`) cho xác thực bảo mật không cần khóa, loại bỏ nhu cầu quản lý trực tiếp các khóa API.
+- **Tích hợp Azure Identity**. Khung sử dụng `AzureCliCredential` (hoặc `DefaultAzureCredential`) cho xác thực an toàn không cần khóa, loại bỏ nhu cầu quản lý khóa API trực tiếp.
 
 ## Microsoft Foundry Agent Service
 
-Microsoft Foundry Agent Service là một bổ sung gần đây, được giới thiệu tại Microsoft Ignite 2024. Nó cho phép phát triển và triển khai đại lý AI với các mô hình linh hoạt hơn, như gọi trực tiếp các LLM mã nguồn mở như Llama 3, Mistral, và Cohere.
+Microsoft Foundry Agent Service là một bổ sung mới hơn, được giới thiệu tại Microsoft Ignite 2024. Nó cho phép phát triển và triển khai các tác nhân AI với các mô hình linh hoạt hơn, chẳng hạn gọi trực tiếp các LLM mã nguồn mở như Llama 3, Mistral và Cohere.
 
-Microsoft Foundry Agent Service cung cấp cơ chế bảo mật doanh nghiệp mạnh mẽ và phương pháp lưu trữ dữ liệu, phù hợp với ứng dụng doanh nghiệp.
+Microsoft Foundry Agent Service cung cấp cơ chế bảo mật doanh nghiệp mạnh mẽ và phương pháp lưu trữ dữ liệu, phù hợp cho các ứng dụng doanh nghiệp.
 
-Nó hoạt động ngay khi triển khai với Microsoft Agent Framework để xây dựng và triển khai đại lý.
+Nó hoạt động sẵn sàng cùng Microsoft Agent Framework để xây dựng và triển khai tác nhân.
 
-Dịch vụ này hiện đang ở chế độ Public Preview và hỗ trợ Python và C# để xây dựng đại lý.
+Dịch vụ này hiện đang trong giai đoạn Public Preview và hỗ trợ Python và C# để xây dựng tác nhân.
 
-Sử dụng SDK Python của Microsoft Foundry Agent Service, chúng ta có thể tạo một đại lý với công cụ do người dùng định nghĩa:
+Sử dụng Python SDK của Microsoft Foundry Agent Service, chúng ta có thể tạo một tác nhân với công cụ do người dùng định nghĩa:
 
 ```python
 import asyncio
 from azure.identity import DefaultAzureCredential
 from azure.ai.projects import AIProjectClient
 
-# Định nghĩa các hàm công cụ
+# Định nghĩa các chức năng công cụ
 def get_specials() -> str:
     """Provides a list of specials from the menu."""
     return """
@@ -271,7 +271,7 @@ async def main() -> None:
     )
 
     agent = project_client.agents.create_agent(
-        model="gpt-4.1-mini",
+        model="gpt-5-mini",
         name="Host",
         instructions="Answer questions about the menu.",
         tools=[get_specials, get_item_price],
@@ -308,11 +308,11 @@ if __name__ == "__main__":
 
 Microsoft Foundry Agent Service có các khái niệm cốt lõi sau:
 
-- **Đại lý**. Microsoft Foundry Agent Service tích hợp với Microsoft Foundry. Trong Microsoft Foundry, một đại lý AI đóng vai trò như một "microservice" thông minh có thể được sử dụng để trả lời câu hỏi (RAG), thực hiện hành động hoặc tự động hóa hoàn toàn quy trình làm việc. Đại lý đạt được điều này bằng cách kết hợp sức mạnh của các mô hình AI sinh tạo với các công cụ cho phép truy cập và tương tác với các nguồn dữ liệu thực tế. Dưới đây là một ví dụ về đại lý:
+- **Tác nhân**. Microsoft Foundry Agent Service tích hợp với Microsoft Foundry. Trong Microsoft Foundry, một tác nhân AI hoạt động như một "microservice" thông minh có thể dùng để trả lời câu hỏi (RAG), thực hiện hành động hoặc tự động hoàn toàn các quy trình làm việc. Nó đạt được điều này bằng cách kết hợp sức mạnh của các mô hình AI sinh tạo với các công cụ cho phép truy cập và tương tác với nguồn dữ liệu thế giới thực. Dưới đây là ví dụ về một tác nhân:
 
     ```python
     agent = project_client.agents.create_agent(
-        model="gpt-4.1-mini",
+        model="gpt-5-mini",
         name="my-agent",
         instructions="You are helpful agent",
         tools=code_interpreter.definitions,
@@ -320,9 +320,9 @@ Microsoft Foundry Agent Service có các khái niệm cốt lõi sau:
     )
     ```
 
-    Trong ví dụ này, một đại lý được tạo với mô hình `gpt-4.1-mini`, tên `my-agent` và hướng dẫn `You are helpful agent`. Đại lý được trang bị công cụ và tài nguyên để thực hiện các tác vụ giải thích mã.
+    Trong ví dụ này, một tác nhân được tạo với mô hình `gpt-5-mini`, tên `my-agent`, và hướng dẫn `You are helpful agent`. Tác nhân được trang bị công cụ và tài nguyên để thực hiện nhiệm vụ giải thích mã.
 
-- **Luồng và tin nhắn**. Luồng là một khái niệm quan trọng khác. Nó đại diện cho một cuộc hội thoại hoặc tương tác giữa đại lý và người dùng. Luồng có thể được sử dụng để theo dõi tiến trình cuộc hội thoại, lưu trữ thông tin ngữ cảnh và quản lý trạng thái tương tác. Dưới đây là ví dụ về một luồng:
+- **Chuỗi và tin nhắn**. Chuỗi là một khái niệm quan trọng khác. Nó đại diện cho cuộc trò chuyện hoặc tương tác giữa tác nhân và người dùng. Chuỗi có thể được sử dụng để theo dõi tiến trình trò chuyện, lưu trữ thông tin ngữ cảnh và quản lý trạng thái tương tác. Dưới đây là ví dụ về một chuỗi:
 
     ```python
     thread = project_client.agents.create_thread()
@@ -332,61 +332,61 @@ Microsoft Foundry Agent Service có các khái niệm cốt lõi sau:
         content="Could you please create a bar chart for the operating profit using the following data and provide the file to me? Company A: $1.2 million, Company B: $2.5 million, Company C: $3.0 million, Company D: $1.8 million",
     )
     
-    # Yêu cầu đại lý thực hiện công việc trên chuỗi
+    # Yêu cầu tác nhân thực hiện công việc trên chuỗi
     run = project_client.agents.create_and_process_run(thread_id=thread.id, agent_id=agent.id)
     
-    # Lấy và ghi lại tất cả các tin nhắn để xem phản hồi của đại lý
+    # Lấy và ghi lại tất cả các tin nhắn để xem phản hồi của tác nhân
     messages = project_client.agents.list_messages(thread_id=thread.id)
     print(f"Messages: {messages}")
     ```
 
-    Trong đoạn mã trước, một luồng được tạo ra. Sau đó, một tin nhắn được gửi vào luồng. Bằng cách gọi `create_and_process_run`, đại lý được yêu cầu thực hiện công việc trên luồng. Cuối cùng, các tin nhắn được lấy và ghi lại để xem phản hồi của đại lý. Các tin nhắn chỉ ra tiến trình cuộc hội thoại giữa người dùng và đại lý. Cũng cần hiểu rằng các tin nhắn có thể thuộc loại khác nhau như văn bản, hình ảnh hoặc tệp, đó là kết quả công việc của đại lý, ví dụ như một hình ảnh hoặc phản hồi văn bản. Là nhà phát triển, bạn có thể sử dụng thông tin này để xử lý thêm hoặc trình bày cho người dùng.
+    Trong đoạn mã trên, một chuỗi được tạo. Sau đó, một tin nhắn được gửi vào chuỗi. Bằng cách gọi `create_and_process_run`, tác nhân được yêu cầu thực hiện công việc trên chuỗi. Cuối cùng, các tin nhắn được lấy và ghi lại để xem phản hồi của tác nhân. Các tin nhắn cho thấy tiến trình cuộc trò chuyện giữa người dùng và tác nhân. Cũng quan trọng để hiểu rằng các tin nhắn có thể thuộc các loại khác nhau như văn bản, hình ảnh hoặc tập tin, nghĩa là công việc của tác nhân có thể tạo ra ví dụ như hình ảnh hoặc phản hồi văn bản. Là nhà phát triển, bạn có thể dùng những thông tin này để xử lý thêm phản hồi hoặc trình bày cho người dùng.
 
-- **Tích hợp với Microsoft Agent Framework**. Microsoft Foundry Agent Service hoạt động mượt mà với Microsoft Agent Framework, có nghĩa là bạn có thể xây dựng đại lý bằng `FoundryChatClient` và triển khai chúng qua Agent Service cho các kịch bản sản xuất.
+- **Tích hợp với Microsoft Agent Framework**. Microsoft Foundry Agent Service hoạt động liền mạch với Microsoft Agent Framework, nghĩa là bạn có thể xây dựng tác nhân sử dụng `FoundryChatClient` và triển khai qua Agent Service cho kịch bản sản xuất.
 
-**Trường hợp sử dụng**: Microsoft Foundry Agent Service được thiết kế cho các ứng dụng doanh nghiệp yêu cầu triển khai đại lý AI an toàn, có khả năng mở rộng và linh hoạt.
+**Trường hợp sử dụng**: Microsoft Foundry Agent Service được thiết kế cho các ứng dụng doanh nghiệp yêu cầu triển khai tác nhân AI bảo mật, có khả năng mở rộng và linh hoạt.
 
 ## Sự khác biệt giữa các phương pháp này là gì?
  
-Nghe có vẻ như có sự chồng chéo, nhưng có một số điểm khác biệt chính về thiết kế, khả năng và trường hợp sử dụng mục tiêu:
+Nghe có vẻ hơi trùng lặp, nhưng có một số khác biệt chính về thiết kế, khả năng và mục tiêu sử dụng:
  
-- **Microsoft Agent Framework (MAF)**: Là một SDK sẵn sàng cho sản xuất để xây dựng đại lý AI. Nó cung cấp API tinh gọn để tạo đại lý với khả năng gọi công cụ, quản lý hội thoại và tích hợp Azure identity.
-- **Microsoft Foundry Agent Service**: Là một nền tảng và dịch vụ triển khai trong Microsoft Foundry dành cho đại lý. Nó cung cấp kết nối tích hợp đến các dịch vụ như Azure OpenAI, Azure AI Search, Bing Search và chạy mã.
+- **Microsoft Agent Framework (MAF)**: Là SDK sẵn sàng sản xuất để xây dựng tác nhân AI. Nó cung cấp API tinh giản để tạo tác nhân với gọi công cụ, quản lý cuộc trò chuyện và tích hợp Azure Identity.
+- **Microsoft Foundry Agent Service**: Là nền tảng và dịch vụ triển khai trong Microsoft Foundry cho tác nhân. Nó cung cấp kết nối tích hợp với các dịch vụ như Azure OpenAI, Azure AI Search, Bing Search và thực thi mã.
  
-Vẫn chưa chắc nên chọn cái nào?
+Vẫn chưa chắc chọn cái nào?
 
-### Trường hợp Sử dụng
+### Trường hợp sử dụng
  
-Hãy xem liệu chúng tôi có thể giúp bạn thông qua các trường hợp sử dụng phổ biến:
+Hãy xem liệu chúng tôi có thể giúp bạn thông qua một số trường hợp sử dụng phổ biến:
  
-> Hỏi: Tôi đang xây dựng các ứng dụng đại lý AI sản xuất và muốn bắt đầu nhanh chóng
+> Q: Tôi đang xây dựng ứng dụng tác nhân AI sản xuất và muốn bắt đầu nhanh chóng
 >
 
->Đáp: Microsoft Agent Framework là lựa chọn tuyệt vời. Nó cung cấp API đơn giản, Pythonic qua `FoundryChatClient` cho phép bạn định nghĩa đại lý với công cụ và hướng dẫn chỉ trong vài dòng mã.
+>A: Microsoft Agent Framework là lựa chọn tuyệt vời. Nó cung cấp API đơn giản, phong cách Python qua `FoundryChatClient` cho phép bạn định nghĩa tác nhân với công cụ và hướng dẫn chỉ trong vài dòng mã.
 
->Hỏi: Tôi cần triển khai cấp doanh nghiệp với các tích hợp Azure như Search và chạy mã
+>Q: Tôi cần triển khai cấp doanh nghiệp với tích hợp Azure như Tìm kiếm và thực thi mã
 >
->Đáp: Microsoft Foundry Agent Service là phù hợp nhất. Đây là dịch vụ nền tảng cung cấp các khả năng tích hợp sẵn cho nhiều mô hình, Azure AI Search, Bing Search và Azure Functions. Nó giúp bạn xây dựng đại lý trong Foundry Portal và triển khai ở quy mô lớn dễ dàng.
+> A: Microsoft Foundry Agent Service phù hợp nhất. Đây là dịch vụ nền tảng cung cấp khả năng tích hợp sẵn cho nhiều mô hình, Azure AI Search, Bing Search và Azure Functions. Nó giúp bạn dễ dàng xây dựng tác nhân trong Foundry Portal và triển khai quy mô lớn.
  
-> Hỏi: Tôi vẫn bối rối, chỉ cho tôi một lựa chọn
+> Q: Tôi vẫn còn bối rối, chỉ cho tôi một lựa chọn thôi
 >
-> Đáp: Bắt đầu với Microsoft Agent Framework để xây dựng đại lý, rồi sử dụng Microsoft Foundry Agent Service khi bạn cần triển khai và mở rộng chúng trong sản xuất. Cách tiếp cận này giúp bạn lặp lại nhanh logic đại lý đồng thời có lộ trình rõ ràng cho triển khai doanh nghiệp.
+> A: Bắt đầu với Microsoft Agent Framework để xây dựng tác nhân của bạn, sau đó dùng Microsoft Foundry Agent Service khi cần triển khai và mở rộng trong sản xuất. Cách tiếp cận này giúp bạn nhanh chóng lặp lại logic tác nhân trong khi có con đường rõ ràng để triển khai doanh nghiệp.
  
-Hãy tóm tắt các điểm khác biệt chính trong bảng sau:
+Hãy tóm tắt các khác biệt chính trong bảng sau:
 
-| Khung Công Tác | Trọng tâm | Khái niệm Cốt lõi | Trường hợp Sử Dụng |
+| Khung | Trọng tâm | Khái niệm cốt lõi | Trường hợp sử dụng |
 | --- | --- | --- | --- |
-| Microsoft Agent Framework | SDK đại lý tinh gọn với gọi công cụ | Đại lý, Công cụ, Azure Identity | Xây dựng đại lý AI, sử dụng công cụ, quy trình nhiều bước |
-| Microsoft Foundry Agent Service | Mô hình linh hoạt, bảo mật doanh nghiệp, Tạo mã, Gọi công cụ | Mô-đun, Hợp tác, Điều phối quy trình | Triển khai đại lý AI an toàn, mở rộng và linh hoạt |
+| Microsoft Agent Framework | SDK tác nhân tinh giản với gọi công cụ | Tác nhân, Công cụ, Azure Identity | Xây dựng tác nhân AI, sử dụng công cụ, quy trình làm việc đa bước |
+| Microsoft Foundry Agent Service | Mô hình linh hoạt, bảo mật doanh nghiệp, tạo mã, gọi công cụ | Tính mô-đun, Hợp tác, Điều phối quy trình | Triển khai tác nhân AI bảo mật, mở rộng và linh hoạt |
 
-## Tôi có thể tích hợp trực tiếp các công cụ hệ sinh thái Azure hiện có của mình hay tôi cần các giải pháp độc lập?
+## Tôi có thể tích hợp các công cụ hệ sinh thái Azure hiện tại của mình trực tiếp không, hay tôi cần các giải pháp độc lập?
 
 
-Câu trả lời là có, bạn có thể tích hợp các công cụ hệ sinh thái Azure hiện có của mình trực tiếp với Dịch vụ Microsoft Foundry Agent đặc biệt, vì nó được xây dựng để hoạt động liền mạch với các dịch vụ Azure khác. Ví dụ, bạn có thể tích hợp Bing, Azure AI Search và Azure Functions. Cũng có tích hợp sâu với Microsoft Foundry.
+Câu trả lời là có, bạn có thể tích hợp trực tiếp các công cụ hệ sinh thái Azure hiện có của mình với Microsoft Foundry Agent Service đặc biệt, vì nó được xây dựng để hoạt động liền mạch với các dịch vụ Azure khác. Ví dụ, bạn có thể tích hợp Bing, Azure AI Search và Azure Functions. Cũng có sự tích hợp sâu với Microsoft Foundry.
 
-Microsoft Agent Framework cũng tích hợp với các dịch vụ Azure thông qua `FoundryChatClient` và nhận diện Azure, cho phép bạn gọi các dịch vụ Azure trực tiếp từ công cụ agent của mình.
+Microsoft Agent Framework cũng tích hợp với các dịch vụ Azure thông qua `FoundryChatClient` và nhận dạng Azure, cho phép bạn gọi các dịch vụ Azure trực tiếp từ các công cụ agent của mình.
 
-## Mã mẫu
+## Mẫu Mã
 
 - Python: [Agent Framework (Microsoft Foundry)](./code_samples/02-python-agent-framework.ipynb)
 - Python: [Agent Framework (Azure OpenAI Responses API)](./code_samples/02-python-agent-framework-azure-openai.ipynb)
@@ -394,21 +394,21 @@ Microsoft Agent Framework cũng tích hợp với các dịch vụ Azure thông 
 
 ## Có Thêm Câu Hỏi về AI Agent Frameworks?
 
-Tham gia [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) để gặp gỡ các học viên khác, tham dự giờ làm việc và nhận câu trả lời cho các câu hỏi về AI Agents của bạn.
+Tham gia [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) để gặp gỡ những người học khác, tham dự giờ làm việc và nhận câu trả lời cho các câu hỏi về AI Agents của bạn.
 
-## Tài liệu Tham khảo
+## Tham Khảo
 
-- <a href="https://techcommunity.microsoft.com/blog/azure-ai-services-blog/introducing-azure-ai-agent-service/4298357" target="_blank">Dịch vụ Azure Agent</a>
+- <a href="https://techcommunity.microsoft.com/blog/azure-ai-services-blog/introducing-azure-ai-agent-service/4298357" target="_blank">Azure Agent Service</a>
 - <a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/responses" target="_blank">Microsoft Agent Framework - Azure OpenAI Responses</a>
 - <a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Foundry Agent Service</a>
 
 ## Bài Học Trước
 
-[Giới thiệu về AI Agents và Các Trường Hợp Sử Dụng Agent](../01-intro-to-ai-agents/README.md)
+[Giới Thiệu về AI Agents và Các Trường Hợp Sử Dụng Agent](../01-intro-to-ai-agents/README.md)
 
 ## Bài Học Tiếp Theo
 
-[Hiểu về Các Mẫu Thiết Kế Agentic](../03-agentic-design-patterns/README.md)
+[Hiểu Về Các Mẫu Thiết Kế Agentic](../03-agentic-design-patterns/README.md)
 
 ---
 

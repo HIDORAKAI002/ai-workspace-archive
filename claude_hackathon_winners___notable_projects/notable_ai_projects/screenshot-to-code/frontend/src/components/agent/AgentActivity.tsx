@@ -26,9 +26,64 @@ import html from "react-syntax-highlighter/dist/esm/languages/hljs/xml";
 import { vs2015 } from "react-syntax-highlighter/dist/esm/styles/hljs";
 import WorkingPulse from "../core/WorkingPulse";
 import { groupCompletedAgentEvents } from "./activity-order";
+import {
+  formatDurationBetween,
+  isTerminalVariantStatus,
+} from "./generation-time";
 
 SyntaxHighlighterBase.registerLanguage("html", html);
 const SyntaxHighlighter = SyntaxHighlighterBase as any;
+
+function ExpandablePrompt({ prompt }: { prompt: string }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isClamped, setIsClamped] = useState(false);
+  const promptRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    setIsExpanded(false);
+  }, [prompt]);
+
+  useEffect(() => {
+    const element = promptRef.current;
+    if (!element) return;
+
+    const updateClampedState = () => {
+      setIsClamped(element.scrollHeight > element.clientHeight + 1);
+    };
+
+    updateClampedState();
+    if (typeof ResizeObserver === "undefined") return;
+
+    const resizeObserver = new ResizeObserver(updateClampedState);
+    resizeObserver.observe(element);
+    return () => resizeObserver.disconnect();
+  }, [prompt, isExpanded]);
+
+  return (
+    <div>
+      <p
+        ref={promptRef}
+        className={`whitespace-pre-wrap break-words text-xs text-gray-600 dark:text-gray-300 ${
+          !isExpanded ? "line-clamp-4" : ""
+        }`}
+      >
+        {prompt}
+      </p>
+      {(isClamped || isExpanded) && (
+        <div className="mt-1 flex justify-end">
+          <button
+            type="button"
+            onClick={() => setIsExpanded((previous) => !previous)}
+            aria-expanded={isExpanded}
+            className="rounded-full bg-gray-100 px-2 py-0.5 text-[11px] font-medium text-gray-600 transition-colors hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700"
+          >
+            {isExpanded ? "Less" : "More"}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function CodePreviewBlock({ code, isGenerating }: { code: string; isGenerating: boolean }) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -53,29 +108,12 @@ function CodePreviewBlock({ code, isGenerating }: { code: string; isGenerating: 
   );
 }
 
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
-}
-
-function formatDurationMs(milliseconds: number): string {
-  const seconds = Math.max(1, Math.round(milliseconds / 1000));
-  if (seconds < 60) return `${seconds}s`;
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-  if (minutes < 60) return `${minutes}m ${remainingSeconds}s`;
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-  return `${hours}h ${remainingMinutes}m`;
-}
-
 function formatDuration(startedAt?: number, endedAt?: number): string {
-  if (!isFiniteNumber(startedAt) || !isFiniteNumber(endedAt)) return "";
-  return formatDurationMs(endedAt - startedAt);
+  return formatDurationBetween(startedAt, endedAt);
 }
 
 function formatElapsedSince(timestampMs: number | undefined, nowMs: number): string {
-  if (!isFiniteNumber(timestampMs)) return "";
-  return formatDurationMs(Math.max(0, nowMs - timestampMs));
+  return formatDurationBetween(timestampMs, nowMs);
 }
 
 function getArrayField(value: unknown, field: string): unknown[] | null {
@@ -273,6 +311,12 @@ function renderToolDetails(event: AgentEvent, variantCode?: string) {
 
   const output = event.output as any;
   const input = event.input as any;
+  const editImagePrompt =
+    typeof input?.prompt === "string"
+      ? input.prompt
+      : typeof output?.image?.prompt === "string"
+        ? output.image.prompt
+        : null;
   const hasError = Boolean(output?.error);
   const images =
     output && Array.isArray(output.images) ? (output.images as Array<any>) : null;
@@ -456,11 +500,7 @@ function renderToolDetails(event: AgentEvent, variantCode?: string) {
         <div>
           {event.status === "running" && input?.image_urls && Array.isArray(input.image_urls) && (
             <div className="space-y-3">
-              {input.prompt && (
-                <div className="text-xs text-gray-600 dark:text-gray-300">
-                  {input.prompt}
-                </div>
-              )}
+              {editImagePrompt && <ExpandablePrompt prompt={editImagePrompt} />}
               <div className="divide-y divide-gray-100 dark:divide-gray-800">
                 {input.image_urls.map((url: string, index: number) => (
                   <div key={`${url}-${index}`} className="py-2">
@@ -480,9 +520,7 @@ function renderToolDetails(event: AgentEvent, variantCode?: string) {
           )}
           {event.status !== "running" && output?.image && (
             <div className="space-y-3">
-              <div className="text-xs text-gray-600 dark:text-gray-300">
-                {output.image.prompt}
-              </div>
+              {editImagePrompt && <ExpandablePrompt prompt={editImagePrompt} />}
               <div className="grid gap-3 sm:grid-cols-2">
                 <div>
                   <div className="text-xs text-gray-500 dark:text-gray-400 mb-1">
@@ -914,15 +952,12 @@ function AgentActivity() {
       ? new Date(currentCommit.dateCreated).getTime()
       : undefined);
 
+  const isDone = isTerminalVariantStatus(selectedVariantStatus);
   const isLatestCommit = head === latestCommitHash;
   if (!isLatestCommit || events.length === 0) {
     return null;
   }
 
-  const isDone =
-    selectedVariantStatus === "complete" ||
-    selectedVariantStatus === "error" ||
-    selectedVariantStatus === "cancelled";
   const runningDuration = formatElapsedSince(requestStartMs, nowMs);
   const completedEventGroups = groupCompletedAgentEvents(events);
 

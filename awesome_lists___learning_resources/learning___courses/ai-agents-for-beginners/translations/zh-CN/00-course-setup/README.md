@@ -2,31 +2,31 @@
 
 ## 介绍
 
-本课程将介绍如何运行本课程的代码示例。
+本课将介绍如何运行本课程的代码示例。
 
 ## 加入其他学习者并获取帮助
 
-在开始克隆您的代码库之前，请加入 [AI Agents For Beginners Discord 频道](https://aka.ms/ai-agents/discord)，以获取任何安装帮助、课程相关问题的解答，或与其他学习者交流。
+在开始克隆您的仓库之前，请加入[AI Agents For Beginners Discord频道](https://aka.ms/ai-agents/discord)，以便获取设置帮助、课程问题解答，或与其他学习者连接。
 
 ## 克隆或 Fork 本仓库
 
-开始之前，请克隆或 Fork GitHub 仓库。这将为您创建本课程资料的个人版本，以便您可以运行、测试和调整代码！
+首先，请克隆或 Fork GitHub 仓库。这样您就拥有了课程材料的个人版本，可以运行、测试和修改代码！
 
-您可以点击链接 <a href="https://github.com/microsoft/ai-agents-for-beginners/fork" target="_blank">Fork 本仓库</a> 来完成此操作
+您可以点击链接来 <a href="https://github.com/microsoft/ai-agents-for-beginners/fork" target="_blank">Fork 仓库</a>
 
-您现在应该已经获得了本课程的 Fork 版本，链接如下：
+现在您应该拥有了本课程的个人分叉版本，链接如下：
 
 ![Forked Repo](../../../translated_images/zh-CN/forked-repo.33f27ca1901baa6a.webp)
 
-### 浅层克隆（推荐用于研讨会 / Codespaces）
+### 浅克隆（推荐用于工作坊 / Codespaces）
 
-  > 当您下载完整历史和所有文件时，整个仓库可能非常大（约3 GB）。如果您只参加研讨会或只需要部分课程文件夹，浅层克隆（或稀疏克隆）通过截断历史记录和/或跳过 blobs 来避免大部分下载。
+  >下载完整历史和所有文件时，完整仓库可能很大（约3 GB）。如果您只是参加工作坊或只需要几个课程文件夹，浅克隆（或稀疏克隆）通过截断历史和/或跳过大文件避免了大部分下载。
 
-#### 快速浅层克隆 — 最小历史记录，所有文件
+#### 快速浅克隆 — 最少历史，所有文件
 
-请将下面命令中的 `<your-username>` 替换为您的 Fork URL（或您偏好的上游 URL）。
+将以下命令中的 `<your-username>` 替换为您的 Fork URL（或如果您喜欢，则使用上游 URL）。
 
-仅克隆最新提交历史（下载量小）：
+只克隆最新提交历史（下载量小）：
 
 ```bash|powershell
 git clone --depth 1 https://github.com/<your-username>/ai-agents-for-beginners.git
@@ -38,9 +38,9 @@ git clone --depth 1 https://github.com/<your-username>/ai-agents-for-beginners.g
 git clone --depth 1 --branch <branch-name> https://github.com/<your-username>/ai-agents-for-beginners.git
 ```
 
-#### 部分（稀疏）克隆 — 最小 blobs + 仅选择的文件夹
+#### 部分克隆（稀疏克隆）— 最少大文件 + 只选定文件夹
 
-使用部分克隆和稀疏检出（需要 Git 2.25+，推荐使用支持部分克隆的现代 Git）：
+该方法使用部分克隆和稀疏检出（需要 Git 2.25+，推荐现代 Git 支持部分克隆）：
 
 ```bash|powershell
 git clone --depth 1 --filter=blob:none --sparse https://github.com/<your-username>/ai-agents-for-beginners.git
@@ -52,13 +52,13 @@ git clone --depth 1 --filter=blob:none --sparse https://github.com/<your-usernam
 cd ai-agents-for-beginners
 ```
 
-然后指定您需要的文件夹（下面示例显示了两个文件夹）：
+然后指定你需要的文件夹（以下示例显示两个文件夹）：
 
 ```bash|powershell
 git sparse-checkout set 00-course-setup 01-intro-to-ai-agents
 ```
 
-克隆并验证文件后，如果您只需要文件且想释放空间（无 git 历史），请删除仓库元数据（💀不可恢复 —— 这样您将失去所有 Git 功能：无法提交、拉取、推送或访问历史）。
+克隆并验证文件后，如果您只需要文件并想释放空间（无 git 历史），请删除仓库元数据（💀不可逆 — 会丢失所有 Git 功能：无提交、拉取、推送或历史访问）。
 
 ```bash
 # zsh/bash
@@ -70,33 +70,33 @@ rm -rf .git
 Remove-Item -Recurse -Force .git
 ```
 
-#### 使用 GitHub Codespaces（推荐，避免本地大文件下载）
+#### 使用 GitHub Codespaces（推荐避免本地大文件下载）
 
-- 通过 [GitHub UI](https://github.com/codespaces) 为本仓库创建新的 Codespace。  
+- 通过 [GitHub UI](https://github.com/codespaces) 为此仓库创建新的 Codespace。  
 
-- 在新建 Codespace 的终端中，运行上面的浅层/稀疏克隆命令，将所需课程文件夹带入 Codespace 工作区。
-- 可选操作：在 Codespaces 内克隆后，删除 .git 以释放额外空间（参考上文删除命令）。
-- 注意：如果您想直接在 Codespaces 中打开仓库（不另外克隆），需要注意 Codespaces 会构建 devcontainer 环境，可能仍会配置超出您需要的内容。在新建 Codespace 内克隆浅拷贝，可让您更好地控制磁盘使用。
+- 在新建 Codespace 的终端中运行上述浅克隆或稀疏克隆命令，仅将您需要的课程文件夹带入 Codespace 工作区。
+- 可选：在 Codespaces 内克隆后，删除 .git 以回收额外空间（见上方删除命令）。
+- 注意：如果您更愿意直接在 Codespaces 打开仓库（无额外克隆），请注意 Codespaces 会构建 devcontainer 环境，可能仍会配置超出需求的内容。在新 Codespace 内克隆浅拷贝可更好控制磁盘使用。
 
-#### 提示
+#### 小贴士
 
-- 如果您需要编辑/提交，一定要把克隆 URL 替换为您的 Fork。
-- 如果之后需要更多历史或文件，可以拉取它们或调整稀疏检出以包含更多文件夹。
+- 如果您希望编辑/提交，请始终替换为您 Fork 的克隆 URL。
+- 以后如果需要更多历史或文件，可以抓取或调整稀疏检出以包含额外文件夹。
 
 ## 运行代码
 
-本课程提供一系列 Jupyter 笔记本，您可以运行它们以获得构建 AI 代理的实践经验。
+本课程提供一系列可运行的 Jupyter Notebook，让您亲自动手构建 AI 代理。
 
-代码示例使用 **Microsoft Agent Framework (MAF)** 和 `FoundryChatClient`，通过 **Microsoft Foundry** 连接到 **Microsoft Foundry Agent Service V2**（即 Responses API）。
+代码示例使用<strong>微软代理框架（Microsoft Agent Framework，MAF）</strong>及 `FoundryChatClient`，通过<strong>Microsoft Foundry</strong>连接<strong>Microsoft Foundry Agent Service V2</strong>（Responses API）。
 
-所有的 Python 笔记本文件标注为 `*-python-agent-framework.ipynb`。
+所有 Python 笔记本均标记为 `*-python-agent-framework.ipynb`。
 
-## 需求
+## 要求
 
-- Python 3.12 及以上版本
-  - <strong>注意</strong>：如果您未安装 Python3.12，请确保安装它。然后用 python3.12 创建虚拟环境以确保 requirements.txt 中的正确版本被安装。
+- Python 3.12+
+  - <strong>注意</strong>：如果未安装 Python 3.12，请确保安装。然后使用 python3.12 创建虚拟环境，确保从 requirements.txt 文件安装正确版本。
   
-    >示例
+    >例如
 
     创建 Python 虚拟环境目录：
 
@@ -116,82 +116,82 @@ Remove-Item -Recurse -Force .git
     venv\Scripts\activate
     ```
 
-- .NET 10 及以上版本: 对于使用 .NET 的示例代码，确保安装了 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 及以上版本，然后检查已安装的 .NET SDK 版本：
+- .NET 10+：对于使用 .NET 的示例代码，请确保安装 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更高版本。然后检查已安装的 .NET SDK 版本：
 
     ```bash|powershell
     dotnet --list-sdks
     ```
 
-- **Azure CLI** — 认证所需。可从 [aka.ms/installazurecli](https://aka.ms/installazurecli) 安装。
+- **Azure CLI** — 必需的身份验证工具。安装请访问 [aka.ms/installazurecli](https://aka.ms/installazurecli)。
 - **Azure 订阅** — 访问 Microsoft Foundry 和 Microsoft Foundry Agent Service 所需。
-- **Microsoft Foundry 项目** — 需要有部署模型的项目（例如 `gpt-4.1-mini`）。见下方 [步骤 1](#步骤-1：创建-microsoft-foundry-项目)。
+- **Microsoft Foundry 项目** — 需已部署模型的项目（示例：`gpt-5-mini`）。见下方[步骤1](#步骤1：创建-microsoft-foundry-项目)。
 
-本仓库根目录中包含了一个 `requirements.txt` 文件，列出了运行代码示例所需的所有 Python 包。
+仓库根目录包含 `requirements.txt` 文件，列出了运行示例代码所需的所有 Python 包。
 
-您可以在仓库根目录的终端运行以下命令安装它们：
+您可以在终端的仓库根目录运行以下命令安装：
 
 ```bash|powershell
 pip install -r requirements.txt
 ```
 
-我们建议您创建 Python 虚拟环境，以避免任何冲突和问题。
+推荐创建 Python 虚拟环境以避免冲突和问题。
 
 ## 设置 VSCode
 
-确保在 VSCode 中使用的是正确版本的 Python。
+确保 VSCode 使用的是正确版本的 Python。
 
 ![image](https://github.com/user-attachments/assets/a85e776c-2edb-4331-ae5b-6bfdfb98ee0e)
 
 ## 设置 Microsoft Foundry 和 Microsoft Foundry Agent Service
 
-### 步骤 1：创建 Microsoft Foundry 项目
+### 步骤1：创建 Microsoft Foundry 项目
 
-要运行笔记本，您需要一个 Microsoft Foundry **hub** 和 **project**，且项目中已有部署模型。
+您需要一个 Microsoft Foundry **hub** 和带已部署模型的 **project** 才能运行笔记本。
 
-1. 访问 [ai.azure.com](https://ai.azure.com) 并使用 Azure 账号登录。
-2. 创建一个 **hub**（或使用已有的）。详情见：[Hub 资源概述](https://learn.microsoft.com/azure/ai-foundry/concepts/ai-resources)。
-3. 在 hub 内创建一个 <strong>项目</strong>。
-4. 从 **模型 + 端点** → <strong>部署模型</strong> 部署一个模型（例如 `gpt-4.1-mini`）。
+1. 访问 [ai.azure.com](https://ai.azure.com)，使用 Azure 账号登录。
+2. 创建一个 **hub**（或使用已有的）。详情见：[Hub资源概述](https://learn.microsoft.com/azure/ai-foundry/concepts/ai-resources)。
+3. 在 hub 内创建一个 **project**。
+4. 在 **Models + Endpoints** → **Deploy model** 部署模型（例如 `gpt-5-mini`）。
 
-### 步骤 2：获取项目端点和模型部署名称
+### 步骤2：获取项目端点和模型部署名称
 
-在 Microsoft Foundry 门户中的项目：
+从 Microsoft Foundry 门户项目里：
 
-- <strong>项目端点</strong> — 进入 <strong>概览</strong> 页面并复制端点 URL。
+- <strong>项目端点</strong> — 进入 **Overview** 页面，复制端点 URL。
 
 ![Project Connection String](../../../translated_images/zh-CN/project-endpoint.8cf04c9975bbfbf1.webp)
 
-- <strong>模型部署名称</strong> — 前往 **模型 + 端点**，选择已部署模型，记下 <strong>部署名称</strong>（例如 `gpt-4.1-mini`）。
+- <strong>模型部署名称</strong> — 前往 **Models + Endpoints**，选择已部署模型，记录 **Deployment name**（如 `gpt-5-mini`）。
 
-### 步骤 3：使用 `az login` 登录 Azure
+### 步骤3：通过 `az login` 登录 Azure
 
-所有笔记本都使用 **`AzureCliCredential`** 进行认证 — 无需管理 API 密钥，但需通过 Azure CLI 登录。
+所有笔记本使用 **`AzureCliCredential`** 认证 — 无需管理 API 密钥。需要通过 Azure CLI 登录。
 
-1. **如果尚未安装 Azure CLI**，请安装： [aka.ms/installazurecli](https://aka.ms/installazurecli)
+1. 如果尚未安装 Azure CLI，请安装：[aka.ms/installazurecli](https://aka.ms/installazurecli)
 
-2. <strong>登录</strong>，运行：
+2. 运行以下命令登录：
 
     ```bash|powershell
     az login
     ```
 
-    如果您处于无浏览器的远程/Codespace 环境：
+    若在无浏览器的远程/Codespace 环境：
 
     ```bash|powershell
     az login --use-device-code
     ```
 
-3. 如果系统提示，<strong>选择订阅</strong> — 选中包含 Foundry 项目的那个订阅。
+3. 若提示，<strong>选择订阅</strong> — 选择包含 Foundry 项目的订阅。
 
-4. <strong>确认登录状态</strong>：
+4. <strong>验证登录状态</strong>：
 
     ```bash|powershell
     az account show
     ```
 
-> **为什么需要 `az login`？** 这些笔记本使用 `azure-identity` 包中的 `AzureCliCredential` 进行认证。这意味着您的 Azure CLI 会话提供凭据 — `.env` 文件中无需 API 密钥或密匙 这是一种[安全最佳实践](https://learn.microsoft.com/azure/developer/ai/keyless-connections)。
+> **为何使用 `az login`？** 笔记本通过 `azure-identity` 包里的 `AzureCliCredential` 进行认证。这意味着 Azure CLI 会话提供凭据 — 不需在 `.env` 文件中保存 API 密钥或秘密。此为一项[安全最佳实践](https://learn.microsoft.com/azure/developer/ai/keyless-connections)。
 
-### 步骤 4：创建您的 `.env` 文件
+### 步骤4：创建 `.env` 文件
 
 复制示例文件：
 
@@ -205,95 +205,95 @@ cp .env.example .env
 Copy-Item .env.example .env
 ```
 
-打开 `.env` 并填写以下两个值：
+打开 `.env` 文件，填写以下两个变量：
 
 ```env
 AZURE_AI_PROJECT_ENDPOINT=https://<your-project>.services.ai.azure.com/api/projects/<your-project-id>
-AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-4.1-mini
+AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-5-mini
 ```
 
-| 变量 | 获取位置 |
+| 变量 | 位置 |
 |----------|-----------------|
-| `AZURE_AI_PROJECT_ENDPOINT` | Foundry 门户 → 您的项目 → <strong>概览</strong> 页面 |
-| `AZURE_AI_MODEL_DEPLOYMENT_NAME` | Foundry 门户 → **模型 + 端点** → 已部署模型的名称 |
+| `AZURE_AI_PROJECT_ENDPOINT` | Foundry 门户 → 项目 → **Overview** 页 |
+| `AZURE_AI_MODEL_DEPLOYMENT_NAME` | Foundry 门户 → **Models + Endpoints** → 已部署模型名称 |
 
-大部分课程就此准备完毕！笔记本将自动通过您的 `az login` 会话进行认证。
+以上为大多数课程的全部配置！笔记本会通过您的 `az login` 会话自动认证。
 
-### 步骤 5：安装 Python 依赖包
+### 步骤5：安装 Python 依赖
 
 ```bash|powershell
 pip install -r requirements.txt
 ```
 
-推荐在您之前创建的虚拟环境内运行此命令。
+建议在之前创建的虚拟环境中运行该命令。
 
-## 第 5 课（Agentic RAG）的额外设置
+## 课程5（Agentic RAG）额外设置
 
-第 5 课使用了 **Azure AI Search** 进行增强检索。如果您打算运行该课，请将以下变量添加到您的 `.env` 文件：
+课程5 使用 **Azure AI Search** 支持检索增强生成。若您计划运行该课程，请在 `.env` 文件添加以下变量：
 
-| 变量 | 获取位置 |
+| 变量 | 位置 |
 |----------|-----------------|
-| `AZURE_SEARCH_SERVICE_ENDPOINT` | Azure 门户 → 您的 **Azure AI Search** 资源 → <strong>概览</strong> → URL |
-| `AZURE_SEARCH_API_KEY` | Azure 门户 → 您的 **Azure AI Search** 资源 → <strong>设置</strong> → <strong>密钥</strong> → 主管理密钥 |
+| `AZURE_SEARCH_SERVICE_ENDPOINT` | Azure 门户 → 您的 **Azure AI Search** 资源 → **Overview** → URL |
+| `AZURE_SEARCH_API_KEY` | Azure 门户 → 您的 **Azure AI Search** 资源 → <strong>设置</strong> → <strong>密钥</strong> → 主管理员密钥 |
 
-## 直接调用 Azure OpenAI 的课程额外设置（第 6 和 8 课）
+## 直接调用 Azure OpenAI 的额外设置（课程6和8）
 
-部分第 6 和 8 课的笔记本直接调用 **Azure OpenAI**（使用 **Responses API**），而不是通过 Microsoft Foundry 项目。这些示例之前使用 GitHub 模型，现已弃用（将于2026年7月退休），且不支持 Responses API。如果您打算运行这些示例，请将以下变量添加到 `.env` 文件：
+课程6和8中的部分笔记本直接调用 **Azure OpenAI**（使用 **Responses API**），而非通过 Microsoft Foundry 项目。之前这些示例使用 GitHub Models，现已弃用（将于2026年7月退役）且不支持 Responses API。若计划运行这些示例，请将以下变量添加到 `.env` 文件：
 
-| 变量 | 获取位置 |
+| 变量 | 位置 |
 |----------|-----------------|
-| `AZURE_OPENAI_ENDPOINT` | Azure 门户 → 您的 **Azure OpenAI** 资源 → <strong>密钥与端点</strong> → 端点（例如 `https://<your-resource>.openai.azure.com`） |
-| `AZURE_OPENAI_DEPLOYMENT` | 您部署模型的名称（例如 `gpt-4.1-mini`），支持 Responses API |
-| `AZURE_OPENAI_API_KEY` | 可选 — 仅当您使用基于密钥的认证而非 `az login` / Entra ID 时填写 |
+| `AZURE_OPENAI_ENDPOINT` | Azure 门户 → 您的 **Azure OpenAI** 资源 → <strong>密钥和端点</strong> → 端点（例如 `https://<your-resource>.openai.azure.com`） |
+| `AZURE_OPENAI_DEPLOYMENT` | 已部署且支持 Responses API 的模型名称（例如 `gpt-5-mini`） |
+| `AZURE_OPENAI_API_KEY` | 可选 — 如果您使用基于密钥的认证而非 `az login` / Entra ID 时填写 |
 
-> Responses API 使用稳定的 `/openai/v1/` 端点，无需 `api-version` 参数。通过 `az login` 登录，即可使用无密钥 Entra ID 认证。
+> Responses API 使用稳定的 `/openai/v1/` 端点，不需要 `api-version`。登录 `az login` 以使用无密钥的 Entra ID 认证。
 
-## 替代提供商：MiniMax（兼容 OpenAI）
+## 替代提供者：MiniMax（兼容 OpenAI）
 
-[MiniMax](https://platform.minimaxi.com/) 提供大上下文模型（最多 204K 令牌）通过兼容 OpenAI 的 API。由于 Microsoft Agent Framework 的 `OpenAIChatClient` 兼容任何 OpenAI 兼容端点，您可以将 MiniMax 作为 Azure OpenAI 或 OpenAI 的替代方案直接使用。
+[MiniMax](https://platform.minimaxi.com/) 通过兼容 OpenAI 的 API 提供大上下文模型（最高支持204K token）。微软代理框架的 `OpenAIChatClient` 兼容所有 OpenAI 端点，您可将 MiniMax 作为 Azure OpenAI 或 OpenAI 的替代方案。
 
-将以下变量添加到您的 `.env` 文件：
+将以下变量添加到 `.env` 文件：
 
-| 变量 | 获取位置 |
+| 变量 | 位置 |
 |----------|-----------------|
 | `MINIMAX_API_KEY` | [MiniMax 平台](https://platform.minimaxi.com/) → API 密钥 |
-| `MINIMAX_BASE_URL` | 使用默认值 `https://api.minimax.io/v1` |
+| `MINIMAX_BASE_URL` | 使用 `https://api.minimax.io/v1`（默认） |
 | `MINIMAX_MODEL_ID` | 使用的模型名称（例如 `MiniMax-M3`） |
 
-<strong>示例模型</strong>：`MiniMax-M3`（推荐）、`MiniMax-M2.7`、`MiniMax-M2.7-highspeed`（响应更快）。模型名称和可用性会随着时间变化，且某些模型的访问权限取决于您的账户或地区 — 请查看 [MiniMax 平台](https://platform.minimaxi.com/) 获取最新列表。如果您无法访问 `MiniMax-M3`，请将 `MINIMAX_MODEL_ID` 设置为您能访问的模型（如 `MiniMax-M2.7`）。
+<strong>示例模型</strong>：`MiniMax-M3`（推荐），`MiniMax-M2.7`，`MiniMax-M2.7-highspeed`（响应更快）。模型名称和可用性会随时变动，访问权限取决于账户或地区 — 请查看[MiniMax 平台](https://platform.minimaxi.com/)获取最新列表。如果 `MiniMax-M3` 不对账户开放，请设置 `MINIMAX_MODEL_ID` 为您可用的模型（例如 `MiniMax-M2.7`）。
 
-使用 `OpenAIChatClient` 的代码示例（如第 14 课酒店预订工作流）将在检测到 `MINIMAX_API_KEY` 被设置时自动使用 MiniMax 配置。
+使用 `OpenAIChatClient` 的代码示例（例如第14课酒店预订流程）在设置了 `MINIMAX_API_KEY` 时会自动检测并使用您的 MiniMax 配置。
 
-## 替代提供商：Foundry Local（本地运行模型）
+## 替代提供者：Foundry Local（本地运行模型）
 
-[Foundry Local](https://foundrylocal.ai) 是一个轻量级运行时，通过兼容 OpenAI 的 API，将语言模型<strong>完全在您自己的机器上</strong>下载、管理和提供服务 — 无需云服务、无 Azure 订阅、无 API 密钥。非常适合离线开发、无云成本实验或本地数据存储。
+[Foundry Local](https://foundrylocal.ai) 是轻量级运行时，可完全在您本机下载、管理并提供语言模型的 OpenAI 兼容 API — 无需云服务，无需 Azure 订阅，也无需 API 密钥。非常适合离线开发、实验和避免云端费用，或将数据保留在本地。
 
-由于 Microsoft Agent Framework 的 `OpenAIChatClient` 兼容任何 OpenAI 兼容端点，Foundry Local 是 Azure OpenAI 的一个本地替代方案。
+由于微软代理框架的 `OpenAIChatClient` 兼容任何 OpenAI 端点，Foundry Local 是 Azure OpenAI 的本地替代方案。
 
 **1. 安装 Foundry Local**
 
 ```bash
-# Windows 系统
+# Windows（视窗操作系统）
 winget install Microsoft.FoundryLocal
 
-# macOS 系统
+# macOS（苹果操作系统）
 brew install foundrylocal
 ```
 
-**2. 下载并运行模型**（这也会启动本地服务）：
+**2. 下载并运行模型**（同时启动本地服务）：
 
 ```bash
 foundry model list          # 查看可用模型
 foundry model run phi-4-mini
 ```
 
-**3. 安装用于发现本地端点的 Python SDK：**
+**3. 安装 Python SDK**，用于发现本地端点：
 
 ```bash
 pip install foundry-local-sdk
 ```
 
-**4. 将 Microsoft Agent Framework 指向您的本地模型：**
+**4. 将微软代理框架指向您的本地模型：**
 
 ```python
 from foundry_local import FoundryLocalManager
@@ -314,14 +314,14 @@ agent = chat_client.as_agent(
 )
 ```
 
-> **注意：** Foundry Local 提供 OpenAI 兼容的 <strong>聊天补全</strong> 端点。适合本地开发和离线场景。要使用完整的 **Responses API** 功能（有状态对话、深度工具编排和代理式开发），请使用 **Azure OpenAI** 或课程中演示的 **Microsoft Foundry** 项目。详情请参阅 [Foundry Local 文档](https://foundrylocal.ai) 了解当前模型目录和平台支持。
+> **注意：** Foundry Local 暴露 OpenAI 兼容的<strong>聊天完成</strong>端点，适用于本地开发和离线场景。若需完整的<strong>Responses API</strong>功能（支持有状态对话、深度工具编排及代理式开发），请使用本文示例中的 **Azure OpenAI** 或 **Microsoft Foundry** 项目。详见[Foundry Local 文档](https://foundrylocal.ai)了解当前模型目录及平台支持。
+
+## 课程8（Bing 依托工作流）额外设置
 
 
-## 课程8的额外设置（Bing 绑定工作流）
+第8课中的条件工作流笔记本使用了通过 Microsoft Foundry 实现的 **Bing 覆盖**。如果你打算运行该示例，请将此变量添加到你的 `.env` 文件中：
 
-课程8中的条件工作流笔记本使用了通过 Microsoft Foundry 的<strong>Bing 绑定</strong>。如果你计划运行该示例，请将此变量添加到你的 `.env` 文件中：
-
-| 变量 | 位置 |
+| 变量 | 获取位置 |
 |----------|-----------------|
 | `BING_CONNECTION_ID` | Microsoft Foundry 门户 → 你的项目 → <strong>管理</strong> → <strong>已连接资源</strong> → 你的 Bing 连接 → 复制连接 ID |
 
@@ -329,13 +329,13 @@ agent = chat_client.as_agent(
 
 ### macOS 上的 SSL 证书验证错误
 
-如果你在 macOS 遇到了如下错误：
+如果你使用 macOS 并遇到如下错误：
 
 ```plaintext
 ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain
 ```
 
-这是 macOS 上 Python 已知的问题，系统 SSL 证书默认没有被自动信任。请依次尝试以下解决方案：
+这是 macOS 上 Python 的已知问题，系统 SSL 证书不会被自动信任。请按顺序尝试以下解决方案：
 
 **选项 1：运行 Python 的安装证书脚本（推荐）**
 
@@ -344,19 +344,19 @@ ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verif
 /Applications/Python\ 3.XX/Install\ Certificates.command
 ```
 
-**选项 2：在笔记本中使用 `connection_verify=False` （仅限 GitHub Models 笔记本）**
+**选项 2：在笔记本中使用 `connection_verify=False`（仅适用于 GitHub Models 笔记本）**
 
-在课程6的笔记本（`06-building-trustworthy-agents/code_samples/06-system-message-framework.ipynb`）中，已经包含了此解决方法的注释代码。创建客户端时取消注释 `connection_verify=False`：
+在第 6 课的笔记本（`06-building-trustworthy-agents/code_samples/06-system-message-framework.ipynb`）中，已包含了一个注释掉的解决方法。创建客户端时取消注释 `connection_verify=False`：
 
 ```python
 client = ChatCompletionsClient(
     endpoint=endpoint,
     credential=AzureKeyCredential(token),
-    connection_verify=False,  # 如果遇到证书错误，请禁用 SSL 验证
+    connection_verify=False,  # 如果遇到证书错误，请禁用SSL验证
 )
 ```
 
-> **⚠️ 警告：** 禁用 SSL 验证 (`connection_verify=False`) 通过跳过证书校验降低了安全性。仅作为开发环境中的临时解决办法，绝不要在生产环境使用。
+> **⚠️ 警告：** 禁用 SSL 验证 (`connection_verify=False`) 会跳过证书验证，从而降低安全性。仅在开发环境做为临时解决方案使用，绝不可在生产环境中使用。
 
 **选项 3：安装并使用 `truststore`**
 
@@ -364,7 +364,7 @@ client = ChatCompletionsClient(
 pip install truststore
 ```
 
-然后在你的笔记本或脚本顶部，在进行任何网络调用之前添加以下内容：
+然后在笔记本或脚本的顶部网络调用之前添加以下内容：
 
 ```python
 import truststore
@@ -377,9 +377,9 @@ truststore.inject_into_ssl()
 
 ## 下一课
 
-你现在已经准备好运行本课程的代码了。祝你在 AI 代理的世界中学习愉快！
+你现在已准备好运行本课程的代码。祝你在 AI 代理的世界中学习愉快！
 
-[AI 代理介绍及代理用例](../01-intro-to-ai-agents/README.md)
+[AI 代理简介及代理用例](../01-intro-to-ai-agents/README.md)
 
 ---
 

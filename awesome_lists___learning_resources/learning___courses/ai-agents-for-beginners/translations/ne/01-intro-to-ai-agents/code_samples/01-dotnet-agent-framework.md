@@ -1,72 +1,72 @@
-# 🌍 माइक्रोसफ्ट एजेन्ट फ्रेमवर्क (.NET) सहित AI यात्रा एजेन्ट
+# 🌍 Microsoft Agent Framework (.NET) सँग AI यात्रा एजेन्ट
 
-## 📋 स्थिति अवलोकन
+## 📋 परिदृश्य अवलोकन
 
-यस उदाहरणले माइक्रोसफ्ट एजेन्ट फ्रेमवर्क प्रयोग गरेर .NET का लागि बुद्धिमानीपूर्ण यात्रा योजना एजेन्ट कसरी बनाउने देखाउँछ। एजेन्टले स्वतः व्यक्तिगत दिन-यात्रा तालिकाहरू विश्वका विभिन्न गन्तव्यहरूका लागि सिर्जना गर्न सक्छ।
+यस उदाहरणले कसरि Microsoft Agent Framework प्रयोग गरी एक बुद्धिमान यात्रा योजना एजेन्ट निर्माण गर्ने देखाउँछ जुन स्वतः विश्वभरका यादृच्छिक गन्तव्यहरूको लागि व्यक्तिगत दिन-यात्रा कार्यक्रमहरु उत्पादन गर्न सक्छ।
 
-### मुख्य क्षमता:
+### प्रमुख क्षमता:
 
-- 🎲 **यादृच्छिक गन्तव्य छनोट**: छुट्टी स्थानहरू छनोट गर्न कस्टम उपकरण प्रयोग गर्दछ
-- 🗺️ **बुद्धिमानी यात्रा योजना बनाउने**: विस्तृत दिन-बाई-दिन यात्रा तालिकाहरू बनाउँछ
-- 🔄 **रियल-टाइम स्ट्रिमिङ**: तत्काल र स्ट्रिमिङ दुवै प्रतिक्रिया समर्थन गर्दछ
-- 🛠️ **कस्टम उपकरण एकीकरण**: एजेन्ट क्षमताहरू विस्तार कसरी गर्ने देखाउँछ
+- 🎲 **यादृच्छिक गन्तव्य चयन**: बिदा स्थलहरू छनोट गर्न एक अनुकूल उपकरण प्रयोग गर्दछ
+- 🗺️ **बुद्धिमान यात्रा योजना**: दिनप्रतिदिनको विस्तारमा यात्रा कार्यक्रम बनाउँछ
+- 🔄 **रियल-टाइम स्ट्रिमिंग**: तत्काल र स्ट्रिमिङ उत्तरहरू दुवै समर्थन गर्दछ
+- 🛠️ **अनुकूल उपकरण एकीकरण**: एजेन्ट क्षमताहरू विस्तार कसरी गर्ने देखाउँछ
 
-## 🔧 प्राविधिक संरचना
+## 🔧 प्राविधिक आर्किटेक्चर
 
 ### मुख्य प्रविधिहरू
 
 - **Microsoft Agent Framework**: AI एजेन्ट विकासका लागि नवीनतम .NET कार्यान्वयन
-- **Azure OpenAI (Responses API)**: मोडेल अनुमानका लागि Azure OpenAI Responses API प्रयोग गर्दछ
-- **Azure Identity**: `AzureCliCredential` (`az login`) मार्फत सुरक्षित लगइन
-- **सुरक्षित कन्फिगरेसन**: वातावरण-आधारित अन्त बिन्दु व्यवस्थापन
+- **Azure OpenAI (प्रतिक्रिया API)**: मोडेल पूर्वानुमानका लागि Azure OpenAI प्रतिक्रिया API प्रयोग गर्दछ
+- **Azure Identity**: `AzureCliCredential` (`az login`) मार्फत सुरक्षित साइन-इन
+- **सुरक्षित कन्फिगरेसन**: वातावरणको आधारमा अन्तिम बिन्दु व्यवस्थापन
 
 ### मुख्य कम्पोनेन्टहरू
 
-1. **AIAgent**: संवाद प्रवाह सम्हाल्ने मुख्य एजेन्ट आयोजक
-2. **कस्टम उपकरणहरू**: एजेन्टका लागि उपलब्ध `GetRandomDestination()` कार्य
-3. **प्रतिक्रिया क्लाइन्ट**: Azure OpenAI Responses-आधारित संवाद इन्टरफेस
-4. **स्ट्रिमिङ समर्थन**: रियल-टाइम प्रतिक्रिया सिर्जना क्षमता
+1. **AIAgent**: मुख्य एजेन्ट संयोजक जो संवाद प्रवाह सम्हाल्छ
+2. **अनुकूल उपकरणहरू**: एजेन्टलाई उपलब्ध `GetRandomDestination()` फंक्शन
+3. **प्रतिक्रिया क्लाइєн्ट**: Azure OpenAI प्रतिक्रिया आधारित संवाद अन्तरफलक
+4. **स्ट्रिमिङ समर्थन**: रियल-टाइम प्रतिक्रिया उत्पादन क्षमता
 
 ### एकीकरण ढाँचा
 
 ```mermaid
 graph LR
     A[प्रयोगकर्ता अनुरोध] --> B[AI एजेन्ट]
-    B --> C[Azure OpenAI (प्रतिक्रिया API)]
+    B --> C[Azure OpenAI (प्रतिक्रियाहरू API)]
     B --> D[GetRandomDestination उपकरण]
     C --> E[यात्रा कार्यक्रम]
     D --> E
 ```
 
-## 🚀 सुरु गर्ने तरिका
+## 🚀 सुरु गर्दै
 
 ### आवश्यकताहरू
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) वा त्यो भन्दा माथि
-- Azure OpenAI स्रोत र मोडल डिप्लोयमेन्ट सहितको [Azure सदस्यता](https://azure.microsoft.com/free/)
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` मार्फत लगइन
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) वा सोभन्दा उच्च
+- Azure OpenAI स्रोत र मोडेल डिप्लोयमेन्ट भएको [Azure सदस्यता](https://azure.microsoft.com/free/)
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` मार्फत साइन-इन गर्नुहोस्
 
 ### आवश्यक वातावरण चरहरू
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# त्यसपछि साइन इन गर्नुहोस् ताकि AzureCliCredential ले टोकन प्राप्त गर्न सकोस्
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# त्यसपछि साइन इन गर्नुहोस् ताकि AzureCliCredential टोकन प्राप्त गर्न सकोस्।
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# त्यसपछि AzureCliCredential ले टोकन प्राप्त गर्न साईन इन गर्नुहोस्
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# त्यसपछि साइन इन गर्नुहोस् ताकि AzureCliCredential टोकन प्राप्त गर्न सकोस्
 az login
 ```
 
-### नमूना कोड
+### नमुना कोड
 
-कोड उदाहरण चलाउनको लागि,
+कोड उदाहरण चलाउन,
 
 ```bash
 # zsh/bash
@@ -74,7 +74,7 @@ chmod +x ./01-dotnet-agent-framework.cs
 ./01-dotnet-agent-framework.cs
 ```
 
-वा dotnet CLI प्रयोग गर्दा:
+वा dotnet CLI प्रयोग गर्दै:
 
 ```bash
 dotnet run ./01-dotnet-agent-framework.cs
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,19 +157,19 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 मुख्य सिकाईहरू
+## 🎓 मुख्य सिकाइहरू
 
-1. **एजेन्ट संरचना**: माइक्रोसफ्ट एजेन्ट फ्रेमवर्कले .NET मा AI एजेन्टहरू बनाउन सफा, प्रकार-सुरक्षित तरीका प्रदान गर्दछ
-2. **उपकरण एकीकरण**: `[Description]` विशेषता सहितका कार्यहरू एजेन्टका लागि उपलब्ध उपकरणहरू बन्छन्
-3. **कन्फिगरेसन व्यवस्थापन**: वातावरण चर र सुरक्षित प्रमाणपत्र ह्यान्डलिङ .NET को सबैभन्दा राम्रो अभ्यासहरू अनुसरण गर्दछ
-4. **Azure OpenAI Responses API**: एजेन्टले Azure.AI.OpenAI SDK मार्फत Azure OpenAI Responses API प्रयोग गर्दछ
+1. **एजेन्ट आर्किटेक्चर**: Microsoft Agent Framework ले .NET मा AI एजेन्ट निर्माणका लागि सफा र प्रकार-निश्चित तरिका प्रदान गर्दछ
+2. **उपकरण एकीकरण**: `[Description]` विशेषता भएका फंक्शनहरू एजेन्टका लागि उपलब्ध उपकरणहरू हुन्छन्
+3. **कन्फिगरेसन व्यवस्थापन**: वातावरण चरहरू र सुरक्षित क्रेडेन्सियल ह्यान्डलिङ .NET उत्तम अभ्यासहरू अनुसरण गर्दछ
+4. **Azure OpenAI प्रतिक्रिया API**: एजेन्टले Azure.AI.OpenAI SDK मार्फत Azure OpenAI प्रतिक्रिया API प्रयोग गर्छ
 
 ## 🔗 अतिरिक्त स्रोतहरू
 
-- [Microsoft Agent Framework दस्तावेज](https://learn.microsoft.com/agent-framework)
+- [Microsoft Agent Framework कागजात](https://learn.microsoft.com/agent-framework)
 - [Microsoft Foundry मा Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [.NET सिंगल फाइल एपहरू](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [.NET एकल फाइल एपहरू](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

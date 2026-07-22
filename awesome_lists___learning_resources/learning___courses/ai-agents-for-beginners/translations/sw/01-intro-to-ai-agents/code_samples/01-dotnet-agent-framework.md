@@ -1,66 +1,66 @@
-# 🌍 Wakala wa Safari wa AI kwa kutumia Microsoft Agent Framework (.NET)
+# 🌍 Wakala wa Safari wa AI na Microsoft Agent Framework (.NET)
 
-## 📋 Muhtasari wa Muktadha
+## 📋 Muhtasari wa Mtazamo
 
-Mfano huu unaonyesha jinsi ya kujenga wakala mwerevu wa kupanga safari kwa kutumia Microsoft Agent Framework kwa .NET. Wakala anaweza kuunda itinerary za siku ya ziara kwa maeneo tofauti duniani kwa njia ya moja kwa moja na binafsi.
+Mfano huu unaonyesha jinsi ya kujenga wakala mwenye akili wa kupanga safari kwa kutumia Microsoft Agent Framework kwa .NET. Wakala anaweza kuunda ratiba za ziara za siku moja zilizoandaliwa binafsi kwa maeneo tofauti duniani.
 
 ### Uwezo Muhimu:
 
-- 🎲 **Uchaguzi wa Mahali kwa Bahati Nasibu**: Inatumia chombo maalum kuchagua maeneo ya likizo
-- 🗺️ **Mpangilio Mwerevu wa Safari**: Huunda itinerary za kina siku kwa siku
-- 🔄 **Utoaji wa Moja kwa Moja**: Inasaidia majibu ya papo hapo na ya kuendelea
-- 🛠️ **Uunganishaji wa Zana Maalum**: Unaonesha jinsi ya kuongeza uwezo wa wakala
+- 🎲 **Uchaguzi wa Mahali kwa Bahati Nasibu**: Inatumia zana maalum kuchagua maeneo ya likizo
+- 🗺️ **Upangaji Intelligent wa Safari**: Inaunda ratiba za kina siku kwa siku
+- 🔄 **Utiririshaji wa Muda Halisi**: Inasaidia majibu ya haraka na ya mtiririko
+- 🛠️ **Muunganiko wa Zana Maalum**: Inaonyesha jinsi ya kupanua uwezo wa wakala
 
-## 🔧 Mambo ya Kiufundi
+## 🔧 Mimarishaji ya Kiufundi
 
-### Teknolojia Muhimu
+### Teknolojia Msingi
 
-- **Microsoft Agent Framework**: Utekelezaji wa hivi karibuni wa .NET kwa uundaji wa wakala wa AI
-- **Azure OpenAI (API za Majibu)**: Inatumia Azure OpenAI Responses API kwa uchambuzi wa modeli
+- **Microsoft Agent Framework**: Utekelezaji wa hivi karibuni wa .NET kwa maendeleo ya wakala AI
+- **Azure OpenAI (API za Majibu)**: Inatumia API za Majibu za Azure OpenAI kwa utambuzi wa mfano
 - **Azure Identity**: Kuingia salama kwa kutumia `AzureCliCredential` (`az login`)
-- **Usimamizi Salama**: Usimamizi wa anwani za mazingira
+- **Usimamizi Salama wa Mipangilio**: Usimamizi wa anwani kulingana na mazingira
 
-### Vipengele Vikuu
+### Vifaa Muhimu
 
-1. **AIAgent**: Msimamizi mkuu wa wakala anayetoa mtiririko wa mazungumzo
-2. **Zana Maalum**: Kazi ya `GetRandomDestination()` inapatikana kwa wakala
-3. **Mteja wa Majibu**: Kiolesura cha mazungumzo kinachotumia Azure OpenAI Responses
-4. **Msaada wa Utoaji wa Moja kwa Moja**: Uwezo wa kutoa majibu papo hapo
+1. **AIAgent**: Mkurugenzi mkuu wa wakala anayesimamia mtiririko wa mazungumzo
+2. **Zana Maalum**: Kazi `GetRandomDestination()` inayopatikana kwa wakala
+3. **Mteja wa Majibu**: Kiolesura cha mazungumzo kinachotegemea Azure OpenAI Responses
+4. **Msaada wa Utiririshaji**: Uwezo wa kuzalisha majibu ya muda halisi
 
-### Mchoro wa Muunganisho
+### Mfano wa Muunganiko
 
 ```mermaid
 graph LR
     A[Ombi la Mtumiaji] --> B[Wakala wa AI]
-    B --> C[Azure OpenAI (API za Majibu)]
-    B --> D[Zana ya KupataMwendokasiNasibu]
+    B --> C[Azure OpenAI (API ya Majibu)]
+    B --> D[Zana ya GetRandomDestination]
     C --> E[Ratiba ya Safari]
     D --> E
 ```
 
-## 🚀 Kuanzia
+## 🚀 Kuanzisha
 
-### Mahitaji Kabla ya Kuanzia
+### Vitu Vinavyohitajika
 
-- [SDK ya .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) au zaidi
-- Usajili wa [Azure](https://azure.microsoft.com/free/) una rasilimali ya Azure OpenAI na usambazaji wa modeli
-- CLI ya [Azure](https://learn.microsoft.com/cli/azure/install-azure-cli) — ingia kwa `az login`
+- [SDK ya .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) au juu zaidi
+- [Usajili wa Azure](https://azure.microsoft.com/free/) na rasilimali ya Azure OpenAI na usambazaji wa mfano
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — ingia kwa kutumia `az login`
 
-### Vigezo Vinavyohitajika katika Mazingira
+### Mabadiliko ya Mazingira Yanayohitajika
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Kisha ingia ili AzureCliCredential ipate tokeni
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Kisha jisajili ili AzureCliCredential ipate tokeni
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Kisha ingia ili AzureCliCredential iweze kupata tokeni
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Kisha ingia ili AzureCliCredential ipate tokeni
 az login
 ```
 
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,12 +157,12 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 Mambo Muhimu Kujifunza
+## 🎓 Mambo Muhimu ya Kumbuka
 
-1. **Mikakati ya Wakala**: Microsoft Agent Framework hutoa njia safi na salama ya kutumia aina kwa ujenzi wa mawakala wa AI katika .NET
-2. **Uunganishaji wa Zana**: Kazi zilizo na sifa za `[Description]` zinakuwa zana zinazopatikana kwa wakala
-3. **Usimamizi wa Usanidi**: Vigezo vya mazingira na usimamizi salama wa cheti hufuata mbinu bora za .NET
-4. **Azure OpenAI Responses API**: Wakala hutumia Azure OpenAI Responses API kupitia Azure.AI.OpenAI SDK
+1. **Mimarishaji ya Wakala**: Microsoft Agent Framework hutoa njia nzuri na salama ya aina ya kujenga mawakala wa AI kwa .NET
+2. **Muunganiko wa Zana**: Kazi zilizo na sifa za `[Description]` zinakuwa zana zinazopatikana kwa wakala
+3. **Usimamizi wa Mipangilio**: Mabadiliko ya mazingira na usimamizi salama wa vibali hufuata mbinu bora za .NET
+4. **API za Majibu za Azure OpenAI**: Wakala hutumia API za Majibu za Azure OpenAI kupitia SDK ya Azure.AI.OpenAI
 
 ## 🔗 Rasilimali Zaidi
 

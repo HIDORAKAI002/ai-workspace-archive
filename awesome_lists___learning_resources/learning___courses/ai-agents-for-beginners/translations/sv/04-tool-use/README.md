@@ -1,23 +1,23 @@
 [![Hur man designar bra AI-agenter](../../../translated_images/sv/lesson-4-thumbnail.546162853cb3daff.webp)](https://youtu.be/vieRiPRx-gI?si=cEZ8ApnT6Sus9rhn)
 
-> _(Klicka på bilden ovan för att se videon till denna lektion)_
+> _(Klicka på bilden ovan för att se videon av denna lektion)_
 
-# Designmönster för verktygsanvändning
+# Designmönstret för verktygsanvändning
 
-Verktyg är intressanta eftersom de ger AI-agenter en bredare uppsättning förmågor. Istället för att agenten bara har en begränsad uppsättning åtgärder den kan utföra, kan agenten genom att lägga till ett verktyg nu utföra en mängd olika handlingar. I detta kapitel ska vi titta på designmönstret för verktygsanvändning, som beskriver hur AI-agenter kan använda specifika verktyg för att uppnå sina mål.
+Verktyg är intressanta eftersom de tillåter AI-agenter att ha ett bredare spektrum av kapaciteter. Istället för att agenten bara ska kunna utföra ett begränsat antal handlingar, kan agenten genom att lägga till ett verktyg utföra ett stort antal olika handlingar. I detta kapitel tittar vi på designmönstret för verktygsanvändning, som beskriver hur AI-agenter kan använda specifika verktyg för att nå sina mål.
 
 ## Introduktion
 
-I denna lektion ska vi försöka besvara följande frågor:
+I denna lektion vill vi besvara följande frågor:
 
 - Vad är designmönstret för verktygsanvändning?
 - Vilka användningsfall kan det tillämpas på?
 - Vilka element/byggstenar behövs för att implementera designmönstret?
-- Vilka speciella överväganden finns vid användningen av designmönstret för verktygsanvändning för att bygga pålitliga AI-agenter?
+- Vilka särskilda överväganden finns för att använda designmönstret för verktygsanvändning för att bygga pålitliga AI-agenter?
 
-## Lärandemål
+## Inlärningsmål
 
-Efter att ha genomfört denna lektion kommer du att kunna:
+När du har genomfört denna lektion kommer du att kunna:
 
 - Definiera designmönstret för verktygsanvändning och dess syfte.
 - Identifiera användningsfall där designmönstret för verktygsanvändning är tillämpligt.
@@ -26,51 +26,51 @@ Efter att ha genomfört denna lektion kommer du att kunna:
 
 ## Vad är designmönstret för verktygsanvändning?
 
-**Designmönstret för verktygsanvändning** fokuserar på att ge LLM:er möjlighet att interagera med externa verktyg för att uppnå specifika mål. Verktyg är kod som kan köras av en agent för att utföra handlingar. Ett verktyg kan vara en enkel funktion som en räknare eller ett API-anrop till en tredjepartstjänst som aktiekurs-uppslagning eller väderprognos. I AI-agenters sammanhang är verktyg designade för att exekveras av agenter som svar på **modellgenererade funktionsanrop**.
+**Designmönstret för verktygsanvändning** handlar om att ge LLM:er möjligheten att interagera med externa verktyg för att uppnå specifika mål. Verktyg är kod som kan exekveras av en agent för att utföra handlingar. Ett verktyg kan vara en enkel funktion som en kalkylator, eller ett API-anrop till en tredjepartstjänst som aktiekursuppslagning eller väderprognos. I sammanhanget AI-agenter är verktyg designade för att exekveras av agenter som svar på **modellgenererade funktionsanrop**.
 
 ## Vilka användningsfall kan det tillämpas på?
 
-AI-agenter kan använda verktyg för att slutföra komplexa uppgifter, hämta information eller fatta beslut. Designmönstret för verktygsanvändning används ofta i scenarier som kräver dynamisk interaktion med externa system, såsom databaser, webbservrar eller kodtolkare. Denna förmåga är användbar för flera olika användningsområden, inklusive:
+AI-agenter kan använda verktyg för att slutföra komplexa uppgifter, hämta information eller fatta beslut. Designmönstret för verktygsanvändning används ofta i scenarier som kräver dynamisk interaktion med externa system, som databaser, webbtjänster eller kodtolkare. Denna förmåga är användbar för flera olika användningsfall inklusive:
 
-- **Dynamisk informationshämtning:** Agenter kan fråga externa API:er eller databaser för att hämta uppdaterad data (t.ex. fråga en SQLite-databas för dataanalys, hämta aktiekurser eller väderinformation).
-- **Kodkörning och tolkning:** Agenter kan köra kod eller skript för att lösa matematiska problem, generera rapporter eller utföra simuleringar.
-- **Automatisering av arbetsflöden:** Automatisering av repetitiva eller flerstegsarbetsflöden genom att integrera verktyg som uppgiftsschemaläggare, e-posttjänster eller datapipelines.
-- **Kundsupport:** Agenter kan interagera med CRM-system, biljettplattformar eller kunskapsbaser för att lösa användarfrågor.
-- **Innehållsgenerering och redigering:** Agenter kan använda verktyg som grammatikkontroller, textextraktorer eller utvärderare av innehållssäkerhet för att hjälpa till med innehållsskapande.
+- **Dynamisk informationshämtning:** Agenter kan fråga externa API:er eller databaser för att hämta uppdaterad data (t.ex. göra en SQLite-fråga för dataanalys, hämta aktiekurser eller väderinformation).
+- **Kodexekvering och tolkning:** Agenter kan exekvera kod eller skript för att lösa matematiska problem, generera rapporter eller utföra simuleringar.
+- **Automatisering av arbetsflöden:** Automatisera repetitiva eller flerstegsförlopp genom att integrera verktyg som schemaläggare, e-posttjänster eller datapipelines.
+- **Kundsupport:** Agenter kan interagera med CRM-system, biljettplattformar eller kunskapsdatabaser för att lösa användarfrågor.
+- **Innehållsgenerering och redigering:** Agenter kan använda verktyg som grammatikkontroller, textsammanfattare eller innehållssäkerhetsvärderare för att assistera vid innehållsskapande.
 
 ## Vilka element/byggstenar behövs för att implementera designmönstret för verktygsanvändning?
 
-Dessa byggstenar tillåter AI-agenten att utföra en mängd olika uppgifter. Låt oss titta på de viktigaste elementen som behövs för att implementera designmönstret för verktygsanvändning:
+Dessa byggstenar tillåter AI-agenten att utföra ett brett spektrum av uppgifter. Låt oss titta på de viktigaste elementen som behövs för att implementera designmönstret för verktygsanvändning:
 
-- **Funktions-/Verktygsscheman**: Detaljerade definitioner av tillgängliga verktyg, inklusive funktionsnamn, syfte, nödvändiga parametrar och förväntade utdata. Dessa scheman gör att LLM:n förstår vilka verktyg som finns och hur man konstruerar giltiga förfrågningar.
+- **Funktions-/Verktygsscheman**: Detaljerade definitioner av tillgängliga verktyg, inklusive funktionsnamn, syfte, nödvändiga parametrar och förväntade utdata. Dessa scheman gör det möjligt för LLM att förstå vilka verktyg som finns och hur man konstruerar giltiga förfrågningar.
 
-- **Funktionskörningslogik**: Styr hur och när verktyg anropas baserat på användarens avsikt och konversationskontext. Detta kan inkludera planeringsmoduler, dirigeringsmekanismer eller villkorsstyrda flöden som bestämmer verktygsanvändningen dynamiskt.
+- **Funktions exekveringslogik**: Styr hur och när verktyg anropas baserat på användarens avsikt och konversationens kontext. Detta kan inkludera planeringsmoduler, routningsmekanismer eller konditionella flöden som dynamiskt bestämmer verktygsanvändning.
 
-- **Meddelandehanteringssystem**: Komponenter som hanterar konversationsflödet mellan användarinput, LLM-svar, verktygsanrop och verktygsutdata.
+- **Meddelandehanteringssystem**: Komponenter som hanterar konversationsflödet mellan användarinmatningar, LLM-svar, verktygsanrop och verktygsutdata.
 
-- **Verktygsintegrationsramverk**: Infrastruktur som kopplar agenten till olika verktyg, oavsett om det är enkla funktioner eller komplexa externa tjänster.
+- **Verktygsintegrationsramverk**: Infrastruktur som kopplar ihop agenten med olika verktyg, vare sig det är enkla funktioner eller komplexa externa tjänster.
 
-- **Felhändtering och validering**: Mekanismer för att hantera fel i verktygskörning, validera parametrar och hantera oväntade svar.
+- **Felhantering & Validering**: Mekanismer för att hantera fel i verktygsexekvering, validera parametrar och hantera oväntade svar.
 
-- **Tillståndshantering**: Spårar konversationskontext, tidigare verktygsinteraktioner och persistenta data för att säkerställa konsistens över flera samtal.
+- **State Management (tillståndshantering)**: Spårar konversationskontext, tidigare verktygsinteraktioner och persistent data för att säkerställa konsekvens över fleromgångsinteraktioner.
 
-Nästa ska vi titta närmare på funktion-/verktygsanrop.
+Nästa, låt oss titta mer i detalj på Funktions-/Verktygsanrop.
  
-### Funktion-/Verktygsanrop
+### Funktions-/Verktygsanrop
 
-Funktionsanrop är huvudsättet vi låter stora språkmodeller (LLM:er) interagera med verktyg. Du kommer ofta att se 'funktion' och 'verktyg' använda synonymt eftersom 'funktioner' (block av återanvändbar kod) är de 'verktyg' som agenter använder för att utföra uppgifter. För att ett funktionskod ska kunna anropas måste en LLM jämföra användarens begäran med funktionsbeskrivningen. För detta skickas ett schema som innehåller beskrivningar av alla tillgängliga funktioner till LLM:n. LLM väljer sedan den mest lämpliga funktionen för uppgiften och returnerar dess namn och argument. Den valda funktionen anropas, dess svar skickas tillbaka till LLM, som använder informationen för att svara på användarens begäran.
+Funktionsanrop är det primära sättet vi möjliggör för stora språkmodeller (LLM:er) att interagera med verktyg. Du kommer ofta att se 'funktion' och 'verktyg' användas omväxlande eftersom 'funktioner' (block av återanvändbar kod) är de 'verktyg' som agenter använder för att utföra uppgifter. För att en funktions kod ska kunna anropas måste en LLM jämföra användarens begäran mot funktionsbeskrivningen. För detta skickas ett schema som innehåller beskrivningarna av alla tillgängliga funktioner till LLM. LLM väljer sedan den mest lämpliga funktionen för uppgiften och returnerar dess namn och argument. Den valda funktionen anropas, dess svar skickas tillbaka till LLM, som använder informationen för att svara på användarens förfrågan.
 
-För utvecklare som vill implementera funktionsanrop för agenter behövs:
+För utvecklare som vill implementera funktionsanrop för agenter behöver du:
 
 1. En LLM-modell som stödjer funktionsanrop
-2. Ett schema som innehåller funktionsbeskrivningar
+2. Ett schema med funktionsbeskrivningar
 3. Koden för varje beskriven funktion
 
-Låt oss illustrera med exemplet att hämta aktuell tid i en stad:
+Låt oss använda exemplet att hämta aktuell tid i en stad för att illustrera:
 
 1. **Initiera en LLM som stödjer funktionsanrop:**
 
-    Inte alla modeller stödjer funktionsanrop, så det är viktigt att kontrollera att den LLM du använder gör det.     <a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/function-calling" target="_blank">Azure OpenAI</a> stödjer funktionsanrop. Vi kan börja med att initiera OpenAI-klienten mot Azure OpenAI **Responses API** (det stabila `/openai/v1/`-endpoint — ingen `api_version` behövs). 
+    Inte alla modeller stödjer funktionsanrop, så det är viktigt att kontrollera att LLM du använder gör det.     <a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/function-calling" target="_blank">Azure OpenAI</a> stödjer funktionsanrop. Vi kan börja med att initiera OpenAI-klienten mot Azure OpenAI **Responses API** (den stabila `/openai/v1/` endpointen — ingen `api_version` behövs).
 
     ```python
     # Initiera OpenAI-klienten för Azure OpenAI (Responses API, v1-endpunkt)
@@ -81,13 +81,13 @@ Låt oss illustrera med exemplet att hämta aktuell tid i en stad:
     deployment_name = os.environ["AZURE_OPENAI_DEPLOYMENT"]
     ```
 
-1. **Skapa ett Funktionsschema**:
+1. **Skapa ett funktionsschema**:
 
-    Nästa steg är att definiera ett JSON-schema som innehåller funktionsnamnet, beskrivning av vad funktionen gör, samt namn och beskrivningar av funktionsparametrarna.
-    Vi skickar sedan detta schema till klienten som skapades tidigare, tillsammans med användarens fråga att ta reda på tiden i San Francisco. Det viktiga att notera är att ett **verktygsanrop** är vad som returneras, **inte** det slutgiltiga svaret på frågan. Som nämnts tidigare returnerar LLM:en namnet på funktionen som valdes för uppgiften och argumenten som ska skickas till den.
+    Nästa steg är att definiera ett JSON-schema som innehåller funktionsnamnet, en beskrivning av vad funktionen gör och namn och beskrivning av funktionsparametrarna.
+    Vi skickar sedan detta schema till klienten som skapades tidigare tillsammans med användarens fråga om att hitta tiden i San Francisco. Viktigt att notera är att ett **verktygsanrop** returneras, **inte** det slutliga svaret på frågan. Som nämnt tidigare returnerar LLM namnet på funktionen den valt för uppgiften och argumenten som skall skickas till den.
 
     ```python
-    # Funktionsbeskrivning för modellen att läsa (Responses API platt verktygsformat)
+    # Funktionsbeskrivning för modellen att läsa (Respons-API platt verktygsformat)
     tools = [
         {
             "type": "function",
@@ -109,7 +109,7 @@ Låt oss illustrera med exemplet att hämta aktuell tid i en stad:
    
     ```python
   
-    # Initialt användarmeddelande
+    # Initierande användarmeddelande
     messages = [{"role": "user", "content": "What's the current time in San Francisco"}]
 
     # Första API-anropet: Be modellen använda funktionen
@@ -122,7 +122,7 @@ Låt oss illustrera med exemplet att hämta aktuell tid i en stad:
     )
 
     # Responses API returnerar verktygsanrop som function_call-objekt i response.output.
-    # Lägg till dem i konversationen så att modellen har fullständig kontext vid nästa vändning.
+    # Lägg till dem i konversationen så att modellen har full kontext vid nästa tur.
     messages += response.output
 
     print("Model's response:")
@@ -135,10 +135,10 @@ Låt oss illustrera med exemplet att hämta aktuell tid i en stad:
     [ResponseFunctionToolCall(arguments='{"location":"San Francisco"}', call_id='call_pOsKdUlqvdyttYB67MOj434b', name='get_current_time', type='function_call')]
     ```
   
-1. **Den kod som behövs för att utföra uppgiften:**
+1. **Den funktionskod som krävs för att utföra uppgiften:**
 
-    Nu när LLM har valt vilken funktion som måste köras, behöver koden som utför uppgiften implementeras och exekveras.
-    Vi kan implementera koden för att hämta aktuell tid i Python. Vi behöver också skriva kod för att extrahera namnet och argumenten från response_message för att få slutresultatet.
+    Nu när LLM valt vilken funktion som ska köras måste koden som utför uppgiften implementeras och exekveras.
+    Vi kan implementera koden för att hämta aktuell tid i Python. Vi behöver också skriva kod för att extrahera namn och argument från response_message för att få det slutliga resultatet.
 
     ```python
       def get_current_time(location):
@@ -181,7 +181,7 @@ Låt oss illustrera med exemplet att hämta aktuell tid i en stad:
     else:
         print("No tool calls were made by the model.")
 
-    # Andra API-anrop: Hämta det slutgiltiga svaret från modellen
+    # Andra API-anropet: Hämta det slutgiltiga svaret från modellen
     final_response = client.responses.create(
         model=deployment_name,
         input=messages,
@@ -198,22 +198,22 @@ Låt oss illustrera med exemplet att hämta aktuell tid i en stad:
       The current time in San Francisco is 09:24 AM.
      ```
 
-Funktionsanrop är kärnan i de flesta, om inte alla, design för agenters verktygsanvändning, men att implementera det från grunden kan ibland vara utmanande.
-Som vi lärde oss i [Lektion 2](../../../02-explore-agentic-frameworks) ger agentramverk oss färdiga byggstenar för att implementera verktygsanvändning.
+Funktionsanrop är kärnan i det mesta, om inte hela, agentverktygsanvändningsdesignen, men att implementera det från grunden kan ibland vara utmanande.
+Som vi lärde oss i [Lektion 2](../../../02-explore-agentic-frameworks) ger agentiska ramverk oss färdiga byggstenar för att implementera verktygsanvändning.
  
-## Exempel på verktygsanvändning med agentramverk
+## Exempel på verktygsanvändning med agentiska ramverk
 
-Här är några exempel på hur du kan implementera designmönstret för verktygsanvändning med olika agentramverk:
+Här är några exempel på hur du kan implementera designmönstret för verktygsanvändning med hjälp av olika agentiska ramverk:
 
 ### Microsoft Agent Framework
 
-<a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Agent Framework</a> är ett öppet AI-ramverk för att bygga AI-agenter. Det förenklar processen med funktionsanrop genom att tillåta dig definiera verktyg som Python-funktioner med `@tool`-dekoreraren. Ramverket hanterar kommunikationen fram och tillbaka mellan modellen och din kod. Det ger också tillgång till förbyggda verktyg som Fillmarksökning och Kodtolkare genom `FoundryChatClient`.
+<a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Agent Framework</a> är ett öppen källkods AI-ramverk för att bygga AI-agenter. Det förenklar processen att använda funktionsanrop genom att låta dig definiera verktyg som Python-funktioner med `@tool`-dekorationen. Ramverket hanterar kommunikationen fram och tillbaka mellan modellen och din kod. Det ger också åtkomst till färdiga verktyg som fil-sökning och kodtolkare genom `FoundryChatClient`.
 
 Följande diagram illustrerar processen för funktionsanrop med Microsoft Agent Framework:
 
-![funktionsanrop](../../../translated_images/sv/functioncalling-diagram.a84006fc287f6014.webp)
+![function calling](../../../translated_images/sv/functioncalling-diagram.a84006fc287f6014.webp)
 
-I Microsoft Agent Framework definieras verktyg som dekorerade funktioner. Vi kan omvandla funktionen `get_current_time` som vi såg tidigare till ett verktyg genom att använda `@tool`-dekoreraren. Ramverket serialiserar automatiskt funktionen och dess parametrar och skapar schemat som skickas till LLM:n.
+I Microsoft Agent Framework definieras verktyg som dekorerade funktioner. Vi kan konvertera funktionen `get_current_time` som vi såg tidigare till ett verktyg genom att använda `@tool`-dekorationen. Ramverket serialiserar automatiskt funktionen och dess parametrar och skapar schemat som skickas till LLM.
 
 ```python
 import os
@@ -240,42 +240,42 @@ response = await agent.run("What time is it?")
   
 ### Microsoft Foundry Agent Service
 
-<a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Foundry Agent Service</a> är ett nyare agentramverk som är utformat för att ge utvecklare möjlighet att säkert bygga, distribuera och skala högkvalitativa och utbyggbara AI-agenter utan att behöva hantera underliggande beräknings- och lagringsresurser. Det är särskilt användbart för företagsapplikationer eftersom det är en helt hanterad tjänst med säkerhet på företagsnivå.
+<a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Foundry Agent Service</a> är ett nyare agentiskt ramverk som är designat för att ge utvecklare möjlighet att säkert bygga, distribuera och skala högkvalitativa och utbyggbara AI-agenter utan att behöva hantera den underliggande beräkning- och lagringsinfrastrukturen. Det är särskilt användbart för företagsapplikationer eftersom det är en helt hanterad tjänst med säkerhet på företagsnivå.
 
-Jämfört med att utveckla med LLM API:et direkt erbjuder Microsoft Foundry Agent Service flera fördelar, inklusive:
+Jämfört med utveckling direkt med LLM API erbjuder Microsoft Foundry Agent Service vissa fördelar, inklusive:
 
-- Automatiskt verktygsanrop – inget behov av att tolka ett verktygsanrop, anropa verktyget och hantera svaret; allt detta görs nu serverbaserat
-- Säkert hanterade data – istället för att hantera ditt eget konversationstillstånd kan du förlita dig på trådar för att lagra all information du behöver
-- Färdiga verktyg – Verktyg du kan använda för att interagera med dina datakällor, såsom Bing, Azure AI Search och Azure Functions.
+- Automatiskt verktygsanrop – ingen need att analysera ett verktygsanrop, anropa verktyget och hantera responsen; allt detta görs nu server-side
+- Säker hantering av data – istället för att hantera egen konversationsstatus kan du förlita dig på trådar för att lagra all nödvändig information
+- Färdiga verktyg – verktyg som du kan använda för att interagera med dina datakällor, som Bing, Azure AI Search och Azure Functions.
 
 Verktygen som finns tillgängliga i Microsoft Foundry Agent Service kan delas in i två kategorier:
 
 1. Kunskapsverktyg:
-    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/bing-grounding?tabs=python&pivots=overview" target="_blank">Grundläggande med Bing Search</a>
-    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/file-search?tabs=python&pivots=overview" target="_blank">Fillmarksökning</a>
+    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/bing-grounding?tabs=python&pivots=overview" target="_blank">Grundning med Bing Search</a>
+    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/file-search?tabs=python&pivots=overview" target="_blank">Fil-sökning</a>
     - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/azure-ai-search?tabs=azurecli%2Cpython&pivots=overview-azure-ai-search" target="_blank">Azure AI Search</a>
 
-2. Åtgärdsverktyg:
+2. Aktionsverktyg:
     - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/function-calling?tabs=python&pivots=overview" target="_blank">Funktionsanrop</a>
     - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/code-interpreter?tabs=python&pivots=overview" target="_blank">Kodtolkare</a>
-    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/openapi-spec?tabs=python&pivots=overview" target="_blank">Verktyg definierade med OpenAPI</a>
+    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/openapi-spec?tabs=python&pivots=overview" target="_blank">OpenAPI-definierade verktyg</a>
     - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/azure-functions?pivots=overview" target="_blank">Azure Functions</a>
 
-Agenttjänsten gör det möjligt att använda dessa verktyg tillsammans som en `verktygssats`. Den använder också `trådar` som håller koll på historiken av meddelanden från en särskild konversation.
+Agent Service låter oss använda dessa verktyg tillsammans som en `toolset`. Den använder också `threads` som håller koll på historiken av meddelanden i en viss konversation.
 
-Föreställ dig att du är en säljagent på ett företag som heter Contoso. Du vill utveckla en samtalsagent som kan svara på frågor om din försäljningsdata.
+Föreställ dig att du är en försäljningsagent på ett företag som heter Contoso. Du vill utveckla en konversationsagent som kan svara på frågor om din försäljningsdata.
 
 Följande bild illustrerar hur du kan använda Microsoft Foundry Agent Service för att analysera din försäljningsdata:
 
-![Agenttjänsten i funktion](../../../translated_images/sv/agent-service-in-action.34fb465c9a84659e.webp)
+![Agentic Service In Action](../../../translated_images/sv/agent-service-in-action.34fb465c9a84659e.webp)
 
-För att använda något av dessa verktyg med tjänsten kan vi skapa en klient och definiera ett verktyg eller en verktygssats. För att implementera detta praktiskt kan vi använda följande Python-kod. LLM:n kommer att kunna titta på verktygssatsen och avgöra om den ska använda den användarskapade funktionen `fetch_sales_data_using_sqlite_query`, eller den förbyggda Kodtolkaren beroende på användarens förfrågan.
+För att använda något av dessa verktyg med tjänsten kan vi skapa en klient och definiera ett verktyg eller verktygsset. För att praktiskt implementera detta kan vi använda följande Python-kod. LLM kommer att kunna titta på verktygssetet och avgöra om den ska använda den användarskapade funktionen `fetch_sales_data_using_sqlite_query` eller den förbyggda kodtolkaren beroende på användarens förfrågan.
 
 ```python 
 import os
 from azure.ai.projects import AIProjectClient
 from azure.identity import DefaultAzureCredential
-from fetch_sales_data_functions import fetch_sales_data_using_sqlite_query # fetch_sales_data_using_sqlite_query-funktionen som finns i en fil som heter fetch_sales_data_functions.py.
+from fetch_sales_data_functions import fetch_sales_data_using_sqlite_query # fetch_sales_data_using_sqlite_query-funktion som kan hittas i en fetch_sales_data_functions.py-fil.
 from azure.ai.projects.models import ToolSet, FunctionTool, CodeInterpreterTool
 
 project_client = AIProjectClient.from_connection_string(
@@ -286,7 +286,7 @@ project_client = AIProjectClient.from_connection_string(
 # Initiera verktygssats
 toolset = ToolSet()
 
-# Initiera funktionsanropsagent med funktionen fetch_sales_data_using_sqlite_query och lägga till den i verktygssatsen
+# Initiera agent för funktionsanrop med fetch_sales_data_using_sqlite_query-funktionen och lägga till den i verktygssatsen
 fetch_data_function = FunctionTool(fetch_sales_data_using_sqlite_query)
 toolset.add(fetch_data_function)
 
@@ -294,36 +294,36 @@ toolset.add(fetch_data_function)
 code_interpreter = CodeInterpreterTool()toolset.add(code_interpreter)
 
 agent = project_client.agents.create_agent(
-    model="gpt-4.1-mini", name="my-agent", instructions="You are helpful agent", 
+    model="gpt-5-mini", name="my-agent", instructions="You are helpful agent", 
     toolset=toolset
 )
 ```
 
-## Vilka speciella överväganden finns vid användning av designmönstret för verktygsanvändning för att bygga pålitliga AI-agenter?
+## Vilka särskilda överväganden finns för att använda designmönstret för verktygsanvändning för att bygga pålitliga AI-agenter?
 
-En vanlig oro med SQL som genereras dynamiskt av LLM:er är säkerhet, särskilt risken för SQL-injektion eller skadliga handlingar, som att ta bort eller manipulera databasen. Även om dessa farhågor är giltiga kan de effektivt hanteras genom att korrekt konfigurera databasens åtkomstbehörigheter. För de flesta databaser innebär detta att konfigurera databasen som skrivskyddad. För databastjänster som PostgreSQL eller Azure SQL bör appen tilldelas en skrivskyddad (SELECT) roll.
+En vanlig oro med SQL som dynamiskt genereras av LLM:er är säkerhet, särskilt risken för SQL-injektion eller skadliga åtgärder såsom att radera eller manipulera databasen. Även om dessa farhågor är giltiga kan de effektivt hanteras genom att korrekt konfigurera databasens åtkomstbehörigheter. För de flesta databaser innebär detta att konfigurera databasen som skrivskyddad. För databastjänster som PostgreSQL eller Azure SQL bör appen tilldelas en skrivskyddad (SELECT) roll.
 
-Att köra appen i en säker miljö stärker dessutom skyddet. I företagsmiljöer extraheras och transformeras data vanligtvis från operativa system till en skrivskyddad databas eller datalager med ett användarvänligt schema. Detta tillvägagångssätt säkerställer att data är säker, optimerad för prestanda och tillgänglighet, och att appen har begränsad, skrivskyddad åtkomst.
+Att köra appen i en säker miljö förbättrar skyddet ytterligare. I företagsmiljöer extraheras och transformeras data typiskt från operativa system till en skrivskyddad databas eller datalager med ett användarvänligt schema. Detta tillvägagångssätt säkerställer att datan är säker, optimerad för prestanda och tillgänglighet, och att appen har begränsad, skrivskyddad åtkomst.
 
-## Exempelkod
+## Exempelkoder
 
 - Python: [Agent Framework](./code_samples/04-python-agent-framework.ipynb)
 - .NET: [Agent Framework](./code_samples/04-dotnet-agent-framework.md)
 
-## Har du fler frågor om designmönster för verktygsanvändning?
+## Fler frågor om designmönstret för verktygsanvändning?
 
-Gå med i [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) för att träffa andra lärande, delta i öppna kontorstider och få svar på dina frågor om AI-agenter.
+Gå med i [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) för att träffa andra lärande, delta i kontorstimmar och få dina frågor om AI-agenter besvarade.
 
 ## Ytterligare resurser
 
-- <a href="https://microsoft.github.io/build-your-first-agent-with-azure-ai-agent-service-workshop/" target="_blank">Workshop för Azure AI Agents Service</a>
+- <a href="https://microsoft.github.io/build-your-first-agent-with-azure-ai-agent-service-workshop/" target="_blank">Azure AI Agents Service Workshop</a>
 - <a href="https://github.com/Azure-Samples/contoso-creative-writer/tree/main/docs/workshop" target="_blank">Contoso Creative Writer Multi-Agent Workshop</a>
-- <a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Översikt Microsoft Agent Framework</a>
+- <a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Agent Framework Översikt</a>
 
 
-## Rök-testning av denna agent (valfritt)
+## Rökningstest av denna agent (valfritt)
 
-Efter att du har lärt dig att distribuera agenter i [Lektion 16](../16-deploying-scalable-agents/README.md) kan du rök-testa denna lektions `TravelToolAgent` (kallar den fortfarande på sina verktyg och svarar?) med [`tests/lesson-04-smoke-tests.json`](../../../tests/lesson-04-smoke-tests.json). Se [`tests/README.md`](../tests/README.md) för hur man kör den.
+Efter att du lärt dig att distribuera agenter i [Lektion 16](../16-deploying-scalable-agents/README.md), kan du rökningstesta denna lektions `TravelToolAgent` (ringer den fortfarande sina verktyg och svarar?) med [`tests/lesson-04-smoke-tests.json`](../../../tests/lesson-04-smoke-tests.json). Se [`tests/README.md`](../tests/README.md) för hur du kör det.
 
 ## Föregående lektion
 

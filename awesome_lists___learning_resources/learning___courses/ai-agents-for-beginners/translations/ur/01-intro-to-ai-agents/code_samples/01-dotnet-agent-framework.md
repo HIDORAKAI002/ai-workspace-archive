@@ -1,57 +1,57 @@
-# 🌍 مائیکروسافٹ ایجنٹ فریم ورک (.NET) کے ساتھ AI سفری ایجنٹ
+# 🌍 مائیکروسافٹ ایجنٹ فریم ورک (.NET) کے ساتھ AI ٹریول ایجنٹ
 
 ## 📋 منظرنامہ کا جائزہ
 
-یہ مثال دکھاتی ہے کہ .NET کے لیے مائیکروسافٹ ایجنٹ فریم ورک استعمال کرتے ہوئے ایک ذہین سفری منصوبہ بندی کرنے والا ایجنٹ کیسے بنایا جائے۔ یہ ایجنٹ دنیا بھر کے تصادفی مقامات کے لیے خودکار طور پر ذاتی نوعیت کی روزانہ سفر کی منصوبہ بندی تیار کر سکتا ہے۔
+یہ مثال ظاہر کرتی ہے کہ کس طرح مائیکروسافٹ ایجنٹ فریم ورک فار .NET کا استعمال کرتے ہوئے ایک ذہین ٹریول پلاننگ ایجنٹ بنایا جائے۔ یہ ایجنٹ دنیا بھر کے مختلف مقامات کے لئے ذاتی نوعیت کے روزانہ کے دوروں کے لیے خودکار طریقے سے منصوبے تیار کر سکتا ہے۔
 
-### کلیدی صلاحیتیں:
+### اہم خصوصیات:
 
-- 🎲 **تصادفی منزل کا انتخاب**: تعطیلات کے مقامات منتخب کرنے کے لیے ایک حسب ضرورت ٹول استعمال کرتا ہے
-- 🗺️ **ذہین سفر کی منصوبہ بندی**: روزانہ کی تفصیلی منصوبہ بندی بناتا ہے
-- 🔄 **ریئل ٹائم اسٹریمنگ**: فوری اور اسٹریمنگ ردعمل دونوں کی حمایت کرتا ہے
-- 🛠️ **حسب ضرورت ٹول انٹیگریشن**: ایجنٹ کی صلاحیتوں کو بڑھانے کا طریقہ دکھاتا ہے
+- 🎲 **بے ترتیب مقام کا انتخاب**: تعطیلات کی جگہوں کے انتخاب کے لئے ایک حسب ضرورت آلہ استعمال کرتا ہے
+- 🗺️ **ذہین ٹرپ پلاننگ**: روزانہ کی تفصیلی منصوبہ بندی تیار کرتا ہے
+- 🔄 **ریئل ٹائم اسٹریمنگ**: فوری اور اسٹریمنگ دونوں قسم کی جوابات کی حمایت کرتا ہے
+- 🛠️ **حسب ضرورت آلہ انضمام**: ایجنٹ کی صلاحیتوں کو بڑھانے کے طریقے دکھاتا ہے
 
-## 🔧 تکنیکی فن تعمیر
+## 🔧 تکنیکی ساخت
 
-### بنیادی ٹیکنالوجیز
+### بنیادی تکنیکیں
 
-- **مائیکروسافٹ ایجنٹ فریم ورک**: AI ایجنٹ کی ترقی کے لیے جدید ترین .NET نفاذ
-- **Azure OpenAI (Responses API)**: ماڈل انفرنس کے لیے Azure OpenAI Responses API استعمال کرتا ہے
-- **Azure Identity**: `AzureCliCredential` (`az login`) کے ذریعے محفوظ سائن ان
-- **محفوظ ترتیب**: ماحول پر مبنی اینڈ پوائنٹ مینجمنٹ
+- **مائیکروسافٹ ایجنٹ فریم ورک**: AI ایجنٹ کی ترقی کے لئے جدید ترین .NET نفاذ
+- **ایزور اوپن AI (Responses API)**: ماڈل انفرنس کے لیے ایزور اوپن AI Responses API کا استعمال
+- **ایزور شناخت**: `AzureCliCredential` (`az login`) کے ذریعے محفوظ سائن ان
+- **محفوظ کنفیگریشن**: ماحول کی بنیاد پر اینڈپوائنٹ کا انتظام
 
 ### کلیدی اجزاء
 
-1. **AIAgent**: مرکزی ایجنٹ جو گفتگو کے بہاؤ کو سنبھالتا ہے
-2. **حسب ضرورت ٹولز**: ایجنٹ کے لیے دستیاب `GetRandomDestination()` فنکشن
-3. **Responses Client**: Azure OpenAI Responses پر مبنی گفتگو کا انٹرفیس
-4. **اسٹریمنگ سپورٹ**: ریئل ٹائم ردعمل پیدا کرنے کی صلاحیتیں
+1. **AIAgent**: مرکزی ایجنٹ جو گفتگو کے بہاؤ کو کنٹرول کرتا ہے
+2. **حسب ضرورت آلات**: ایجنٹ کے لیے `GetRandomDestination()` فنکشن دستیاب ہے
+3. **Responses کلائنٹ**: ایزور اوپن AI Responses پر مبنی گفتگو انٹرفیس
+4. **اسٹریمنگ کی حمایت**: ریئل ٹائم جواب پیدا کرنے کی صلاحیت
 
-### انٹیگریشن پیٹرن
+### انضمامی پیٹرن
 
 ```mermaid
 graph LR
     A[صارف کی درخواست] --> B[AI ایجنٹ]
     B --> C[Azure OpenAI (جوابات API)]
-    B --> D[GetRandomDestination ٹول]
+    B --> D[GetRandomDestination کا آلہ]
     C --> E[سفر کا روٹ]
     D --> E
 ```
 
-## 🚀 آغاز کریں
+## 🚀 شروع کرنے کا طریقہ
 
-### پری ریکویزٹس
+### ضروریاتِ پیشگی
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) یا اس سے زیادہ ورژن
-- ایک [Azure سبسکرپشن](https://azure.microsoft.com/free/) جس میں Azure OpenAI وسائل اور ماڈل تعیناتی ہو
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` کے ساتھ سائن ان کریں
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) یا اس سے زیادہ
+- [Azure سبسکرپشن](https://azure.microsoft.com/free/) کے ساتھ ایک Azure OpenAI ریسورس اور ماڈل کی تعیناتی
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` کے ذریعے سائن ان کریں
 
-### مطلوبہ ماحول کے متغیرات
+### مطلوبہ ماحول متغیرات
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 # پھر سائن ان کریں تاکہ AzureCliCredential ٹوکن حاصل کر سکے
 az login
 ```
@@ -59,22 +59,22 @@ az login
 ```powershell
 # پاور شیل
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # پھر سائن ان کریں تاکہ AzureCliCredential ٹوکن حاصل کر سکے
 az login
 ```
 
 ### نمونہ کوڈ
 
-کوڈ مثال چلانے کے لیے،
+کوڈ مثال چلانے کے لئے،
 
 ```bash
-# زی شيل/باش
+# زی شیل / باش
 chmod +x ./01-dotnet-agent-framework.cs
 ./01-dotnet-agent-framework.cs
 ```
 
-یا dotnet CLI استعمال کرتے ہوئے:
+یا dotnet CLI استعمال کریں:
 
 ```bash
 dotnet run ./01-dotnet-agent-framework.cs
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,17 +157,17 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 اہم نکات
+## 🎓 اہم سبق
 
-1. **ایجنٹ فن تعمیر**: مائیکروسافٹ ایجنٹ فریم ورک .NET میں AI ایجنٹس بنانے کے لیے ایک صاف، ٹائپ-سیف طریقہ فراہم کرتا ہے
-2. **ٹول انٹیگریشن**: `[Description]` صفات والے فنکشنز ایجنٹ کے لیے دستیاب ٹولز بن جاتے ہیں
-3. **کنفیگریشن مینجمنٹ**: ماحول کی متغیرات اور محفوظ اسناد کی ہینڈلنگ .NET کی بہترین مشقوں کی پیروی کرتی ہے
-4. **Azure OpenAI Responses API**: ایجنٹ Azure.AI.OpenAI SDK کے ذریعے Azure OpenAI Responses API استعمال کرتا ہے
+1. **ایجنٹ فن تعمیر**: مائیکروسافٹ ایجنٹ فریم ورک .NET میں AI ایجنٹس بنانے کے لیے ایک صاف اور ٹائپ-سیف طریقہ فراہم کرتا ہے
+2. **آلہ انضمام**: `[Description]` خصوصیات والے فنکشنز ایجنٹ کے لیے دستیاب آلات بن جاتے ہیں
+3. **کنفیگریشن مینجمنٹ**: ماحول کے متغیرات اور محفوظ اسناد کا انتظام .NET کی بہترین عملی طریقوں کے مطابق ہوتا ہے
+4. **ایزور اوپن AI Responses API**: ایجنٹ Azure.AI.OpenAI SDK کے ذریعے Azure OpenAI Responses API کا استعمال کرتا ہے
 
 ## 🔗 اضافی وسائل
 
 - [مائیکروسافٹ ایجنٹ فریم ورک کی دستاویزات](https://learn.microsoft.com/agent-framework)
-- [Microsoft Foundry میں Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
+- [مائیکروسافٹ فاؤنڈری میں Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
 - [.NET سنگل فائل ایپس](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 

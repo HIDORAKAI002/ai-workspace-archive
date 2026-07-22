@@ -1,86 +1,86 @@
-# 🔍 Udforskning af Microsoft Agent Framework - Grundlæggende Agent (.NET)
+# 🔍 Udforskning af Microsoft Agent Framework - Basic Agent (.NET)
 
 ## 📋 Læringsmål
 
-Dette eksempel udforsker de grundlæggende koncepter i Microsoft Agent Framework gennem en basal agentimplementering i .NET. Du vil lære kerneagentiske mønstre og forstå, hvordan intelligente agenter fungerer under overfladen ved hjælp af C# og .NET-økosystemet.
+Dette eksempel udforsker de grundlæggende koncepter i Microsoft Agent Framework gennem en grundlæggende agent-implementering i .NET. Du vil lære kerneagentmønstre og forstå, hvordan intelligente agenter fungerer under motorhjelmen ved hjælp af C# og .NET-økosystemet.
 
 ### Hvad du vil opdage
 
-- 🏗️ **Agentarkitektur**: Forståelse af den grundlæggende struktur for AI-agenter i .NET
+- 🏗️ **Agentarkitektur**: Forstå den grundlæggende struktur af AI-agenter i .NET
 - 🛠️ **Værktøjsintegration**: Hvordan agenter bruger eksterne funktioner til at udvide kapaciteter  
-- 💬 **Samtaleflow**: Håndtering af samtaler med flere ture og kontekst ved hjælp af trådadministration
-- 🔧 **Konfigurationsmønstre**: Best practices for agentopsætning og -administration i .NET
+- 💬 **Samtaleflow**: Håndtering af flertrins samtaler og kontekst med trådhåndtering
+- 🔧 **Konfigurationsmønstre**: Best practices for agentopsætning og -styring i .NET
 
-## 🎯 Centrale Begreber Dækket
+## 🎯 Centrale koncepter dækket
 
-### Agentiske Framework-principper
+### Agentiske rammeværksprincipper
 
 - **Autonomi**: Hvordan agenter træffer uafhængige beslutninger ved hjælp af .NET AI-abstraktioner
 - **Reaktivitet**: Reagerer på miljøændringer og brugerinput
 - **Proaktivitet**: Tager initiativ baseret på mål og kontekst
-- **Social Evne**: Interagerer gennem naturligt sprog med samtaletråde
+- **Social evne**: Interagerer gennem naturligt sprog med samtaletråde
 
-### Tekniske Komponenter
+### Tekniske komponenter
 
-- **AIAgent**: Kerneagent-orchestrering og samtaleadministration (.NET)
-- **Værktøjsfunktioner**: Udvider agentens kapaciteter med C#-metoder og attributter
-- **Azure OpenAI Integration**: Udnyttelse af sprogmodeller via Azure OpenAI Responses API
-- **Sikker Konfiguration**: Miljøbaseret håndtering af slutpunkter
+- **AIAgent**: Kerneagentorkestrering og samtalestyring (.NET)
+- **Værktøjsfunktioner**: Udvidelse af agentkapaciteter med C#-metoder og attributter
+- **Azure OpenAI-integration**: Udnyttelse af sprogmodeller gennem Azure OpenAI Responses API
+- **Sikker konfiguration**: Miljøbaseret endpointstyring
 
-## 🔧 Teknologistak
+## 🔧 Teknisk stak
 
-### Kerne-teknologier
+### Kerne teknologier
 
 - Microsoft Agent Framework (.NET)
 - Azure OpenAI (Responses API) integration
 - Azure.AI.OpenAI klientmønstre
 - Miljøbaseret konfiguration med DotNetEnv
 
-### Agentkompetencer
+### Agentkapaciteter
 
 - Forståelse og generering af naturligt sprog
 - Funktionskald og værktøjsbrug med C#-attributter
-- Kontekst-aware svar med samtalesessioner
+- Kontekstbevidste svar med samtalesessioner
 - Udvidelig arkitektur med afhængighedsinjektionsmønstre
 
-## 📚 Frameworksammenligning
+## 📚 Rammeværks sammenligning
 
-Dette eksempel demonstrerer Microsoft Agent Framework-tilgangen sammenlignet med andre agentiske frameworks:
+Dette eksempel demonstrerer Microsoft Agent Framework's tilgang sammenlignet med andre agentiske rammeværk:
 
-| Funktion | Microsoft Agent Framework | Andre Frameworks |
+| Funktion | Microsoft Agent Framework | Andre rammeværk |
 |---------|-------------------------|------------------|
-| **Integration** | Indfødt Microsoft-økosystem | Varieret kompatibilitet |
-| **Simplicitet** | Rent, intuitivt API | Ofte kompleks opsætning |
-| **Udvidelighed** | Nem værktøjsintegration | Framework-afhængig |
-| **Klar til Enterprise** | Bygget til produktion | Varierer efter framework |
+| **Integration** | Nativt Microsoft-økosystem | Varieret kompatibilitet |
+| **Enkelhed** | Ren, intuitiv API | Ofte kompleks opsætning |
+| **Udvidelsesmuligheder** | Nem værktøjsintegration | Rammeværksafhængig |
+| **Klar til erhverv** | Bygget til produktion | Varierer efter rammeværk |
 
-## 🚀 Kom i gang
+## 🚀 Kom godt i gang
 
 ### Forudsætninger
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) eller højere
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) eller nyere
 - Et [Azure-abonnement](https://azure.microsoft.com/free/) med en Azure OpenAI-ressource og en modeludrulning
-- Azure CLI ([Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)) — log ind med `az login`
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — log ind med `az login`
 
-### Påkrævede Miljøvariabler
+### Nødvendige miljøvariabler
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Log derefter ind, så AzureCliCredential kan få et token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Log ind, så AzureCliCredential kan få et token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Log derefter ind, så AzureCliCredential kan få et token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Log ind, så AzureCliCredential kan få et token
 az login
 ```
 
-### Eksempelkode
+### Eksempel kode
 
 For at køre kodeeksemplet,
 
@@ -90,7 +90,7 @@ chmod +x ./02-dotnet-agent-framework.cs
 ./02-dotnet-agent-framework.cs
 ```
 
-Eller ved brug af dotnet CLI:
+Eller ved hjælp af dotnet CLI:
 
 ```bash
 dotnet run ./02-dotnet-agent-framework.cs
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,15 +215,15 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 Vigtigste Punkter
+## 🎓 Vigtige konklusioner
 
-1. **Agentarkitektur**: Microsoft Agent Framework leverer en ren, typesikker tilgang til at bygge AI-agenter i .NET
-2. **Værktøjsintegration**: Funktioner dekoreret med `[Description]`-attributter bliver tilgængelige værktøjer for agenten
-3. **Samtalekontekst**: Session management muliggør samtaler med flere ture med fuld kontekstbevidsthed
+1. **Agentarkitektur**: Microsoft Agent Framework tilbyder en ren, typesikker tilgang til opbygning af AI-agenter i .NET
+2. **Værktøjsintegration**: Funktioner dekoreret med `[Description]` attributter bliver tilgængelige værktøjer for agenten
+3. **Samtalekontekst**: Sessionsstyring muliggør flertrins samtaler med fuld kontekstbevidsthed
 4. **Konfigurationsstyring**: Miljøvariabler og sikker håndtering af legitimationsoplysninger følger .NET best practices
-5. **Azure OpenAI Responses API**: Agenten bruger Azure OpenAI Responses API via Azure.AI.OpenAI SDK
+5. **Azure OpenAI Responses API**: Agenten bruger Azure OpenAI Responses API gennem Azure.AI.OpenAI SDK
 
-## 🔗 Yderligere Ressourcer
+## 🔗 Yderligere ressourcer
 
 - [Microsoft Agent Framework Dokumentation](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI i Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)

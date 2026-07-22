@@ -2,81 +2,81 @@
 
 ## 📋 Obiettivi di Apprendimento
 
-Questo esempio esplora i concetti fondamentali del Microsoft Agent Framework attraverso una implementazione base di agente in .NET. Imparerai i modelli agentici principali e comprenderai come funzionano gli agenti intelligenti internamente usando C# e l’ecosistema .NET.
+Questo esempio esplora i concetti fondamentali del Microsoft Agent Framework tramite un'implementazione base di un agente in .NET. Imparerai i pattern agentici principali e capirai come funzionano gli agenti intelligenti internamente usando C# e l'ecosistema .NET.
 
 ### Cosa Scoprirai
 
-- 🏗️ **Architettura dell’Agente**: Comprendere la struttura base degli agenti AI in .NET
-- 🛠️ **Integrazione degli Strumenti**: Come gli agenti usano funzioni esterne per estendere le capacità  
-- 💬 **Flusso di Conversazione**: Gestire conversazioni multi-turno e contesto con gestione dei thread
-- 🔧 **Modelli di Configurazione**: Best practice per la configurazione e gestione degli agenti in .NET
+- 🏗️ **Architettura degli Agenti**: Comprendere la struttura base degli agenti AI in .NET
+- 🛠️ **Integrazione di Strumenti**: Come gli agenti usano funzioni esterne per estendere le capacità  
+- 💬 **Flusso di Conversazione**: Gestire conversazioni multi-turno e contesto con la gestione dei thread
+- 🔧 **Pattern di Configurazione**: Best practice per la configurazione e gestione dell'agente in .NET
 
 ## 🎯 Concetti Chiave Coperti
 
 ### Principi del Framework Agentico
 
 - **Autonomia**: Come gli agenti prendono decisioni indipendenti usando astrazioni AI in .NET
-- **Reattività**: Rispondere ai cambiamenti ambientali e agli input degli utenti
-- **Proattività**: Prendere iniziativa basata su obiettivi e contesto
-- **Capacità Sociale**: Interagire tramite linguaggio naturale con thread di conversazione
+- **Reattività**: Rispondere a cambiamenti ambientali e input dell'utente
+- **Proattività**: Prendere iniziativa basandosi su obiettivi e contesto
+- **Capacità Sociale**: Interagire tramite linguaggio naturale con thread conversazionali
 
 ### Componenti Tecnici
 
-- **AIAgent**: Core per orchestrazione agente e gestione conversazioni (.NET)
-- **Funzioni Strumento**: Estendere le capacità dell’agente con metodi e attributi C#
+- **AIAgent**: Orchestrazione principale dell'agente e gestione della conversazione (.NET)
+- **Funzioni Strumento**: Estendere le capacità dell'agente con metodi e attributi C#
 - **Integrazione Azure OpenAI**: Sfruttare modelli linguistici tramite l’API Azure OpenAI Responses
-- **Configurazione Sicura**: Gestione degli endpoint basata su ambiente
+- **Configurazione Sicura**: Gestione dei punti di accesso basata sull'ambiente
 
 ## 🔧 Stack Tecnico
 
 ### Tecnologie Core
 
 - Microsoft Agent Framework (.NET)
-- Integrazione Azure OpenAI (API Responses)
+- Integrazione Azure OpenAI (Responses API)
 - Pattern client Azure.AI.OpenAI
-- Configurazione basata su ambiente con DotNetEnv
+- Configurazione basata sull'ambiente con DotNetEnv
 
 ### Capacità dell’Agente
 
-- Comprensione e generazione del linguaggio naturale
-- Chiamate a funzioni e uso di strumenti con attributi C#
-- Risposte consapevoli del contesto con sessioni di conversazione
+- Comprensione e generazione di linguaggio naturale
+- Chiamata di funzioni e utilizzo di strumenti con attributi C#
+- Risposte contestualizzate con sessioni di conversazione
 - Architettura estensibile con pattern di dependency injection
 
 ## 📚 Confronto Framework
 
-Questo esempio mostra l’approccio del Microsoft Agent Framework rispetto ad altri framework agentici:
+Questo esempio dimostra l’approccio del Microsoft Agent Framework rispetto ad altri framework agentici:
 
-| Feature | Microsoft Agent Framework | Altri Framework |
+| Caratteristica | Microsoft Agent Framework | Altri Framework |
 |---------|-------------------------|------------------|
 | **Integrazione** | Ecosistema Microsoft nativo | Compatibilità varia |
-| **Semplicità** | API pulita e intuitiva | Configurazione spesso complessa |
-| **Estendibilità** | Facilità di integrazione strumenti | Dipendente dal framework |
-| **Pronto per l’Enterprise** | Costruito per la produzione | Varia a seconda del framework |
+| **Semplicità** | API pulita e intuitiva | Spesso configurazione complessa |
+| **Estensibilità** | Integrazione strumenti semplice | Dipendente dal framework |
+| **Pronto per azienda** | Progettato per la produzione | Varia con il framework |
 
-## 🚀 Primi Passi
+## 🚀 Per Iniziare
 
 ### Prerequisiti
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) o superiore
 - Un [abbonamento Azure](https://azure.microsoft.com/free/) con una risorsa Azure OpenAI e un deployment modello
-- L’[Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — accedi con `az login`
+- La [CLI Azure](https://learn.microsoft.com/cli/azure/install-azure-cli) — accedi con `az login`
 
-### Variabili d’Ambiente Richieste
+### Variabili d'Ambiente Richieste
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Quindi accedi in modo che AzureCliCredential possa ottenere un token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Quindi effettua l'accesso in modo che AzureCliCredential possa ottenere un token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Quindi accedi in modo che AzureCliCredential possa ottenere un token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Accedi quindi in modo che AzureCliCredential possa ottenere un token
 az login
 ```
 
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -217,18 +217,18 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 
 ## 🎓 Punti Chiave
 
-1. **Architettura Agente**: Microsoft Agent Framework fornisce un approccio pulito e type-safe per costruire agenti AI in .NET
-2. **Integrazione Strumenti**: Le funzioni decorate con attributi `[Description]` diventano strumenti disponibili per l’agente
-3. **Contesto di Conversazione**: La gestione delle sessioni consente conversazioni multi-turno con piena consapevolezza del contesto
-4. **Gestione Configurazioni**: Variabili d’ambiente e gestione sicura delle credenziali seguono best practice .NET
-5. **Azure OpenAI Responses API**: L’agente utilizza l’Azure OpenAI Responses API tramite il SDK Azure.AI.OpenAI
+1. **Architettura dell'Agente**: Microsoft Agent Framework offre un approccio pulito e type-safe per costruire agenti AI in .NET
+2. **Integrazione Strumenti**: Le funzioni decorate con l’attributo `[Description]` diventano strumenti disponibili per l'agente
+3. **Contesto Conversazionale**: La gestione delle sessioni abilita conversazioni multi-turno con piena consapevolezza del contesto
+4. **Gestione Configurazione**: Variabili d'ambiente e gestione sicura delle credenziali seguono le best practice .NET
+5. **API Azure OpenAI Responses**: L'agente utilizza l'API Azure OpenAI Responses tramite il SDK Azure.AI.OpenAI
 
-## 🔗 Risorse Aggiuntive
+## 🔗 Risorse Addizionali
 
 - [Documentazione Microsoft Agent Framework](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI in Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [.NET Single File Apps](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [App Singolo File .NET](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

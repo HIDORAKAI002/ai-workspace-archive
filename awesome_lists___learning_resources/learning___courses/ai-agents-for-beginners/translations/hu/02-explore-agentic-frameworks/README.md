@@ -1,70 +1,70 @@
-[![Az MI ügynök keretrendszerek felfedezése](../../../translated_images/hu/lesson-2-thumbnail.c65f44c93b8558df.webp)](https://youtu.be/ODwF-EZo_O8?si=1xoy_B9RNQfrYdF7)
+[![AI Ügynök Keretrendszerek felfedezése](../../../translated_images/hu/lesson-2-thumbnail.c65f44c93b8558df.webp)](https://youtu.be/ODwF-EZo_O8?si=1xoy_B9RNQfrYdF7)
 
-> _(Kattintson a fenti képre, hogy megtekintse a lecke videóját)_
+> _(Kattints a fenti képre az óra videójának megtekintéséhez)_
 
-# AI ügynök keretrendszerek felfedezése
+# AI Ügynök Keretrendszerek Felfedezése
 
-Az AI ügynök keretrendszerek olyan szoftverplatformok, amelyeket az AI ügynökök létrehozásának, telepítésének és kezelésének egyszerűsítésére terveztek. Ezek a keretrendszerek előre elkészített komponenseket, absztrakciókat és eszközöket biztosítanak a fejlesztők számára, amelyek leegyszerűsítik a bonyolult AI rendszerek fejlesztését.
+Az AI ügynök keretrendszerek olyan szoftverplatformok, amelyeket az AI ügynökök egyszerűbb létrehozására, telepítésére és kezelésére terveztek. Ezek a keretrendszerek előre elkészített komponenseket, absztrakciókat és eszközöket biztosítanak a fejlesztőknek, amelyek megkönnyítik a bonyolult AI rendszerek fejlesztését.
 
-Ezek a keretrendszerek segítik a fejlesztőket abban, hogy az alkalmazásaik egyedi aspektusaira összpontosítsanak azáltal, hogy szabványosított megközelítéseket kínálnak az AI ügynök fejlesztésének gyakori kihívásaira. Növelik az AI rendszerek felépítésének skálázhatóságát, elérhetőségét és hatékonyságát.
+Ezek a keretrendszerek segítik a fejlesztőket, hogy az alkalmazásaik egyedi aspektusaira koncentrálhassanak, szabványosított megközelítéseket nyújtva az AI ügynök fejlesztés általános kihívásaira. Növelik a skálázhatóságot, elérhetőséget és hatékonyságot az AI rendszerek építése során.
 
-## Bevezetés 
+## Bevezetés
 
-Ez a lecke a következőket fedi le:
+Ez az óra a következőkről szól:
 
-- Mik azok az AI Ügynök Keretrendszerek, és mit tesznek lehetővé a fejlesztők számára?
-- Hogyan használhatják a csapatok ezeket az ügynök képességeinek gyors prototípus készítésére, iterálására és fejlesztésére?
-- Mik a különbségek a Microsoft által készített keretrendszerek és eszközök között (<a href="https://aka.ms/ai-agents-beginners/ai-agent-service" target="_blank">Microsoft Foundry Agent Service</a> és a <a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/responses" target="_blank">Microsoft Agent Framework</a>)?
-- Közvetlenül integrálhatom a meglévő Azure ökoszisztéma eszközeimet, vagy különálló megoldásokat kell használnom?
+- Mik azok az AI Ügynök Keretrendszerek és mit tesznek lehetővé a fejlesztők számára?
+- Hogyan használhatják a csapatok ezeket az ügynökök képességeinek gyors prototípus készítésére, iterálására és fejlesztésére?
+- Milyen különbségek vannak a Microsoft által létrehozott keretrendszerek és eszközök között (<a href="https://aka.ms/ai-agents-beginners/ai-agent-service" target="_blank">Microsoft Foundry Agent Service</a> és a <a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/responses" target="_blank">Microsoft Agent Framework</a>)?
+- Integrálhatom-e közvetlenül a meglévő Azure ökoszisztéma eszközeimet, vagy különálló megoldásokra van szükség?
 - Mi az a Microsoft Foundry Agent Service, és hogyan segít nekem?
 
 ## Tanulási célok
 
-Ennek a leckének a célja, hogy segítsen megérteni:
+Ennek az órának a célja, hogy segítsen megérteni:
 
 - Az AI Ügynök Keretrendszerek szerepét az AI fejlesztésben.
-- Hogyan lehet kihasználni az AI Ügynök Keretrendszereket intelligens ügynökök létrehozásához.
-- Az AI Ügynök Keretrendszerek által biztosított kulcsfontosságú képességek.
-- A Microsoft Agent Framework és a Microsoft Foundry Agent Service közötti különbségek.
+- Hogyan lehet az AI Ügynök Keretrendszereket használni intelligens ügynökök építésére.
+- Az AI Ügynök Keretrendszerek által engedélyezett kulcsfontosságú képességeket.
+- A Microsoft Agent Framework és a Microsoft Foundry Agent Service közötti különbségeket.
 
-## Mik azok az AI Ügynök Keretrendszerek, és mit tesznek lehetővé a fejlesztők számára?
+## Mik azok az AI Ügynök Keretrendszerek, és mit tehetnek a fejlesztők?
 
-A hagyományos AI keretrendszerek segíthetnek az AI alkalmazásba integrálásában és az alábbi módokon teszik jobbá ezeket az alkalmazásokat:
+A hagyományos AI keretrendszerek segíthetnek az AI integrálásában az alkalmazásokba, és az alábbi módokon javíthatják ezeket az alkalmazásokat:
 
-- **Személyre szabás**: Az AI képes elemezni a felhasználói viselkedést és preferenciákat, hogy személyre szabott ajánlásokat, tartalmakat és élményeket nyújtson.
-Példa: Az olyan streaming szolgáltatások, mint a Netflix, AI-t használnak, hogy mozifilmeket és műsorokat javasoljanak a megtekintési előzmények alapján, növelve ezzel a felhasználói elkötelezettséget és elégedettséget.
-- **Automatizálás és hatékonyság**: Az AI képes automatizálni az ismétlődő feladatokat, egyszerűsíteni a munkafolyamatokat és javítani a hatékonyságot.
-Példa: Az ügyfélszolgálati alkalmazások AI-alapú chatbotokat használnak a gyakori kérdések kezelésére, csökkentve a válaszidőket és felszabadítva az emberi ügynököket összetettebb problémák kezelésére.
-- **Fokozott felhasználói élmény**: Az AI javíthatja az általános felhasználói élményt intelligens funkciók révén, mint a hangfelismerés, természetes nyelvfeldolgozás és prediktív szövegbevitel.
-Példa: A Siri és a Google Assistant virtuális asszisztensek AI-t használnak a hangparancsok megértésére és válaszadására, megkönnyítve ezzel a felhasználók számára az eszközeikkel való interakciót.
+- **Személyre szabás**: Az AI képes elemezni a felhasználói viselkedést és preferenciákat, hogy személyre szabott ajánlásokat, tartalmat és élményeket nyújtson.
+Példa: Olyan streaming szolgáltatások, mint a Netflix, AI-t használnak filmek és műsorok ajánlására a megtekintési előzmények alapján, növelve a felhasználói elköteleződést és elégedettséget.
+- **Automatizálás és Hatékonyság**: Az AI képes automatizálni az ismétlődő feladatokat, optimalizálni a munkafolyamatokat és javítani az üzemi hatékonyságot.
+Példa: Az ügyfélszolgálati alkalmazások AI-alapú csevegőbotokat használnak az általános kérdések kezelésére, csökkentve a válaszadási időt és felszabadítva az emberi ügynököket a bonyolultabb problémákra.
+- **Fokozott felhasználói élmény**: Az AI javíthatja az általános felhasználói élményt intelligens funkciók biztosításával, például hangfelismerés, természetes nyelvfeldolgozás és prediktív szöveg segítségével.
+Példa: Virtuális asszisztensek, mint Siri és Google Assistant AI-t használnak hangparancsok megértésére és válaszadására, megkönnyítve a felhasználók eszközeikkel való interakcióját.
 
-### Ez mind nagyszerűen hangzik, de akkor miért van szükség az AI Ügynök Keretrendszerre?
+### Ez mind remekül hangzik, de miért van szükségünk AI Ügynök Keretrendszerre?
 
-Az AI ügynök keretrendszerek többet jelentenek, mint egyszerű AI keretrendszerek. Olyan intelligens ügynökök létrehozását teszik lehetővé, amelyek képesek felhasználókkal, más ügynökökkel és a környezettel interakcióba lépni meghatározott célok elérése érdekében. Ezek az ügynökök autonóm viselkedést tanúsíthatnak, döntéseket hozhatnak és alkalmazkodhatnak a változó körülményekhez. Tekintsünk néhány kulcsfontosságú képességet, amelyeket az AI Ügynök Keretrendszerek biztosítanak:
+Az AI Ügynök keretrendszerek többek egyszerű AI keretrendszereknél. Olyan intelligens ügynökök létrehozását teszik lehetővé, amelyek képesek felhasználókkal, más ügynökökkel és a környezettel kommunikálni, hogy elérjék konkrét céljaikat. Ezek az ügynökök autonóm viselkedést mutathatnak, döntéseket hozhatnak, és alkalmazkodhatnak a változó körülményekhez. Nézzük meg néhány kulcsfontosságú képességet, amelyeket az AI Ügynök Keretrendszerek támogatnak:
 
-- **Ügynökök közötti együttműködés és koordináció**: Több AI ügynök létrehozását teszi lehetővé, amelyek együtt dolgoznak, kommunikálnak és koordinálnak összetett feladatok megoldására.
-- **Feladat automatizálás és kezelés**: Mechanizmusokat biztosít a többlépéses munkafolyamatok automatizálására, feladatdelegálásra és dinamikus feladatmenedzsmentre az ügynökök között.
-- **Kontextusértés és alkalmazkodás**: Olyan képességekkel látja el az ügynököket, hogy megértsék a kontextust, alkalmazkodjanak a változó környezethez és valós idejű információk alapján hozzanak döntéseket.
+- **Ügynökök együttműködése és koordinációja**: Több AI ügynök létrehozását teszi lehetővé, amelyek képesek együtt dolgozni, kommunikálni és koordinálni a komplex feladatok megoldását.
+- **Feladat automatizálás és menedzsment**: Mechanizmusokat biztosít a több lépésből álló munkafolyamatok automatizálására, feladat delegálására és dinamikus feladatkezelésre az ügynökök között.
+- **Kontextuális megértés és alkalmazkodás**: Az ügynökök képessé tétele a kontextus megértésére, a változó környezethez való alkalmazkodásra és a valós idejű információk alapján történő döntéshozatalra.
 
-Összefoglalva, az ügynökök lehetővé teszik, hogy többet tegyünk, új szintre emeljük az automatizálást, és intelligensebb rendszereket hozzunk létre, amelyek alkalmazkodnak és tanulnak a környezetükből.
+Összefoglalva, az ügynökök lehetővé teszik, hogy többet tegyél, az automatizálást magasabb szintre emeld, intelligensebb rendszereket hozz létre, amelyek képesek alkalmazkodni és tanulni a környezetükből.
 
-## Hogyan készíthetünk gyorsan prototípust, iterálhatunk és fejleszthetjük az ügynök képességeit?
+## Hogyan lehet gyorsan prototípust készíteni, iterálni és fejleszteni az ügynök képességeit?
 
-Ez egy gyorsan változó terület, de vannak olyan közös elemek a legtöbb AI Ügynök Keretrendszerben, amelyek segítik a gyors prototípus készítést és iterációt, nevezetesen moduláris komponensek, együttműködési eszközök és valós idejű tanulás. Nézzük meg ezeket részletesebben:
+Ez egy gyorsan változó terület, de vannak olyan elemek, amelyek a legtöbb AI Ügynök Keretrendszerben közösek, és segítenek gyors prototípust készíteni és iterálni, ilyenek a moduláris komponensek, együttműködő eszközök és a valós idejű tanulás. Merüljünk el ezekben:
 
-- **Használj moduláris komponenseket**: Az AI SDK-k előre elkészített komponenseket kínálnak, például AI és memória csatlakozókat, természetes nyelvű vagy kód bővítmények segítségével történő függvényhívást, prompt sablonokat és továbbiakat.
-- **Használj együttműködési eszközöket**: Tervezd meg az ügynököket specifikus szerepkörökkel és feladatokkal, lehetővé téve számukra az együttműködéses munkafolyamatok tesztelését és finomítását.
-- **Tanulj valós időben**: Valósíts meg visszacsatolási hurkokat, ahol az ügynökök az interakciókból tanulnak és dinamikusan igazítják viselkedésüket.
+- **Használj Moduláris Komponenseket**: Az AI SDK-k előre elkészített komponenseket kínálnak, például AI és memória csatlakozókat, funkcióhívást természetes nyelven vagy kódbővítményeken keresztül, prompt sablonokat és egyebeket.
+- **Használj Együttműködő Eszközöket**: Tervezd meg az ügynököket konkrét szerepekkel és feladatokkal, lehetővé téve az együttműködési munkafolyamatok tesztelését és finomítását.
+- **Tanulj Valós Időben**: Alkalmazz visszacsatolási hurkokat, ahol az ügynökök a kölcsönhatásokból tanulnak, és dinamikusan igazítják viselkedésüket.
 
-### Használj moduláris komponenseket
+### Használj Moduláris Komponenseket
 
-Olyan SDK-k, mint a Microsoft Agent Framework, előre elkészített komponenseket kínálnak, például AI csatlakozókat, eszközdefiníciókat és ügynökmenedzsmentet.
+Az olyan SDK-k, mint a Microsoft Agent Framework, előre elkészített komponenseket kínálnak, mint AI csatlakozók, eszközdefiníciók és ügynök menedzsment.
 
-**Hogyan használhatják a csapatok ezeket**: A csapatok gyorsan összerakhatják ezeket a komponenseket működő prototípus létrehozásához, anélkül, hogy nulláról kellene kezdeniük, ami gyors kísérletezést és iterációt tesz lehetővé.
+**Hogyan használhatják ezeket a csapatok**: A csapatok gyorsan összeállíthatják ezeket a komponenseket működő prototípus létrehozásához anélkül, hogy teljesen nulláról kellene kezdeniük, lehetővé téve a gyors kísérletezést és iterálást.
 
-**Hogyan működik ez a gyakorlatban**: Használhatsz előre elkészített elemzőt (parsert) a felhasználói bemenetből információk kinyerésére, egy memória modult az adatok tárolására és előhívására, valamint egy prompt generátort a felhasználókkal való interakcióhoz, mindezt anélkül, hogy ezeket a komponenseket nulláról kellene megépíteni.
+**Hogyan működik ez a gyakorlatban**: Használhatsz egy előre elkészített elemzőt az információk kinyerésére a felhasználói bemenetből, egy memória modult adatok tárolására és lekérésére, és egy prompt generátort a felhasználókkal való interakcióhoz, mindezt anélkül, hogy ezeket a komponenseket nulláról kellene megírni.
 
-**Példakód**. Nézzünk egy példát arra, hogyan használhatod a Microsoft Agent Framework-öt a `FoundryChatClient`-tel, hogy a modell válaszoljon a felhasználói bemenetre eszközhívással:
+**Példa kód**. Nézzünk egy példát arra, hogyan használhatod a Microsoft Agent Frameworköt a `FoundryChatClient` segítségével, hogy a modell eszközhívásokkal válaszoljon a felhasználói bemenetekre:
 
 ``` python
 # Microsoft Agent Framework Python példa
@@ -77,7 +77,7 @@ from agent_framework.foundry import FoundryChatClient
 from azure.identity import AzureCliCredential
 
 
-# Mintafunkció definiálása utazásfoglaláshoz
+# Definiáljunk egy mintafeladatot az utazás lefoglalására
 @tool(approval_mode="never_require")
 def book_flight(date: str, location: str) -> str:
     """Book travel given location and date."""
@@ -98,27 +98,27 @@ async def main():
 
     response = await agent.run("I'd like to go to New York on January 1, 2025")
     print(response)
-    # Példa kimenet: Az 2025. január 1-jei New York-i járatát sikeresen lefoglaltuk. Jó utat! ✈️🗽
+    # Példa kimenet: Az Ön január 1-jei, 2025-ös New Yorkba tartó repülőjegye sikeresen lefoglalva. Kellemes utazást! ✈️🗽
 
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-Ebből a példából látható, hogyan használhatsz előre elkészített elemzőt kulcsinformációk kinyerésére a felhasználói bemenetből, például egy repülőjegy foglalási kérés eredetét, célállomását és dátumát. Ez a moduláris megközelítés lehetővé teszi, hogy a magas szintű logikára koncentrálj.
+Ebből a példából láthatod, hogyan használhatsz előre elkészített elemzőt a felhasználói bemenet kulcsfontosságú adatainak, például az indulási hely, célállomás és időpont kinyerésére egy repülőjegyfoglalási kérés esetén. Ez a moduláris megközelítés lehetővé teszi, hogy a magas szintű logikára koncentrálj.
 
-### Használj együttműködési eszközöket
+### Használj Együttműködő Eszközöket
 
-Olyan keretrendszerek, mint a Microsoft Agent Framework, támogatják több ügynök létrehozását, amelyek együtt tudnak dolgozni.
+Olyan keretrendszerek, mint a Microsoft Agent Framework, megkönnyítik több ügynök létrehozását, amelyek együtt tudnak dolgozni.
 
-**Hogyan használhatják a csapatok ezeket**: A csapatok tervezhetnek ügynököket specifikus szerepekkel és feladatokkal, lehetővé téve a kollaboratív munkafolyamatok tesztelését és finomítását, valamint a rendszer általános hatékonyságának javítását.
+**Hogyan használhatják ezt a csapatok**: A csapatok tervezhetnek olyan ügynököket, akiknek speciális szerepük és feladataik vannak, lehetővé téve számukra az együttműködő munkafolyamatok tesztelését és finomítását, valamint az általános rendszer hatékonyságának javítását.
 
-**Hogyan működik ez a gyakorlatban**: Létrehozhatsz egy ügynök csapatot, ahol minden ügynök specializált funkciót lát el, például adatlekérést, elemzést vagy döntéshozatalt. Ezek az ügynökök kommunikálhatnak és megoszthatják az információkat, hogy egy közös célt érjenek el, például egy felhasználói kérdés megválaszolását vagy egy feladat elvégzését.
+**Hogyan működik ez a gyakorlatban**: Létrehozhatsz egy ügynök csapatot, ahol minden ügynök egy speciális funkciót lát el, például adatlekérés, elemzés vagy döntéshozatal. Ezek az ügynökök kommunikálhatnak és megoszthatnak információkat egy közös cél érdekében, például egy felhasználói kérdés megválaszolására vagy egy feladat elvégzésére.
 
-**Példakód (Microsoft Agent Framework)**:
+**Példa kód (Microsoft Agent Framework)**:
 
 ```python
-# Több ügynök létrehozása, amelyek együtt dolgoznak a Microsoft Agent Framework használatával
+# Több ügynök létrehozása, amelyek együttműködnek a Microsoft Agent Framework használatával
 
 import os
 from agent_framework.foundry import FoundryChatClient
@@ -130,14 +130,14 @@ provider = FoundryChatClient(
     credential=AzureCliCredential(),
 )
 
-# Adatlekérdező ügynök
+# Adatlekérési ügynök
 agent_retrieve = provider.as_agent(
     name="dataretrieval",
     instructions="Retrieve relevant data using available tools.",
     tools=[retrieve_tool],
 )
 
-# Adat elemző ügynök
+# Adatelemzési ügynök
 agent_analyze = provider.as_agent(
     name="dataanalysis",
     instructions="Analyze the retrieved data and provide insights.",
@@ -150,34 +150,34 @@ analysis_result = await agent_analyze.run(f"Analyze this data: {retrieval_result
 print(analysis_result)
 ```
 
-A fenti kódból látható, hogyan hozhatsz létre egy olyan feladatot, amelyben több ügynök működik együtt adatokat elemezve. Minden ügynök egy meghatározott funkciót végez el, és a feladatot úgy hajtják végre, hogy koordinálják az ügynököket a kívánt eredmény eléréséhez. Az ilyen típusú, specializált szerepek betöltése javítja a feladat hatékonyságát és teljesítményét.
+Az előző kódban azt láthatod, hogyan hozhatsz létre egy olyan feladatot, amelyben több ügynök együtt dolgozik adat elemzésén. Minden ügynök egy adott feladatot végez, és a feladat a koordinált munkájuk eredményeként valósul meg. Dedikált, speciális szerepkörű ügynökök létrehozásával javíthatod a feladat hatékonyságát és teljesítményét.
 
-### Tanulás valós időben
+### Tanulj Valós Időben
 
-A fejlettebb keretrendszerek valós idejű kontextusértést és alkalmazkodást is lehetővé tesznek.
+Fejlett keretrendszerek kínálnak képességeket valós idejű kontextusmegértésre és alkalmazkodásra.
 
-**Hogyan használhatják a csapatok ezeket**: A csapatok visszacsatolási hurkokat valósíthatnak meg, ahol az ügynökök az interakciókból tanulnak és dinamikusan módosítják a viselkedésüket, ami folyamatos fejlesztést és képességfinomítást eredményez.
+**Hogyan használhatják ezt a csapatok**: Csapatok visszacsatolási hurkokat alkalmazhatnak, ahol az ügynökök a kölcsönhatásokból tanulnak és dinamikusan módosítják viselkedésüket, folyamatos fejlesztést és finomítást eredményezve.
 
-**Hogyan működik ez a gyakorlatban**: Az ügynökök elemezhetik a felhasználói visszajelzéseket, a környezeti adatokat és a feladatok eredményeit, hogy frissítsék tudásbázisukat, módosítsák döntéshozatali algoritmusaikat és idővel javítsák teljesítményüket. Ez az ismétlődő tanulási folyamat lehetővé teszi, hogy az ügynökök alkalmazkodjanak a változó körülményekhez és a felhasználói preferenciákhoz, ezáltal növelve a rendszer hatékonyságát.
+**Hogyan működik ez a gyakorlatban**: Az ügynökök elemezhetik a felhasználói visszajelzéseket, környezeti adatokat és a feladatok eredményeit, hogy frissítsék tudásbázisukat, módosítsák döntési algoritmusaikat és idővel javítsák teljesítményüket. Ez az ismétlődő tanulási folyamat lehetővé teszi az ügynökök számára, hogy alkalmazkodjanak a változó feltételekhez és felhasználói preferenciákhoz, ezáltal növelve az egész rendszer hatékonyságát.
 
-## Mik a különbségek a Microsoft Agent Framework és a Microsoft Foundry Agent Service között?
+## Milyen különbségek vannak a Microsoft Agent Framework és a Microsoft Foundry Agent Service között?
 
-Sokféleképpen összehasonlíthatjuk ezeket a megközelítéseket, de nézzük meg néhány kulcsfontosságú különbséget a tervezésük, képességeik és célzott felhasználási esetek szempontjából:
+Sokféleképpen össze lehet hasonlítani ezeket a megközelítéseket, de nézzük meg néhány kulcsfontosságú különbséget a tervezésük, képességeik és célfelhasználási eseteik szempontjából:
 
 ## Microsoft Agent Framework (MAF)
 
-A Microsoft Agent Framework egy egyszerűsített SDK-t biztosít AI ügynökök építéséhez `FoundryChatClient` használatával. Lehetővé teszi a fejlesztők számára, hogy olyan ügynököket hozzanak létre, amelyek Azure OpenAI modelleket használnak beépített eszközhívással, beszélgetéskezeléssel és vállalati szintű biztonsággal az Azure identitáson keresztül.
+A Microsoft Agent Framework egy egyszerűsített SDK, amely az AI ügynökök építését teszi lehetővé `FoundryChatClient` használatával. Lehetővé teszi az ügynökök létrehozását, amelyek az Azure OpenAI modellekre építenek beépített eszközhívással, beszélgetéskezeléssel és vállalati szintű biztonsággal, az Azure azonosításon keresztül.
 
-**Felhasználási esetek**: Éles környezetbe kész AI ügynökök építése eszközhasználattal, több lépéses munkafolyamatokkal és vállalati integrációs forgatókönyvekkel.
+**Használati esetek**: Termelésre kész AI ügynökök létrehozása eszközhasználattal, több lépésből álló munkafolyamatokkal és vállalati integrációs szcenáriókkal.
 
 Íme néhány fontos alapfogalom a Microsoft Agent Frameworkből:
 
-- **Ügynökök**. Egy ügynököt a `FoundryChatClient` segítségével hoznak létre, és konfigurálják névvel, utasításokkal és eszközökkel. Az ügynök képes:
+- **Ügynökök**. Egy ügynököt a `FoundryChatClient`-tel hoznak létre, amely konfigurálható névvel, utasításokkal és eszközökkel. Az ügynök képes:
   - **Feldolgozni a felhasználói üzeneteket** és válaszokat generálni Azure OpenAI modellek segítségével.
-  - **Automatikusan hívni eszközöket** a beszélgetés kontextusa alapján.
-  - **Fenntartani a beszélgetés állapotát** több interakció során.
+  - **Automatikusan eszközöket hívni** a beszélgetés kontextusa alapján.
+  - **Fenntartani a beszélgetési állapotot** több interakció során.
 
-  Íme egy kódrészlet, amely bemutatja, hogyan lehet egy ügynököt létrehozni:
+  Íme egy kódrészlet arról, hogyan lehet egy ügynököt létrehozni:
 
     ```python
     import os
@@ -198,7 +198,7 @@ A Microsoft Agent Framework egy egyszerűsített SDK-t biztosít AI ügynökök 
     print(response)
     ```
 
-- **Eszközök**. A keretrendszer támogatja eszközök definiálását Python függvényekként, amelyeket az ügynök automatikusan használhat. Az eszközök regisztrálása az ügynök létrehozásakor történik:
+- **Eszközök**. A keretrendszer támogatja az eszközök Python függvényekként történő definiálását, amelyeket az ügynök automatikusan hívhat meg. Az eszközök regisztrálása az ügynök létrehozásakor történik:
 
     ```python
     def get_weather(location: str) -> str:
@@ -212,7 +212,7 @@ A Microsoft Agent Framework egy egyszerűsített SDK-t biztosít AI ügynökök 
     )
     ```
 
-- **Több ügynök közötti koordináció**. Több, különböző specializációval rendelkező ügynök is létrehozható és koordinálható:
+- **Több Ügynök Koordinációja**. Több különböző specializációjú ügynök is létrehozható, és koordinálhatják a munkájukat:
 
     ```python
     planner = provider.as_agent(
@@ -230,19 +230,19 @@ A Microsoft Agent Framework egy egyszerűsített SDK-t biztosít AI ügynökök 
     result = await executor.run(f"Execute this plan: {plan}")
     ```
 
-- **Azure identitási integráció**. A keretrendszer a `AzureCliCredential` (vagy `DefaultAzureCredential`) használatával biztosít kulcs nélküli biztonságos hitelesítést, ezzel megszüntetve az API kulcsok közvetlen kezelésének szükségességét.
+- **Azure Azonosítás Integráció**. A keretrendszer az `AzureCliCredential`-t (vagy a `DefaultAzureCredential`-t) használja biztonságos, kulcs nélküli hitelesítésre, így nincs szükség API kulcsok kezelésére.
 
 ## Microsoft Foundry Agent Service
 
-A Microsoft Foundry Agent Service egy újabb szolgáltatás, amelyet a Microsoft Ignite 2024-en mutattak be. Lehetővé teszi AI ügynökök fejlesztését és telepítését rugalmasabb modellekkel, mint például közvetlen hívás nyílt forráskódú LLM-ekhez, mint a Llama 3, Mistral és Cohere.
+A Microsoft Foundry Agent Service egy újabb szolgáltatás, amelyet a Microsoft Ignite 2024-en mutattak be. Lehetővé teszi AI ügynökök fejlesztését és telepítését rugalmasabb modellekkel, például közvetlenül nyílt forráskódú LLM-ek hívásával, mint a Llama 3, Mistral és Cohere.
 
-A Microsoft Foundry Agent Service erősebb vállalati biztonsági mechanizmusokat és adatkezelési módszereket kínál, így alkalmas vállalati alkalmazásokhoz.
+A Microsoft Foundry Agent Service erősebb vállalati biztonsági mechanizmusokat és adattárolási módokat kínál, így alkalmas vállalati alkalmazásokhoz.
 
-Zökkenőmentesen működik a Microsoft Agent Framework-kel az ügynökök építéséhez és telepítéséhez.
+Alapértelmezetten együttműködik a Microsoft Agent Frameworkkel ügynökök építéséhez és telepítéséhez.
 
-Ez a szolgáltatás jelenleg nyilvános előnézetben van, támogatja a Pythont és a C#-ot az ügynökök építéséhez.
+Jelenleg nyilvánosan előzetes verzióban érhető el, és támogatja a Python és C# alapú ügynökfejlesztést.
 
-A Microsoft Foundry Agent Service Python SDK segítségével létrehozhatunk egy ügynököt felhasználó által definiált eszközzel:
+A Microsoft Foundry Agent Service Python SDK segítségével létrehozhatunk egy ügynököt felhasználói definiált eszközzel:
 
 ```python
 import asyncio
@@ -271,7 +271,7 @@ async def main() -> None:
     )
 
     agent = project_client.agents.create_agent(
-        model="gpt-4.1-mini",
+        model="gpt-5-mini",
         name="Host",
         instructions="Answer questions about the menu.",
         tools=[get_specials, get_item_price],
@@ -306,13 +306,13 @@ if __name__ == "__main__":
 
 ### Alapfogalmak
 
-A Microsoft Foundry Agent Service a következő alapfogalmakkal rendelkezik:
+A Microsoft Foundry Agent Service az alábbi alapfogalmakkal rendelkezik:
 
-- **Ügynök**. A Microsoft Foundry Agent Service integrálódik a Microsoft Foundry-val. A Microsoft Foundry-n belül egy AI Ügynök "okos" mikroszolgáltatásként működik, amely kérdések megválaszolására (RAG), cselekvések végrehajtására vagy teljes munkafolyamatok automatizálására használható. Ezt úgy éri el, hogy összekapcsolja a generatív AI modellek erejét olyan eszközökkel, amelyek hozzáférést és interakciót tesznek lehetővé valós adatforrásokkal. Íme egy példa egy ügynökre:
+- **Ügynök**. A Microsoft Foundry Agent Service integrálódik a Microsoft Foundry platformmal. A Microsoft Foundry-ban egy AI ügynök "okos" mikroszolgáltatásként működik, amely kérdések megválaszolására (RAG), műveletek végrehajtására vagy teljes munkafolyamatok automatizálására használható. Ezt úgy éri el, hogy egyesíti a generatív AI modellek erejét olyan eszközökkel, amelyek lehetővé teszik számára a valós adatok elérését és azokkal való interakciót. Íme egy példa egy ügynökre:
 
     ```python
     agent = project_client.agents.create_agent(
-        model="gpt-4.1-mini",
+        model="gpt-5-mini",
         name="my-agent",
         instructions="You are helpful agent",
         tools=code_interpreter.definitions,
@@ -320,9 +320,9 @@ A Microsoft Foundry Agent Service a következő alapfogalmakkal rendelkezik:
     )
     ```
 
-    Ebben a példában egy ügynököt hoznak létre `gpt-4.1-mini` modellel, `my-agent` névvel és azzal az utasítással, hogy „Te egy segítőkész ügynök vagy”. Az ügynök felszerelt eszközökkel és erőforrásokkal kód értelmezési feladatok végrehajtásához.
+    Ebben a példában egy ügynököt hozunk létre `gpt-5-mini` modellel, `my-agent` névvel és az utasítás `You are helpful agent`. Az ügynök eszközökkel és erőforrásokkal van felszerelve kódértelmezési feladatok végrehajtásához.
 
-- **Szál és üzenetek**. A szál egy másik fontos fogalom. Egy szál egy beszélgetést vagy interakciót jelöl egy ügynök és egy felhasználó között. A szálakat a beszélgetés előrehaladásának nyomon követésére, kontextus információk tárolására, valamint az interakció állapotának kezelésére használják. Íme egy példa egy szálra:
+- **Szálak és üzenetek**. A szál szintén egy fontos fogalom. Egy szál egy beszélgetést vagy interakciót jelent az ügynök és a felhasználó között. A szálakat arra használják, hogy nyomon kövessék egy beszélgetés előrehaladását, tárolják a kontextusadatokat és kezeljék az interakció állapotát. Íme egy példa egy szálra:
 
     ```python
     thread = project_client.agents.create_thread()
@@ -332,59 +332,59 @@ A Microsoft Foundry Agent Service a következő alapfogalmakkal rendelkezik:
         content="Could you please create a bar chart for the operating profit using the following data and provide the file to me? Company A: $1.2 million, Company B: $2.5 million, Company C: $3.0 million, Company D: $1.8 million",
     )
     
-    # Kérd meg az ügynököt, hogy végezzen munkát a szálon
+    # Kérje meg az ügynököt, hogy végezzen munkát a szálon
     run = project_client.agents.create_and_process_run(thread_id=thread.id, agent_id=agent.id)
     
-    # Lekérdezd és naplózd az összes üzenetet, hogy lásd az ügynök válaszát
+    # Szerezze be és naplózza az összes üzenetet az ügynök válaszának megtekintéséhez
     messages = project_client.agents.list_messages(thread_id=thread.id)
     print(f"Messages: {messages}")
     ```
 
-    Az előző kódban egy szálat hoznak létre. Ezt követően egy üzenetet küldenek a szálnak. A `create_and_process_run` hívásával az ügynököt megkérik, hogy dolgozzon a szálon. Végül az üzeneteket lekérik és naplózzák, hogy lássák az ügynök válaszát. Az üzenetek jelezik a beszélgetés előrehaladását a felhasználó és az ügynök között. Fontos megérteni, hogy az üzenetek különböző típusúak lehetnek, például szöveg, kép vagy fájl, ami azt jelenti, hogy az ügynök munkája eredményeként például egy kép vagy szöveges válasz jött létre. Fejlesztőként ezt az információt tovább feldolgozhatod, vagy megjelenítheted a felhasználó számára.
+    Az előző kódban egy szálat hoztunk létre. Ezután egy üzenetet küldtünk a szálnak. A `create_and_process_run` hívásával az ügynököt felkértük, hogy dolgozzon a szálon. Végül az üzeneteket lekértük és naplóztuk az ügynök válaszának megtekintéséhez. Az üzenetek jelzik a beszélgetés előrehaladását a felhasználó és az ügynök között. Fontos megérteni azt is, hogy az üzenetek típusa eltérő lehet, például szöveg, kép vagy fájl, azaz az ügynök munkája lehet például kép vagy szöveges válasz is. Fejlesztőként ezeket az információkat felhasználhatod a válasz további feldolgozására vagy a felhasználó számára történő megjelenítésre.
 
-- **Integráció a Microsoft Agent Framework-kel**. A Microsoft Foundry Agent Service zökkenőmentesen együttműködik a Microsoft Agent Framework-kel, ami azt jelenti, hogy ügynököket hozhatsz létre a `FoundryChatClient` használatával, és telepítheted őket az Agent Service-en keresztül éles környezetben.
+- **Integráció a Microsoft Agent Frameworkkel**. A Microsoft Foundry Agent Service zökkenőmentesen működik együtt a Microsoft Agent Frameworkkel, tehát az ügynököket a `FoundryChatClient` használatával építheted és az Agent Service-en keresztül telepítheted éles környezetben.
 
-**Felhasználási esetek**: A Microsoft Foundry Agent Service olyan vállalati alkalmazások számára készült, amelyek biztonságos, skálázható és rugalmas AI ügynök telepítést igényelnek.
+**Használati esetek**: A Microsoft Foundry Agent Service vállalati alkalmazásokra van tervezve, ahol biztonságos, skálázható és rugalmas AI ügynök telepítés szükséges.
 
-## Mi a különbség ezek a megközelítések között?
+## Mi a különbség ezek között a megközelítések között?
  
-Habár átfedés látszik, mégis vannak kulcsfontosságú különbségek a tervezés, képességek és célfelhasználások terén:
+Úgy hangzik, mintha lenne átfedés, de vannak kulcsfontosságú különbségek a tervezés, képességek és célfelhasználások tekintetében:
  
-- **Microsoft Agent Framework (MAF)**: Ez egy éles környezetbe kész SDK AI ügynökök építéséhez. Egyszerűsített API-t biztosít eszközhívással, beszélgetéskezeléssel és Azure identitás integrációval.
-- **Microsoft Foundry Agent Service**: Ez egy platform és telepítési szolgáltatás a Microsoft Foundry-ban ügynökök számára. Beépített kapcsolatot kínál olyan szolgáltatásokhoz, mint az Azure OpenAI, Azure AI Search, Bing Search és kódvégrehajtás.
+- **Microsoft Agent Framework (MAF)**: Egy termelésre kész SDK AI ügynökök építéséhez. Egyszerűsített API-t biztosít ügynökök létrehozásához eszközhívással, beszélgetéskezeléssel és Azure azonosítás integrációval.
+- **Microsoft Foundry Agent Service**: Egy platform és telepítési szolgáltatás a Microsoft Foundry-ban ügynökök számára. Beépített kapcsolatot biztosít olyan szolgáltatásokhoz, mint az Azure OpenAI, Azure AI Search, Bing Search és kód végrehajtás.
  
 Még mindig bizonytalan, melyiket válaszd?
 
-### Felhasználási esetek
+### Használati esetek
  
-Nézzük meg, hogyan segíthetünk néhány gyakori felhasználási eset áttekintésével:
+Nézzük meg, tudunk-e segíteni néhány gyakori alkalmazási eseten keresztül:
  
-> K: Éles környezetben használható AI ügynököket építek, és gyorsan szeretnék elkezdeni.
+> K: Termelésre kész AI ügynök alkalmazásokat fejlesztek, és gyorsan szeretnék indulni
 >
 
->V: A Microsoft Agent Framework kiváló választás. Egyszerű, Pythonos API-t kínál a `FoundryChatClient`-en keresztül, amellyel néhány sor kóddal definiálhatók az ügynökök eszközökkel és utasításokkal.
+> V: A Microsoft Agent Framework nagyszerű választás. Egyszerű, Pythonos API-t kínál a `FoundryChatClient` segítségével, amellyel néhány sor kódban definiálhatsz eszközökkel és utasításokkal rendelkező ügynököket.
 
->K: Vállalati szintű telepítésre van szükségem Azure integrációkkal, mint a Search és kódvégrehajtás.
+> K: Vállalati szintű telepítésre van szükségem Azure integrációval, mint a Search és a kód végrehajtás.
 >
-> V: A Microsoft Foundry Agent Service a legmegfelelőbb. Ez egy platform szolgáltatás, amely beépített képességeket nyújt több modellhez, Azure AI Search-hoz, Bing Search-hoz és Azure Functions-hoz. Könnyű létrehozni ügynököket a Foundry Portálon és skálázva telepíteni őket.
+> V: A Microsoft Foundry Agent Service a legjobb választás. Ez egy platform szolgáltatás, amely több modellre, Azure AI Searchre, Bing Searchre és Azure Functions-re épülő beépített képességeket kínál. Egyszerűvé teszi ügynökeid építését a Foundry Portálon és azok skálázható telepítését.
  
-> K: Még mindig bizonytalan vagyok, csak adj egy opciót.
+> K: Még mindig bizonytalan vagyok, csak adj egy lehetőséget.
 >
-> V: Kezdd a Microsoft Agent Framework-kel az ügynökök építéséhez, majd használd a Microsoft Foundry Agent Service-t, amikor élesben kell telepíteni és skálázni őket. Ez a megközelítés lehetővé teszi a gyors iterációt az ügynök logikán, miközben világos utat ad a vállalati telepítéshez.
+> V: Kezdd a Microsoft Agent Frameworkkel az ügynökök építését, majd használd a Microsoft Foundry Agent Service-t, amikor el kell őket telepíteni és skálázni éles környezetben. Ez a megközelítés gyors iterációt tesz lehetővé az ügynök logikáján, miközben egyértelmű utat kínál a vállalati szintű telepítéshez.
  
 Foglaljuk össze a kulcsfontosságú különbségeket egy táblázatban:
 
-| Keretrendszer | Fókusz | Alapfogalmak | Felhasználási esetek |
+| Keretrendszer | Fókusz | Alapfogalmak | Használati esetek |
 | --- | --- | --- | --- |
-| Microsoft Agent Framework | Egyszerűsített ügynök SDK eszközhívással | Ügynökök, Eszközök, Azure Identitás | AI ügynökök építése, eszközhasználat, több lépéses munkafolyamatok |
-| Microsoft Foundry Agent Service | Rugalmas modellek, vállalati biztonság, kódgenerálás, eszközhívás | Modularitás, Együttműködés, Folyamat-orchestration | Biztonságos, skálázható és rugalmas AI ügynök telepítés |
+| Microsoft Agent Framework | Egyszerűsített ügynök SDK eszközhívással | Ügynökök, Eszközök, Azure Azonosítás | AI ügynökök építése, eszközhasználat, többlépéses munkafolyamatok |
+| Microsoft Foundry Agent Service | Rugalmas modellek, vállalati biztonság, kódgenerálás, eszközhívás | Moduláris felépítés, Együttműködés, Folyamatok koordinációja | Biztonságos, skálázható és rugalmas AI ügynök telepítés |
 
-## Közvetlenül integrálhatom a meglévő Azure ökoszisztéma eszközeimet, vagy különálló megoldásokat kell használnom?
+## Integrálhatom közvetlenül a meglévő Azure eszközeimet, vagy szükségem van különálló megoldásokra?
 
 
-A válasz igen, közvetlenül integrálhatja meglévő Azure ökoszisztéma eszközeit a Microsoft Foundry Agent Service szolgáltatással, különösen azért, mert úgy lett kialakítva, hogy zökkenőmentesen működjön más Azure szolgáltatásokkal. Például integrálhatja a Binget, az Azure AI Search-t és az Azure Functionst. Emellett mély integráció van a Microsoft Foundry-val.
+A válasz igen, közvetlenül integrálhatja meglévő Azure ökoszisztéma eszközeit a Microsoft Foundry Agent Service-szel, különösen, mivel az zökkenőmentes együttműködésre lett tervezve más Azure szolgáltatásokkal. Például integrálhatja a Binget, az Azure AI Search-t és az Azure Functions-t. Emellett mély integráció van a Microsoft Foundry-val.
 
-A Microsoft Agent Framework szintén integrálódik az Azure szolgáltatásokkal a `FoundryChatClient` és az Azure identitás révén, lehetővé téve, hogy közvetlenül hívjon Azure szolgáltatásokat az ügynök eszközeiről.
+A Microsoft Agent Framework az Azure szolgáltatásokkal is integrálódik a `FoundryChatClient` és az Azure azonosítás révén, lehetővé téve, hogy az Azure szolgáltatásokat közvetlenül az ügynök eszközeiből hívja meg.
 
 ## Minta kódok
 
@@ -392,9 +392,9 @@ A Microsoft Agent Framework szintén integrálódik az Azure szolgáltatásokkal
 - Python: [Agent Framework (Azure OpenAI Responses API)](./code_samples/02-python-agent-framework-azure-openai.ipynb)
 - .NET: [Agent Framework](./code_samples/02-dotnet-agent-framework.md)
 
-## További kérdései vannak az AI Agent Framework-ök kapcsán?
+## Van még kérdése az AI Agent Frameworkökkel kapcsolatban?
 
-Csatlakozzon a [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) közösséghez, hogy találkozzon más tanulókkal, részt vegyen ügyfélfogadáson és választ kapjon AI Agent kérdéseire.
+Csatlakozzon a [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) csoporthoz, hogy találkozzon más tanulókkal, részt vehessen az irodai órákon, és választ kapjon AI ügynökeihez kapcsolódó kérdéseire.
 
 ## Hivatkozások
 
@@ -404,11 +404,11 @@ Csatlakozzon a [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D
 
 ## Előző lecke
 
-[Bevezetés az AI ügynökökhöz és azok használati eseteihez](../01-intro-to-ai-agents/README.md)
+[Bevezetés az AI ügynökökbe és azok felhasználási eseteibe](../01-intro-to-ai-agents/README.md)
 
 ## Következő lecke
 
-[Az agentikus tervezési minták megértése](../03-agentic-design-patterns/README.md)
+[Az ügynöki tervezési minták megértése](../03-agentic-design-patterns/README.md)
 
 ---
 

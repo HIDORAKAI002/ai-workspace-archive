@@ -1,153 +1,153 @@
-# 🎨 Agentic Design Patroon met Azure OpenAI (Responses API) (.NET)
+# 🎨 Agentgeoriënteerde Ontwerppatronen met Azure OpenAI (Responses API) (.NET)
 
 ## 📋 Leerdoelen
 
-Dit voorbeeld toont enterprise-grade ontwerp patronen voor het bouwen van intelligente agenten met het Microsoft Agent Framework in .NET met Azure OpenAI (Responses API) integratie. Je leert professionele patronen en architecturale benaderingen die agenten productie-klaar, onderhoudbaar en schaalbaar maken.
+Dit voorbeeld demonstreert bedrijfsklare ontwerppatronen voor het bouwen van intelligente agents met behulp van het Microsoft Agent Framework in .NET met Azure OpenAI (Responses API) integratie. Je leert professionele patronen en architecturale benaderingen die agents productieklaar, onderhoudbaar en schaalbaar maken.
 
-### Enterprise Design Patronen
+### Bedrijfsklare Ontwerppatronen
 
-- 🏭 **Factory Pattern**: Gestandaardiseerde agent creatie met dependency injection
-- 🔧 **Builder Pattern**: Vloeiende agent configuratie en setup
-- 🧵 **Thread-Safe Patterns**: Gelijktijdig gesprekbeheer
+- 🏭 **Factory Pattern**: Gestandaardiseerde agentcreatie met dependency injection
+- 🔧 **Builder Pattern**: Vloeiende agentconfiguratie en -opzet
+- 🧵 **Thread-Safe Patronen**: Gelijktijdig gesprekbeheer
 - 📋 **Repository Pattern**: Georganiseerd beheer van tools en mogelijkheden
 
-## 🎯 .NET-Specifieke Architectuur Voordelen
+## 🎯 .NET-specifieke Architectuurvoordelen
 
-### Enterprise Kenmerken
+### Bedrijfsfeatures
 
-- **Sterke Typing**: Compile-tijd validatie en IntelliSense ondersteuning
-- **Dependency Injection**: Ingebouwde DI container integratie
-- **Configuratiebeheer**: IConfiguration en Options patronen
-- **Async/Await**: Asynchrone programmeerondersteuning van de eerste klasse
+- **Sterke Typing**: Compile-tijd validatie en IntelliSense-ondersteuning
+- **Dependency Injection**: Ingebouwde DI-containeraanpak
+- **Configuratiebeheer**: IConfiguration- en Options-patronen
+- **Async/Await**: Asynchrone programmeerondersteuning als eersteklas
 
-### Productie-Klare Patronen
+### Productieklare Patronen
 
-- **Logging Integratie**: ILogger en gestructureerde logging ondersteuning
+- **Logging Integratie**: ILogger en gestructureerde loggingondersteuning
 - **Health Checks**: Ingebouwde monitoring en diagnostiek
-- **Configuratie Validatie**: Sterke typing met data annotaties
-- **Foutafhandeling**: Gestructureerd uitzonderingsbeheer
+- **Configuratievalidatie**: Sterke typing met data-annotaties
+- **Foutafhandeling**: Gestructureerde uitzonderingbeheer
 
 ## 🔧 Technische Architectuur
 
-### Core .NET Componenten
+### Kern .NET-componenten
 
-- **Microsoft.Extensions.AI**: Geünificeerde AI service abstracties
-- **Microsoft.Agents.AI**: Enterprise agent orkestratie framework
-- **Azure OpenAI (Responses API)**: Hoog-prestatie API client patronen
-- **Configuratiesysteem**: appsettings.json en omgevingsintegratie
+- **Microsoft.Extensions.AI**: Geünificeerde AI service-abstraheringen
+- **Microsoft.Agents.AI**: Enterprise agent orchestratie framework
+- **Azure OpenAI (Responses API)**: Hoge-prestatie API client patronen
+- **Configuratiesysteem**: appsettings.json en omgeving integratie
 
-### Design Patroon Implementatie
+### Implementatie van Ontwerppatronen
 
 ```mermaid
 graph LR
-    A[IServiceCollection] --> B[Agent Bouwer]
+    A[IServiceCollection] --> B[Agent Builder]
     B --> C[Configuratie]
-    C --> D[Toolregister]
-    D --> E[AI Agent]
+    C --> D[Hulpmiddelenregister]
+    D --> E[AI-agent]
 ```
 
-## 🏗️ Aangetoonde Enterprise Patronen
+## 🏗️ Gedemonstreerde Enterprise Patronen
 
 ### 1. **Creational Patronen**
 
-- **Agent Factory**: Gecentraliseerde agent creatie met consistente configuratie
-- **Builder Pattern**: Fluent API voor complexe agentconfiguratie
+- **Agent Factory**: Gecentraliseerde agentcreatie met consistente configuratie
+- **Builder Pattern**: Vloeiende API voor complexe agentconfiguratie
 - **Singleton Pattern**: Gedeelde resources en configuratiebeheer
 - **Dependency Injection**: Losse koppeling en testbaarheid
 
-### 2. **Gedrags Patronen**
+### 2. **Gedragsmatige Patronen**
 
-- **Strategy Pattern**: Verwisselbare uitvoeringstrategieën voor tools
-- **Command Pattern**: Ingesloten agent-operaties met undo/redo
-- **Observer Pattern**: Gebeurtenisgestuurd agent levenscyclus beheer
-- **Template Method**: Gestandaardiseerde agent uitvoeringsworkflows
+- **Strategy Pattern**: Verwisselbare tool-executiestrategieën
+- **Command Pattern**: Ingesloten agentoperaties met undo/redo
+- **Observer Pattern**: Gebeurtenisgestuurd lifecyclebeheer van agents
+- **Template Method**: Gestandaardiseerde agentuitvoeringsworkflows
 
 ### 3. **Structurele Patronen**
 
 - **Adapter Pattern**: Azure OpenAI (Responses API) integratielaag
-- **Decorator Pattern**: Verhoging van agentmogelijkheden
-- **Facade Pattern**: Vereenvoudigde agent interactie interfaces
-- **Proxy Pattern**: Lazy loading en caching voor performance
+- **Decorator Pattern**: Agent-mogelijkheid verbeteringen
+- **Facade Pattern**: Vereenvoudigde agent-interactie interfaces
+- **Proxy Pattern**: Lazy loading en caching voor prestatieoptimalisatie
 
 ## 📚 .NET Ontwerpprincipes
 
-### SOLID Principes
+### SOLID-Principes
 
-- **Single Responsibility**: Elk component heeft één duidelijk doel
+- **Single Responsibility**: Elk component heeft één duidelijke verantwoordelijkheidsgebied
 - **Open/Closed**: Uitbreidbaar zonder aanpassing
-- **Liskov Substitution**: Interface-gebaseerde toolimplementaties
-- **Interface Segregation**: Gefocuste, samenhangende interfaces
+- **Liskov Substitutie**: Interface-gebaseerde toolimplementaties
+- **Interface Segregatie**: Gefocuste, coherente interfaces
 - **Dependency Inversion**: Afhankelijk van abstracties, niet van concreetheden
 
 ### Clean Architecture
 
-- **Domain Laag**: Kern agent- en toolabstracties
-- **Applicatielaag**: Agent orkestratie en workflows
+- **Domain Laag**: Kern agent- en toolabstraheringen
+- **Applicatielaag**: Agent orchestratie en workflows
 - **Infrastructuur Laag**: Azure OpenAI (Responses API) integratie en externe services
-- **Presentatie Laag**: Gebruikersinteractie en antwoordformattering
+- **Presentatielaag**: Gebruikersinteractie en responsopmaak
 
 ## 🔒 Enterprise Overwegingen
 
 ### Beveiliging
 
-- **Credential Management**: Veilig beheer van API-sleutels met IConfiguration
-- **Input Validatie**: Sterke typing en validatie met data annotaties
-- **Output Sanitization**: Veilige verwerking en filtering van responsen
-- **Audit Logging**: Uitgebreide bewaking van operaties
+- **Credential Management**: Veilige API-sleutelverwerking met IConfiguration
+- **Invoervalidatie**: Sterke typing en data-annotatievalidatie
+- **Output Sanitization**: Veilige verwerking en filtering van antwoorden
+- **Audit Logging**: Uitgebreide operatie-tracking
 
-### Prestaties
+### Prestatie
 
-- **Async Patronen**: Niet-blokkerende I/O operaties
-- **Connection Pooling**: Efficiënt beheer van HTTP clients
-- **Caching**: Response caching voor verbeterde prestaties
-- **Resource Management**: Correcte opruiming en dispose patronen
+- **Async Patronen**: Niet-blokkerende I/O-operaties
+- **Connection Pooling**: Efficiënt beheer van HTTP-clients
+- **Caching**: Response caching voor betere prestaties
+- **Resourcebeheer**: Correct afhandelen en schoonmaaktechnieken
 
 ### Schaalbaarheid
 
-- **Thread Safety**: Ondersteuning voor gelijktijdige agent uitvoering
-- **Resource Pooling**: Efficiënt gebruik van resources
-- **Load Management**: Rate limiting en backpressure beheer
-- **Monitoring**: Prestatiemetrics en health checks
+- **Thread Veilighied**: Gelijktijdige agentuitvoering ondersteuning
+- **Resource Pooling**: Efficiënt gebruik van middelen
+- **Load Management**: Rate limiting en backpressure afhandeling
+- **Monitoring**: Prestatiestatistieken en health checks
 
-## 🚀 Productie-implementatie
+## 🚀 Productiedistributie
 
-- **Configuratiebeheer**: Omgevingsspecifieke instellingen
+- **Configuratiebeheer**: Omgeving-specifieke instellingen
 - **Logging Strategie**: Gestructureerde logging met correlatie-ID's
-- **Foutafhandeling**: Globale uitzonderingsafhandeling met juiste herstel
-- **Monitoring**: Application insights en prestatie-tellers
+- **Foutafhandeling**: Globale uitzonderingafhandeling met juiste herstelmethodes
+- **Monitoring**: Application insights en prestatiecounters
 - **Testen**: Unit tests, integratietests en load testing patronen
 
-Klaar om enterprise-grade intelligente agenten te bouwen met .NET? Laten we iets robuusts ontwerpen! 🏢✨
+Klaar om bedrijfsklare intelligente agents te bouwen met .NET? Laten we iets robuusts ontwerpen! 🏢✨
 
-## 🚀 Aan de Slag
+## 🚀 Aan de slag
 
 ### Vereisten
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) of hoger
-- Een [Azure abonnement](https://azure.microsoft.com/free/) met een Azure OpenAI resource en een modelimplementatie
-- De [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — log in met `az login`
+- Een [Azure-abonnement](https://azure.microsoft.com/free/) met een Azure OpenAI resource en een modeldeploy
+- De [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — aanmelden met `az login`
 
 ### Vereiste Omgevingsvariabelen
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Meld je dan aan zodat AzureCliCredential een token kan verkrijgen
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Meld je dan aan zodat AzureCliCredential een token kan krijgen
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Meld je dan aan zodat AzureCliCredential een token kan krijgen
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Meld u vervolgens aan zodat AzureCliCredential een token kan ophalen
 az login
 ```
 
 ### Voorbeeldcode
 
-Om de code uit te voeren,
+Om de code te draaien,
 
 ```bash
 # zsh/bash
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

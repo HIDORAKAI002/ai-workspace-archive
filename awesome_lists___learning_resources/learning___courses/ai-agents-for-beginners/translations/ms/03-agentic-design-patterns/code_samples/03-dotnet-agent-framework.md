@@ -1,147 +1,147 @@
-# 🎨 Corak Reka Bentuk Agentic dengan Azure OpenAI (API Respons) (.NET)
+# 🎨 Corak Reka Bentuk Agensik dengan Azure OpenAI (Responses API) (.NET)
 
 ## 📋 Objektif Pembelajaran
 
-Contoh ini menunjukkan corak reka bentuk gred perusahaan untuk membina agen pintar menggunakan Microsoft Agent Framework dalam .NET dengan integrasi Azure OpenAI (API Respons). Anda akan mempelajari corak profesional dan pendekatan seni bina yang menjadikan agen bersedia untuk pengeluaran, boleh diselenggara, dan boleh diskalakan.
+Contoh ini menunjukkan corak reka bentuk kelas perusahaan bagi membina ejen pintar menggunakan Microsoft Agent Framework dalam .NET dengan integrasi Azure OpenAI (Responses API). Anda akan mempelajari corak profesional dan pendekatan seni bina yang menjadikan agen sedia untuk produksi, mudah dijaga dan boleh diskalakan.
 
-### Corak Reka Bentuk Enterprise
+### Corak Reka Bentuk Perusahaan
 
-- 🏭 **Corak Kilang**: Penciptaan agen yang diseragamkan dengan suntikan kebergantungan
-- 🔧 **Corak Pembina**: Konfigurasi dan penyediaan agen yang lancar
-- 🧵 **Corak Selamat Benang**: Pengurusan perbualan serentak
-- 📋 **Corak Repositori**: Pengurusan alat dan keupayaan yang teratur
+- 🏭 **Corak Kilang**: Penciptaan agen yang standard dengan suntikan kebergantungan
+- 🔧 **Corak Pembina**: Konfigurasi dan penyediaan agen secara fasih
+- 🧵 **Corak Selamat-Tali**: Pengurusan perbualan serentak
+- 📋 **Corak Repositori**: Pengurusan alat dan keupayaan yang tersusun
 
 ## 🎯 Manfaat Seni Bina Khusus .NET
 
-### Ciri-ciri Enterprise
+### Ciri-ciri Perusahaan
 
-- **Tepatan Jenis Kuat**: Pengesahan masa kompilasi dan sokongan IntelliSense
-- **Suntikan Kebergantungan**: Integrasi bekas DI terbina dalam
-- **Pengurusan Konfigurasi**: Pola IConfiguration dan Options
+- **Pengetikan Kuat**: Pengesahan masa kompilasi dan sokongan IntelliSense
+- **Suntikan Kebergantungan**: Integrasi kontena DI terbina dalam
+- **Pengurusan Konfigurasi**: Corak IConfiguration dan Options
 - **Async/Await**: Sokongan pengaturcaraan tak segerak kelas pertama
 
-### Corak Bersedia untuk Pengeluaran
+### Corak Sedia Produksi
 
-- **Integrasi Log**: ILogger dan sokongan pencatatan berstruktur
-- **Pemeriksaan Kesihatan**: Pemantauan dan diagnosis terbina dalam
-- **Pengesahan Konfigurasi**: Tepatan jenis kuat dengan anotasi data
+- **Integrasi Log**: ILogger dan sokongan log berstruktur
+- **Pemeriksaan Kesihatan**: Pemantauan dan diagnostik terbina dalam
+- **Pengesahan Konfigurasi**: Pengetikan kuat dengan anotasi data
 - **Pengendalian Ralat**: Pengurusan pengecualian berstruktur
 
 ## 🔧 Seni Bina Teknikal
 
 ### Komponen Teras .NET
 
-- **Microsoft.Extensions.AI**: Abstraksi perkhidmatan AI yang bersatu
-- **Microsoft.Agents.AI**: Rangka kerja pengurusan agen perusahaan
-- **Azure OpenAI (API Respons)**: Corak klien API berprestasi tinggi
+- **Microsoft.Extensions.AI**: Abstraksi perkhidmatan AI bersatu
+- **Microsoft.Agents.AI**: Rangka kerja orkestrasi agen perusahaan
+- **Azure OpenAI (Responses API)**: Corak klien API berprestasi tinggi
 - **Sistem Konfigurasi**: appsettings.json dan integrasi persekitaran
 
 ### Pelaksanaan Corak Reka Bentuk
 
 ```mermaid
 graph LR
-    A[IServiceCollection] --> B[Pembina Ejen]
+    A[Koleksi Perkhidmatan] --> B[Pembina Ejen]
     B --> C[Konfigurasi]
     C --> D[Daftar Alat]
     D --> E[Ejen AI]
 ```
 
-## 🏗️ Corak Enterprise Ditunjukkan
+## 🏗️ Corak Perusahaan Ditunjukkan
 
-### 1. **Corak Penciptaan**
+### 1. **Corak Kreatif**
 
 - **Kilang Agen**: Penciptaan agen berpusat dengan konfigurasi konsisten
-- **Corak Pembina**: API lancar untuk konfigurasi agen kompleks
-- **Corak Tunggal**: Pengurusan sumber dan konfigurasi dikongsi
-- **Suntikan Kebergantungan**: Pengikatan longgar dan kebolehujian
+- **Corak Pembina**: API fasih untuk konfigurasi agen kompleks
+- **Corak Singleton**: Sumber dan pengurusan konfigurasi dikongsi
+- **Suntikan Kebergantungan**: Pautan longgar dan kebolehujian
 
-### 2. **Corak Perilaku**
+### 2. **Corak Tingkah Laku**
 
 - **Corak Strategi**: Strategi pelaksanaan alat boleh ditukar ganti
-- **Corak Arahan**: Operasi agen yang disarungkan dengan undo/redo
-- **Corak Pemerhati**: Pengurusan kitaran hayat agen berpandukan acara
+- **Corak Arahan**: Operasi agen terbungkus dengan undo/redo
+- **Corak Pemerhati**: Pengurusan kitaran hidup agen berasaskan acara
 - **Kaedah Templat**: Aliran kerja pelaksanaan agen yang distandardkan
 
 ### 3. **Corak Struktur**
 
-- **Corak Penyesuai**: Lapisan integrasi Azure OpenAI (API Respons)
-- **Corak Pereka Hias**: Peningkatan keupayaan agen
+- **Corak Penyesuai**: Lapisan integrasi Azure OpenAI (Responses API)
+- **Corak Dekorator**: Peningkatan keupayaan agen
 - **Corak Fasad**: Antara muka interaksi agen yang dipermudahkan
-- **Corak Proksi**: Pemuatan malas dan penimbunan untuk prestasi
+- **Corak Proksi**: Pemuatan malas dan cache untuk prestasi
 
 ## 📚 Prinsip Reka Bentuk .NET
 
 ### Prinsip SOLID
 
-- **Tanggungjawab Tunggal**: Setiap komponen mempunyai satu tujuan yang jelas
+- **Tanggungjawab Tunggal**: Setiap komponen mempunyai satu tujuan jelas
 - **Terbuka/Tertutup**: Boleh dikembangkan tanpa pengubahsuaian
 - **Penggantian Liskov**: Pelaksanaan alat berasaskan antara muka
-- **Pengasingan Antara Muka**: Antara muka yang tertumpu dan padu
+- **Pengasingan Antara Muka**: Antara muka fokus dan kohesif
 - **Pembalikan Kebergantungan**: Bergantung pada abstraksi, bukan konkrit
 
 ### Seni Bina Bersih
 
 - **Lapisan Domain**: Abstraksi teras agen dan alat
-- **Lapisan Aplikasi**: Pengurusan agen dan aliran kerja
-- **Lapisan Infrastruktur**: Integrasi Azure OpenAI (API Respons) dan perkhidmatan luaran
-- **Lapisan Penyampaian**: Interaksi pengguna dan format respons
+- **Lapisan Aplikasi**: Orkestrasi agen dan aliran kerja
+- **Lapisan Infrastruktur**: Integrasi Azure OpenAI (Responses API) dan perkhidmatan luaran
+- **Lapisan Pembentangan**: Interaksi pengguna dan pemformatan tindak balas
 
-## 🔒 Pertimbangan Enterprise
+## 🔒 Pertimbangan Perusahaan
 
 ### Keselamatan
 
-- **Pengurusan Kredensial**: Pengendalian kunci API yang selamat dengan IConfiguration
-- **Pengesahan Input**: Tepatan jenis kuat dan pengesahan anotasi data
-- **Sanitasi Output**: Pemprosesan dan penapisan respons yang selamat
-- **Pencatatan Audit**: Penjejakan operasi menyeluruh
+- **Pengurusan Credential**: Pengendalian kunci API selamat dengan IConfiguration
+- **Pengesahan Input**: Pengetikan kuat dan pengesahan anotasi data
+- **Sanitisasi Output**: Pemprosesan dan penapisan tindak balas selamat
+- **Log Audit**: Penjejakan operasi menyeluruh
 
 ### Prestasi
 
 - **Corak Async**: Operasi I/O tanpa penyekat
-- **Pengumpulan Sambungan**: Pengurusan klien HTTP yang cekap
-- **Penimbunan**: Penimbunan respons untuk prestasi lebih baik
-- **Pengurusan Sumber**: Corak pelupusan dan pembersihan yang betul
+- **Penggiliran Sambungan**: Pengurusan klien HTTP cekap
+- **Caching**: Cache tindak balas untuk prestasi dipertingkat
+- **Pengurusan Sumber**: Pola pelupusan dan pembersihan yang betul
 
 ### Skalabiliti
 
-- **Keselamatan Benang**: Sokongan pelaksanaan agen serentak
-- **Pengumpulan Sumber**: Penggunaan sumber yang cekap
+- **Keselamatan Tali**: Sokongan pelaksanaan agen serentak
+- **Penggiliran Sumber**: Penggunaan sumber cekap
 - **Pengurusan Beban**: Had kadar dan pengendalian tekanan balik
 - **Pemantauan**: Metrik prestasi dan pemeriksaan kesihatan
 
-## 🚀 Pengeluaran Pengeluaran
+## 🚀 Pengeluaran Produksi
 
 - **Pengurusan Konfigurasi**: Tetapan khusus persekitaran
-- **Strategi Log**: Pencatatan berstruktur dengan ID korelasi
-- **Pengendalian Ralat**: Pengendalian pengecualian global dengan pemulihan yang betul
-- **Pemantauan**: Wawasan aplikasi dan kaunter prestasi
+- **Strategi Log**: Log berstruktur dengan ID korelasi
+- **Pengendalian Ralat**: Pengendalian pengecualian global dengan pemulihan betul
+- **Pemantauan**: Wawasan aplikasi dan pemantau prestasi
 - **Ujian**: Ujian unit, ujian integrasi, dan corak ujian beban
 
-Sedia untuk membina agen pintar gred perusahaan dengan .NET? Mari kita bina sesuatu yang kukuh! 🏢✨
+Sedia untuk membina agen pintar kelas perusahaan dengan .NET? Mari bina sesuatu yang kukuh! 🏢✨
 
-## 🚀 Bermula
+## 🚀 Memulakan
 
-### Prasyarat
+### Pra-syarat
 
 - [SDK .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) atau lebih tinggi
-- [Langganan Azure](https://azure.microsoft.com/free/) dengan sumber Azure OpenAI dan penyebaran model
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — daftar masuk dengan `az login`
+- [Langganan Azure](https://azure.microsoft.com/free/) dengan sumber Azure OpenAI dan pelaksanaan model
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — log masuk dengan `az login`
 
-### Pemboleh Ubah Persekitaran Diperlukan
+### Pembolehubah Persekitaran Diperlukan
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Kemudian log masuk supaya AzureCliCredential dapat mendapatkan token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Kemudian log masuk supaya AzureCliCredential dapat memperoleh token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Kemudian daftar masuk supaya AzureCliCredential boleh mendapatkan token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Kemudian daftar masuk supaya AzureCliCredential dapat memperoleh token
 az login
 ```
 
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

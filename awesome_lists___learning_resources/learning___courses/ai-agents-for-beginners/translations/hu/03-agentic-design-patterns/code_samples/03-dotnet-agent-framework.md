@@ -1,153 +1,153 @@
-# 🎨 Ügynöki Tervezési Minták Azure OpenAI-val (Responses API) (.NET)
+# 🎨 Ügynöki tervezési minták Azure OpenAI-val (Responses API) (.NET)
 
-## 📋 Tanulási Célok
+## 📋 Tanulási célok
 
-Ez a példa vállalati szintű tervezési mintákat mutat be intelligens ügynökök építéséhez a Microsoft Agent Framework .NET-ben Azure OpenAI (Responses API) integrációval. Megtanulod a professzionális mintákat és architekturális megközelítéseket, amelyek az ügynököket gyártásra készen, karbantarthatóvá és skálázhatóvá teszik.
+Ez a példa vállalati szintű tervezési mintákat mutat be intelligens ügynökök építéséhez a Microsoft Agent Framework .NET környezetében, Azure OpenAI (Responses API) integrációval. Megtanulhatod a professzionális mintákat és architekturális megközelítéseket, amelyek az ügynököket gyártásra készé, karbantarthatóvá és méretezhetővé teszik.
 
-### Vállalati Tervezési Minták
+### Vállalati tervezési minták
 
-- 🏭 **Gyári Minta**: Szabványosított ügynök létrehozás függőségbefecskendezéssel
-- 🔧 **Készítő Minta**: Folyékony ügynök konfiguráció és beállítás
-- 🧵 **Szálbiztos Minták**: Egyidejű beszélgetéskezelés
-- 📋 **Tárház Minta**: Szervezett eszköz- és képességkezelés
+- 🏭 **Factory Pattern (Gyári minta)**: Szabványosított ügynök létrehozás függőséginjektálással
+- 🔧 **Builder Pattern (Építő minta)**: Folyékony ügynök konfiguráció és beállítás
+- 🧵 **Szálbiztos minták**: Párhuzamos beszélgetéskezelés
+- 📋 **Repository Pattern (Tároló minta)**: Szervezett eszköz- és képességkezelés
 
-## 🎯 .NET-Különleges Architektúrális Előnyök
+## 🎯 .NET-specifikus architekturális előnyök
 
-### Vállalati Jellemzők
+### Vállalati jellemzők
 
-- **Erős Típusosság**: Fordítási időben történő ellenőrzés és IntelliSense támogatás
-- **Függőség Befecskendezés**: Beépített DI konténer integráció
-- **Konfiguráció Kezelés**: IConfiguration és Opció minták
-- **Async/Await**: Első osztályú aszinkron programozási támogatás
+- **Erős típusosság**: Fordításkori érvényesítés és IntelliSense támogatás
+- **Függőséginjekció**: Beépített DI konténer integráció
+- **Konfigurációkezelés**: IConfiguration és Options minták
+- **Async/Await**: Kiemelt aszinkron programozási támogatás
 
-### Gyártásra Kész Minták
+### Gyártásra kész minták
 
-- **Naplózó Integráció**: ILogger és strukturált naplózás támogatás
+- **Naplózás integráció**: ILogger és strukturált naplózás támogatás
 - **Egészségellenőrzések**: Beépített monitorozás és diagnosztika
-- **Konfiguráció Érvényesítés**: Erős típusosság adat annotációkkal
-- **Hiba Kezelés**: Strukturált kivételkezelés
+- **Konfiguráció érvényesítés**: Erős típusosság adat annotációkkal
+- **Hibakezelés**: Strukturált kivételkezelés
 
-## 🔧 Műszaki Architektúra
+## 🔧 Műszaki architektúra
 
-### Alapvető .NET Összetevők
+### Alapvető .NET komponensek
 
-- **Microsoft.Extensions.AI**: Egységes AI szolgáltatás absztrakciók
-- **Microsoft.Agents.AI**: Vállalati ügynök-orchestrációs keretrendszer
-- **Azure OpenAI (Responses API)**: Nagy teljesítményű API kliens minták
-- **Konfigurációs Rendszer**: appsettings.json és környezeti integráció
+- **Microsoft.Extensions.AI**: Egységes AI szolgáltatási absztrakciók
+- **Microsoft.Agents.AI**: Vállalati ügynökösszehangoló keretrendszer
+- **Azure OpenAI (Responses API)**: Nagyteljesítményű API kliensminták
+- **Konfigurációs rendszer**: appsettings.json és környezet integráció
 
-### Tervezési Minta Megvalósítás
+### Tervezési minta megvalósítás
 
 ```mermaid
 graph LR
-    A[IServiceCollection] --> B[Ügynök Készítő]
+    A[IServiceCollection] --> B[Ügynök Építő]
     B --> C[Konfiguráció]
-    C --> D[Eszközregiszter]
+    C --> D[Eszköz Regiszter]
     D --> E[MI Ügynök]
 ```
 
-## 🏗️ Bemutatott Vállalati Minták
+## 🏗️ Bemutatott vállalati minták
 
-### 1. **Létrehozó Minták**
+### 1. **Létrehozási minták**
 
-- **Ügynök Gyár**: Központosított ügynök létrehozás következetes konfigurációval
-- **Készítő Minta**: Folyékony API összetett ügynök konfigurációhoz
-- **Singleton Minta**: Megosztott erőforrások és konfigurációkezelés
-- **Függőség Befecskendezés**: Laza csatolás és tesztelhetőség
+- **Ügynökgyár**: Központosított ügynöklétrehozás egységes konfigurációval
+- **Builder Pattern**: Folyékony API összetett ügynök konfigurációhoz
+- **Singleton minta**: Megosztott erőforrás- és konfigurációkezelés
+- **Függőséginjektálás**: Laza kapcsolás és tesztelhetőség
 
-### 2. **Viselkedési Minták**
+### 2. **Viselkedési minták**
 
-- **Stratégia Minta**: Cserélhető eszköz végrehajtási stratégiák
-- **Parancs Minta**: Kapszulázott ügynökműveletek visszavonással/újra
-- **Megfigyelő Minta**: Eseményvezérelt ügynök életciklus kezelés
-- **Sablon Módszer**: Szabványosított ügynök végrehajtási munkafolyamatok
+- **Stratégia minta**: Felcserélhető eszközvégrehajtási stratégiák
+- **Parancs minta**: Kapszulázott ügynök műveletek visszavonással/ismétléssel
+- **Megfigyelő minta**: Eseményvezérelt ügynök életcikluskezelés
+- **Sablon metódus**: Szabványosított ügynök végrehajtási munkafolyamatok
 
-### 3. **Strukturális Minták**
+### 3. **Strukturális minták**
 
-- **Adapter Minta**: Azure OpenAI (Responses API) integrációs réteg
-- **Dekorátor Minta**: Ügynök képességbővítés
-- **Homlokzat Minta**: Egyszerűsített ügynök interakciós interfészek
-- **Proxy Minta**: Késleltetett betöltés és gyorsítótárazás a teljesítményért
+- **Adapter minta**: Azure OpenAI (Responses API) integrációs réteg
+- **Dekorátor minta**: Ügynök képességnövelés
+- **Függöny minta**: Egyszerűsített ügynök interakciós felületek
+- **Proxy minta**: Lusta betöltés és cache-elés a teljesítményért
 
-## 📚 .NET Tervezési Elvek
+## 📚 .NET tervezési alapelvek
 
-### SOLID Elvek
+### SOLID alapelvek
 
-- **Egyetlen Felelősség**: Minden komponensnek egyértelmű célja van
-- **Nyitott/Zárt**: Bővíthető módosítás nélkül
-- **Liskov Helyettesítés**: Interfész-alapú eszköz megvalósítások
-- **Interfész Szigetelés**: Fókuszált, összetartó interfészek
-- **Függőség Inverzió**: Absztrakciókra támaszkodj, ne konkrétumokra
+- **Egyetlen felelősség**: Minden komponensnek egyértelmű célja van
+- **Nyitott/zárt**: Bővíthető módosítás nélkül
+- **Liskov-helyettesítés**: Interfész alapú eszközmegvalósítások
+- **Interfész szegregáció**: Fókuszált, összetartó interfészek
+- **Függőség megfordítás**: Absztrakciókra, nem konkrétumokra támaszkodás
 
-### Tiszta Architektúra
+### Tiszta architektúra
 
-- **Domain Réteg**: Alapvető ügynök és eszköz absztrakciók
-- **Alkalmazás Réteg**: Ügynök orchestráció és munkafolyamatok
-- **Infrastruktúra Réteg**: Azure OpenAI (Responses API) integráció és külső szolgáltatások
-- **Prezentációs Réteg**: Felhasználói interakció és válaszformázás
+- **Domain réteg**: Alapvető ügynök és eszköz absztrakciók
+- **Alkalmazási réteg**: Ügynök összehangolás és munkafolyamatok
+- **Infrastruktúra réteg**: Azure OpenAI (Responses API) integráció és külső szolgáltatások
+- **Prezentációs réteg**: Felhasználói interakció és válaszformázás
 
-## 🔒 Vállalati Szempontok
+## 🔒 Vállalati megfontolások
 
 ### Biztonság
 
-- **Hitelesítő Adatkezelés**: Biztonságos API kulcs kezelés IConfiguration-nel
-- **Bemenet Érvényesítés**: Erős típusosság és adat annotáció érvényesítés
-- **Kimenet Szűrés**: Biztonságos válasz feldolgozás és szűrés
-- **Audit Naplózás**: Átfogó műveletkövetés
+- **Hitelesítő adatok kezelése**: Biztonságos API kulcs kezelése IConfiguration-nal
+- **Bemeneti érvényesítés**: Erős típusosság és adat annotáció érvényesítés
+- **Kimeneti tisztítás**: Biztonságos válasz feldolgozás és szűrés
+- **Audit naplózás**: Átfogó műveletkövetés
 
 ### Teljesítmény
 
-- **Aszinkron Minták**: Nem blokkoló I/O műveletek
-- **Kapcsolat Medence**: Hatékony HTTP kliens kezelés
-- **Gyorsítótárazás**: Válasz gyorsítótárazás a jobb teljesítményért
-- **Erőforrás Kezelés**: Megfelelő eldobási és tisztítási minták
+- **Aszinkron minták**: Nem blokkoló I/O műveletek
+- **Kapcsolatpoolozás**: Hatékony HTTP kliens kezelés
+- **Caching**: Válasz cache-elés a jobb teljesítményért
+- **Erőforrás-kezelés**: Megfelelő hulladékkezelés és tisztítási minták
 
-### Skálázhatóság
+### Méretezhetőség
 
-- **Szálbiztonság**: Egyidejű ügynök végrehajtás támogatás
-- **Erőforrás Medencezés**: Hatékony erőforrás felhasználás
-- **Terhelés Kezelés**: Sebességkorlátozás és vissznyomás kezelés
-- **Monitorozás**: Teljesítmény mutatók és egészségellenőrzések
+- **Szálbiztonság**: Párhuzamos ügynökvégrehajtás támogatása
+- **Erőforrás-poolozás**: Hatékony erőforrás-kihasználás
+- **Terhelés menedzsment**: Aránykorlátozás és vissza nyomás kezelése
+- **Monitorozás**: Teljesítménymutatók és egészségellenőrzések
 
-## 🚀 Gyártásba Telepítés
+## 🚀 Gyártásra való telepítés
 
-- **Konfiguráció Kezelés**: Környezet specifikus beállítások
-- **Naplózási Stratégia**: Strukturált naplózás korrelációs azonosítókkal
-- **Hiba Kezelés**: Globális kivételkezelés megfelelő helyreállítással
-- **Monitorozás**: Alkalmazás betekintés és teljesítmény számlálók
+- **Konfigurációkezelés**: Környezet-specifikus beállítások
+- **Naplózási stratégia**: Strukturált naplózás korrelációs azonosítókkal
+- **Hibakezelés**: Globális kivételkezelés megfelelő helyreállítással
+- **Monitorozás**: Alkalmazás-információk és teljesítmény számlálók
 - **Tesztelés**: Egységtesztek, integrációs tesztek és terheléses tesztelési minták
 
-Készen állsz vállalati szintű intelligens ügynökök építésére .NET-tel? Építsünk valami robosztust! 🏢✨
+Készen állsz vállalati szintű intelligens ügynökök építésére .NET-ben? Tervezzünk valami masszívat! 🏢✨
 
-## 🚀 Első Lépések
+## 🚀 Első lépések
 
 ### Előfeltételek
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) vagy újabb
-- Egy [Azure előfizetés](https://azure.microsoft.com/free/) Azure OpenAI erőforrással és modell telepítéssel
-- Az [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — bejelentkezés `az login` parancs használatával
+- Egy [Azure előfizetés](https://azure.microsoft.com/free/), Azure OpenAI erőforrással és modell telepítéssel
+- Az [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — jelentkezz be az `az login` paranccsal
 
-### Szükséges Környezeti Változók
+### Szükséges környezeti változók
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Jelentkezzen be, hogy az AzureCliCredential kaphasson egy tokent
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Jelentkezzen be, hogy az AzureCliCredential tokenhez jusson
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Ezután jelentkezzen be, hogy az AzureCliCredential kaphasson egy tokent
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Ezután jelentkezzen be, hogy az AzureCliCredential tokenhez juthasson
 az login
 ```
 
-### Példa Kód
+### Minta kód
 
-A kód példa futtatásához,
+A kódpélda futtatásához,
 
 ```bash
 # zsh/bash
@@ -161,7 +161,7 @@ Vagy a dotnet CLI használatával:
 dotnet run ./03-dotnet-agent-framework.cs
 ```
 
-Nézd meg a [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) fájlban a teljes kódot.
+A teljes kód a [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) fájlban található.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

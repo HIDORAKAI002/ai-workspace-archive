@@ -1,78 +1,80 @@
 ---
 name: testing-course-samples
-description: ਜਦੋਂ ਮੰਗ ਕੀਤੀ ਜਾਵੇ ਤਦ ਵੈਲਿਡੇਟ ਕਰਨ ਲਈ, ਟੈਸਟ ਕਰਨ ਲਈ, ਸਮੋਕ-ਟੈਸਟ ਕਰਨ ਲਈ,
-  ਜਾਂ ਕੋਰਸ ਦੇ ਨੋਟਬੁੱਕ ਅਤੇ ਕੋਡ ਸੈਂਪਲਾਂ ਨੂੰ live Microsoft Foundry / Azure OpenAI ਕਨਫਿਗਰੇਸ਼ਨ
-  ਖਿਲਾਫ ਚਲਾਉਣ ਲਈ ਵਰਤੋਂ ਕਰੋ। ਇਹ ਮਾਹੌਲ ਸੈਟਅੱਪ (.env, az login, ਪੈਕੇਜਜ਼), ਸਕ੍ਰਿਪਟਸ/validate-notebooks.ps1
-  ਰੱਨਰ, PASS/FAIL ਨਤੀਜੇ ਬੁਝਣ ਅਤੇ ਕਿਹੜੇ ਪਾਠਾਂ ਨੂੰ ਵਾਧੂ ਸਾਧਨਾਂ ਦੀ ਲੋੜ ਹੈ (Azure AI Search,
-  GitHub MCP, Foundry Local, Playwright) ਨੂੰ ਕਵਰ ਕਰਦਾ ਹੈ।
 ---
-# ਕੋਰਸ ਨਮੂਨੇ ਟੈਸਟ ਕਰਨਾ
+# ਕੋਰਸ ਸੈਂਪਲਾਂ ਦੀ ਜਾਂਚ ਕਰਨਾ
 
-ਇਹ ਪੁਸ਼ਟੀ ਕਰੋ ਕਿ ਪਾਠ ਨੋਟਬੁੱਕ ਅਤੇ ਕੋਡ ਨਮੂਨੇ ਇੱਕ जीवਤ
-Microsoft Foundry / Azure OpenAI ਸੈਟਅੱਪ ਦੇ ਖਿਲਾਫ ਚੱਲਦੇ ਹਨ। ਰਿਪੋ ਵਿੱਚ ਇੱਕ ਰਨਰ ਹੈ
+ਪੁਸ਼ਟੀ ਕਰੋ ਕਿ ਲੈਸਨ ਨੋਟਬੁੱਕ ਅਤੇ ਕੋਡ ਸੈਂਪਲਜ਼ ਇੱਕ ਲਾਈਵ
+Microsoft Foundry / Azure OpenAI ਸੈਟਅੱਪ ਵਿਰੁੱਧ ਚੱਲ ਰਹੇ ਹਨ। ਰਿਪੋ ਵਿੱਚ ਇੱਕ ਰਨਰ ਸ਼ਾਮਿਲ ਹੈ
 [`scripts/validate-notebooks.ps1`](../../../../../scripts/validate-notebooks.ps1) ਜੋ
-ਹਰ ਪਾਇਥਨ ਨੋਟਬੁੱਕ ਨੂੰ ਬਿਨਾਂ ਸਕਰੀਨ ਦੇ ਚਲਾਉਂਦਾ ਹੈ ਅਤੇ PASS/FAIL ਮੈਟਰਿਕਸ ਦਿਖਾਉਂਦਾ ਹੈ।
+ਸਾਰੇ ਪਾਇਥਨ ਨੋਟਬੁੱਕ ਨੂੰ ਬਿਨਾਂ ਵਿਖਾਵਟ ਦੇ ਚਲਾਉਂਦਾ ਹੈ ਅਤੇ ਇੱਕ PASS/FAIL ਮੈਟ੍ਰਿਕਸ ਪ੍ਰਿੰਟ ਕਰਦਾ ਹੈ।
 
 ## ਕਦੋਂ ਵਰਤਣਾ ਹੈ
-- "ਮੇਰੇ Azure ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਖਿਲਾਫ ਸਾਰੇ ਨੋਟਬੁੱਕ / ਨਮੂਨੇ ਸਹੀ ਹਨ ਜਾਂ ਨਹੀਂ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ।"
-- "ਪੈਕੇਜ ਅਪਗ੍ਰੇਡ ਕਰਨ ਜਾਂ ਮਾਡਲ ਬਦਲਣ ਤੋਂ ਬਾਦ ਕੋਰਸ ਨੂੰ Smoke-test ਕਰੋ।"
-- "ਕਿਹੜੇ ਪਾਠ ਅਜੇ ਵੀ ਜੀਵਤ ਰੂਪ ਵਿੱਚ ਪਾਸ ਜਾਂ ਫੇਲ ਹੁੰਦੇ ਹਨ?"
+- "ਮੇਰੇ Azure ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਵਿਰੁੱਧ ਸਾਰੇ ਨੋਟਬੁੱਕ / ਸੈਂਪਲਜ਼ ਦੀ ਪੁਸ਼ਟੀ ਕਰੋ।"
+- "ਪੈਕੇਜ ਰੁੱਪਾਂਤਰਾਂ ਜਾਂ ਮਾਡਲ ਬਦਲਣ ਤੋਂ ਬਾਅਦ ਕੋਰਸ ਦਾ ਸਟੈਮ ਟੈਸਟ ਕਰੋ।"
+- "ਕਿਹੜੇ ਲੈਸਨ ਜੀਵੰਤ ਤੌਰ ਤੇ ਅਜੇ ਵੀ ਪਾਸ / ਫੇਲ ਹੋ ਰਹੇ ਹਨ?"
 
-ਇਸ ਨੂੰ AI Smoke Test GitHub ਕਾਰਵਾਈ ਲਈ ਵਰਤੋਂ ਨਾ ਕਰੋ (ਜੋ *ਤੈਨਾਤ* ਹੋਏ
-ਏਜੰਟਾਂ ਦੀ ਪੁਸ਼ਟੀ ਕਰਦੀ ਹੈ — ਵੇਖੋ [`tests/README.md`](../../../tests/README.md))। ਇਹ ਸਲਾਈਲ
-ਨੋਟਬੁੱਕਾਂ ਨੂੰ ਸਥਾਨਕ ਤੌਰ 'ਤੇ ਚਲਾਉਂਦੀ ਹੈ।
+ਇਸਨੂੰ AI Smoke Test GitHub Action (ਜੋ ਤैनਾਤ ਕੀਤੇ
+ਹੋਏ ਏਜੰਟਾਂ ਦੀ ਪੁਸ਼ਟੀ ਕਰਦਾ ਹੈ — ਵੇਖੋ [`tests/README.md`](../../../tests/README.md)) ਲਈ ਵਰਤੋਂ ਨਾ ਕਰੋ। ਇਹ ਸਕਿਲ
+ਨੋਟਬੁੱਕਸ ਨੂੰ ਸਥਾਨਕ ਤੌਰ 'ਤੇ ਚਲਾਉਂਦਾ ਹੈ।
 
-## ਲੋੜੀਂਦੇ ਚੀਜ਼ਾਂ (ਪਹਿਲਾਂ ਚੈੱਕ ਕਰੋ)
+## ਪੂਰਵ-ਸ਼ਰਤਾਂ (ਪਹਿਲਾਂ ਚੈੱਕ ਕਰੋ)
 1. **Python 3.12+** ਕੋਰਸ ਡਿਪੈਂਡੈਂਸੀਜ਼ ਨਾਲ: `python -m pip install -r requirements.txt`
-   ਨਾਲ ਨਾਲ ਐਗਜ਼ੀਕਿਊਟਰ: `python -m pip install nbconvert ipykernel`।
-2. **ਰਿਪੋ ਰੂਟ 'ਤੇ `.env`** ([`.env.example`](../../../../../.env.example) ਤੋਂ ਕਾਪੀ) ਲੋੜੀਂਦੇ ਘੱਟੋ ਘੱਟ:
+   ਅਤੇ ਐਗਜ਼ੀਕਿਊਟਰ: `python -m pip install nbconvert ipykernel`।
+2. **ਰਿਪੋ ਰੂਟ ਤੇ `.env`** (ਨਕਲ ਕਰੋ [`.env.example`](../../../../../.env.example) ਤੋਂ) ਘੱਟੋ-ਘੱਟ:
    - `AZURE_AI_PROJECT_ENDPOINT` — Foundry ਪ੍ਰੋਜੈਕਟ ਐਂਡਪੌਇੰਟ
      (`https://<account>.services.ai.azure.com/api/projects/<project>`)
-   - `AZURE_AI_MODEL_DEPLOYMENT_NAME` — ਇੱਕ ਗੈਰ-ਡਿਪ੍ਰੀਕੇਟਡ ਡਿਪਲੌਇਮੈਂਟ (ਜਿਵੇਂ `gpt-4.1-mini`)
+   - `AZURE_AI_MODEL_DEPLOYMENT_NAME` — ਇੱਕ ਗੈਰ-ਡਿਪ੍ਰੀਕੇਟਿਡ ਡਿਪਲੋਇਮੈਂਟ (ਜਿਵੇਂ `gpt-5-mini`)
    - `AZURE_OPENAI_ENDPOINT` (`https://<account>.openai.azure.com`) ਅਤੇ `AZURE_OPENAI_DEPLOYMENT`
-     ਉਹਨਾਂ ਪਾਠਾਂ ਲਈ ਜੋ ਸਿੱਧਾ Azure OpenAI ਨੂੰ ਕਾਲ ਕਰਦੇ ਹਨ (ਪਾਠ 06, 02-azure-openai, 14 ਹ್ಯಾಂਡਆਫ਼/ਹਿਊਮਨ-ਲੂਪ).
-3. **`az login`** ਨੂੰ ਪੂਰਾ ਕਰੋ — ਨਮੂਨੇ `AzureCliCredential` ਨਾਲ ਪ੍ਰਮਾਣਿਤ ਹੁੰਦੇ ਹਨ (Entra ID, ਕੀਲੈਸ).
-4. ਮਾਡਲ ਡਿਪਲੌਇਮੈਂਟ ਮੌਜੂਦ ਹੈ ਇਹ ਪੁਸ਼ਟੀ ਕਰੋ:
+     ਉਹਨਾਂ ਲੈਸਨਾਂ ਲਈ ਜੋ ਸਿੱਧਾ Azure OpenAI ਨੂੰ ਕਾਲ ਕਰਦੇ ਹਨ (ਲੈਸਨ 06, 02-azure-openai, 14 handoff/human-loop)।
+3. **`az login`** ਮੁਕੰਮਲ ਕੀਤਾ ਹੋਇਆ — ਸੈਂਪਲਜ਼ `AzureCliCredential` ਨਾਲ ਪ੍ਰਮਾਣਿਤ ਹੁੰਦੇ ਹਨ (Entra ID, ਕੀ-ਬਿਨਾਂ)।
+4. ਮਾਡਲ ਡਿਪਲੋਇਮੈਂਟ ਮੌਜੂਦ ਹੈ ਜਾਂ ਨਹੀਂ ਇਹ ਪੁਸ਼ਟੀ ਕਰੋ:
    `az cognitiveservices account deployment list -g <rg> -n <account> -o table`।
 
-## ਵੈਰਿਫਿਕੇਸ਼ਨ ਚਲਾਉਣਾ
+## ਜਾਂਚ ਚਲਾਉਣਾ
 ```powershell
-# ਸਾਰੇ Python ਨੋਟਬੁੱਕ (ਛੱਡਦਾ ਹੈ .NET, .venv, site-packages, translations, skill assets)
+# ਸਾਰੇ ਪਾਇਥਨ ਨੋਟਬੁੱਕ (।NET, .venv, ਸਾਈਟ-ਪੈਕੇਜ, ਅਨੁਵਾਦ, ਸкил assets ਨੂੰ ਛੱਡ ਕੇ)
 pwsh scripts/validate-notebooks.ps1
 
-# ਇੱਕੋ ਇੱਕ ਪਾਠ, ਲੰਮਾ ਪ੍ਰਤੀ-ਸੈੱਲ ਸਮਾਂ ਸੀਮਾ ਨਾਲ
+# ਇੱਕ ਇਕੱਲਾ ਪਾਠ, ਪ੍ਰਤੀ-ਸੈੱਲ ਲੰਮੀ ਟਾਈਮਆਉਟ ਦੇ ਨਾਲ
 pwsh scripts/validate-notebooks.ps1 -Filter '08-*' -Timeout 600
 
-# ਸਿਰਫ਼ ਦੱਸੋ ਕਿ ਕੀ ਚਲਾਇਆ ਜਾਵੇਗਾ (ਕੋਈ ਚਾਲੂਈ ਨਹੀਂ)
+# ਸਿਰਫ਼ ਦਰਸਾਓ ਕਿ ਕੀ ਚਲੇਗਾ (ਕੋਈ ਚਲਾਉਣਾ ਨਹੀਂ)
 pwsh scripts/validate-notebooks.ps1 -List
 
-# ਸਪਸ਼ਟ interpreter (ਜੇ `python` PATH ਤੇ ਨਾ ਹੋਵੇ, ਜਿਵੇਂ ਕਿ Windows Store ਦਾ ਉਪਨਾਮ)
+# ਖ਼ਾਸ ਤੌਰ ਤੇ ਵਿਆਖਿਆਕਾਰ (ਜੇ `python` PATH 'ਤੇ ਨਹੀਂ ਹੈ, ਜਿਵੇਂ ਕਿ Windows Store ਦਾ ਜੁਗ੍ਹਾ)
 pwsh scripts/validate-notebooks.ps1 -Python "C:/path/to/python.exe"
 ```
-ਸਕ੍ਰਿਪਟ ਚਲਾਈ ਗਈਆਂ ਕਾਪੀਆਂ, ਪ੍ਰਤੀ-ਨੋਟਬੁੱਕ ਲੌਗ, ਅਤੇ `results.json` ਨੂੰ
-`$env:TEMP\aiab-nbval` ਵਿੱਚ ਲਿਖਦੀ ਹੈ ਅਤੇ ਫੇਲ੍ਹਰਾਂ ਦੀ ਗਿਣਤੀ ਨਾਲ ਬਾਹਰ ਨਿਕਲਦੀ ਹੈ।
+ ਸਕ੍ਰਿਪਟ ਚਲਾਵਾਂ ਕਾਪੀਆਂ, ਪ੍ਰਤੀ-ਨੋਟਬੁੱਕ ਲੌਗਾਂ, ਅਤੇ `results.json` ਨੂੰ
+`$env:TEMP\aiab-nbval` ਵਿੱਚ ਲਿਖਦਾ ਹੈ ਅਤੇ ਅਸਫਲਤਾਵਾਂ ਦੀ ਗਿਣਤੀ ਨਾਲ ਬਾਹਰ ਨਿਕਲਦਾ ਹੈ।
+
+ਅਸਥਾਈ ਅਸਫਲਤਾਵਾਂ (ਸਾਂਝੇ ਸਬਸਕ੍ਰਿਪਸ਼ਨ HTTP 429 ਦਰ ਸੀਮਾਵਾਂ, ਕਦੇ-ਕਦੇ
+`AzureCliCredential` ਟੋਕਨ ਵਿੱਚ ਰੁਕਾਵਟ, ਜਾਂ ਸਮਾਂ ਸਮਾਪਤੀ) ਆਪਣੇ ਆਪ ਮੁੜ ਕੋਸ਼ਿਸ਼ ਕੀਤੀਆਂ ਜਾਂਦੀਆਂ ਹਨ
+(`-Retries`, ਡੀਫਾਲਟ 2, ਨਾਲ `-RetryDelaySeconds` ਬੈਕਆਫ, ਡੀਫਾਲਟ 20)। ਜੇਕਰ
+ਇੱਕ ਮਾਡਲ ਡਿਪਲੋਇਮੈਂਟ ਲਗਾਤਾਰ 429 ਕਰ ਰਿਹਾ ਹੈ, ਤਾਂ ਸਬਸਕ੍ਰਿਪਸ਼ਨ ਦੇ GlobalStandard
+TPM ਕੋਟਾ ਨੂੰ ਚੈੱਕ ਕਰੋ (`az cognitiveservices usage list -l <region>`) — ਇੱਕ ਸਿਰਫ
+ਡਿਪਲੋਇਮੈਂਟ ਦੀ ਸਮਰੱਥਾ ਵਧਾਉਣਾ ਮਦਦਗਾਰ ਨਹੀਂ ਜਦੋਂ *ਸਬਸਕ੍ਰਿਪਸ਼ਨ* ਕੋਟਾ ਖਤਮ ਹੋ ਜਾਵੇ।
 
 ## ਨਤੀਜੇ ਸਮਝਣਾ
-- `PASS` — ਨੋਟਬੁੱਕ ਸਾਰੇ ਸੈਲ ਗਲਤੀ ਬਿਨਾਂ ਸਫਲਤਾਪੂਰਕ ਚੱਲਿਆ।
-- `FAIL` — ਪਹਿਲੀ `*Error` / `*Exception` ਸਤਰ ਦਿਖਾਈ ਜਾਂਦੀ ਹੈ; ਪੂਰੀ ਟਰੇਸਬੈਕ ਲਈ
-  ਨਤੀਜੇ ਡਾਇਰੈਕਟਰੀ ਵਿੱਚ ਮੈਚਿੰਗ `log_*.txt` ਖੋਲ੍ਹੋ।
-- ਇੱਕ ਨੋਟਬੁੱਕ ਦੀ ਇੱਕਲਾ ਫੇਲ੍ਹਰ `-Timeout` ਨਾਲ ਸੀਮਿਤ ਹੁੰਦਾ ਹੈ (ਪ੍ਰਤੀ ਸੈਲ), ਇਸ ਲਈ ਲਟਕੀ ਹੋਈ
-  human-in-the-loop ਸੈਲ `StdinNotImplementedError` ਵਜੋਂ ਸਾਹਮਣੇ ਆਉਂਦੀ ਹੈ ਨਾ ਕਿ ਲਟਕਣ ਵਾਂਗ।
+- `PASS` — ਨੋਟਬੁੱਕ ਬਿਨਾਂ ਕਿਸੇ ਸੈੱਲ ਦੀ ਗਲਤੀ ਦੇ ਕਮਲ ਤੱਕ ਚੱਲਿਆ।
+- `FAIL` — ਪਹਿਲੀ `*Error` / `*Exception` ਲਾਈਨ ਦਿਖਾਈ ਜਾਂਦੀ ਹੈ; ਪੂਰੇ ਟ੍ਰੇਸਬੈਕ ਲਈ
+  ਆਉਟਪੁੱਟ ਡਾਇਰੈਕਟਰੀ ਵਿੱਚ ਮਿਲਦੇ ਜੁਲਦੇ `log_*.txt` ਨੂੰ ਖੋਲ੍ਹੋ।
+- ਇੱਕ ਹੀ ਨੋਟਬੁੱਕ ਦੀ ਅਸਫਲਤਾ `-Timeout` (ਹਰੇਕ ਸੈੱਲ) ਨਾਲ ਸੀਮਿਤ ਹੁੰਦੀ ਹੈ, ਇਸ ਲਈ ਇੱਕ ਫਸਿਆ ਹੋਇਆ
+  human-in-the-loop ਸੈੱਲ `StdinNotImplementedError` ਵਜੋਂ ਉਤਪੰਨ ਹੁੰਦਾ ਹੈ ਨਾ ਕਿ ਫਸਦਾ ਹੈ।
 
-## ਉਹ ਪਾਠ ਜਿਨ੍ਹਾਂ ਨੂੰ ਵਾਧੂ ਸਰੋਤਾਂ ਦੀ ਲੋੜ ਹੈ (ਇਨ੍ਹਾਂ ਦੇ ਬਿਨਾਂ ਫੇਲ੍ਹ ਹੋਣ ਦੀ ਉਮੀਦ ਹੈ)
-| ਪਾਠ | ਵਾਧੂ ਲੋੜ |
+## ਉਹ ਲੈਸਨ ਜਿਨ੍ਹਾਂ ਨੂੰ ਵੱਧ ਸਰੋਤਾਂ ਦੀ ਲੋੜ ਹੈ (ਬਿਨਾਂ ਉਹਨਾਂ ਦੇ ਫੇਲ ਹੋਣ ਦੀ ਸੰਭਾਵਨਾ)
+| ਲੈਸਨ | ਵਾਧੂ ਜ਼ਰੂਰਤ |
 |--------|-------------------|
-| 05 Agentic RAG | Azure AI Search (`AZURE_SEARCH_SERVICE_ENDPOINT`, ਕੁੰਜੀ) — ਇੱਕ ਮੈਮੋਰੀ ਵਿੱਚ ਬੈਕਅੱਪ ਮਾਰਗ ਹੈ |
+| 05 Agentic RAG | Azure AI Search (`AZURE_SEARCH_SERVICE_ENDPOINT`, ਕੁੰਜੀ) — ਇੱਕ ਮੈਮੋਰੀ ਬੈਕਅੱਪ ਪਾਥ ਹੈ |
 | 11 MCP / GitHub | GitHub MCP ਸਰਵਰ + PAT |
-| 13 memory (cognee) | `cognee` ਇੱਕ ਮਾਡਲ ਪ੍ਰਦਾਇਕ ਨਾਲ ਸੰਰਚਿਤ |
-| 15 browser-use | Playwright ਬ੍ਰਾਊਜ਼ਰਾਂ ਇੰਸਟਾਲ ਕੀਤੇ (`playwright install`) + `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME` |
-| 17 local agent | Foundry ਲੋਕਲ ਰੰਨਟਾਈਮ + ਡਾਊਨਲੋਡ ਕੀਤਾ Qwen ਮਾਡਲ (ਡਿਵਾਈਸ 'ਤੇ, ਕਲਾਉਡ ਨਹੀਂ) |
-| `*-dotnet-*` ਨੋਟਬੁੱਕ | .NET ਇੰਟਰਐਕਟਿਵ ਕਰਨਲ (ਮੂਲ ਰੂਪ ਵਿੱਚ ਬਾਹਰ; ਵਰਤੋ `-IncludeDotnet`) |
+| 13 memory (cognee) | `cognee` ਇੱਕ ਮਾਡਲ ਪ੍ਰਦਾਤਾ ਨਾਲ ਸੰਰਚਿਤ |
+| 15 browser-use | Playwright ਬਰਾਊਜ਼ਰ ਇੰਸਟਾਲ ਕੀਤੇ (`playwright install`) + `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME` |
+| 17 local agent | Foundry ਲੋਕਲ ਰਨਟਾਈਮ + ਡਾਊਨਲੋਡ ਕੀਤਾ ਹੋਇਆ Qwen ਮਾਡਲ (ਡਿਵਾਈਸ ਉਤੇ, ਕੋਈ ਕਲਾਉਡ ਨਹੀਂ) |
+| `*-dotnet-*` ਨੋਟਬੁੱਕ | .NET Interactive ਕੇਰਨਲ (ਡਿਫਾਲਟ ਤੌਰ 'ਤੇ ਬਾਹਰ; `-IncludeDotnet` ਵਰਤਣ) |
 
-## ਵਾਪਸ ਰਿਪੋਰਟ ਕਰਨਾ
-ਪਾਠ ਦੇ ਅਨੁਸਾਰ ਗਰੁੱਪ ਕੀਤਾ ਇੱਕ PASS/FAIL ਟੇਬਲ ਬਣਾਓ। ਅਸਲੀ ਰਿਗ੍ਰੈਸ਼ਨਾਂ
-(ਮੁਰੰਮਤ ਕਰਨ ਵਾਲੇ ਕੋਡ / ਸੰਰਚਨਾ ਬੱਗ) ਨੂੰ ਵਾਤਾਵਰਨ ਦੀਆਂ ਘਟਾਂ (ਗੁੰਮ ਚੁੱਕੀ Search/Foundry Local/PAT) ਤੋਂ ਵੱਖਰਾ ਕਰੋ,
-ਅਤੇ ਹਰ ਅਸਲੀ ਫੇਲ੍ਹ ਲਈ ਫੇਲ ਹੋਏ `log_*.txt` ਹਵਾਲਾ ਦਿਓ।
+## ਵਾਪਸੀ ਰਿਪੋਰਟਿੰਗ
+ਇੱਕ PASS/FAIL ਟੇਬਲ ਵਜੋਂ ਸਾਰ ਸੰਖੇਪ ਜੋ ਲੈਸਨ ਅਨੁਸਾਰ ਗਰੁੱਪ ਕੀਤਾ ਹੋਇਆ ਹੈ। ਅਸਲੀ ਰਿਗ੍ਰੈਸ਼ਨ
+(ਕੋਡ/ਕੰਫਿਗ ਬੱਗ ਸਮਝਦਾਰ) ਨੂੰ ਮਾਹੌਲ ਦੇ ਫਰਕਾਂ (ਗੁੰਮਸ਼ੁਦਾ Search/Foundry Local/PAT)
+ਤੋਂ ਵੱਖਰੇ ਕਰੋ, ਅਤੇ ਹਰ ਅਸਲੀ ਅਸਫਲਤਾ ਲਈ ਫੇਲਿੰਗ `log_*.txt` ਨੂੰ ਹਵਾਲਾ ਦਿਓ।
 
 ---
 

@@ -1,29 +1,29 @@
-# 🔍 Microsoft Agent Framework 탐구 - 기본 에이전트 (.NET)
+# 🔍 Microsoft Agent Framework 탐색 - 기본 에이전트 (.NET)
 
 ## 📋 학습 목표
 
-이 예제는 .NET에서 기본 에이전트 구현을 통해 Microsoft Agent Framework의 기본 개념을 탐구합니다. 핵심 에이전트 패턴을 배우고 C# 및 .NET 생태계를 사용하여 지능형 에이전트가 어떻게 작동하는지 이해하게 됩니다.
+이 예제는 .NET에서 기본 에이전트 구현을 통해 Microsoft Agent Framework의 기본 개념을 탐구합니다. 핵심 에이전트 패턴을 배우고 C# 및 .NET 생태계를 이용한 지능형 에이전트가 내부적으로 어떻게 작동하는지 이해하게 됩니다.
 
-### 발견할 내용
+### 배울 내용
 
-- 🏗️ **에이전트 아키텍처**: .NET AI 에이전트의 기본 구조 이해
-- 🛠️ **도구 통합**: 에이전트가 기능 확장을 위해 외부 함수를 사용하는 방법  
-- 💬 **대화 흐름**: 스레드 관리를 통한 다중 턴 대화 및 컨텍스트 관리
-- 🔧 **구성 패턴**: .NET에서 에이전트 설정 및 관리를 위한 모범 사례
+- 🏗️ **에이전트 아키텍처**: .NET에서 AI 에이전트의 기본 구조 이해
+- 🛠️ **도구 통합**: 에이전트가 외부 기능을 사용해 기능을 확장하는 방법  
+- 💬 **대화 흐름**: 멀티 턴 대화 및 스레드 관리로 컨텍스트 관리
+- 🔧 **구성 패턴**: .NET에서 에이전트 설정 및 관리 모범 사례
 
 ## 🎯 다루는 주요 개념
 
-### 에이전트 프레임워크 원칙
+### 에이전틱 프레임워크 원칙
 
-- <strong>자율성</strong>: .NET AI 추상화를 사용하여 에이전트가 독립적으로 결정하는 방법
-- <strong>반응성</strong>: 환경 변화 및 사용자 입력에 대응하기
-- <strong>선제성</strong>: 목표 및 컨텍스트를 기반으로 주도적으로 행동하기
-- **사회적 능력**: 대화 스레드를 통한 자연어 상호작용
+- <strong>자율성</strong>: .NET AI 추상화를 통해 에이전트가 독립적으로 결정하는 방법
+- <strong>반응성</strong>: 환경 변화 및 사용자 입력에 대응
+- <strong>선제성</strong>: 목표와 상황에 따라 주도적으로 행동
+- **사회적 능력**: 대화 스레드를 통해 자연어로 상호작용
 
 ### 기술 구성 요소
 
-- **AIAgent**: 핵심 에이전트 조율 및 대화 관리 (.NET)
-- **도구 함수**: C# 메서드와 특성으로 에이전트 기능 확장
+- **AIAgent**: 핵심 에이전트 오케스트레이션 및 대화 관리 (.NET)
+- **도구 함수**: C# 메서드 및 속성으로 에이전트 기능 확장
 - **Azure OpenAI 통합**: Azure OpenAI Responses API를 통한 언어 모델 활용
 - **보안 구성**: 환경 기반 엔드포인트 관리
 
@@ -34,49 +34,49 @@
 - Microsoft Agent Framework (.NET)
 - Azure OpenAI (Responses API) 통합
 - Azure.AI.OpenAI 클라이언트 패턴
-- DotNetEnv를 사용한 환경 기반 구성
+- DotNetEnv를 이용한 환경 기반 구성
 
 ### 에이전트 기능
 
 - 자연어 이해 및 생성
-- C# 특성을 이용한 함수 호출 및 도구 사용
-- 대화 세션을 통한 컨텍스트 인식 응답
-- DI 패턴으로 확장 가능한 아키텍처
+- C# 속성을 이용한 함수 호출 및 도구 사용
+- 대화 세션으로 컨텍스트 인지 응답
+- 의존성 주입 패턴으로 확장 가능한 아키텍처
 
 ## 📚 프레임워크 비교
 
-이 예제는 Microsoft Agent Framework 접근 방식을 다른 에이전트 프레임워크들과 비교하여 보여줍니다:
+이 예제는 Microsoft Agent Framework 접근법을 다른 에이전틱 프레임워크와 비교해 보여줍니다:
 
 | 기능 | Microsoft Agent Framework | 기타 프레임워크 |
 |---------|-------------------------|------------------|
-| <strong>통합</strong> | 네이티브 Microsoft 생태계 | 다양한 호환성 |
-| <strong>간결성</strong> | 깔끔하고 직관적인 API | 종종 복잡한 설정 |
+| <strong>통합성</strong> | 네이티브 Microsoft 생태계 | 호환성 다양 |
+| <strong>단순성</strong> | 깔끔하고 직관적인 API | 종종 복잡한 설정 |
 | <strong>확장성</strong> | 쉬운 도구 통합 | 프레임워크 의존적 |
-| **엔터프라이즈 준비** | 프로덕션용 빌드 | 프레임워크별 상이 |
+| **기업용 준비도** | 생산 환경용으로 설계됨 | 프레임워크별 다름 |
 
 ## 🚀 시작하기
 
-### 필수 조건
+### 사전 준비사항
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 이상
-- Azure OpenAI 리소스 및 모델 배포가 포함된 [Azure 구독](https://azure.microsoft.com/free/)
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` 명령어로 로그인
+- Azure OpenAI 리소스와 모델 배포가 있는 [Azure 구독](https://azure.microsoft.com/free/)
+- `az login`으로 로그인하는 [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)
 
 ### 필요한 환경 변수
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# 그런 다음 AzureCliCredential이 토큰을 얻을 수 있도록 로그인하세요
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# 그런 다음 AzureCliCredential이 토큰을 가져올 수 있도록 로그인하세요
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# 그런 다음 AzureCliCredential가 토큰을 가져올 수 있도록 로그인하세요
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# 그런 다음 AzureCliCredential이 토큰을 가져올 수 있도록 로그인하세요
 az login
 ```
 
@@ -96,7 +96,7 @@ chmod +x ./02-dotnet-agent-framework.cs
 dotnet run ./02-dotnet-agent-framework.cs
 ```
 
-전체 코드는 [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs)를 참조하세요.
+전체 코드는 [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs)를 참고하세요.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -217,16 +217,16 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 
 ## 🎓 주요 요점
 
-1. **에이전트 아키텍처**: Microsoft Agent Framework는 .NET에서 AI 에이전트를 구축하기 위한 깔끔하고 타입 안전한 접근 방식을 제공합니다.
-2. **도구 통합**: `[Description]` 특성으로 장식된 함수는 에이전트의 사용 가능한 도구가 됩니다.
-3. **대화 컨텍스트**: 세션 관리를 통해 완전한 컨텍스트 인식과 다중 턴 대화가 가능합니다.
-4. **구성 관리**: 환경 변수 및 보안 자격 증명 처리는 .NET 모범 사례를 따릅니다.
-5. **Azure OpenAI Responses API**: 에이전트는 Azure.AI.OpenAI SDK를 통해 Azure OpenAI Responses API를 사용합니다.
+1. **에이전트 아키텍처**: Microsoft Agent Framework는 .NET에서 AI 에이전트를 구축하는 깔끔하고 타입 안전한 방식을 제공합니다
+2. **도구 통합**: `[Description]` 속성이 붙은 함수는 에이전트의 사용 가능한 도구가 됩니다
+3. **대화 컨텍스트**: 세션 관리를 통해 전체 컨텍스트 인지 멀티 턴 대화를 가능하게 합니다
+4. **구성 관리**: 환경 변수와 보안 자격 증명 관리는 .NET 모범 사례를 따릅니다
+5. **Azure OpenAI Responses API**: 에이전트는 Azure.AI.OpenAI SDK를 통해 Azure OpenAI Responses API를 사용합니다
 
 ## 🔗 추가 자료
 
 - [Microsoft Agent Framework 문서](https://learn.microsoft.com/agent-framework)
-- [Microsoft Foundry 내 Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
+- [Microsoft Foundry의 Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
 - [.NET 단일 파일 앱](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 

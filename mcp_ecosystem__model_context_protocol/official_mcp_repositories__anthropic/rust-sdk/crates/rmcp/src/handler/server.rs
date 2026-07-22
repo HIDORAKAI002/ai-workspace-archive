@@ -4,7 +4,7 @@ use std::{borrow::Cow, sync::Arc};
 
 use crate::{
     error::ErrorData as McpError,
-    model::{TaskSupport, *},
+    model::*,
     service::{
         MaybeSendFuture, NotificationContext, RequestContext, RoleServer, Service, ServiceRole,
         SubscriptionContext, negotiate_protocol_version, uses_legacy_lifecycle,
@@ -18,6 +18,34 @@ pub mod router;
 pub mod tool;
 pub mod tool_name_validation;
 pub mod wrapper;
+
+/// SEP-2663: gate `tasks/*` methods on the client's declared tasks-extension
+/// capability.
+///
+/// - If the server does not advertise the tasks extension, the methods are
+///   simply unimplemented: `-32601` Method not found.
+/// - If the server advertises it but the client did not declare it (either in
+///   the request's `_meta` per-request capabilities or, for session-mode
+///   peers, at `initialize` time), the spec requires `-32021` Missing
+///   Required Client Capability with the required capability in `data`.
+fn validate_tasks_capability<M: ConstString, H: ServerHandler>(
+    handler: &H,
+    context: &RequestContext<RoleServer>,
+) -> Result<(), McpError> {
+    if !handler.get_info().capabilities.supports_tasks() {
+        return Err(McpError::method_not_found::<M>());
+    }
+    let client_declared = context
+        .client_capabilities()
+        .is_some_and(|caps| caps.supports_tasks());
+    if client_declared {
+        Ok(())
+    } else {
+        Err(McpError::missing_required_client_capability(
+            ClientCapabilities::builder().enable_tasks().build(),
+        ))
+    }
+}
 
 impl<H: ServerHandler> Service<RoleServer> for H {
     async fn handle_request(
@@ -170,41 +198,20 @@ impl<H: ServerHandler> Service<RoleServer> for H {
                 }
             }
             ClientRequest::CallToolRequest(request) => {
-                let is_task = request.params.task.is_some();
-
-                // Validate task support mode per MCP specification
-                if let Some(tool) = self.get_tool(&request.params.name) {
-                    match (tool.task_support(), is_task) {
-                        // If taskSupport is "required", clients MUST invoke the tool as a task.
-                        // Servers MUST return a -32601 (Method not found) error if they don't.
-                        (TaskSupport::Required, false) => {
-                            return Err(McpError::new(
-                                ErrorCode::METHOD_NOT_FOUND,
-                                "Tool requires task-based invocation",
-                                None,
-                            ));
-                        }
-                        // If taskSupport is "forbidden" (default), clients MUST NOT invoke as a task.
-                        (TaskSupport::Forbidden, true) => {
-                            return Err(McpError::invalid_params(
-                                "Tool does not support task-based invocation",
-                                None,
-                            ));
-                        }
-                        _ => {}
-                    }
+                let client_declared_tasks = context
+                    .client_capabilities()
+                    .is_some_and(|caps| caps.supports_tasks());
+                let response = self.call_tool(request.params, context).await?;
+                // SEP-2663: the server MUST NOT return CreateTaskResult unless
+                // the request declared the tasks extension capability. Guard
+                // against handlers that fail to check before materializing a
+                // task; such clients cannot parse a task handle.
+                if matches!(response, CallToolResponse::Task(_)) && !client_declared_tasks {
+                    return Err(McpError::missing_required_client_capability(
+                        ClientCapabilities::builder().enable_tasks().build(),
+                    ));
                 }
-
-                if is_task {
-                    tracing::info!("Enqueueing task for tool call: {}", request.params.name);
-                    self.enqueue_task(request.params, context.clone())
-                        .await
-                        .map(ServerResult::CreateTaskResult)
-                } else {
-                    self.call_tool(request.params, context)
-                        .await
-                        .map(ServerResult::from)
-                }
+                Ok(ServerResult::from(response))
             }
             ClientRequest::ListToolsRequest(request) => self
                 .list_tools(request.params, context)
@@ -214,22 +221,24 @@ impl<H: ServerHandler> Service<RoleServer> for H {
                 .on_custom_request(request, context)
                 .await
                 .map(ServerResult::CustomResult),
-            ClientRequest::ListTasksRequest(request) => self
-                .list_tasks(request.params, context)
-                .await
-                .map(ServerResult::ListTasksResult),
-            ClientRequest::GetTaskRequest(request) => self
-                .get_task_info(request.params, context)
-                .await
-                .map(ServerResult::GetTaskResult),
-            ClientRequest::GetTaskPayloadRequest(request) => self
-                .get_task_result(request.params, context)
-                .await
-                .map(ServerResult::GetTaskPayloadResult),
-            ClientRequest::CancelTaskRequest(request) => self
-                .cancel_task(request.params, context)
-                .await
-                .map(ServerResult::CancelTaskResult),
+            ClientRequest::GetTaskRequest(request) => {
+                validate_tasks_capability::<GetTaskMethod, _>(self, &context)?;
+                self.get_task(request.params, context)
+                    .await
+                    .map(ServerResult::GetTaskResult)
+            }
+            ClientRequest::UpdateTaskRequest(request) => {
+                validate_tasks_capability::<UpdateTaskMethod, _>(self, &context)?;
+                self.update_task(request.params, context)
+                    .await
+                    .map(ServerResult::task_ack)
+            }
+            ClientRequest::CancelTaskRequest(request) => {
+                validate_tasks_capability::<CancelTaskMethod, _>(self, &context)?;
+                self.cancel_task(request.params, context)
+                    .await
+                    .map(ServerResult::task_ack)
+            }
         };
         let result = result.and_then(|result| {
             if matches!(result, ServerResult::InputRequiredResult(_)) && !mrtr_supported {
@@ -273,9 +282,6 @@ impl<H: ServerHandler> Service<RoleServer> for H {
             ClientNotification::RootsListChangedNotification(_notification) => {
                 self.on_roots_list_changed(context).await
             }
-            ClientNotification::TaskStatusNotification(notification) => {
-                self.on_task_status(notification.params, context).await
-            }
             ClientNotification::CustomNotification(notification) => {
                 self.on_custom_notification(notification, context).await
             }
@@ -290,16 +296,6 @@ impl<H: ServerHandler> Service<RoleServer> for H {
 
 macro_rules! server_handler_methods {
     () => {
-        fn enqueue_task(
-            &self,
-            _request: CallToolRequestParams,
-            _context: RequestContext<RoleServer>,
-        ) -> impl Future<Output = Result<CreateTaskResult, McpError>> + MaybeSendFuture + '_ {
-            std::future::ready(Err(McpError::internal_error(
-                "Task processing not implemented".to_string(),
-                None,
-            )))
-        }
         fn ping(
             &self,
             context: RequestContext<RoleServer>,
@@ -526,13 +522,6 @@ macro_rules! server_handler_methods {
         ) -> impl Future<Output = ()> + MaybeSendFuture + '_ {
             std::future::ready(())
         }
-        fn on_task_status(
-            &self,
-            params: TaskStatusNotificationParam,
-            context: NotificationContext<RoleServer>,
-        ) -> impl Future<Output = ()> + MaybeSendFuture + '_ {
-            std::future::ready(())
-        }
         fn on_custom_notification(
             &self,
             notification: CustomNotification,
@@ -546,15 +535,8 @@ macro_rules! server_handler_methods {
             ServerInfo::default()
         }
 
-        fn list_tasks(
-            &self,
-            request: Option<PaginatedRequestParams>,
-            context: RequestContext<RoleServer>,
-        ) -> impl Future<Output = Result<ListTasksResult, McpError>> + MaybeSendFuture + '_ {
-            std::future::ready(Err(McpError::method_not_found::<ListTasksMethod>()))
-        }
-
-        fn get_task_info(
+        /// SEP-2663 `tasks/get`: return the current [`DetailedTask`] state.
+        fn get_task(
             &self,
             request: GetTaskParams,
             context: RequestContext<RoleServer>,
@@ -563,20 +545,24 @@ macro_rules! server_handler_methods {
             std::future::ready(Err(McpError::method_not_found::<GetTaskMethod>()))
         }
 
-        fn get_task_result(
+        /// SEP-2663 `tasks/update`: accept responses to outstanding in-task
+        /// input requests. Returns an empty acknowledgement on success.
+        fn update_task(
             &self,
-            request: GetTaskPayloadParams,
+            request: UpdateTaskParams,
             context: RequestContext<RoleServer>,
-        ) -> impl Future<Output = Result<GetTaskPayloadResult, McpError>> + MaybeSendFuture + '_ {
+        ) -> impl Future<Output = Result<(), McpError>> + MaybeSendFuture + '_ {
             let _ = (request, context);
-            std::future::ready(Err(McpError::method_not_found::<GetTaskPayloadMethod>()))
+            std::future::ready(Err(McpError::method_not_found::<UpdateTaskMethod>()))
         }
 
+        /// SEP-2663 `tasks/cancel`: cooperative cancellation. Returns an empty
+        /// acknowledgement; the task's observable status may lag.
         fn cancel_task(
             &self,
             request: CancelTaskParams,
             context: RequestContext<RoleServer>,
-        ) -> impl Future<Output = Result<CancelTaskResult, McpError>> + MaybeSendFuture + '_ {
+        ) -> impl Future<Output = Result<(), McpError>> + MaybeSendFuture + '_ {
             let _ = (request, context);
             std::future::ready(Err(McpError::method_not_found::<CancelTaskMethod>()))
         }
@@ -598,14 +584,6 @@ pub trait ServerHandler: Sized + 'static {
 macro_rules! impl_server_handler_for_wrapper {
     ($wrapper:ident) => {
         impl<T: ServerHandler> ServerHandler for $wrapper<T> {
-            fn enqueue_task(
-                &self,
-                request: CallToolRequestParams,
-                context: RequestContext<RoleServer>,
-            ) -> impl Future<Output = Result<CreateTaskResult, McpError>> + MaybeSendFuture + '_ {
-                (**self).enqueue_task(request, context)
-            }
-
             fn ping(
                 &self,
                 context: RequestContext<RoleServer>,
@@ -777,14 +755,6 @@ macro_rules! impl_server_handler_for_wrapper {
                 (**self).on_roots_list_changed(context)
             }
 
-            fn on_task_status(
-                &self,
-                params: TaskStatusNotificationParam,
-                context: NotificationContext<RoleServer>,
-            ) -> impl Future<Output = ()> + MaybeSendFuture + '_ {
-                (**self).on_task_status(params, context)
-            }
-
             fn on_custom_notification(
                 &self,
                 notification: CustomNotification,
@@ -797,35 +767,27 @@ macro_rules! impl_server_handler_for_wrapper {
                 (**self).get_info()
             }
 
-            fn list_tasks(
-                &self,
-                request: Option<PaginatedRequestParams>,
-                context: RequestContext<RoleServer>,
-            ) -> impl Future<Output = Result<ListTasksResult, McpError>> + MaybeSendFuture + '_ {
-                (**self).list_tasks(request, context)
-            }
-
-            fn get_task_info(
+            fn get_task(
                 &self,
                 request: GetTaskParams,
                 context: RequestContext<RoleServer>,
             ) -> impl Future<Output = Result<GetTaskResult, McpError>> + MaybeSendFuture + '_ {
-                (**self).get_task_info(request, context)
+                (**self).get_task(request, context)
             }
 
-            fn get_task_result(
+            fn update_task(
                 &self,
-                request: GetTaskPayloadParams,
+                request: UpdateTaskParams,
                 context: RequestContext<RoleServer>,
-            ) -> impl Future<Output = Result<GetTaskPayloadResult, McpError>> + MaybeSendFuture + '_ {
-                (**self).get_task_result(request, context)
+            ) -> impl Future<Output = Result<(), McpError>> + MaybeSendFuture + '_ {
+                (**self).update_task(request, context)
             }
 
             fn cancel_task(
                 &self,
                 request: CancelTaskParams,
                 context: RequestContext<RoleServer>,
-            ) -> impl Future<Output = Result<CancelTaskResult, McpError>> + MaybeSendFuture + '_ {
+            ) -> impl Future<Output = Result<(), McpError>> + MaybeSendFuture + '_ {
                 (**self).cancel_task(request, context)
             }
         }

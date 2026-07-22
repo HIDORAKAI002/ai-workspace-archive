@@ -1,31 +1,31 @@
-# 🔍 Microsoft Agent Frameworkの探求 - 基本エージェント（.NET）
+# 🔍 Microsoft Agent Framework の探求 - 基本エージェント (.NET)
 
 ## 📋 学習目標
 
-この例では、.NETでの基本的なエージェント実装を通してMicrosoft Agent Frameworkの基本概念を探ります。コアのエージェントパターンを学び、C#と.NETエコシステムを使ったインテリジェントエージェントの仕組みを理解します。
+この例では、.NET による基本的なエージェント実装を通じて Microsoft Agent Framework の基本概念を探ります。コアとなるエージェントパターンを学び、C# と .NET エコシステムを使ったインテリジェントエージェントの内部動作を理解します。
 
-### 発見できること
+### 発見すること
 
-- 🏗️ <strong>エージェントアーキテクチャ</strong>: .NETにおけるAIエージェントの基本構造の理解
-- 🛠️ <strong>ツール連携</strong>: エージェントが外部関数を使い能力を拡張する方法  
-- 💬 <strong>会話フロー</strong>: スレッド管理によるマルチターン会話とコンテキスト管理
-- 🔧 <strong>設定パターン</strong>: .NETにおけるエージェントセットアップと管理のベストプラクティス
+- 🏗️ <strong>エージェントのアーキテクチャ</strong>: .NET での AI エージェントの基本構造の理解
+- 🛠️ <strong>ツール統合</strong>: エージェントが外部機能を利用して能力を拡張する仕組み  
+- 💬 <strong>会話の流れ</strong>: スレッド管理を用いた多ターン会話とコンテキストの管理
+- 🔧 <strong>設定パターン</strong>: .NET におけるエージェントのセットアップと管理のベストプラクティス
 
-## 🎯 カバーする主要概念
+## 🎯 主な概念の解説
 
 ### エージェントフレームワークの原則
 
-- <strong>自律性</strong>: .NETのAI抽象化を使ってエージェントが独立的に判断を下す方法
-- <strong>反応性</strong>: 環境変化やユーザー入力に応答すること
-- <strong>積極性</strong>: 目標とコンテキストに基づいて行動を起こすこと
-- <strong>社会性</strong>: 会話スレッドを通じた自然言語での対話
+- <strong>自律性</strong>: .NET AI 抽象化を使いエージェントが独立して意思決定する方法
+- <strong>反応性</strong>: 環境変化やユーザー入力に反応する能力
+- <strong>能動性</strong>: 目標とコンテキストに基づきイニシアチブを取ること
+- <strong>社会的能力</strong>: 会話スレッドを通じて自然言語で交流すること
 
-### 技術的コンポーネント
+### 技術的要素
 
-- **AIAgent**: コアのエージェント編成と会話管理（.NET）
-- <strong>ツール関数</strong>: C#のメソッドと属性でエージェント機能を拡張
-- **Azure OpenAI統合**: Azure OpenAI Responses APIを利用した言語モデルの活用
-- <strong>安全な設定</strong>: 環境ベースのエンドポイント管理
+- **AIAgent**: コアのエージェントオーケストレーションと会話管理 (.NET)
+- <strong>ツール関数</strong>: C# のメソッドや属性でエージェント機能を拡張
+- **Azure OpenAI 統合**: Azure OpenAI Responses API を活用した言語モデル利用
+- <strong>セキュアな設定</strong>: 環境に基づくエンドポイント管理
 
 ## 🔧 技術スタック
 
@@ -34,49 +34,49 @@
 - Microsoft Agent Framework (.NET)
 - Azure OpenAI (Responses API) 統合
 - Azure.AI.OpenAI クライアントパターン
-- DotNetEnvによる環境ベースの設定
+- DotNetEnv を使った環境ベース設定
 
-### エージェント能力
+### エージェント機能
 
-- 自然言語の理解と生成
-- C#属性を用いた関数呼び出しとツール使用
-- 会話セッションによるコンテキスト対応の応答
+- 自然言語理解と生成
+- C# 属性による関数呼び出しとツール利用
+- 会話セッションを活用したコンテキスト対応応答
 - 依存性注入パターンによる拡張可能なアーキテクチャ
 
 ## 📚 フレームワーク比較
 
-この例は他のエージェントフレームワークと比較したMicrosoft Agent Frameworkのアプローチを示しています：
+この例は、Microsoft Agent Framework アプローチを他のエージェントフレームワークと比較して示しています：
 
-| 特徴 | Microsoft Agent Framework | その他のフレームワーク |
+| 特徴 | Microsoft Agent Framework | 他のフレームワーク |
 |---------|-------------------------|------------------|
-| <strong>統合</strong> | ネイティブのMicrosoftエコシステム | 互換性は様々 |
-| <strong>シンプルさ</strong> | クリーンで直感的なAPI | セットアップが複雑な場合が多い |
-| <strong>拡張性</strong> | 簡単なツール連携 | フレームワーク依存 |
-| <strong>エンタープライズ向け</strong> | 本番環境向けに設計 | フレームワークによる差異あり |
+| <strong>統合</strong> | Microsoft ネイティブエコシステム | 互換性はさまざま |
+| <strong>簡便さ</strong> | クリーンで直感的な API | 設定が複雑になりがち |
+| <strong>拡張性</strong> | 簡単なツール統合 | フレームワーク依存 |
+| <strong>エンタープライズ対応</strong> | 本番環境向けに構築 | フレームワークにより異なる |
 
-## 🚀 はじめに
+## 🚀 始め方
 
 ### 前提条件
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 以上
-- Azure OpenAIリソースとモデルデプロイメントを含む [Azureサブスクリプション](https://azure.microsoft.com/free/)
-- `az login` でログインするための [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)
+- Azure OpenAI リソースとモデル展開を含む [Azure サブスクリプション](https://azure.microsoft.com/free/)
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` でサインイン
 
-### 必要な環境変数
+### 必須の環境変数
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# その後、AzureCliCredential がトークンを取得できるようにサインインします
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# AzureCliCredential がトークンを取得できるようにサインインしてください
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# 次に、AzureCliCredential がトークンを取得できるようにサインインします
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# AzureCliCredential がトークンを取得できるようにサインインしてください
 az login
 ```
 
@@ -90,7 +90,7 @@ chmod +x ./02-dotnet-agent-framework.cs
 ./02-dotnet-agent-framework.cs
 ```
 
-または dotnet CLIを使用して：
+または dotnet CLI を使って：
 
 ```bash
 dotnet run ./02-dotnet-agent-framework.cs
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,20 +215,20 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 重要なポイント
+## 🎓 主なポイント
 
-1. <strong>エージェントアーキテクチャ</strong>: Microsoft Agent Frameworkは.NETでのAIエージェント構築にクリーンで型安全なアプローチを提供します
-2. <strong>ツール連携</strong>: `[Description]`属性が付けられた関数がエージェントの利用可能なツールになります
-3. <strong>会話コンテキスト</strong>: セッション管理によりマルチターン会話を完全なコンテキスト認識で実現します
-4. <strong>設定管理</strong>: 環境変数と安全な資格情報管理は.NETのベストプラクティスに従います
-5. **Azure OpenAI Responses API**: エージェントはAzure.AI.OpenAI SDKを通じてAzure OpenAI Responses APIを使用します
+1. <strong>エージェントアーキテクチャ</strong>: Microsoft Agent Framework は .NET で AI エージェントを構築するためのクリーンで型安全なアプローチを提供する
+2. <strong>ツール統合</strong>: `[Description]` 属性で装飾された関数がエージェントの利用可能なツールになる
+3. <strong>会話コンテキスト</strong>: セッション管理によりコンテキストを完全に意識した多ターン会話が可能
+4. <strong>設定管理</strong>: 環境変数と安全な認証情報管理は .NET のベストプラクティスに従う
+5. **Azure OpenAI Responses API**: エージェントは Azure.AI.OpenAI SDK を通じて Azure OpenAI Responses API を利用する
 
 ## 🔗 追加リソース
 
 - [Microsoft Agent Framework ドキュメント](https://learn.microsoft.com/agent-framework)
-- [Microsoft FoundryにおけるAzure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
+- [Microsoft Foundry の Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [.NET Single File Apps](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [.NET シングルファイルアプリ](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

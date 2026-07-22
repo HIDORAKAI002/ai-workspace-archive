@@ -1,30 +1,30 @@
-# 🌍 Agente de Viagens com Microsoft Agent Framework (.NET)
+# 🌍 Agente de Viagem com IA usando Microsoft Agent Framework (.NET)
 
 ## 📋 Visão Geral do Cenário
 
-Este exemplo demonstra como construir um agente inteligente de planejamento de viagens usando o Microsoft Agent Framework para .NET. O agente pode gerar automaticamente roteiros personalizados para viagens de um dia em destinos aleatórios ao redor do mundo.
+Este exemplo demonstra como criar um agente inteligente de planejamento de viagens usando o Microsoft Agent Framework para .NET. O agente pode gerar automaticamente roteiros personalizados de um dia para destinos aleatórios ao redor do mundo.
 
 ### Capacidades Principais:
 
 - 🎲 **Seleção Aleatória de Destinos**: Usa uma ferramenta personalizada para escolher locais de férias
 - 🗺️ **Planejamento Inteligente de Viagens**: Cria roteiros detalhados dia a dia
-- 🔄 **Streaming em Tempo Real**: Suporta respostas imediatas e em streaming
-- 🛠️ **Integração de Ferramentas Personalizadas**: Demonstra como estender as capacidades do agente
+- 🔄 **Transmissão em Tempo Real**: Suporta respostas imediatas e por streaming
+- 🛠️ **Integração de Ferramenta Personalizada**: Demonstra como estender as capacidades do agente
 
 ## 🔧 Arquitetura Técnica
 
 ### Tecnologias Principais
 
-- **Microsoft Agent Framework**: Implementação mais recente em .NET para desenvolvimento de agentes de IA
-- **Azure OpenAI (Responses API)**: Usa a API Azure OpenAI Responses para inferência do modelo
-- **Azure Identity**: Login seguro via `AzureCliCredential` (`az login`)
-- **Configuração Segura**: Gerenciamento de endpoints baseado em ambiente
+- **Microsoft Agent Framework**: Implementação mais recente em .NET para desenvolvimento de agentes IA
+- **Azure OpenAI (API de Respostas)**: Utiliza a API de Respostas do Azure OpenAI para inferência do modelo
+- **Azure Identity**: Autenticação segura via `AzureCliCredential` (`az login`)
+- **Configuração Segura**: Gerenciamento do endpoint baseado em ambiente
 
-### Componentes Chave
+### Componentes Principais
 
-1. **AIAgent**: O orquestrador principal do agente que gerencia o fluxo da conversa
+1. **AIAgent**: O orquestrador principal que gerencia o fluxo da conversa
 2. **Ferramentas Personalizadas**: Função `GetRandomDestination()` disponível para o agente
-3. **Cliente Responses**: Interface de conversa baseada em Azure OpenAI Responses
+3. **Cliente de Respostas**: Interface de conversa baseada no Azure OpenAI Responses
 4. **Suporte a Streaming**: Capacidades de geração de respostas em tempo real
 
 ### Padrão de Integração
@@ -43,24 +43,24 @@ graph LR
 ### Pré-requisitos
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) ou superior
-- Uma [assinatura do Azure](https://azure.microsoft.com/free/) com um recurso Azure OpenAI e um deployment de modelo
-- A [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — faça login com `az login`
+- Uma [assinatura Azure](https://azure.microsoft.com/free/) com um recurso Azure OpenAI e implantação de modelo
+- A [CLI do Azure](https://learn.microsoft.com/cli/azure/install-azure-cli) — faça login com `az login`
 
 ### Variáveis de Ambiente Necessárias
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Então faça login para que o AzureCliCredential possa obter um token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Em seguida, faça login para que o AzureCliCredential possa obter um token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Em seguida, faça login para que o AzureCliCredential possa obter um token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Então faça login para que o AzureCliCredential possa obter um token
 az login
 ```
 
@@ -74,7 +74,7 @@ chmod +x ./01-dotnet-agent-framework.cs
 ./01-dotnet-agent-framework.cs
 ```
 
-Ou usando a CLI dotnet:
+Ou usando o CLI do dotnet:
 
 ```bash
 dotnet run ./01-dotnet-agent-framework.cs
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,19 +157,19 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 Principais Conclusões
+## 🎓 Principais Lições
 
-1. **Arquitetura do Agente**: O Microsoft Agent Framework oferece uma abordagem limpa e tipada para construir agentes de IA em .NET
+1. **Arquitetura do Agente**: O Microsoft Agent Framework oferece uma abordagem limpa e segura por tipo para construir agentes IA em .NET
 2. **Integração de Ferramentas**: Funções decoradas com atributos `[Description]` tornam-se ferramentas disponíveis para o agente
 3. **Gerenciamento de Configuração**: Variáveis de ambiente e gerenciamento seguro de credenciais seguem as melhores práticas do .NET
-4. **Azure OpenAI Responses API**: O agente usa a API Azure OpenAI Responses através do SDK Azure.AI.OpenAI
+4. **API Azure OpenAI Responses**: O agente utiliza a API Azure OpenAI Responses via SDK Azure.AI.OpenAI
 
 ## 🔗 Recursos Adicionais
 
 - [Documentação do Microsoft Agent Framework](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI no Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [Aplicativos .NET Single File](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [Aplicativos Single File em .NET](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

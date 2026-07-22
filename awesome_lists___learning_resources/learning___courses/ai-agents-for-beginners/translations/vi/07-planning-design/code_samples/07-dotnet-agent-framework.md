@@ -1,18 +1,18 @@
-# 🎯 Lập kế hoạch & Mẫu thiết kế với Azure OpenAI (Responses API) (.NET)
+# 🎯 Lập Kế Hoạch & Mẫu Thiết Kế với Azure OpenAI (Responses API) (.NET)
 
-## 📋 Mục tiêu học tập
+## 📋 Mục Tiêu Học Tập
 
-Sổ tay này trình bày các mẫu thiết kế và lập kế hoạch cấp doanh nghiệp để xây dựng các tác nhân thông minh sử dụng Microsoft Agent Framework trong .NET với Azure OpenAI (Responses API). Bạn sẽ học cách tạo các tác nhân có thể phân tách các vấn đề phức tạp, lập kế hoạch giải pháp nhiều bước, và thực thi các luồng công việc tinh vi với các tính năng cấp doanh nghiệp của .NET.
+Sổ tay này trình bày các mẫu thiết kế và lập kế hoạch cấp doanh nghiệp để xây dựng các đại lý thông minh sử dụng Microsoft Agent Framework trong .NET với Azure OpenAI (Responses API). Bạn sẽ học cách tạo đại lý có thể phân rã các vấn đề phức tạp, lập kế hoạch các giải pháp nhiều bước, và thực thi các quy trình phức tạp với các tính năng doanh nghiệp của .NET.
 
-## ⚙️ Yêu cầu & Cài đặt
+## ⚙️ Yêu Cầu & Cài Đặt
 
-**Môi trường phát triển:**
-- .NET 9.0 SDK trở lên
-- Visual Studio 2022 hoặc VS Code với phần mở rộng C#
-- Một đăng ký Azure với tài nguyên Azure OpenAI và triển khai mô hình
+**Môi Trường Phát Triển:**
+- SDK .NET 9.0 trở lên
+- Visual Studio 2022 hoặc VS Code với tiện ích mở rộng C#
+- Một thuê bao Azure với tài nguyên Azure OpenAI và một triển khai mô hình
 - Azure CLI — đăng nhập với `az login`
 
-**Phụ thuộc cần thiết:**
+**Phụ Thuộc Cần Thiết:**
 ```xml
 <PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
 <PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
@@ -22,18 +22,18 @@ Sổ tay này trình bày các mẫu thiết kế và lập kế hoạch cấp d
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
-**Cấu hình môi trường (file .env):**
+**Cấu Hình Môi Trường (tệp .env):**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
-## Chạy mã
+## Chạy Mã Nguồn
 
-Bài học này bao gồm một ứng dụng .NET Single File App. Để chạy nó:
+Bài học này bao gồm một ứng dụng đơn tệp .NET. Để chạy nó:
 
 ```bash
-# Làm cho tệp có thể thực thi (Linux/macOS)
+# Đặt file thành có thể thực thi (Linux/macOS)
 chmod +x 07-dotnet-agent-framework.cs
 
 # Chạy ứng dụng
@@ -46,21 +46,21 @@ Hoặc dùng lệnh dotnet run:
 dotnet run 07-dotnet-agent-framework.cs
 ```
 
-## Triển khai mã
+## Triển Khai Mã Nguồn
 
-Toàn bộ mã nguồn có trong `07-dotnet-agent-framework.cs`, trình bày:
+Triển khai đầy đủ có trong `07-dotnet-agent-framework.cs`, trình bày:
 
 - Tải cấu hình môi trường với DotNetEnv
-- Cấu hình client Azure OpenAI và tạo tác nhân AI với `GetChatClient().AsAIAgent()`
-- Định nghĩa các mô hình dữ liệu có cấu trúc (Plan và TravelPlan) với tuần tự hóa JSON
-- Tạo tác nhân AI với đầu ra có cấu trúc sử dụng sơ đồ JSON
-- Thực thi các yêu cầu lập kế hoạch với phản hồi an toàn theo kiểu
+- Cấu hình khách hàng Azure OpenAI và tạo đại lý AI sử dụng `GetChatClient().AsAIAgent()`
+- Định nghĩa mô hình dữ liệu có cấu trúc (Plan và TravelPlan) với tuần tự JSON
+- Tạo đại lý AI có đầu ra có cấu trúc sử dụng JSON schema
+- Thực thi các yêu cầu lập kế hoạch với phản hồi kiểu an toàn
 
-## Khái niệm chính
+## Khái Niệm Chính
 
-### Lập kế hoạch có cấu trúc với mô hình an toàn kiểu
+### Lập Kế Hoạch Có Cấu Trúc với Mô Hình Kiểu An Toàn
 
-Tác nhân sử dụng các lớp C# để định nghĩa cấu trúc đầu ra lập kế hoạch:
+Đại lý sử dụng các lớp C# để định nghĩa cấu trúc đầu ra kế hoạch:
 
 ```csharp
 public class Plan
@@ -82,9 +82,9 @@ public class TravelPlan
 }
 ```
 
-### Sơ đồ JSON cho đầu ra có cấu trúc
+### JSON Schema cho Đầu Ra Có Cấu Trúc
 
-Tác nhân được cấu hình để trả về phản hồi phù hợp với sơ đồ TravelPlan:
+Đại lý được cấu hình để trả về phản hồi khớp với schema TravelPlan:
 
 ```csharp
 ChatClientAgentOptions agentOptions = new()
@@ -101,20 +101,20 @@ ChatClientAgentOptions agentOptions = new()
 };
 ```
 
-### Hướng dẫn cho tác nhân lập kế hoạch
+### Hướng Dẫn Đại Lý Lập Kế Hoạch
 
-Tác nhân đóng vai trò điều phối viên, ủy quyền công việc cho các tác nhân phụ chuyên biệt:
+Đại lý đóng vai trò điều phối viên, phân công nhiệm vụ cho các đại lý phụ chuyên biệt:
 
 - FlightBooking: Đặt vé máy bay và cung cấp thông tin chuyến bay
-- HotelBooking: Đặt khách sạn và cung cấp thông tin khách sạn
+- HotelBooking: Đặt phòng khách sạn và cung cấp thông tin khách sạn
 - CarRental: Đặt thuê xe và cung cấp thông tin thuê xe
-- ActivitiesBooking: Đặt các hoạt động và cung cấp thông tin về hoạt động
+- ActivitiesBooking: Đặt các hoạt động và cung cấp thông tin hoạt động
 - DestinationInfo: Cung cấp thông tin về điểm đến
 - DefaultAgent: Xử lý các yêu cầu chung
 
-## Đầu ra mong đợi
+## Kết Quả Mong Đợi
 
-Khi bạn chạy tác nhân với yêu cầu lập kế hoạch du lịch, nó sẽ phân tích yêu cầu và tạo ra kế hoạch có cấu trúc với phân công công việc thích hợp cho các tác nhân chuyên biệt, được định dạng dưới dạng JSON tuân theo sơ đồ TravelPlan.
+Khi bạn chạy đại lý với một yêu cầu lập kế hoạch du lịch, nó sẽ phân tích yêu cầu và tạo ra kế hoạch có cấu trúc với việc phân công nhiệm vụ thích hợp cho các đại lý chuyên biệt, được định dạng dưới dạng JSON phù hợp với schema TravelPlan.
 
 ---
 

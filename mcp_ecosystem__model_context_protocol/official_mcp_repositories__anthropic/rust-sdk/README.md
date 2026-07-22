@@ -32,6 +32,7 @@ For the full MCP specification, see [modelcontextprotocol.io](https://modelconte
 - [Notifications](#notifications)
 - [Subscriptions](#subscriptions)
 - [Tasks](#tasks-long-running-tool-invocations)
+- [Caching](#caching)
 - [Examples](#examples)
 - [OAuth Support](#oauth-support)
 - [Related Resources](#related-resources)
@@ -971,25 +972,83 @@ and [client](examples/clients/src/subscriptions_streamhttp.rs) examples.
 
 ## Tasks (long-running tool invocations)
 
-`rmcp` supports the [task-based tool invocation](https://modelcontextprotocol.io/specification/2025-11-25/basic/utilities/tasks)
-flow defined in SEP-1319. Annotate a tool with `execution(task_support = "required" | "optional")`
-and add `#[task_handler]` to your `ServerHandler` impl — `enqueue_task`, `tasks/list`, `tasks/get`,
-`tasks/result`, and `tasks/cancel` are generated for you on top of an `OperationProcessor`.
+`rmcp` implements the [MCP Tasks extension](https://modelcontextprotocol.io/extensions/tasks/overview)
+(SEP-2663, `io.modelcontextprotocol/tasks`). A client declares the extension in its
+capabilities; the server then decides per request whether to materialize a `tools/call`
+as a task, returning a `CreateTaskResult` (`resultType: "task"`). The client polls
+`tasks/get`, answers in-task input requests via `tasks/update`, and may request
+cooperative cancellation via `tasks/cancel`. Use `rmcp::task_manager::TaskManager`
+to manage task lifecycles server-side.
 
 ```rust, ignore
-#[tool(
-    description = "Sum two numbers after a 2-second delay",
-    execution(task_support = "required")
-)]
-async fn slow_sum(/* ... */) -> Result<CallToolResult, McpError> { /* ... */ }
+// Client: declare the tasks extension capability.
+let caps = ClientCapabilities::builder().enable_tasks().build();
 
-#[tool_handler]
-#[task_handler]
-impl ServerHandler for TaskDemo {}
+// Server: decide per request whether to materialize a task.
+async fn call_tool(&self, request: CallToolRequestParams, context: RequestContext<RoleServer>)
+    -> Result<CallToolResponse, McpError>
+{
+    let client_supports_tasks = context
+        .client_capabilities()
+        .is_some_and(|caps| caps.supports_tasks());
+    if client_supports_tasks {
+        let task = self.tasks.spawn(TaskOptions::default(), move |_ctx| {
+            Box::pin(async move { /* long-running work -> Ok(CallToolResult) */ })
+        });
+        return Ok(CallToolResponse::Task(CreateTaskResult::new(task)));
+    }
+    // ... fall back to synchronous execution
+}
 ```
 
 See [`servers_task_stdio`](examples/servers/src/task_stdio.rs) and the matching
 [`clients_task_stdio`](examples/clients/src/task_stdio.rs) for a runnable end-to-end example.
+
+## Caching
+
+`rmcp` clients transparently cache responses that carry the
+[SEP-2549](https://modelcontextprotocol.io/specification/draft/server/utilities/caching)
+caching hints (`ttlMs` / `cacheScope`) for `server/discover`, `tools/list`,
+`prompts/list`, `resources/list`, `resources/templates/list`, and `resources/read`.
+
+Caching is on by default but only stores a response when the server sends a
+positive `ttlMs`, so servers that omit the hint behave exactly as before. Entries
+expire after their TTL, are partitioned by cache scope, and are invalidated
+automatically by the matching `list_changed` / `resource updated` notifications.
+
+No call-site changes are needed — existing calls benefit automatically:
+
+```rust, ignore
+let tools = peer.list_tools(None).await?;     // served from cache while fresh
+let res   = peer.read_resource(params).await?; // cached per-URI
+```
+
+Tune or disable it per connection via the `Peer`:
+
+```rust, ignore
+use std::time::Duration;
+use rmcp::ClientCacheConfig;
+
+// Customize behavior.
+peer.set_response_cache_config(
+    ClientCacheConfig::default()
+        .with_default_ttl(Duration::from_secs(30)) // TTL for servers that omit ttlMs
+        .with_max_ttl(Duration::from_secs(3600))   // upper bound on any TTL
+        .with_max_entries(1024)
+        .with_private_partition(user_id)            // separate private caches per principal
+        .with_serve_stale_on_error(false),          // surface errors instead of stale data
+).await;
+
+// Or turn it off entirely.
+peer.set_response_cache_config(ClientCacheConfig::disabled()).await;
+
+// Manually flush.
+peer.clear_response_cache().await;
+```
+
+> **Note:** with the default `serve_stale_on_error`, a failed re-fetch returns the
+> last cached response (even if expired) as `Ok(..)` instead of an error. Set
+> `with_serve_stale_on_error(false)` if callers must observe fetch failures.
 
 ## Examples
 

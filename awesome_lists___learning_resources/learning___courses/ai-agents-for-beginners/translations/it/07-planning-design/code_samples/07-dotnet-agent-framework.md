@@ -1,18 +1,18 @@
-# 🎯 Pianificazione & Pattern di Design con Azure OpenAI (Responses API) (.NET)
+# 🎯 Pianificazione e Modelli di Design con Azure OpenAI (Responses API) (.NET)
 
 ## 📋 Obiettivi di Apprendimento
 
-Questo notebook dimostra pattern di pianificazione e design di livello enterprise per la costruzione di agenti intelligenti utilizzando il Microsoft Agent Framework in .NET con Azure OpenAI (Responses API). Imparerai a creare agenti in grado di decomporre problemi complessi, pianificare soluzioni multi-step ed eseguire workflow sofisticati con le funzionalità enterprise di .NET.
+Questo notebook dimostra modelli di pianificazione e design di livello enterprise per costruire agenti intelligenti utilizzando il Microsoft Agent Framework in .NET con Azure OpenAI (Responses API). Imparerai a creare agenti in grado di scomporre problemi complessi, pianificare soluzioni multi-step ed eseguire workflow sofisticati con le funzionalità enterprise di .NET.
 
-## ⚙️ Prerequisiti & Configurazione
+## ⚙️ Prerequisiti e Configurazione
 
 **Ambiente di Sviluppo:**
 - SDK .NET 9.0 o superiore
 - Visual Studio 2022 o VS Code con estensione C#
 - Un abbonamento Azure con una risorsa Azure OpenAI e un deployment di modello
-- Azure CLI — esegui l'accesso con `az login`
+- Azure CLI — effettua il login con `az login`
 
-**Dipendenze Richieste:**
+**Dipendenze Necessarie:**
 ```xml
 <PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
 <PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
@@ -25,10 +25,10 @@ Questo notebook dimostra pattern di pianificazione e design di livello enterpris
 **Configurazione Ambiente (file .env):**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
-## Eseguire il Codice
+## Esecuzione del Codice
 
 Questa lezione include un'applicazione .NET Single File. Per eseguirla:
 
@@ -48,19 +48,19 @@ dotnet run 07-dotnet-agent-framework.cs
 
 ## Implementazione del Codice
 
-L'implementazione completa è disponibile in `07-dotnet-agent-framework.cs`, che dimostra:
+L’implementazione completa è disponibile in `07-dotnet-agent-framework.cs`, che dimostra:
 
 - Caricamento della configurazione ambiente con DotNetEnv
 - Configurazione del client Azure OpenAI e creazione di un agente AI usando `GetChatClient().AsAIAgent()`
-- Definizione di modelli di dati strutturati (Plan e TravelPlan) con serializzazione JSON
-- Creazione di un agente AI con output strutturato usando schema JSON
-- Esecuzione di richieste di pianificazione con risposte tipo-sicure
+- Definizione di modelli dati strutturati (Plan e TravelPlan) con serializzazione JSON
+- Creazione di un agente AI con output strutturato usando lo schema JSON
+- Esecuzione di richieste di pianificazione con risposte tipizzate
 
 ## Concetti Chiave
 
-### Pianificazione Strutturata con Modelli Tipo-Sicuri
+### Pianificazione Strutturata con Modelli Tipizzati
 
-L'agente usa classi C# per definire la struttura degli output di pianificazione:
+L’agente utilizza classi C# per definire la struttura degli output di pianificazione:
 
 ```csharp
 public class Plan
@@ -84,7 +84,7 @@ public class TravelPlan
 
 ### Schema JSON per Output Strutturati
 
-L'agente è configurato per restituire risposte che corrispondono allo schema TravelPlan:
+L’agente è configurato per restituire risposte conformi allo schema TravelPlan:
 
 ```csharp
 ChatClientAgentOptions agentOptions = new()
@@ -101,9 +101,9 @@ ChatClientAgentOptions agentOptions = new()
 };
 ```
 
-### Istruzioni per l'Agente di Pianificazione
+### Istruzioni per l’Agente di Pianificazione
 
-L'agente agisce da coordinatore, delegando compiti a sotto-agenti specializzati:
+L’agente agisce da coordinatore, delegando i compiti a sub-agenti specializzati:
 
 - FlightBooking: Per prenotare voli e fornire informazioni sui voli
 - HotelBooking: Per prenotare hotel e fornire informazioni sugli hotel
@@ -112,9 +112,9 @@ L'agente agisce da coordinatore, delegando compiti a sotto-agenti specializzati:
 - DestinationInfo: Per fornire informazioni sulle destinazioni
 - DefaultAgent: Per gestire richieste generali
 
-## Output Atteso
+## Output Previsto
 
-Quando esegui l'agente con una richiesta di pianificazione viaggio, analizzerà la richiesta e genererà un piano strutturato con assegnazioni di compiti appropriate agli agenti specializzati, formattato come JSON conforme allo schema TravelPlan.
+Quando esegui l’agente con una richiesta di pianificazione di viaggio, analizzerà la richiesta e genererà un piano strutturato con assegnazioni appropriate dei compiti agli agenti specializzati, formattato come JSON conforme allo schema TravelPlan.
 
 ---
 

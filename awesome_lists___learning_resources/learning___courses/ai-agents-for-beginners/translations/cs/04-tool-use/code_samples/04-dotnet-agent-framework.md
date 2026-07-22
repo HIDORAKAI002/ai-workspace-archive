@@ -1,39 +1,39 @@
-# 🛠️ Pokročilé použití nástrojů s Azure OpenAI (Responses API) (.NET)
+# 🛠️ Pokročilé používání nástrojů s Azure OpenAI (Responses API) (.NET)
 
 ## 📋 Cíle učení
 
-Tento poznámkový blok ukazuje vzory integrace nástrojů na podnikové úrovni pomocí Microsoft Agent Framework v .NET s Azure OpenAI (Responses API). Naučíte se vytvářet sofistikované agenty s více specializovanými nástroji, využívající silné typování C# a podnikové funkce .NET.
+Tento poznámkový blok demonstruje podnikové vzory integrace nástrojů pomocí Microsoft Agent Framework v .NET s Azure OpenAI (Responses API). Naučíte se vytvářet sofistikované agenty s několika specializovanými nástroji, využívající silné typování C# a podnikové funkce .NET.
 
-### Pokročilé schopnosti nástrojů, které ovládnete
+### Pokročilé schopnosti nástrojů, které si osvojíte
 
-- 🔧 **Architektura s více nástroji**: Budování agentů s více specializovanými schopnostmi
-- 🎯 **Typově bezpečné spuštění nástrojů**: Využití ověřování při kompilaci v C#
-- 📊 **Podnikové vzory nástrojů**: Návrh nástrojů připravených pro produkci a zpracování chyb
-- 🔗 **Kombinování nástrojů**: Spojování nástrojů pro složité obchodní workflow
+- 🔧 **Architektura s více nástroji**: Vytváření agentů s více specializovanými schopnostmi
+- 🎯 **Bezpečné spouštění nástrojů podle typu**: Využití ověřování při kompilaci v C#
+- 📊 **Podnikové vzory nástrojů**: Návrh nástrojů připravených do produkce a zpracování chyb
+- 🔗 **Kombinace nástrojů**: Skládání nástrojů pro složité obchodní workflow
 
 ## 🎯 Výhody architektury nástrojů v .NET
 
-### Podnikové vlastnosti nástrojů
+### Podnikové funkce nástrojů
 
 - **Ověření při kompilaci**: Silné typování zajišťuje správnost parametrů nástroje
-- **Dependency Injection**: Integrace IoC kontejneru pro správu nástrojů
-- **Async/Await vzory**: Nezablokující spuštění nástrojů se správou zdrojů
-- **Strukturované logování**: Vestavěná integrace logování pro sledování spuštění nástrojů
+- **Vstřikování závislostí (Dependency Injection)**: Integrace IoC kontejneru pro správu nástrojů
+- **Asynchronní vzory Async/Await**: Nezablokující spouštění nástrojů s řádnou správou prostředků
+- **Strukturované protokolování**: Vestavěná integrace protokolování pro sledování spuštění nástrojů
 
 ### Vzory připravené pro produkci
 
-- **Zpracování výjimek**: Komplexní řízení chyb s typovanými výjimkami
-- **Správa zdrojů**: Správné vzory uvolňování a správy paměti
-- **Monitorování výkonu**: Vestavěné metriky a počítadla výkonu
-- **Správa konfigurace**: Typově bezpečná konfigurace s validací
+- **Zpracování výjimek**: Komplexní správa chyb s typovanými výjimkami
+- **Správa prostředků**: Správné vzory uvolňování a správy paměti
+- **Monitorování výkonu**: Vestavěné metriky a čítače výkonu
+- **Správa konfigurace**: Bezpečná konfigurace s ověřováním typů
 
 ## 🔧 Technická architektura
 
-### Jádrové .NET komponenty nástrojů
+### Jádrové komponenty nástrojů v .NET
 
-- **Microsoft.Extensions.AI**: Jednotná abstraktní vrstva nástrojů
-- **Microsoft.Agents.AI**: Orchestrace nástrojů na podnikové úrovni
-- **Azure OpenAI (Responses API)**: Vysoce výkonný API klient s poolingem připojení
+- **Microsoft.Extensions.AI**: Jednotná vrstva abstrakce nástrojů
+- **Microsoft.Agents.AI**: Podniková orchestrace nástrojů
+- **Azure OpenAI (Responses API)**: Vysoce výkonný API klient s poolováním připojení
 
 ### Pipeline spuštění nástrojů
 
@@ -42,44 +42,44 @@ graph LR
     A[Uživatelský požadavek] --> B[Analýza agenta]
     B --> C[Výběr nástroje]
     C --> D[Ověření typu]
-    B --> E[Vazba parametrů]
-    E --> F[Spuštění nástroje]
+    B --> E[Navázání parametrů]
+    E --> F[Provedení nástroje]
     C --> F
     F --> G[Zpracování výsledku]
     D --> G
     G --> H[Odpověď]
 ```
 
-## 🛠️ Kategorie nástrojů a vzory
+## 🛠️ Kategorie a vzory nástrojů
 
 ### 1. **Nástroje pro zpracování dat**
 
-- **Validace vstupu**: Silné typování s datovými anotacemi
-- **Transformační operace**: Typově bezpečné převody a formátování dat
-- **Obchodní logika**: Nástroje pro doménově specifické výpočty a analýzy
+- **Validace vstupů**: Silné typování s datovými anotacemi
+- **Transformační operace**: Bezpečná konverze a formátování dat podle typů
+- **Obchodní logika**: Nástroje pro výpočty a analýzu specifickou pro doménu
 - **Formátování výstupu**: Generování strukturovaných odpovědí
 
-### 2. **Integrace nástrojů**
+### 2. **Integrační nástroje**
 
 - **API konektory**: Integrace RESTful služeb pomocí HttpClient
-- **Databázové nástroje**: Integrace Entity Framework pro přístup k datům
+- **Nástroje pro databáze**: Integrace Entity Framework pro přístup k datům
 - **Operace se soubory**: Bezpečné operace se souborovým systémem s validací
 - **Externí služby**: Vzory integrace služeb třetích stran
 
 ### 3. **Užitečné nástroje**
 
-- **Zpracování textu**: Utilitky pro manipulaci a formátování řetězců
-- **Operace s datem/časem**: Výpočty data/času citlivé na kulturu
+- **Zpracování textu**: Manipulace a formátování řetězců
+- **Operace s datumem/časem**: Výpočty s ohledem na kulturu a časová pásma
 - **Matematické nástroje**: Přesné výpočty a statistické operace
-- **Validace nástrojů**: Validace obchodních pravidel a ověření dat
+- **Nástroje pro validaci**: Validace obchodních pravidel a ověřování dat
 
-Připraveni vytvářet podnikové agenty s výkonnými, typově bezpečnými schopnostmi nástrojů v .NET? Pojďme navrhnout profesionální řešení! 🏢⚡
+Připraven vytvořit podnikové agenty s výkonnými, podle typu bezpečnými nástroji v .NET? Pojďme navrhnout profesionální řešení! 🏢⚡
 
 ## 🚀 Začínáme
 
 ### Požadavky
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) nebo vyšší
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) nebo novější
 - Předplatné [Azure](https://azure.microsoft.com/free/) s Azure OpenAI zdrojem a nasazením modelu
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — přihlaste se pomocí `az login`
 
@@ -88,22 +88,22 @@ Připraveni vytvářet podnikové agenty s výkonnými, typově bezpečnými sch
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Přihlaste se, aby AzureCliCredential mohl získat token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Pak se přihlaste, aby AzureCliCredential mohl získat token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # Poté se přihlaste, aby AzureCliCredential mohl získat token
 az login
 ```
 
 ### Ukázkový kód
 
-Pro spuštění příkladu kódu,
+Pro spuštění ukázkového kódu,
 
 ```bash
 # zsh/bash
@@ -111,13 +111,13 @@ chmod +x ./04-dotnet-agent-framework.cs
 ./04-dotnet-agent-framework.cs
 ```
 
-Nebo použijte dotnet CLI:
+Nebo pomocí dotnet CLI:
 
 ```bash
 dotnet run ./04-dotnet-agent-framework.cs
 ```
 
-Viz [`04-dotnet-agent-framework.cs`](../../../../04-tool-use/code_samples/04-dotnet-agent-framework.cs) pro kompletní kód.
+Kompletní kód najdete v [`04-dotnet-agent-framework.cs`](../../../../04-tool-use/code_samples/04-dotnet-agent-framework.cs).
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -168,7 +168,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

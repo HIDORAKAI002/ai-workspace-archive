@@ -1,28 +1,28 @@
 # 🎨 Agentbaserade designmönster med Azure OpenAI (Responses API) (.NET)
 
-## 📋 Lärandemål
+## 📋 Lernmål
 
-Detta exempel visar företagsklassade designmönster för att bygga intelligenta agenter med Microsoft Agent Framework i .NET med Azure OpenAI (Responses API)-integration. Du kommer att lära dig professionella mönster och arkitekturstilar som gör agenter produktionsklara, underhållbara och skalbara.
+Detta exempel visar designmönster i företagsklass för att bygga intelligenta agenter med Microsoft Agent Framework i .NET med Azure OpenAI (Responses API) integration. Du kommer att lära dig professionella mönster och arkitektoniska angreppssätt som gör agenter produktionsklara, underhållbara och skalbara.
 
 ### Företagsdesignmönster
 
-- 🏭 **Factory Pattern**: Standardiserad agentkapning med beroendeinjektion
+- 🏭 **Factory Pattern**: Standardiserad agentproduktion med dependency injection
 - 🔧 **Builder Pattern**: Fluent agentkonfiguration och setup
-- 🧵 **Trådsäkra Mönster**: Samtidig konversationshantering
-- 📋 **Repository Pattern**: Organiserad verktygs- och kapabilitetshantering
+- 🧵 **Trådsäkra mönster**: Samtida samtalshantering
+- 📋 **Repository Pattern**: Organiserad hantering av verktyg och kapaciteter
 
-## 🎯 .NET-specifika arkitekturella fördelar
+## 🎯 .NET-specifika arkitekturfördelar
 
 ### Företagsfunktioner
 
-- **Stark typning**: Kompileringstidvalidering och IntelliSense-stöd
-- **Beroendeinjektion**: Inbyggd DI-containerintegration
-- **Konfigurationshantering**: IConfiguration- och Options-mönster
-- **Async/Await**: Förstklassigt asynkront programmeringsstöd
+- **Stark typning**: Kompileringstid validering och IntelliSense-stöd
+- **Dependency Injection**: Inbyggd DI-behållarintegration
+- **Konfigurationshantering**: IConfiguration och Options-mönster
+- **Async/Await**: Förstklassigt stöd för asynkron programmering
 
 ### Produktionsklara mönster
 
-- **Loggningsintegration**: ILogger och strukturerat loggningsstöd
+- **Loggningsintegration**: ILogger och strukturerat loggsupport
 - **Hälsokontroller**: Inbyggd övervakning och diagnostik
 - **Konfigurationsvalidering**: Stark typning med dataanoteringar
 - **Felhantering**: Strukturerad undantagshantering
@@ -32,8 +32,8 @@ Detta exempel visar företagsklassade designmönster för att bygga intelligenta
 ### Kärnkomponenter i .NET
 
 - **Microsoft.Extensions.AI**: Enhetliga AI-tjänsteabstraktioner
-- **Microsoft.Agents.AI**: Företagsagent-orchestration framework
-- **Azure OpenAI (Responses API)**: Högeffektiva API-klientmönster
+- **Microsoft.Agents.AI**: Företagsramverk för agentorkestrering
+- **Azure OpenAI (Responses API)**: Högpresterande API-klientmönster
 - **Konfigurationssystem**: appsettings.json och miljöintegration
 
 ### Implementering av designmönster
@@ -43,70 +43,70 @@ graph LR
     A[IServiceCollection] --> B[Agentbyggare]
     B --> C[Konfiguration]
     C --> D[Verktygsregister]
-    D --> E[AI-Agent]
+    D --> E[AI-agent]
 ```
 
-## 🏗️ Företagsmönster Demonstrerade
+## 🏗️ Företagsmönster som demonstreras
 
-### 1. **Skapande mönster**
+### 1. **Skapandemönster**
 
-- **Agentfabrik**: Centraliserad agentkapning med konsekvent konfiguration
+- **Agent Factory**: Centraliserad agentproduktion med konsekvent konfiguration
 - **Builder Pattern**: Fluent API för komplex agentkonfiguration
 - **Singleton Pattern**: Delade resurser och konfigurationshantering
-- **Beroendeinjektion**: Lös koppling och testbarhet
+- **Dependency Injection**: Lös koppling och testbarhet
 
 ### 2. **Beteendemönster**
 
-- **Strategimönster**: Utbytbara verktygsutförandestrategier
-- **Kommandomönster**: Inkapslade agentoperationer med ångra/gör om
-- **Observatörsmönster**: Händelsedriven agentlivscykelhantering
-- **Mallmetod**: Standardiserade agentutförandeflöden
+- **Strategy Pattern**: Utbytbara verktygsutförandestrategier
+- **Command Pattern**: Inkapslade agentoperationer med undo/redo
+- **Observer Pattern**: Händelsestyrd agentlivscykelhantering
+- **Template Method**: Standardiserade agentutförandeflöden
 
 ### 3. **Strukturella mönster**
 
-- **Adaptermönster**: Azure OpenAI (Responses API) integrationslager
-- **Dekoratörmönster**: Agentkapabilitetsförbättring
-- **Fasadmönster**: Förenklade agentinteraktionsgränssnitt
-- **Proxymönster**: Lat inläsning och caching för prestanda
+- **Adapter Pattern**: Azure OpenAI (Responses API) integrationslager
+- **Decorator Pattern**: Agentkapacitetsförbättring
+- **Facade Pattern**: Förenklade agentinteraktionsgränssnitt
+- **Proxy Pattern**: Lat laddning och caching för prestanda
 
 ## 📚 .NET Designprinciper
 
-### SOLID-principer
+### SOLID-principerna
 
-- **Enkel Ansvarsprincip**: Varje komponent har ett tydligt syfte
-- **Öppen/Stängd**: Utbyggbar utan modifiering
-- **Liskovs Substitutionsprincip**: Interface-baserade verktygsimplementationer
-- **Interface-segregation**: Fokuserade, sammanhängande gränssnitt
-- **Beroendeinversion**: Bero på abstraktioner, inte konkretioner
+- **Single Responsibility**: Varje komponent har ett tydligt syfte
+- **Open/Closed**: Utbyggbar utan modifiering
+- **Liskov Substitution**: Gränssnittsbaserade verktygsimplementeringar
+- **Interface Segregation**: Fokuserade, sammanhållna gränssnitt
+- **Dependency Inversion**: Bero på abstraktioner, inte konkretioner
 
-### Ren Arkitektur
+### Clean Architecture
 
 - **Domänlager**: Kärnagent- och verktygsabstraktioner
 - **Applikationslager**: Agentorkestrering och arbetsflöden
-- **Infrastrukturlager**: Azure OpenAI (Responses API)-integration och externa tjänster
+- **Infrastrukturlager**: Azure OpenAI (Responses API) integration och externa tjänster
 - **Presentationslager**: Användarinteraktion och svarformatering
 
 ## 🔒 Företagshänsyn
 
 ### Säkerhet
 
-- **Hantera referenser**: Säker API-nyckelhantering med IConfiguration
-- **Inmatningsvalidering**: Stark typning och dataanotationsvalidering
+- **Referenshantering**: Säker hantering av API-nycklar med IConfiguration
+- **Inmatningsvalidering**: Stark typning och validering med dataanoteringar
 - **Utmatningssanering**: Säker svarshantering och filtrering
-- **Revisionsloggning**: Omfattande operationstracking
+- **Revisionsloggning**: Omfattande operationsspårning
 
 ### Prestanda
 
-- **Asynkrona mönster**: I/O-operationer utan blockering
-- **Anslutningspoolning**: Effektiv HTTP-klienthantering
+- **Async-mönster**: Icke-blockerande I/O-operationer
+- **Anslutningspoolning**: Effektiv hantering av HTTP-klienter
 - **Caching**: Svarscaching för förbättrad prestanda
-- **Resurshantering**: Korrekt borttagning och rengöringsmönster
+- **Resurshantering**: Korrekt nedstädning och disposal-mönster
 
 ### Skalbarhet
 
-- **Trådsäkerhet**: Stöd för samtidiga agentkörningar
-- **Resurspoolning**: Effektiv resursutnyttjande
-- **Laststyrning**: Hastighetsbegränsning och backpressure-hantering
+- **Trådsäkerhet**: Samtidigt agentsutförandestöd
+- **Resursuthyrning**: Effektiv resursutnyttjande
+- **Belastningshantering**: Begränsning av hastighet och backpressure-hantering
 - **Övervakning**: Prestandamått och hälsokontroller
 
 ## 🚀 Produktionsdistribution
@@ -115,9 +115,9 @@ graph LR
 - **Loggningsstrategi**: Strukturerad loggning med korrelations-ID:n
 - **Felhantering**: Global undantagshantering med korrekt återhämtning
 - **Övervakning**: Application Insights och prestandaräknare
-- **Testning**: Enhetstester, integrationstester och lasttestmönster
+- **Testning**: Enhetstester, integrationstester och belastningstestningsmönster
 
-Redo att bygga företagsklassade intelligenta agenter med .NET? Låt oss arkitektera något robust! 🏢✨
+Redo att bygga intelligenta agenter i företagsklass med .NET? Låt oss arkitektera något robust! 🏢✨
 
 ## 🚀 Komma igång
 
@@ -125,23 +125,23 @@ Redo att bygga företagsklassade intelligenta agenter med .NET? Låt oss arkitek
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) eller högre
 - En [Azure-prenumeration](https://azure.microsoft.com/free/) med en Azure OpenAI-resurs och en modellutplacering
-- Azure CLI ([Azure CLI installation](https://learn.microsoft.com/cli/azure/install-azure-cli)) — logga in med `az login`
+- Azure CLI (https://learn.microsoft.com/cli/azure/install-azure-cli) — logga in med `az login`
 
-### Krävs miljövariabler
+### Obligatoriska miljövariabler
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Logga in sedan så att AzureCliCredential kan få en token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Logga in så att AzureCliCredential kan hämta en token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Logga sedan in så att AzureCliCredential kan hämta en token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Logga in så att AzureCliCredential kan få en token
 az login
 ```
 
@@ -155,13 +155,13 @@ chmod +x ./03-dotnet-agent-framework.cs
 ./03-dotnet-agent-framework.cs
 ```
 
-Eller använd dotnet CLI:
+Eller med dotnet CLI:
 
 ```bash
 dotnet run ./03-dotnet-agent-framework.cs
 ```
 
-Se [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) för hela koden.
+Se [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) för komplett kod.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

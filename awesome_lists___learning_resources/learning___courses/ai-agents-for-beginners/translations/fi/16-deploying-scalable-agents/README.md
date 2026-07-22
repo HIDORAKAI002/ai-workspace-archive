@@ -2,134 +2,134 @@
 
 ![Skaalautuvien agenttien käyttöönotto](../../../translated_images/fi/lesson-16-thumbnail.d78cace536bc5d50.webp)
 
-Tähän mennessä olet luonut agentteja, jotka suoritetaan kannettavallasi tietokoneella, muistikirjan sisällä, ajettuna `az login` -käskyllä ja muutamalla ympäristömuuttujalla. Tämä on juuri oikea tapa oppia. Se ei kuitenkaan ole oikea tapa ajaa agenttia, johon tuhannet asiakkaat luottavat kello kolmen aikaan yöllä.
+Tähän asti kurssilla olet rakentanut agentteja, jotka toimivat kannettavallasi tietokoneella, muistikirjassa, `az login` -komennon ja pienen joukon ympäristömuuttujia ohjaamana. Tämä on täysin oikea tapa oppia. Se ei kuitenkaan ole oikea tapa ajaa agenttia, johon tuhannet asiakkaat luottavat kello 3 yöllä.
 
-Tämä oppitunti käsittelee kuilua "se toimii koneellani" ja "se toimii luotettavasti ja kustannustehokkaasti tuotannossa" välillä. Suljemme tämän kuilun käyttämällä **Microsoft Foundrya** ja **Microsoft Foundry Agent Serviceä**, rakentamalla todellisen asiakastukiedustajan, jolla on työkalut, haku, muisti, arviointi ja valvonta.
+Tässä oppitunnissa käsitellään kuilua "se toimii omalla koneellani" ja "se toimii luotettavasti ja edullisesti tuotannossa" välillä. Suljemme tämän kuilun käyttämällä **Microsoft Foundrya** ja **Microsoft Foundry Agent Serviceä**, ja teemme sen rakentamalla todellisen asiakastukiasiantuntijan, jolla on työkalut, haku, muisti, arviointi ja valvonta.
 
 ## Johdanto
 
-Tämä oppitunti käsittelee:
+Tässä oppitunnissa käsitellään:
 
-- Erot **prototyyppiagentin** ja **käyttöönotetun agentin** välillä ja miksi siirtymä koskee pääasiassa kaikkea *mallin ympärillä olevaa*.
-- Agenttien **käyttöönotto-mallit**: asiakkaan isännöimät, palvelun isännöimät (Hosted Agents) ja työnkulun orkestroimat.
-- **Agentin elinkaaren vaiheet** Microsoft Foundryssa — luonti, versiointi, käyttöönotto, arviointi, seuranta, eläkkeelle siirto.
-- **Skaalausstrategiat**: mallin reititys, välimuisti, samanaikaisuus ja tilattomuus.
-- **Havaittavuus** OpenTelemetryn ja Foundryn jäljityksen avulla.
-- **Kustannusten optimointi** mallin valinnan, reitityksen ja arviointikynnyksen kautta.
-- **Yritysvaatimukset**: hallinto, ihmisen hyväksyntä ja MCP-palvelinten turvallinen käyttö tuotannossa.
+- Ero **prototyyppiagentin** ja **käyttöönotetun agentin** välillä sekä miksi siirtymä koskee enimmäkseen kaikkea *mallin ympärillä* olevaa.
+- **Käyttöönoton mallit** agenteille: asiakkaan ylläpitämä, palvelimella ylläpidetty (Hosted Agents) ja työnkulun orkestroima.
+- **Agentin elinkaari** Microsoft Foundryssa — luo, versioi, ota käyttöön, arvioi, seuraa, poista käytöstä.
+- **Skaalausstrategiat**: mallin reititys, välimuistitus, samanaikaisuus ja tilatonta suunnittelu.
+- **Havaittavuus** OpenTelemetryllä ja Foundryn jäljityksellä.
+- **Kustannusten optimointi** mallin valinnan, reitityksen ja arviointilukkojen avulla.
+- **Yrityksen näkökohdat**: hallinnointi, ihmisen hyväksyntä ja MCP-palvelimien turvallinen ajaminen tuotannossa.
 
 ## Oppimistavoitteet
 
 Oppitunnin suorittamisen jälkeen osaat:
 
-- Valita oikean käyttöönotto-mallin tietylle agenttikuormitukselle.
-- Ottaa agentti käyttöön Microsoft Foundry Agent Servicessä siten, että se versionhallitaan, hallitaan ja se on havaittavissa.
-- Varustaa agentti jäljityksellä ja kytkeä arviointiputki, joka suoritetaan ennen jokaista julkaisua.
-- Soveltaa mallin reititystä ja välimuistia pitämään viive ja kustannukset hallinnassa skaalattaessa.
-- Lisätä ihmisen hyväksyntäkynnys korkean riskin toimiin ja integroida MCP-palvelin tuotantoystävällisesti.
+- Valita oikean käyttöönoton mallin tietylle agentin työkuormalle.
+- Ota agentti käyttöön Microsoft Foundry Agent Servicessä niin, että siitä tulee versioitu, hallittu ja havaittava.
+- Instrumentoida agentti jäljitystä varten ja liittää arviointiputki joka suoritetaan ennen jokaista julkaisua.
+- Soveltaa mallin reititystä ja välimuistitusta, jotta viive ja kustannukset pysyvät kurissa skaalautuessa.
+- Lisätä ihmisen hyväksyntälukko riskialttiita toimintoja varten ja integroida MCP-palvelin tuotantoturvallisesti.
 
 ## Esivaatimukset
 
-Tämä oppitunti olettaa, että olet suorittanut aiemmat oppitunnit ja hallitset:
+Tämä oppitunti edellyttää, että olet suorittanut aiemmat oppitunnit ja osaat:
 
-- Agenttien rakentamisen [Microsoft Agent Frameworkilla](../14-microsoft-agent-framework/README.md) (Oppitunti 14).
+- Rakentaa agentteja [Microsoft Agent Frameworkilla](../14-microsoft-agent-framework/README.md) (Oppitunti 14).
 - [Työkalujen käyttö](../04-tool-use/README.md) (Oppitunti 4) ja [Agentic RAG](../05-agentic-rag/README.md) (Oppitunti 5).
-- [Agentin muisti](../13-agent-memory/README.md) (Oppitunti 13) ja [Agentic Protocols / MCP](../11-agentic-protocols/README.md) (Oppitunti 11).
+- [Agentin muisti](../13-agent-memory/README.md) (Oppitunti 13) ja [Agentic-protokollat / MCP](../11-agentic-protocols/README.md) (Oppitunti 11).
 - [Havaittavuus ja arviointi](../10-ai-agents-production/README.md) (Oppitunti 10) — tämä oppitunti rakentuu suoraan sen päälle.
 
 Tarvitset myös:
 
-- **Azure-tilauksen** ja **Microsoft Foundry -projektin**, jossa on vähintään yksi käyttöön otettu keskustelumalli.
-- **Azure CLI:n** autentikoituna (`az login`).
-- Python 3.12+ ja pakettien asennettuna hakemistosta [`requirements.txt`](../../../requirements.txt).
+- **Azure-tilauksen** ja **Microsoft Foundry -projektin**, jossa on vähintään yksi chat-malli tuotannossa.
+- **Azure CLI:n** todennettuna (`az login`).
+- Python 3.12+ ja repositorion [`requirements.txt`](../../../requirements.txt) -paketit.
 
-## Prototyyypistä tuotantoon: Mikä oikeastaan muuttuu
+## Prototyypistä tuotantoon: mitä oikeasti muuttuu
 
-Prototyyppiagentilla ja tuotantokäyttöön tarkoitetulla agentilla on sama ydinsykli — päättely, työkalujen kutsuminen, vastaaminen. Muutokset koskevat kaikkea, mikä kietoutuu tuon syklin ympärille. Malli on ehkä 20 % tuotantoagentin kokonaistoteutuksesta; loput 80 % muodostaa operaatiollisen rungon.
+Prototyyppiagentti ja tuotantoagentti jakavat saman ytimen — päättely, työkalukutsut, vastaaminen. Muuttuu kaikki se, mikä kietoutuu tämän silmukan ympärille. Malli on ehkä 20 % tuotantoagentista; loput 80 % on operatiivinen runko.
 
-| Huolenaihe | Prototyyppi | Tuotanto |
+| Huomio | Prototyyppi | Tuotanto |
 | --- | --- | --- |
-| **Isännöinti** | Suoritetaan muistikirjassasi | Suoritetaan isännöitynä palveluna, versionhallittuna ja vaiheittain käyttöönotettuna |
-| **Tunnistus** | Sinun `az login` -tokenisi | Hallittu identiteetti rajatulla RBAC-oikeutuksella |
-| **Tila** | Muistissa, katoaa uudelleenkäynnistyksessä | Ulkoistettu (säikeiden tallennus, muisti-palvelu) |
-| **Vika** | Näet virheen jäljityksen | Uudelleenyrittämiset, vararatkaisut, dead-letter, hälytykset |
-| **Kustannus** | "Muuta pari senttiä" | Seurataan pyynnöittäin, reititetään, välimuistitetaan, budjetoidaan |
-| **Laatu** | Tarkastat tuloksen silmämääräisesti | Arvioidaan automaattisesti ennen jokaista julkaisua |
-| **Luottamus** | Hyväksyt jokaisen toimenpiteen | Politiikka + ihminen valvontakierrossa riskitoimissa |
+| **Isännöinti** | Suoritetaan muistikirjassasi | Suoritetaan isännöitynä palveluna, versioituna ja vaiheittain otettuna käyttöön |
+| **Tunnistus** | Sinun `az login` -tunnuksesi | Hallittu identiteetti rajatuilla RBAC-oikeuksilla |
+| **Tila** | Muistissa, katoaa uudelleenkäynnistyksessä | Ulkoistettu (thread store, muistipalvelu) |
+| **Virhe** | Näet virheen jäljitteen | Uudelleenyritykset, varatilat, dead-letter, hälytykset |
+| **Kustannus** | "Se on muutama sentti" | Seurataan per pyyntö, reititetään, välimuistitetaan, budjetoidaan |
+| **Laadukkuus** | Katsot lopputulosta silmämääräisesti | Arvioidaan automaattisesti ennen jokaista julkaisua |
+| **Luottamus** | Hyväksyt jokaisen toiminnon | Politiikka + ihmisen hyväksyntä riskialttiissa toimissa |
 
-Pidä tämä taulukko mielessä. Jokainen alla oleva osio liittyy yhteen näistä riveistä.
+Pidä tämä taulukko mielessä. Jokainen alla oleva osio vastaa yhtä taulukon riviä.
 
-## Agentin käyttöönotto-mallit
+## Agenttien käyttöönotto mallina
 
-Käytössä on kolme mallia, usein yhdistelminä.
+Käytettävissäsi on kolme mallia, usein yhdistelminä.
 
-### 1. Asiakkaan isännöimät agentit
+### 1. Asiakkaan ylläpitämät agentit
 
-Agentti-objekti sijaitsee *sinun* sovellusprosessissasi. Koodisi kutsuu mallin tarjoajaa suoraan; päättelysilmukka ajetaan palvelussasi. Tätä on toteutettu kaikissa aiemmissa oppitunneissa.
+Agentti-olio elää *sinun* sovellusprosessissasi. Koodisi kutsuu mallipalvelua suoraan; päättelysilmukka suoritetaan palvelussasi. Tämä on mitä kaikki aiemmat oppitunnit ovat tehneet.
 
-- **Käytä, kun** tarvitset täyden hallinnan silmukan yli, mukautettua middlewarea, tai upotat agentin olemassa olevaan backend-järjestelmään.
-- **Kompromissi**: vastaat itse skaalauksesta, tilasta ja kestävyydestä.
+- **Käytä kun** tarvitset täyden hallinnan silmukkaan, mukautettua välimuistia tai upotat agentin olemassa olevaan taustapalveluun.
+- **Kompromissi**: skaalautuminen, tila ja saumattomuus ovat sinun vastuullasi.
 
 ### 2. Isännöidyt agentit (Foundry Agent Service)
 
-Agentti on *rekisteröity resurssina* Microsoft Foundryssa. Foundry isännöi päättelysilmukkaa, tallentaa säikeet, valvoo sisältöturvallisuutta ja RBAC-oikeuksia, ja tekee agentin näkyväksi Foundryn portaalissa. Sovelluksesi toimii kevyenä asiakkaana, joka luo säikeitä ja lukee vastauksia.
+Agentti on *rekisteröity resurssiksi* Microsoft Foundryssa. Foundry ylläpitää päättelysilmukkaa, tallentaa ketjuja, valvoo sisällön turvallisuutta ja RBAC:ia sekä tekee agentin näkyväksi Foundryn portaalissa. Sovelluksesi on kevyt asiakas, joka luo ketjuja ja lukee vastauksia.
 
-- **Käytä, kun** haluat kestävyyttä, sisäänrakennettua havaittavuutta, hallintaa ja vähemmän operatiivista hallintaa.
-- **Kompromissi**: vähemmän matalan tason kontrollia hallitun suoritusympäristön hyväksi.
+- **Käytä kun** haluat kestävyyttä, sisäänrakennettua havaittavuutta, hallintaa ja vähemmän ylläpidollista työtä.
+- **Kompromissi**: vähemmän matalan tason hallintaa hallitusta suoritusaikaympäristöstä luopumisen vuoksi.
 
 ### 3. Agenttien työnkulut
 
-Useita agentteja (ja työkaluja) yhdistetään graafiksi, jossa on eksplisiittinen ohjausvirtaus — peräkkäisiä vaiheita, haarautumisia, ihmisen hyväksyntäsolmuja ja kestäviä tarkistuspisteitä, jotka voivat keskeyttää ja jatkaa. Tämä on Microsoft Agent Frameworkin **Workflows**-toiminnallisuus sovellettuna käyttöönoton skaalaan.
+Useita agenteja (ja työkaluja) yhdistetään kaavioon eksplisiittisellä ohjauksella — peräkkäiset vaiheet, haarautuminen, ihmisen hyväksyntäsolmut ja kestävät tarkistuspisteet, jotka voivat tauottaa ja jatkaa. Tämä on Microsoft Agent Frameworkin **Workflows**-ominaisuus käytössä käyttöönoton mittakaavassa.
 
-- **Käytä, kun** yksittäinen tehtävä ulottuu useiden erikoistuneiden agenttien vastuulle tai vaatii hyväksyntävaiheen keskellä.
-- **Kompromissi**: enemmän liikkuvia osia; tarvitsee orkestroinnin tason havaittavuuden.
+- **Käytä kun** yksi tehtävä kattaa useita erikoistuneita agentteja tai vaatii hyväksymisvaiheen keskellä.
+- **Kompromissi**: enemmän liikkuvia osia; vaatii orkestrointitason havaittavuutta.
 
 ```mermaid
 flowchart TB
-    subgraph P1[Asiakaspalvelin]
+    subgraph P1[Asiakasisännöity]
         A1[Sovellusprosessisi] --> M1[Mallin tarjoaja]
     end
     subgraph P2[Isännöity agentti]
-        A2[Ohut asiakas] --> F2[Foundry-agenttipalvelu]
-        F2 --> M2[Malli + Työkalut + Ketjuvarasto]
+        A2[Ohutasiakas] --> F2[Foundry-agenttipalvelu]
+        F2 --> M2[Malli + Työkalut + Ketjukirjasto]
     end
-    subgraph P3[Agentti työnkulku]
-        A3[Orkestroija] --> S1[Lajitteluagentti]
-        S1 --> S2[Ratkaisija-agentti]
+    subgraph P3[Agentin työnkulku]
+        A3[Orkestroija] --> S1[Lajittelun agentti]
+        S1 --> S2[Ratkaisun agentti]
         S2 --> H[Ihmisen hyväksymissolmu]
-        H --> S3[Toiminta-agentti]
+        H --> S3[Toimintoagentti]
     end
 ```
 
 ## Agentin elinkaari Microsoft Foundryssa
 
-Agentin käyttöönotto ei ole kertaluonteinen `push`-toimenpide. Se on sykli, joka muistuttaa ohjelmiston julkaisusykliä, koska juuri sitä se on.
+Agentin käyttöönotto ei ole kertaalleen tehtävä `push`. Se on sykli, ja muistuttaa paljon ohjelmistojulkaisusykliä, koska sitähän se on.
 
 ```mermaid
 flowchart LR
     Create[Luo / Tekijä] --> Version[Versio]
     Version --> Evaluate[Arvioi offline-tilassa]
     Evaluate -->|läpäisee portin| Deploy[Ota käyttöön isännöitynä]
-    Evaluate -->|epäonnistuu portilla| Create
+    Evaluate -->|epäonnistuu portissa| Create
     Deploy --> Observe[Tarkkaile verkossa]
     Observe --> Improve[Kerää virheet]
     Improve --> Create
     Deploy --> Retire[Poista vanha versio käytöstä]
 ```
 
-Keskeinen ajatus, joka on peräisin [Oppitunnista 10](../10-ai-agents-production/README.md): **offline-arviointi on portti, ei jälkinäkemys.** Uusi agentin versio ei lähetetä, ellei se täytä arviointikynnyksiäsi. Online-havaittavuus syöttää todellisen maailman virheet takaisin offline-testikokoelmaasi. Tämä on koko sykli.
+Keskeinen idea, peräisin [Oppitunnista 10](../10-ai-agents-production/README.md): **offline-arviointi on portti, ei jälkikäteen tehtävä lisäys.** Uutta agenttiversiota ei julkaista, ellei se ylitä arviointikynnyksiäsi. Online-havaittavuus palauttaa todelliset virheet offline-testisarjaan. Se on koko sykli.
 
 ## Skaalausstrategiat
 
-Agentin skaalaus eroaa tilattoman web-API:n skaalaamisesta, koska jokainen pyyntö voi laukaista useita kalliita mallin ja työkalujen kutsuja. Neljä tekniikkaa kantaa suurimman kuorman.
+Agentin skaalaus eroaa tilattomasta web-API:sta, koska jokainen pyyntö voi laukaista useita kalliita malli- ja työkalukutsuja. Neljä tekniikkaa kantaa suurimman kuorman.
 
-**Tilaton pyyntöjen käsittely.** Älä säilytä käyttäjäkohtaista tilaa prosessimuistissa. Tallenna keskustelusäikeet Foundryn säikeiden tallennuspaikkaan tai muisti-palveluun, jotta mikä tahansa instanssi voi käsitellä mitä tahansa pyyntöä. Tämä mahdollistaa vaakasuuntaisen skaalauksen — lisää instansseja, ei tarttuvia istuntoja.
+**Tilaton pyyntöjen käsittely.** Älä säilytä käyttäjäkohtaista tilaa prosessin muistissa. Tallenna keskusteluketjut Foundryn ketjutallennukseen tai muistipalveluun, jotta mikä tahansa instanssi voi käsitellä minkä tahansa pyynnön. Tämä mahdollistaa horisontaalisen skaalaamisen — lisää instansseja, ei istuntasidonnaisuuksia.
 
-**Mallin reititys.** Kaikki pyynnöt eivät tarvitse kyvykkäintä (ja kalleinta) malliasi. Reititä yksinkertaiset pyynnöt — aikomuksen luokittelu, lyhyet faktavastaukset — pieneen, nopeaan malliin ja pidä suuri malli varattuna oikeaan päättelyyn. Foundryn **Model Router** voi tehdä tämän puolestasi, tai voit toteuttaa kevyen luokittelijan itse. Rakennat itse tehdyn version labrassa.
+**Mallin reititys.** Kaikki pyynnöt eivät tarvitse kyvykkäintä (ja kalleinta) malliasi. Ohjaa yksinkertaiset pyynnöt — tarkoituksen luokittelu, lyhyet faktavastaukset — pieneen ja nopeaan malliin ja varaa iso malli aidolle päättelylle. Foundryn **Model Router** voi tehdä tämän puolestasi, tai voit itse toteuttaa kevyen luokittelijan. Rakennat DIY-version laboratoriossa.
 
-**Vastausten välimuisti.** Monet tukikyselyt ovat lähes kopioita ("kuinka vaihdan salasanani?"). Välimuistita vastaukset yleisiin kysymyksiin ja tarjoa ne ilman, että mallia tarvitsee kutsua. Jopa modestikin välimuistiosuma vähentää merkittävästi kustannuksia ja viivettä.
+**Vastausten välimuistitus.** Monet tukikyselyt ovat lähes kopioita ("kuinka vaihdan salasanani?"). Välimuistita yleisimpien kysymysten vastaukset ja palvele niitä ilman, että malli kutsutaan lainkaan. Jopa kohtuullinen välimuistiosuma pienentää merkittävästi kustannuksia ja viivettä.
 
-**Samanaikaisuus ja takaisinpaine.** Mallin tarjoajilla on rajoituksia nopeudelle. Rajaa samanaikaisuutta, käytä eksponentiaalisen takaisinkytkennän uudelleenyritystä, ja epäonnistu hienovaraisesti (jonotettu "olemme käsittelemässä" -vastaus voittaa 500-virheen).
+**Samanaikaisuus ja takaisinpainesäätö.** Mallipalveluilla on nopeusrajoituksia. Rajaudu samanaikaisuuteen, käytä eksponentiaalisen peruutuksen kanssa uudelleenyrityksiä ja epäonnistumiset hoida tyylikkäästi (jonoitettu "olemme hoidossa" -vastaus on parempi kuin 500 virhe).
 
 ```mermaid
 flowchart LR
@@ -145,11 +145,11 @@ flowchart LR
 
 ## Havaittavuus tuotannossa
 
-Et voi hallita sitä, mitä et näe. Kuten Oppitunnissa 10 käsiteltiin, Microsoft Agent Framework lähettää **OpenTelemetry**-jälkiä natiivisti — jokainen mallikutsu, työkalukutsu ja orkestrointivaihe muuttuu spaniksi. Tuotannossa viet nämä spanit Microsoft Foundryyn (tai mihin tahansa OTel-yhteensopivaan backend-järjestelmään), jotta voit:
+Et voi ohjata sitä, mitä et näe. Kuten Oppitunnissa 10 käsiteltiin, Microsoft Agent Framework tuottaa **OpenTelemetry**-jälkiä natiivisti — jokainen mallikutsu, työkalukutsu ja orkestrointivaihe dokumentoidaan yhtenä spanina. Tuotannossa viet nämä spanit Microsoft Foundryyn (tai mihin tahansa OTel-yhteensopivaan backend-järjestelmään), jotta voit:
 
-- Jäljittää yhden asiakasvalituksen päästä päähän jokaisen mallin ja työkalukutsun yli.
-- Tarkkailla p50/p95-viivettä ja kustannuksia pyyntöä kohden ajan kuluessa.
-- Hälyttää virheiden nousuista ja kustannuspoikkeamista ennen kuin käyttäjät (tai taloustiimi) huomaavat ne.
+- Jäljittää yksittäisen asiakasvalituksen päästä päähän jokaisen mallin ja työkalun kutsun yli.
+- Seurata p50- ja p95-viivettä sekä kustannuksia per pyyntö ajan kuluessa.
+- Hälyttää virheiden määrän piikeistä ja kustannuspoikkeamista ennen kuin käyttäjät (tai talousosasto) huomaavat.
 
 ```python
 from agent_framework.observability import get_tracer
@@ -158,94 +158,94 @@ tracer = get_tracer()
 
 with tracer.start_as_current_span("support_request") as span:
     span.set_attribute("customer.tier", "enterprise")
-    span.set_attribute("routed.model", "gpt-4.1-mini")
-    # agentin suoritus jäljitetään automaattisesti tämän laajuuden sisällä
+    span.set_attribute("routed.model", "gpt-5-nano")
+    # agentin suoritus jäljitetään automaattisesti tämän alueen sisällä
 ```
 
-Attribuutit kuten `customer.tier` ja `routed.model` muuttavat seinän verran jälkiä vastattaviksi kysymyksiksi ("ohjautuuko yritysasiakkaat liian usein pieneen malliin?").
+Muuttujat kuten `customer.tier` ja `routed.model` muuttavat suuren jäljityspinon vastattaviksi kysymyksiksi ("reititetäänkö yritysasiakkaat liian usein pieneen malliin?").
 
 ## Kustannusten optimointi
 
-Tuotantoagenttien kustannukset muodostuvat pääasiassa tokeneista. Kolme vipua vaikuttaa eniten:
+Tuotantoagenteissa kustannuksiin vaikuttavat eniten tokenit. Kolme vipua vaikutuksen suuruusjärjestyksessä:
 
-1. **Säädä malli sopivankokoiseksi.** Pieni malli, joka läpäisee arviointikynnyksesi, on lähes aina halvempaa kuin suuri, joka myös läpäisee. Käytä arviointia *todistaaksesi*, että pieni malli riittää, äläkä valitse isointa varmuuden vuoksi.
-2. **Reititä monimutkaisuuden mukaan.** Kuten yllä — maksa suurimallin hinnoittelu vain pyynnöissä, jotka tarvitsevat suurimallin päättelyä.
+1. **Säädä mallin koko sopivaksi.** Pieni malli, joka läpäisee arviointikynnyksesi, on lähes aina edullisempi kuin iso, joka myös läpäisee. Käytä arviointia *todistaaksesi*, että pieni malli on tarpeeksi hyvä, älä olettaen että suurin malli on paras varotoimena.
+2. **Reititä monimutkaisuuden mukaan.** Kuten yllä — maksa ison mallin hinnat vain pyynnöistä, jotka vaativat sitä.
 3. **Välimuistita aggressiivisesti.** Halvin mallikutsu on se, jota et koskaan tee.
 
-Arviointikynnykset ja kustannusten hallinta ovat samaa kurinalaisuutta eri näkökulmista: arviointi kertoo *laadun minimitason*, reititys ja välimuisti pitävät kustannukset mahdollisimman lähellä tätä tasoa.
+Arviointilukot ja kustannusten hallinta ovat samaa kurinalaisuutta katsottuna eri näkökulmista: arviointi kertoo *laatutasosta* ja reititys sekä välimuistitus pitävät sinut mahdollisimman lähellä tämän tason *kustannuksia*.
 
-## Yrityskäyttöön liittyvät näkökohdat
+## Yrityskäyttöönoton näkökohdat
 
-**Hallinto.** Hosted Agents periävät Foundryn RBAC:n, sisältöturvallisuuden ja tarkastuslokit. Anna jokaiselle agentille hallittu identiteetti, jolla on vain tarvittavat vähimmät oikeudet — lukuoikeus tietokantaan, rajattu pääsy tikettien API:iin, ei mitään ylimääräistä.
+**Hallinnointi.** Hosted Agents peri löytävät Foundryn RBAC:n, sisällön turvallisuuden ja auditointilokit. Anna jokaiselle agentille hallittu identiteetti, jolla on vähimmät tarvittavat oikeudet — vain lukuoikeus tietokantaan, rajattu pääsy tikettijärjestelmään, eikä enempää.
 
-**Ihminen valvontakierrossa.** Jotkut toimet ovat liian merkittäviä automatisoitavaksi suoraan — hyvityksen myöntäminen, tilin poistaminen, asian vieminen lakitiimille. Microsoft Agent Framework tukee **hyväksyntää edellyttäviä** työkaluja: agentti ehdottaa toimintoa, suoritus keskeytyy, ihminen hyväksyy tai hylkää, ja työnkulku jatkuu. Näit primitiivin [Oppitunnissa 6](../06-building-trustworthy-agents/README.md); tässä otat sen käyttöön.
+**Ihminen silmukassa.** Jotkut toiminnot ovat liian merkittäviä automatisoitavaksi suoraan — hyvityksen myöntäminen, tilin poistaminen, eskalointi lakitiimille. Microsoft Agent Framework tukee **hyväksyntää vaativia** työkaluja: agentti ehdottaa toimintoa, suoritus pysäytetään, ihminen hyväksyy tai hylkää, ja työnkulku jatkuu. Näit primitiivin [Oppitunnissa 6](../06-building-trustworthy-agents/README.md); tässä otat sen käyttöön.
 
-**MCP tuotannossa.** [MCP](../11-agentic-protocols/README.md) antaa agentillesi mahdollisuuden käyttää ulkoisia työkaluja standardiliitännän kautta. Tuotannossa käsittele jokaista MCP-palvelinta epäluotettavana rajapintana: määritä palvelimen versio, suorita se rajatussa identiteetissä, varmista tulosten oikeellisuus äläkä koskaan paljasta sille salaisuuksia. MCP-palvelin on riippuvuus, ja riippuvuuksia korjataan, auditoidaan ja rajoitetaan.
+**MCP tuotannossa.** [MCP](../11-agentic-protocols/README.md) antaa agentillesi mahdollisuuden käyttää ulkoisia työkaluja standardin rajapinnan kautta. Tuotannossa kohdellaan jokaista MCP-palvelinta luottamattomana rajapintana: kiinnitä palvelimen versio, aja se rajatun identiteetin kanssa, validoi sen tuotokset, älä koskaan paljasta sille salaisuuksia. MCP-palvelin on riippuvuus, ja riippuvuudet päivitetään, auditoidaan ja nopeusrajoitetaan.
 
 ```mermaid
 flowchart TB
     subgraph Dev[Kehitysarkkitehtuuri]
-        D1[Muistio] --> D2[Agenttikehys]
+        D1[Muistikirja] --> D2[Agenttikehys]
         D2 --> D3[Mallin tarjoaja]
         D2 --> D4[Paikalliset työkalut]
     end
-    subgraph Deploy[Julkaisuarkkitehtuuri]
-        E1[CI-putki] --> E2[Arviointipiste]
-        E2 -->|läpäisy| E3[Foundry-agenttipalvelu]
+    subgraph Deploy[Käyttöönottoarkkitehtuuri]
+        E1[CI-putki] --> E2[Arviointikynnys]
+        E2 -->|hyväksy| E3[Foundry-agenttipalvelu]
         E3 --> E4[Versioitu isännöity agentti]
     end
-    subgraph Run[Suoritusajoarkkitehtuuri]
-        F1[Asiakassovellus] --> F2[Isännöity agentti]
-        F2 --> F3[Mallireititin]
-        F2 --> F4[Azure AI Haku RAG]
+    subgraph Run[Suoritusympäristöarkkitehtuuri]
+        F1[Asiakasohjelma] --> F2[Isännöity agentti]
+        F2 --> F3[Mallin reititin]
+        F2 --> F4[Azure AI Search RAG]
         F2 --> F5[Muistipalvelu]
         F2 --> F6[MCP-työkalut]
-        F2 --> F7[OTel -> Foundry-jäljitys]
+        F2 --> F7[OTel -> Foundry-seuranta]
         F2 --> F8[Ihmisen hyväksyntä]
     end
 ```
 
-Nämä kolme diagrammia – kehitys, käyttöönotto, ajoaika – kuvaavat samaa agenttia sen elämän kolmessa vaiheessa. Seuraava labra opastaa sinua sen rakentamisessa.
+Nuo kolme kaaviota — kehitys, käyttöönotto, ajonaikainen — kuvaavat samaa agenttia sen elämän kolmessa vaiheessa. Seuraava laboratorio ohjaa sinut sen rakentamisessa.
 
-## Käytännön labra: Tuotantovalmiin asiakastukiagentin rakentaminen
+## Käytännön laboratorio: Tuotantokelpoinen asiakastukiagentti
 
-Avaa [`code_samples/16-python-agent-framework.ipynb`](./code_samples/16-python-agent-framework.ipynb) ja käy se läpi alusta loppuun. Koot itsellesi **Contoso-asiakastukiagentin**, johon on liitetty kaikki tuotantohuolet:
+Avaa [`code_samples/16-python-agent-framework.ipynb`](./code_samples/16-python-agent-framework.ipynb) ja käy se läpi alusta loppuun. Kootset **Contoso-asiakastukiagentin**, jossa on kaikki tuotannon vaatimukset toteutettuina:
 
-1. **Työkalukutsut** — tilan tarkistus ja tukipyyntöjen avaaminen.
-2. **RAG** — vastaa politiikkakysymyksiin tietokannasta (Azure AI Search, sisäinen muistivaraus, jotta muistikirja toimii ilman hakuresurssia).
-3. **Muisti** — muista asiakas keskustelun eri vaiheissa.
-4. **Mallin reititys** — monimutkaisuusluokittelija ohjaa pyynnön pieneen tai suureen malliin.
-5. **Vastausten välimuisti** — toistuvat kysymykset vastataan välimuistista.
-6. **Ihmisen hyväksyntä** — palautukset tietyn kynnyksen ylittäessä odottavat ihmisen hyväksyntää.
-7. **Arviointiputki** — pieni offline-testikokoelma pisteyttää agentin ja toimii julkaisun porttina.
+1. **Työkalukutsut** — tilauksen tilan tarkistus ja tukitikkettien avaaminen.
+2. **RAG** — vastaukset politiikkakysymyksiin tietokannasta (Azure AI Search, sisäisen muistin varalikalla jotta muistikirja toimii ilman Search-resurssia).
+3. **Muisti** — muistaa asiakkaan keskustelun eri vaiheissa.
+4. **Mallin reititys** — monimutkaisuusluokittelija ohjaa pyynnöt pienelle tai isolle mallille.
+5. **Vastausten välimuistitus** — toistuvat kysymykset vastataan välimuistista.
+6. **Ihmisen hyväksyntä** — tietyn kynnyksen ylittävät hyvitykset pysäytetään ihmisen hyväksyttäväksi.
+7. **Arviointiputki** — pieni offline-testisarja pisteyttää agentin ja toimii julkaisuporttina.
 8. **Havaittavuus** — OpenTelemetry-jäljitys jokaisen pyynnön ympärillä.
 
 ### Läpikäynti
 
-Muistikirja on järjestetty niin, että jokainen tuotantohuolet on itsenäinen, ajettava osio. Sydän on reititys- ja välimuistituspyynnön käsittelijä:
+Muistikirja on järjestetty niin, että jokainen tuotannon vaatimus on itsenäinen ja suoritettava osio. Sydän on reititys- ja välimuistikäsittelijä:
 
 ```python
 async def handle_support_request(query: str, customer_id: str) -> str:
-    # 1. Tarjoa välimuistista aina kun mahdollista.
+    # 1. Palvele välimuistista aina kun mahdollista.
     cached = response_cache.get(normalize(query))
     if cached:
         return cached
 
-    # 2. Reititä monimutkaisuuden mukaan kustannusten hallitsemiseksi.
-    model = "gpt-4.1-mini" if is_simple(query) else "gpt-4.1"
+    # 2. Jaa reititys monimutkaisuuden mukaan kustannusten hallitsemiseksi.
+    model = "gpt-5-nano" if is_simple(query) else "gpt-5-mini"
 
-    # 3. Suorita agentti jäljitysvälin sisällä havaittavuuden vuoksi.
+    # 3. Suorita agentti jäljityskehyksen sisällä havainnoitavuuden vuoksi.
     with tracer.start_as_current_span("support_request") as span:
         span.set_attribute("routed.model", model)
         span.set_attribute("customer.id", customer_id)
         response = await support_agent.run(query, model=model)
 
-    # 4. Välimuistita ja palauta.
+    # 4. Talleta välimuistiin ja palauta.
     response_cache.set(normalize(query), response.text)
     return response.text
 ```
 
-Julkaisua suojaava arviointikynnys näyttää tältä:
+Arviointiportti, joka vartioi julkaisua näyttää tältä:
 
 ```python
 async def evaluation_gate(agent, test_cases, threshold: float = 0.8) -> bool:
@@ -259,18 +259,18 @@ async def evaluation_gate(agent, test_cases, threshold: float = 0.8) -> bool:
     return pass_rate >= threshold  # ota käyttöön vain, jos portti menee läpi
 ```
 
-Lue jokainen rivi — muistikirja pitää primitiivit tahallaan pieniä, ettei mitään ole piilotettu kehysfunktion taakse.
+Lue jokainen rivi — muistikirja pitää primitiivit tahallaan pieninä, jotta mikään ei ole piilossa kehyksen kutsun takana.
 
 ## Käyttöönotetun agentin validointi savutesteillä
 
-Edellä mainittu arviointikynnys suoritetaan *offline*-tilassa agenttiobjektiisi vastaan. Kun agentti on käyttöönotettu Hosted Agentina, tarvitset vielä yhden halvempaan tarkastukseen: **vastaaako käyttöönotettu päätepiste oikeasti?**
+Edellä mainittu arviointilukko suoritetaan *offline* agenttioliosta vastaan. Kun agentti on otettu käyttöön Hosted Agentina, tarvitset vielä yhden, vielä halvemman tarkistuksen: **vastaatko oikeasti otettu päätepiste?**
 
-"Onnistunut" käyttöönotto todistaa vain, että hallintakerros hyväksyi määritelmän — se ei todista, että agentti vastaa. Puuttuva riippuvuus, virheellinen mallin reititys tai vanhentunut yhteys voi jättää vihreän käyttöönoton, joka ei vastaa mitään. **Savutesti** havaitsee tämän muutamassa sekunnissa jokaisen käyttöönoton yhteydessä ilman täyden arvioinnin kustannuksia.
+"Onnistunut" käyttöönotto todistaa vain, että ohjaustaso hyväksyi määritelmän — se ei todista agentin vastaavan. Puuttuva riippuvuus, virhe mallin reitityksessä tai umpeutunut yhteys voivat jättää vihreän käyttöönoton, joka ei palauta mitään. **Savutesti** havaitsee tämän sekunneissa, jokaisella käyttöönotolla, ilman täyden arvioinnin kustannuksia.
 
-Tämä repositorio sisältää käyttövalmiin savutestiputken, joka perustuu [AI Smoke Test](https://github.com/marketplace/actions/ai-smoke-test) GitHub-toimintoon:
+Tämä repositorio sisältää valmiin savutestiputken, joka perustuu [AI Smoke Test](https://github.com/marketplace/actions/ai-smoke-test) GitHub Actioniin:
 
-- **Katalogi** — [`tests/lesson-16-smoke-tests.json`](../../../tests/lesson-16-smoke-tests.json) sisältää kehotteet ja väitteet Contoso-tukiagentille (perustellut politiikkavastaukset, tilan tarkistus, pysyminen aiheessa ja monivaiheinen säikeen jatkuvuus). Muiden oppituntien agenttien katalogit sijaitsevat samalla tasolla — katso [`tests/README.md`](../tests/README.md).
-- **Työnkulku** — [`.github/workflows/smoke-test.yml`](../../../.github/workflows/smoke-test.yml) kirjautuu sisään Azure OIDC:llä ja POSTaa jokaisen kehotteen agentin Responses-päätepisteeseen, epäonnistuu työ tehtävänä jokaisen väitteen kohdalla.
+- **Luettelo** — [`tests/lesson-16-smoke-tests.json`](../../../tests/lesson-16-smoke-tests.json) sisältää kehotteet ja väittämät Contoso-tukiaagentille (tuen politiikasta vastaaminen, tilauksen tarkistus, aiheessa pysyminen ja monivaiheisen ketjun jatkuvuus). Luetteloita muiden oppituntien agenteille on samassa paikassa — katso [`tests/README.md`](../tests/README.md).
+- **Työnkulku** — [`.github/workflows/smoke-test.yml`](../../../.github/workflows/smoke-test.yml) kirjautuu Azure OIDC:llä ja POSTaa jokaisen kehotteen agentin Responses-päätepisteeseen, epäonnistuu työ kun mikä tahansa väite jää täyttymättä.
 
 ```yaml
 - name: Smoke-test hosted agent
@@ -282,26 +282,26 @@ Tämä repositorio sisältää käyttövalmiin savutestiputken, joka perustuu [A
 ```
 
 
-Aja se **Actions**-välilehdeltä, kun agenttisi on otettu käyttöön, syöttämällä Foundry-projektisi päätepiste ja agentin nimi. Liitetylle identiteetille tarvitaan **Azure AI User** -rooli Foundry-projektin laajuudessa. Ajattele kerroksia pyramidina: savutestit (saavutettavissa ja vastaavatko ne?) suoritetaan jokaisen käyttöönoton yhteydessä, offline-arviointi (riittävän hyvä julkaistavaksi?) suoritetaan ennen ylennystä ja online-arviointi (miten se pärjää käytännössä?) suoritetaan jatkuvasti.
+Suorita se **Actions**-välilehdeltä, kun agenttisi on otettu käyttöön, antaen Foundry-projektisi päätepiste ja agentin nimi. Hajautetulla identiteetillä tulee olla **Azure AI User** -rooli Foundry-projektin laajuudessa. Ajattele kerroksia pyramidina: savutestit (saavutettavissa ja vastaavatko?) ajetaan jokaisen käyttöönoton yhteydessä, offline-arviointi (riittävän hyvä julkaistavaksi?) ajetaan ennen edistämistä, ja online-arviointi (miten se pärjää käytännössä?) ajetaan jatkuvasti.
 
-## Tietovisa
+## Tietotesti
 
-Testaa ymmärrystäsi ennen siirtymistä tehtävään.
+Testaa ymmärryksesi ennen siirtymistä tehtävään.
 
-**1. Kuinka suuri osa tuotantoagentista on suunnilleen "malli" ja mitä on loput?**
+**1. Kuinka suuri osa tuotantoagentista on suunnilleen "malli" ja mikä on muu osa?**
 
 <details>
 <summary>Vastaus</summary>
 
-Malli on järjestelmän vähemmistö — usein arvioidaan noin 20 %. Loput muodostavat toiminnallisen rangan: isännöinti ja versionhallinta, identiteetti ja RBAC, ulkoistettu tila, virheenkäsittely, kustannusten seuranta, arviointi ja ihmisen osallisuus ohjauksessa. Siirtyminen tuotantoon tarkoittaa suurimmaksi osaksi kaiken rakentamista *päättelysilmukan* ympärille.
+Malli on vähemmistö järjestelmästä — usein mainitaan noin 20 %. Loput ovat operatiivinen runko: hosting ja versiointi, identiteetti ja RBAC, ulkoistettu tila, virheenkäsittely, kustannusseuranta, arviointi ja ihminen-silmukassa -hallinta. Siirtyminen tuotantoon koskee pääasiassa kaikkea *ajattelusilmukan ympärillä*.
 </details>
 
-**2. Milloin valitsisit Hosted Agentin asiakas-isännöidyn agentin sijaan?**
+**2. Milloin valitsisit Hosted Agentin asiakasisännöidyn agentin sijaan?**
 
 <details>
 <summary>Vastaus</summary>
 
-Kun haluat hallinnoidun suoritusympäristön, jossa on sisäänrakennettu kestävyyttä (säikeet, jotka säilyvät ja voivat jatkua), havaittavuutta, sisältöturvaa ja RBACia, ja olet valmis vaihtamaan osan matalan tason kontrollista päättelysilmukasta pienemmän operatiivisen pinta-alan vuoksi. Asiakas-isännöity on parempi, kun tarvitset täyden kontrollin silmukasta tai upotat agentin olemassa olevaan taustajärjestelmään.
+Kun haluat hallitun suoritusaikaympäristön, jossa on sisäänrakennettu kestävyys (keskeytyksettömät ja jatkuvasti palautuvat säikeet), havaittavuus, sisällön turvallisuus ja RBAC, ja olet valmis luopumaan jonkin verran matalan tason hallinnasta ajattelusilmukassa vähentyneen operatiivisen pinta-alan vuoksi. Asiakasisännöity on suositeltava, kun tarvitset täyden hallinnan silmukan yli tai upotat agentin olemassa olevaan taustajärjestelmään.
 </details>
 
 **3. Miksi skaalautuvan agentin täytyy olla tilaton omassa prosessimuistissaan?**
@@ -309,93 +309,93 @@ Kun haluat hallinnoidun suoritusympäristön, jossa on sisäänrakennettu kestä
 <details>
 <summary>Vastaus</summary>
 
-Jotta mikä tahansa instanssi voi käsitellä minkä tahansa pyynnön, mikä mahdollistaa horisontaalisen skaalaamisen ilman tilausperusteisia istuntoja. Käyttäjäkohtainen keskustelutila on ulkoistettu säikeiden tallennuspalveluun tai muistipalveluun. Jos tila asuisi prosessimuistissa, se menetettäisiin uudelleenkäynnistyksessä eikä kuormaa voisi jakaa vapaasti.
+Jotta mikä tahansa instanssi voi käsitellä minkä tahansa pyynnön, mikä mahdollistaa vaakasuuntaisen skaalaamisen ilman kiinteitä istuntoja. Käyttäjäkohtaisten keskustelutilojen tila ulkoistetaan säievarastoon tai muistipalveluun. Jos tila olisi prosessimuistissa, se menisi hukkaan uudelleenkäynnistyksessä eikä kuormaa voisi jakaa vapaasti.
 </details>
 
-**4. Mitä ongelmaa mallien reititys ratkaisee ja miten se liittyy arviointiin?**
+**4. Minkä ongelman mallin reititys ratkaisee ja miten se liittyy arviointiin?**
 
 <details>
 <summary>Vastaus</summary>
 
-Reititys lähettää yksinkertaiset pyynnöt pienelle, edulliselle, nopealle mallille ja varaa suuren mallin varsinaiseen päättelyyn, säädellen sekä latenssia että kustannuksia. Se liittyy arviointiin, koska arviointi todistaa, että pieni malli on tarpeeksi hyvä eräälle pyyntölajille — ilman arviointia reititys on arvailua.
+Reititys ohjaa yksinkertaiset pyynnöt pienelle, edulliselle ja nopealle mallille ja varaa suuren mallin aidolle päättelylle, halliten sekä latenssia että kustannuksia. Se liittyy arviointiin, koska arviointi *todistaa*, että pieni malli on riittävän hyvä tietylle pyyntöluokalle — reititys ilman arviointia on arvailua.
 </details>
 
-**5. Mikä on "arviointiloukku" ja missä kohtaa elinkaaren se sijaitsee?**
+**5. Mikä on "arviointiloukku" ja missä se sijaitsee elinkaaren vaiheessa?**
 
 <details>
 <summary>Vastaus</summary>
 
-Arviointiloukku suorittaa offline-testisarjan uutta agentin versiota vastaan ja estää käyttöönoton, ellei läpäisyaste ylitä kynnystä. Se sijaitsee elinkaaressa "version" ja "käyttöönoton" välissä tehden laadusta ehdon julkaisulle sen sijaan, että sitä tarkistettaisiin vasta julkaisun jälkeen.
+Arviointiloukku ajaa offline-testisarjan uutta agentin versiota vastaan ja estää käyttöönoton, ellei läpäisyprosentti ylitä kynnystä. Se sijaitsee "versio" ja "käyttöönotto" -vaiheiden välissä elinkaarella, tehden laadusta ehtona julkaisulle sen sijaan, että tarkastus tehtäisiin jälkeenpäin.
 </details>
 
-**6. Miksi MCP-palvelinta pitäisi tuotannossa käsitellä epäluotettavana rajapintana?**
+**6. Miksi MCP-palvelinta tulee käsitellä epäluotettavana rajapintana tuotannossa?**
 
 <details>
 <summary>Vastaus</summary>
 
-Koska se on ulkoinen riippuvuus, johon agenttisi tekee kutsuja. Sen version tulisi olla lukittu, sitä pitäisi ajaa rajatussa identiteetissä, validoida sen tulokset, rajoittaa sen käyttöä ja olla koskaan paljastamatta salaisuuksia sille — sama kurinalaisuus kuin mihin tahansa kolmannen osapuolen riippuvuuteen. Sen tulokset vaikuttavat agentin päättelyyn, joten validoimaton luottamus on tietoturvariski.
+Koska se on ulkoinen riippuvuus, johon agenttisi kutsuu. Sen versio tulisi lukita, ajaa rajoitetulla identiteetillä, validoida sen tulokset, rajoittaa sen käyttöä ja olla koskaan paljastamatta salaisuuksia sille — sama kuri kuin muille kolmannen osapuolen riippuvuuksille. Sen tulokset vaikuttavat agentin päättelyyn, joten valvomaton luottamus on tietoturvariski.
 </details>
 
-**7. Mikä yksittäinen muutos vaikuttaa yleensä eniten tuotantoagentin kustannuksiin, ja miksi?**
+**7. Mikä yksittäinen muutos yleensä vaikuttaa eniten tuotantoagentin kustannuksiin ja miksi?**
 
 <details>
 <summary>Vastaus</summary>
 
-Oikean mallin koon valinta — käytät pienintä mallia, joka vielä läpäisee arviointiloukkuasi. Kustannukset koostuvat pääasiassa tokeneista, ja pienempi malli, joka täyttää laatutason, on lähes aina edullisempi kuin suurempi. Välimuisti ja reititys alentavat kustannuksia entisestään, mutta oikean perustason mallin valinnalla on suurin ensisijainen vaikutus.
+Mallin oikea koko — käyttää pienintä mallia, joka läpäisee arviointiloukun. Kustannukset muodostuvat pääosin tokeneista, ja pienempi malli, joka täyttää laatukynnyksen, on lähes aina edullisempi kuin isompi. Välimuistitus ja reititys alentavat kustannuksia vielä lisää, mutta oikean pohjamallin valinta vaikuttaa eniten.
 </details>
 
-**8. Millainen rooli span-atribuutteilla kuten `customer.tier` ja `routed.model` on havaittavuudessa?**
+**8. Mikä rooli leveysattribuuteilla kuten `customer.tier` ja `routed.model` on havaittavuudessa?**
 
 <details>
 <summary>Vastaus</summary>
 
-Ne muuttavat raakajäljet vastattaviksi liiketoiminnan kysymyksiksi. Ilman attribuutteja sinulla on pelkkä joukko span-eja; niiden avulla voit kysyä "reititetäänkö yritysasiakkaat liian usein pienelle mallille?" tai "mikä malli käsittelee hitaimmat pyyntömme?" Attribuutit ovat tapa pilkkoa telemetria sinulle tärkeiden ulottuvuuksien mukaan.
+Ne muuttavat raakajäljet vastauskelpoisiksi liiketoimintakysymyksiksi. Ilman attribuutteja sinulla on pelkkä sarja jälkiä; niiden kanssa voit kysyä "ohjataanko yritysasiakkaat liian usein pienelle mallille?" tai "mikä malli käsittelee hitaimmat pyyntömme?" Attribuutit ovat tapa segmentoida telemetriaa toimintasi kannalta merkityksellisillä ulottuvuuksilla.
 </details>
 
 ## Tehtävä
 
-Ota laboratoriosta asiakastukagentti ja vahvista sitä tiettyä skenaariota varten: **tilauslaskutuksen tukipalvelu SaaS-yritykselle.**
+Ota laboratoriosta asiakastukagentti ja tee siitä kestävä tietylle skenaariolle: **tilausten laskutustuki SaaS-yritykselle.**
 
-Palautuksesi tulisi sisältää:
+Palautuksesi tulisi:
 
-1. **Korvaa työkalut** laskutukseen liittyvillä: `get_subscription_status`, `get_invoice` ja `issue_credit` (yli 50 dollarin hyvitykset vaativat ihmisen hyväksynnän).
-2. **Lisää kolme RAG-dokumenttia**, jotka kattavat yrityksen hyvityskäytännön, laskutusjakson ja peruuttamiskäytännön.
-3. **Laajenna arviointisarjaa** vähintään kahdeksaan tapaukseen, mukaan lukien vähintään kaksi, joiden tulisi *laukaista* ihmisen hyväksyntäreitti, ja varmista että arviointiloukku toimii oikein.
-4. **Lisää yksi kustannusraportti**: ajon jälkeen kymmenellä sekoitetulla kyselyllä agentin läpi, tulosta kuinka monta meni pienelle mallille, kuinka monta suurelle mallille ja kuinka monta palveltiin välimuistista.
+1. **Korvata työkalut** laskutukseen liittyvillä: `get_subscription_status`, `get_invoice` ja `issue_credit` (yli 50 dollarin hyvitykset vaativat ihmisen hyväksynnän).
+2. **Lisätä kolme RAG-dokumenttia**, jotka kattavat yrityksen hyvityskäytännön, laskutusjakson ja peruutuskäytännön.
+3. **Laajentaa arviointisarjaa** vähintään kahdeksaan tapaukseen, joista ainakin kaksi *pitäisi* laukaista ihmisen hyväksymisreitti, ja varmistaa, että arviointiloukku toimii oikein.
+4. **Lisätä yksi kustannusraportti**: kymmenen erilaista kyselyä ajettua agentin läpi, tulostaa kuinka monta päätyi pienelle mallille, kuinka monta isolle mallille ja kuinka monta palveltiin välimuistista.
 
-Kirjoita lyhyt kappale (markdown-soluun), jossa selität valitsemasi mallien reitityssäännön ja miten validoisit sen todellisella liikenteellä. Oikeaa vastausta ei ole — sinua arvioidaan sen mukaan, kuinka johdonmukaisesti tuotantoon liittyvät asiat on yhdistetty.
+Kirjoita lyhyt kappale (markdown-soluun), jossa selität valitsemasi mallin reitityssäännön ja miten validoisit sen todellisella liikenteellä. Ei ole yhtä oikeaa vastausta — sinua arvioidaan sen perusteella, ovatko tuotantoon liittyvät asiat jäsennelty järkevästi.
 
 ## Yhteenveto
 
 Tässä oppitunnissa siirsit agentin prototyypistä tuotantoon Microsoft Foundryn avulla:
 
-- Siirtyminen tuotantoon tarkoittaa suurimmaksi osaksi **toiminnallista runkoa** mallin ympärillä — isännöintiä, identiteettiä, tilaa, virheenkäsittelyä, kustannuksia, laatua ja luotettavuutta.
-- Opit kolme **käyttöönotto-kuviota** — asiakas-isännöity, Hosted Agentit ja Agenttityönkulut — ja milloin kukin soveltuu.
-- Kävit läpi **agentin elinkaaren**, jossa offline-**arviointi toimii julkaisuesteenä** ja online-havaittavuus syöttää virheet takaisin testisarjaan.
-- Käytit **skaalausstrategioita** — tilattomuus, mallin reititys, välimuisti ja rajoitettu samanaikaisuus — ja yhdistit ne **kustannusten optimointiin**.
-- Otit käyttöön **yritystason kontrollit**: RBAC, ihmisen hyväksyntä silmukan osana ja MCP-integraation tuotantoturvallisuus.
-- Rakensit **tuotantovalmis asiakastukagentin**, joka yhdistää kaikki nämä asiat toimivaksi koodiksi.
+- Siirtymä tuotantoon koskee pääosin **mallin ympärillä olevaa operatiivista runkoa** — hosting, identiteetti, tila, virheenkäsittely, kustannukset, laatu ja luottamus.
+- Opit kolme **käyttöönotto-mallia** — asiakasisännöity, Hosted Agents ja Agent Workflows — ja milloin kukin soveltuu.
+- Kävit läpi **agentin elinkaaren**, jossa offline-**arviointi toimii julkaisuluukkuna** ja online-havaittavuus ohjaa virheet takaisin testisarjaan.
+- Käytit **skaalausstrategioita** — tilattomuus, mallin reititys, välimuistitus ja rajallinen samanaikaisuus — ja yhdistit ne **kustannusten optimointiin**.
+- Liitit mukaan **yritystason hallintakeinoja**: RBAC, ihmisen hyväksyntä ja tuotantoon turvallinen MCP-integraatio.
+- Rakensit **tuotantovalmiin asiakastukiagentin**, joka kokoaa kaikki nämä kysymykset yhteen suoritettavaan koodiin.
 
-Seuraava oppitunti kulkee päinvastaiseen suuntaan: skaalaamisen sijaan pilveen viet, tuot ne *alas* yhdelle kehittäjän koneelle ja ajat täysin paikallisesti.
+Seuraavassa oppitunnissa teet päinvastaisen matkan: skaalauksen sijaan tuot agentit *alas* yhdelle kehittäjän koneelle ja ajat ne kokonaan paikallisesti.
 
 ## Lisäresurssit
 
 - <a href="https://learn.microsoft.com/azure/ai-foundry/what-is-azure-ai-foundry" target="_blank">Microsoft Foundry -dokumentaatio</a>
 - <a href="https://learn.microsoft.com/azure/ai-foundry/agents/overview" target="_blank">Microsoft Foundry Agent Service -yleiskatsaus</a>
 - <a href="https://aka.ms/ai-agents-beginners/agent-framework" target="_blank">Microsoft Agent Framework</a>
-- <a href="https://learn.microsoft.com/azure/ai-foundry/concepts/model-router" target="_blank">Mallien reititin Microsoft Foundryssa</a>
+- <a href="https://learn.microsoft.com/azure/ai-foundry/concepts/model-router" target="_blank">Model Router Microsoft Foundryssa</a>
 - <a href="https://learn.microsoft.com/azure/search/search-what-is-azure-search" target="_blank">Azure AI Search</a>
 - <a href="https://opentelemetry.io/" target="_blank">OpenTelemetry</a>
 - <a href="https://github.com/marketplace/actions/ai-smoke-test" target="_blank">AI Smoke Test GitHub Action</a>
 - <a href="https://modelcontextprotocol.io/" target="_blank">Model Context Protocol (MCP)</a>
 
-## Edellinen oppitunti
+## Edellinen Oppitunti
 
-[Rakennetaan tietokoneen käyttöagentteja (CUA)](../15-browser-use/README.md)
+[Building Computer Use Agents (CUA)](../15-browser-use/README.md)
 
-## Seuraava oppitunti
+## Seuraava Oppitunti
 
-[Paikallisten AI-agenttien luominen](../17-creating-local-ai-agents/README.md)
+[Creating Local AI Agents](../17-creating-local-ai-agents/README.md)
 
 ---
 

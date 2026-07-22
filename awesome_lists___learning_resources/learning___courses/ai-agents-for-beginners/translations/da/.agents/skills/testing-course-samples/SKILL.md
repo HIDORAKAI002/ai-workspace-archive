@@ -1,73 +1,80 @@
 ---
 name: testing-course-samples
 ---
-# Test af Kursusprøver
+# Test af kursusprøver
 
-Bekræft, at lektionens notesbøger og kodeeksempler kører mod en live
-Microsoft Foundry / Azure OpenAI opsætning. Repoet leverer en runner i
-[`scripts/validate-notebooks.ps1`](../../../../../scripts/validate-notebooks.ps1) som
-eksekverer hver Python-notesbog headless og printer en PASS/FAIL matrix.
+Bekræft, at lektions-notebooks og kodeeksempler kører mod en aktiv
+Microsoft Foundry / Azure OpenAI opsætning. Repoet indeholder en runner i
+[`scripts/validate-notebooks.ps1`](../../../../../scripts/validate-notebooks.ps1), som
+eksekverer hver Python-notebook headlessly og udskriver en PASS/FAIL matrix.
 
-## Hvornår skal det bruges
-- "Valider alle notesbøger / prøver mod mit Azure abonnement."
-- "Røgtest kurset efter opgraderinger af pakker eller ændringer i modeller."
-- "Hvilke lektioner består stadig / fejler live?"
+## Hvornår bruges den
+- "Valider alle notebooks / prøver mod mit Azure abonnement."
+- "Røgryst kurset efter opgradering af pakker eller ændring af modeller."
+- "Hvilke lektioner går stadig igennem / fejler live?"
 
-Brug **ikke** dette til AI Smoke Test GitHub Action (som validerer *udrullede*
+Brug **ikke** denne til AI Smoke Test GitHub Action (som validerer *udrullede*
 hostede agenter — se [`tests/README.md`](../../../tests/README.md)). Denne skill
-kører notesbøgerne lokalt.
+kører notebooks lokalt.
 
-## Forudsætninger (tjek først)
+## Forudsætninger (kontrollér først)
 1. **Python 3.12+** med kursusafhængigheder: `python -m pip install -r requirements.txt`
-   plus eksekutoren: `python -m pip install nbconvert ipykernel`.
-2. **`.env` i repoets rod** (kopier fra [`.env.example`](../../../../../.env.example)) med mindst:
+   plus eksekvereren: `python -m pip install nbconvert ipykernel`.
+2. **`.env` i repoets rod** (kopiér fra [`.env.example`](../../../../../.env.example)) med mindst:
    - `AZURE_AI_PROJECT_ENDPOINT` — Foundry projekt-endpoint
      (`https://<account>.services.ai.azure.com/api/projects/<project>`)
-   - `AZURE_AI_MODEL_DEPLOYMENT_NAME` — en ikke-deprecieret udrulning (f.eks. `gpt-4.1-mini`)
+   - `AZURE_AI_MODEL_DEPLOYMENT_NAME` — en ikke-deprecieret udrulning (fx `gpt-5-mini`)
    - `AZURE_OPENAI_ENDPOINT` (`https://<account>.openai.azure.com`) og `AZURE_OPENAI_DEPLOYMENT`
-     for lektioner, der kalder Azure OpenAI direkte (Lesson 06, 02-azure-openai, 14 handoff/human-loop).
-3. **`az login`** fuldført — prøver autentificerer med `AzureCliCredential` (Entra ID, nøglefri).
+     for lektioner, der kalder Azure OpenAI direkte (Lektion 06, 02-azure-openai, 14 handoff/human-loop).
+3. **`az login`** gennemført — prøverne godkendes med `AzureCliCredential` (Entra ID, keyless).
 4. Bekræft at modeludrulningen findes:
    `az cognitiveservices account deployment list -g <rg> -n <account> -o table`.
 
-## Kørsel af valideringen
+## Kørsel af validering
 ```powershell
 # Alle Python-notebooks (springer .NET, .venv, site-packages, oversættelser, færdighedsaktiver over)
 pwsh scripts/validate-notebooks.ps1
 
-# En enkelt lektion, med en længere timeout per celle
+# En enkelt lektion med en længere timeout pr. celle
 pwsh scripts/validate-notebooks.ps1 -Filter '08-*' -Timeout 600
 
-# Bare list hvad der ville blive kørt (ingen udførelse)
+# Bare list, hvad der ville køre (ingen udførelse)
 pwsh scripts/validate-notebooks.ps1 -List
 
-# Eksplicit fortolker (hvis `python` ikke er på PATH, f.eks. Windows Store-alias)
+# Eksplicit fortolker (hvis `python` ikke er på PATH, f.eks. Windows Store alias)
 pwsh scripts/validate-notebooks.ps1 -Python "C:/path/to/python.exe"
 ```
-Scriptet skriver eksekverede kopier, per-notesbog logs og `results.json` til
-`$env:TEMP\aiab-nbval` og afslutter med antal fejl.
+Skriptet skriver eksekverede kopier, per-notebook logs, og `results.json` til
+`$env:TEMP\aiab-nbval` og afslutter med antallet af fejl.
+
+Forbigående fejl (shared-subscription HTTP 429 rate limits, en lejlighedsvis
+`AzureCliCredential` token-fejl eller timeout) prøves automatisk igen
+(`-Retries`, standard 2, med `-RetryDelaySeconds` tilbagekobling, standard 20). Hvis en
+modeludrulning jævnligt giver 429, tjek abonnementets GlobalStandard
+TPM-kvote (`az cognitiveservices usage list -l <region>`) — at øge en enkelt
+udrulnings kapacitet hjælper ikke når *abonnementets* kvote er opbrugt.
 
 ## Fortolkning af resultater
-- `PASS` — notesbogen kørte end-to-end uden cellefejl.
-- `FAIL` — den første `*Error` / `*Exception` linje vises; åbn den tilhørende
-  `log_*.txt` i output-mappen for fuld trace.
-- En enkelt notesbogs fejl er begrænset af `-Timeout` (pr. celle), så en hængende
-  human-in-the-loop celle giver `StdinNotImplementedError` i stedet for at hænge.
+- `PASS` — notebooken kørte igennem fra start til slut uden cellefejl.
+- `FAIL` — den første `*Error` / `*Exception` linje vises; åbn den tilsvarende
+  `log_*.txt` i output-mappen for fuld traceback.
+- En enkelt notebooks fejl begrænses af `-Timeout` (per celle), så en frossen
+  human-in-the-loop celle fremstår som `StdinNotImplementedError` i stedet for at fryse.
 
-## Lektioner som kræver ekstra ressourcer (forventet at fejle uden)
+## Lektioner der kræver ekstra ressourcer (forventes at fejle uden dem)
 | Lektion | Ekstra krav |
 |--------|------------|
-| 05 Agentic RAG | Azure AI Search (`AZURE_SEARCH_SERVICE_ENDPOINT`, nøgle) — har en fallback i hukommelsen |
+| 05 Agentic RAG | Azure AI Search (`AZURE_SEARCH_SERVICE_ENDPOINT`, nøgle) — har en fallback vej i hukommelsen |
 | 11 MCP / GitHub | GitHub MCP server + PAT |
 | 13 memory (cognee) | `cognee` konfigureret med en modeludbyder |
 | 15 browser-use | Playwright browsere installeret (`playwright install`) + `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME` |
-| 17 local agent | Foundry Local runtime + en downloadet Qwen model (on-device, ingen cloud) |
-| `*-dotnet-*` notesbøger | .NET Interactive kernel (udelukket som standard; brug `-IncludeDotnet`) |
+| 17 lokal agent | Foundry Local runtime + en downloadet Qwen model (on-device, ikke i skyen) |
+| `*-dotnet-*` notebooks | .NET Interactive kernel (udelukket som standard; brug `-IncludeDotnet`) |
 
 ## Rapportering tilbage
-Opsummer som en PASS/FAIL tabel grupperet efter lektion. Adskil ægte regressioner
-(kode-/konfigurationsfejl der skal fikses) fra miljø-mangler (manglende Search/Foundry Local/PAT),
-og henvis til den fejlede `log_*.txt` for hver reel fejl.
+Opsummer som en PASS/FAIL tabel grupperet efter lektion. Skill ægte regressionsfejl
+(kode-/konfigurationsfejl der skal rettes) fra miljømangler (manglende Search/Foundry Local/PAT),
+og referer til den fejlede `log_*.txt` for hver reel fejl.
 
 ---
 

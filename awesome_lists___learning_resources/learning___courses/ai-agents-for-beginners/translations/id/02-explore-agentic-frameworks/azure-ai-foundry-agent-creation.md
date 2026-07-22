@@ -1,28 +1,28 @@
-# Pengembangan Layanan Agen Microsoft Foundry
+# Pengembangan Layanan Microsoft Foundry Agent
 
-Dalam latihan ini, Anda menggunakan alat Layanan Agen Microsoft Foundry di [portal Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) untuk membuat agen Pemesanan Penerbangan. Agen ini akan dapat berinteraksi dengan pengguna dan memberikan informasi tentang penerbangan.
+Dalam latihan ini, Anda menggunakan alat Layanan Microsoft Foundry Agent di [portal Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) untuk membuat agen untuk Pemesanan Penerbangan. Agen ini akan mampu berinteraksi dengan pengguna dan memberikan informasi tentang penerbangan.
 
 ## Prasyarat
 
 Untuk menyelesaikan latihan ini, Anda memerlukan hal berikut:
 1. Akun Azure dengan langganan aktif. [Buat akun secara gratis](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst).
-2. Anda memerlukan izin untuk membuat hub Microsoft Foundry atau memiliki satu yang dibuatkan untuk Anda.
+2. Anda memerlukan izin untuk membuat hub Microsoft Foundry atau memiliki satu yang dibuat untuk Anda.
     - Jika peran Anda adalah Kontributor atau Pemilik, Anda dapat mengikuti langkah-langkah dalam tutorial ini.
 
 ## Membuat hub Microsoft Foundry
 
 > **Catatan:** Microsoft Foundry sebelumnya dikenal sebagai Azure AI Studio.
 
-1. Ikuti panduan dari posting blog [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) untuk membuat hub Microsoft Foundry.
-2. Setelah proyek Anda dibuat, tutup tips yang ditampilkan dan tinjau halaman proyek di portal Microsoft Foundry, yang seharusnya terlihat seperti gambar berikut:
+1. Ikuti panduan dari [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) dalam posting blog untuk membuat hub Microsoft Foundry.
+2. Setelah proyek Anda dibuat, tutup semua tips yang ditampilkan dan tinjau halaman proyek di portal Microsoft Foundry, yang seharusnya terlihat mirip dengan gambar berikut:
 
     ![Microsoft Foundry Project](../../../translated_images/id/azure-ai-foundry.88d0c35298348c2f.webp)
 
-## Men-deploy model
+## Menyebarkan model
 
-1. Di panel kiri untuk proyek Anda, di bagian **My assets**, pilih halaman **Models + endpoints**.
-2. Di halaman **Models + endpoints**, pada tab **Model deployments**, di menu **+ Deploy model**, pilih **Deploy base model**.
-3. Cari model `gpt-4.1-mini` dalam daftar, lalu pilih dan konfirmasi.
+1. Pada panel di kiri untuk proyek Anda, di bagian **My assets**, pilih halaman **Models + endpoints**.
+2. Pada halaman **Models + endpoints**, di tab **Model deployments**, pada menu **+ Deploy model**, pilih **Deploy base model**.
+3. Cari model `gpt-5-mini` dalam daftar, lalu pilih dan konfirmasi.
 
     > **Catatan**: Mengurangi TPM membantu menghindari penggunaan kuota berlebihan yang tersedia dalam langganan yang Anda gunakan.
 
@@ -30,13 +30,13 @@ Untuk menyelesaikan latihan ini, Anda memerlukan hal berikut:
 
 ## Membuat agen
 
-Sekarang Anda telah men-deploy model, Anda dapat membuat agen. Agen adalah model AI percakapan yang dapat digunakan untuk berinteraksi dengan pengguna.
+Sekarang setelah Anda menyebarkan sebuah model, Anda dapat membuat agen. Agen adalah model AI percakapan yang dapat digunakan untuk berinteraksi dengan pengguna.
 
-1. Di panel kiri untuk proyek Anda, di bagian **Build & Customize**, pilih halaman **Agents**.
-2. Klik **+ Create agent** untuk membuat agen baru. Di bawah kotak dialog **Agent Setup**:
+1. Pada panel di kiri untuk proyek Anda, di bagian **Build & Customize**, pilih halaman **Agents**.
+2. Klik **+ Create agent** untuk membuat agen baru. Di kotak dialog **Agent Setup**:
     - Masukkan nama untuk agen, misalnya `FlightAgent`.
-    - Pastikan model deployment `gpt-4.1-mini` yang Anda buat sebelumnya dipilih
-    - Atur **Instructions** sesuai prompt yang Anda inginkan agen ikuti. Berikut adalah contohnya:
+    - Pastikan penyebaran model `gpt-5-mini` yang Anda buat sebelumnya telah dipilih.
+    - Atur **Instructions** sesuai dengan prompt yang Anda inginkan agar agen ikuti. Berikut adalah contoh:
     ```
     You are FlightAgent, a virtual assistant specialized in handling flight-related queries. Your role includes assisting users with searching for flights, retrieving flight details, checking seat availability, and providing real-time flight status. Follow the instructions below to ensure clarity and effectiveness in your responses:
 
@@ -64,9 +64,9 @@ Sekarang Anda telah men-deploy model, Anda dapat membuat agen. Agen adalah model
     
     ```
 > [!NOTE]
-> Untuk prompt yang lebih detail, Anda dapat melihat [repositori ini](https://github.com/ShivamGoyal03/RoamMind) untuk informasi lebih lanjut.
+> Untuk prompt yang lebih rinci, Anda dapat memeriksa [repository ini](https://github.com/ShivamGoyal03/RoamMind) untuk informasi lebih lanjut.
     
-> Selanjutnya, Anda dapat menambahkan **Knowledge Base** dan **Actions** untuk meningkatkan kemampuan agen dalam menyediakan lebih banyak informasi dan melakukan tugas otomatis berdasarkan permintaan pengguna. Untuk latihan ini, Anda dapat melewati langkah-langkah tersebut.
+> Selain itu, Anda dapat menambahkan **Knowledge Base** dan **Actions** untuk meningkatkan kemampuan agen dalam memberikan informasi lebih dan melakukan tugas otomatis berdasarkan permintaan pengguna. Untuk latihan ini, Anda dapat melewatkan langkah-langkah tersebut.
     
 ![Agent Setup](../../../translated_images/id/agent-setup.9bbb8755bf5df672.webp)
 
@@ -77,23 +77,23 @@ Sekarang Anda telah men-deploy model, Anda dapat membuat agen. Agen adalah model
 
 Setelah membuat agen, Anda dapat mengujinya untuk melihat bagaimana responnya terhadap pertanyaan pengguna di playground portal Microsoft Foundry.
 
-1. Di bagian atas panel **Setup** untuk agen Anda, pilih **Try in playground**.
-2. Di panel **Playground**, Anda dapat berinteraksi dengan agen dengan mengetik pertanyaan di jendela chat. Misalnya, Anda dapat meminta agen mencari penerbangan dari Seattle ke New York pada tanggal 28.
+1. Pada bagian atas panel **Setup** untuk agen Anda, pilih **Try in playground**.
+2. Di panel **Playground**, Anda dapat berinteraksi dengan agen dengan mengetik pertanyaan di jendela chat. Misalnya, Anda dapat meminta agen untuk mencari penerbangan dari Seattle ke New York pada tanggal 28.
 
-    > **Catatan**: Agen mungkin tidak memberikan jawaban yang akurat, karena dalam latihan ini tidak digunakan data waktu nyata. Tujuannya adalah menguji kemampuan agen dalam memahami dan merespon pertanyaan pengguna berdasarkan instruksi yang diberikan.
+    > **Catatan**: Agen mungkin tidak memberikan jawaban yang akurat, karena tidak ada data waktu nyata yang digunakan dalam latihan ini. Tujuannya adalah untuk menguji kemampuan agen memahami dan merespon pertanyaan pengguna berdasarkan instruksi yang diberikan.
 
     ![Agent Playground](../../../translated_images/id/agent-playground.dc146586de715010.webp)
 
-3. Setelah menguji agen, Anda dapat menyesuaikannya lebih lanjut dengan menambahkan lebih banyak intents, data pelatihan, dan tindakan untuk meningkatkan kemampuannya.
+3. Setelah menguji agen, Anda dapat menyesuaikannya lebih lanjut dengan menambahkan lebih banyak intent, data pelatihan, dan aksi untuk meningkatkan kemampuannya.
 
 ## Membersihkan sumber daya
 
-Setelah selesai menguji agen, Anda dapat menghapusnya untuk menghindari biaya tambahan.
-1. Buka [portal Azure](https://portal.azure.com) dan lihat isi grup sumber daya tempat Anda men-deploy sumber daya hub yang digunakan dalam latihan ini.
-2. Di toolbar, pilih **Delete resource group**.
-3. Masukkan nama grup sumber daya dan konfirmasikan bahwa Anda ingin menghapusnya.
+Setelah selesai menguji agen, Anda dapat menghapusnya untuk menghindari pengeluaran tambahan.
+1. Buka [portal Azure](https://portal.azure.com) dan lihat isi grup sumber daya tempat Anda menyebarkan sumber daya hub yang digunakan dalam latihan ini.
+2. Pada toolbar, pilih **Delete resource group**.
+3. Masukkan nama grup sumber daya dan konfirmasi bahwa Anda ingin menghapusnya.
 
-## Sumber Daya
+## Sumber daya
 
 - [Dokumentasi Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst)
 - [Portal Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst)

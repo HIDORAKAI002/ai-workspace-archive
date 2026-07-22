@@ -1,38 +1,38 @@
-# 🎨 Agentdesignmønstre med Azure OpenAI (Responses API) (.NET)
+# 🎨 Agentiske designmønstre med Azure OpenAI (Responses API) (.NET)
 
 ## 📋 Læringsmål
 
-Dette eksemplet demonstrerer bedriftsklare designmønstre for å bygge intelligente agenter ved bruk av Microsoft Agent Framework i .NET med Azure OpenAI (Responses API) integrasjon. Du vil lære profesjonelle mønstre og arkitektoniske tilnærminger som gjør agenter produksjonsklare, vedlikeholdsvennlige og skalerbare.
+Dette eksempelet demonstrerer bedriftsnivå designmønstre for å bygge intelligente agenter ved bruk av Microsoft Agent Framework i .NET med integrasjon av Azure OpenAI (Responses API). Du vil lære profesjonelle mønstre og arkitektoniske tilnærminger som gjør agenter produksjonsklare, vedlikeholdbare og skalerbare.
 
 ### Bedriftsdesignmønstre
 
-- 🏭 **Factory Pattern**: Standardisert agentopprettelse med avhengighetsinjeksjon
+- 🏭 **Factory Pattern**: Standardisert agentoppretting med avhengighetsinjeksjon
 - 🔧 **Builder Pattern**: Flytende agentkonfigurasjon og oppsett
-- 🧵 **Trådsikre mønstre**: Samtidig samtalehåndtering
-- 📋 **Repository Pattern**: Organisert verktøy- og kapabilitetsadministrasjon
+- 🧵 **Trådsikre mønstre**: Samtidig samtalestyring
+- 📋 **Repository Pattern**: Organisert verktøy- og kapabilitetsstyring
 
 ## 🎯 .NET-spesifikke arkitekturfordeler
 
-### Bedriftsegenskaper
+### Bedriftsfunksjoner
 
-- **Sterk typing**: Kompileringstid validering og IntelliSense-støtte
+- **Sterk typning**: Kompileringstidvalidering og IntelliSense-støtte
 - **Avhengighetsinjeksjon**: Innebygd DI-kontainerintegrasjon
-- **Konfigurasjonsadministrasjon**: IConfiguration og Options-mønstre
+- **Konfigurasjonsstyring**: IConfiguration og Options-mønstre
 - **Async/Await**: Førsteklasses asynkron programmeringsstøtte
 
 ### Produksjonsklare mønstre
 
-- **Loggingintegrasjon**: ILogger og strukturert loggunderstøttelse
-- **Helsetilsyn**: Innebygd overvåkning og diagnostikk
-- **Konfigurasjonsvalidering**: Sterk typing med dataanmerkninger
+- **Loggintegrasjon**: ILogger og strukturert loggstøtte
+- **Helsetester**: Innebygd overvåkning og diagnostikk
+- **Konfigurasjonsvalidering**: Sterk typning med dataannotasjoner
 - **Feilhåndtering**: Strukturert unntakshåndtering
 
-## 🔧 Teknisk Arkitektur
+## 🔧 Teknisk arkitektur
 
 ### Kjerne .NET-komponenter
 
 - **Microsoft.Extensions.AI**: Enhetlige AI-tjenesteabstraksjoner
-- **Microsoft.Agents.AI**: Bedriftsagentor-kestreringsrammeverk
+- **Microsoft.Agents.AI**: Bedriftsagentorkestreringsrammeverk
 - **Azure OpenAI (Responses API)**: Høyytelses API-klientmønstre
 - **Konfigurasjonssystem**: appsettings.json og miljøintegrasjon
 
@@ -40,84 +40,84 @@ Dette eksemplet demonstrerer bedriftsklare designmønstre for å bygge intellige
 
 ```mermaid
 graph LR
-    A[IServiceCollection] --> B[Agent Bygger]
+    A[IServiceCollection] --> B[Agentbygger]
     B --> C[Konfigurasjon]
     C --> D[Verktøyregister]
-    D --> E[AI Agent]
+    D --> E[AI-agent]
 ```
 
-## 🏗️ Demonstrerte bedriftsmønstre
+## 🏗️ Bedriftsmønstre demonstrert
 
 ### 1. **Skapende mønstre**
 
-- **Agent Factory**: Sentralisert agentopprettelse med konsekvent konfigurasjon
+- **Agent Factory**: Sentralisert agentoppretting med konsistent konfigurasjon
 - **Builder Pattern**: Flytende API for kompleks agentkonfigurasjon
-- **Singleton Pattern**: Delte ressurser og konfigurasjonsadministrasjon
-- **Avhengighetsinjeksjon**: Løs kopling og testbarhet
+- **Singleton Pattern**: Delte ressurser og konfigurasjonsstyring
+- **Avhengighetsinjeksjon**: Løs kobling og testbarhet
 
-### 2. **Atferdsmønstre**
+### 2. **Adferdsmønstre**
 
 - **Strategy Pattern**: Utskiftbare verktøyutførelsesstrategier
 - **Command Pattern**: Innpakket agentoperasjoner med angre/gjenta
-- **Observer Pattern**: Hendelsesdrevet livssyklusadministrasjon for agent
-- **Template Method**: Standardiserte agentutførelsesarbeidsflyter
+- **Observer Pattern**: Hendelsesdrevet agentlivssyklusstyring
+- **Template Method**: Standardiserte agentutførelsesflyter
 
 ### 3. **Strukturelle mønstre**
 
 - **Adapter Pattern**: Azure OpenAI (Responses API) integrasjonslag
-- **Decorator Pattern**: Agentkapabilitetsforbedring
+- **Decorator Pattern**: Forbedring av agentkapabiliteter
 - **Facade Pattern**: Forenklede agentinteraksjonsgrensesnitt
-- **Proxy Pattern**: Fagutsettelse og caching for ytelse
+- **Proxy Pattern**: Lat lasting og caching for ytelse
 
 ## 📚 .NET designprinsipper
 
-### SOLID prinsipper
+### SOLID-prinsippene
 
 - **Single Responsibility**: Hver komponent har ett klart formål
-- **Open/Closed**: Utvidbar uten modifikasjon
-- **Liskov Substitution**: Grensesnittbaserte verktøyimplementasjoner
-- **Interface Segregation**: Fokusert, sammenhengende grensesnitt
-- **Dependency Inversion**: Avhengighet til abstraksjoner, ikke konkretiseringer
+- **Open/Closed**: Utvidbart uten modifikasjon
+- **Liskov Substitution**: Grensesnittbaserte verktøyimplementeringer
+- **Interface Segregation**: Fokusert, sammensatte grensesnitt
+- **Dependency Inversion**: Avheng på abstraksjoner, ikke konkrete klasser
 
-### Clean Architecture
+### Ren arkitektur
 
-- **Domain Layer**: Kjerneagent- og verktøysabstraksjoner
-- **Application Layer**: Agentor-kestrering og arbeidsflyter
-- **Infrastructure Layer**: Azure OpenAI (Responses API) integrasjon og eksterne tjenester
-- **Presentation Layer**: Brukerinteraksjon og responssformatering
+- **Domene-lag**: Kjernen for agent- og verktøyabstraksjoner
+- **Applikasjons-lag**: Agentorkestrering og arbeidsflyter
+- **Infrastruktur-lag**: Azure OpenAI (Responses API) integrasjon og eksterne tjenester
+- **Presentasjons-lag**: Brukerinteraksjon og responsformatering
 
 ## 🔒 Bedriftsbetraktninger
 
 ### Sikkerhet
 
-- **Credential Management**: Sikker API-nøkkelhåndtering med IConfiguration
-- **Inputvalidering**: Sterk typing og validering med dataanmerkninger
-- **Outputsanitering**: Sikker responsbehandling og filtrering
-- **Audit Logging**: Omfattende operasjonssporing
+- **Kredentialhåndtering**: Sikker API-nøkkelhåndtering med IConfiguration
+- **Inndata-validering**: Sterk typning og validering via dataannotasjoner
+- **Output-rensing**: Sikker responsbehandling og filtrering
+- **Revisjonslogging**: Omfattende operasjonssporing
 
 ### Ytelse
 
 - **Async-mønstre**: Ikke-blokkerende I/O-operasjoner
 - **Connection Pooling**: Effektiv HTTP-klientadministrasjon
-- **Caching**: Responscaching for forbedret ytelse
-- **Ressursadministrasjon**: Korrekte avhendings- og oppryddingsmønstre
+- **Caching**: Respons-caching for forbedret ytelse
+- **Ressursstyring**: Korrekt disponering og oppryddingsmønstre
 
 ### Skalerbarhet
 
-- **Trådsikkerhet**: Samtidig agentutførelsesstøtte
-- **Ressurspooling**: Effektiv ressursutnyttelse
-- **Laststyring**: Ratelimiting og håndtering av backpressure
-- **Overvåkning**: Ytelsesmetrikker og helsetilsyn
+- **Trådsikkerhet**: Støtte for samtidig agentutførelse
+- **Ressurs-pooling**: Effektiv ressursutnyttelse
+- **Laststyring**: Hastighetsbegrensning og backpressure-håndtering
+- **Overvåkning**: Ytelsesmetrikk og helsetester
 
-## 🚀 Produksjonsdistribusjon
+## 🚀 Produksjonsutrulling
 
-- **Konfigurasjonsadministrasjon**: Miljøspesifikke innstillinger
-- **Loggstrategi**: Strukturert logging med korrelasjons-IDer
-- **Feilhåndtering**: Global unntakshåndtering med riktig gjenoppretting
-- **Overvåkning**: Application insights og ytelsestellere
-- **Testing**: Enhetstester, integrasjonstester og lasttestingmønstre
+- **Konfigurasjonsstyring**: Miljøspesifikke innstillinger
+- **Loggestrategi**: Strukturert logging med korrelasjons-IDer
+- **Feilhåndtering**: Global unntakshåndtering med korrekt gjenoppretting
+- **Overvåkning**: Application Insights og ytelsestellere
+- **Testing**: Enhetstester, integrasjonstester og lasttestmønstre
 
-Klar til å bygge bedriftsklare intelligente agenter med .NET? La oss arkitektere noe robust! 🏢✨
+Klar til å bygge intelligente agenter i bedriftsklassen med .NET? La oss arkitektere noe robust! 🏢✨
 
 ## 🚀 Komme i gang
 
@@ -127,21 +127,21 @@ Klar til å bygge bedriftsklare intelligente agenter med .NET? La oss arkitekter
 - Et [Azure-abonnement](https://azure.microsoft.com/free/) med en Azure OpenAI-ressurs og en modellutrulling
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — logg inn med `az login`
 
-### Påkrevde miljøvariabler
+### Nødvendige miljøvariabler
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Logg deretter inn slik at AzureCliCredential kan få en token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Logg deretter inn slik at AzureCliCredential kan hente en token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Logg inn slik at AzureCliCredential kan få en token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Logg deg på slik at AzureCliCredential kan hente en token
 az login
 ```
 
@@ -155,13 +155,13 @@ chmod +x ./03-dotnet-agent-framework.cs
 ./03-dotnet-agent-framework.cs
 ```
 
-Eller med dotnet CLI:
+Eller bruk dotnet CLI:
 
 ```bash
 dotnet run ./03-dotnet-agent-framework.cs
 ```
 
-Se [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) for fullstendig kode.
+Se [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) for komplett kode.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

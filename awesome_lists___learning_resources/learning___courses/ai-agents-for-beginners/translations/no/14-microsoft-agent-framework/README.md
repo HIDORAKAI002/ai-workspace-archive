@@ -2,76 +2,76 @@
 
 ![Agent Framework](../../../translated_images/no/lesson-14-thumbnail.90df0065b9d234ee.webp)
 
-### Innledning
+### Introduksjon
 
-Denne leksjonen vil gå gjennom:
+Denne leksjonen vil dekke:
 
 - Forstå Microsoft Agent Framework: Nøkkelfunksjoner og verdi  
-- Utforske kjernebegrepene i Microsoft Agent Framework
-- Avanserte MAF-mønstre: Arbeidsflyt, mellomvare og minne
+- Utforske nøkkelbegrepene i Microsoft Agent Framework
+- Avanserte MAF-mønstre: Arbeidsflyter, mellomvare og minne
 
 ## Læringsmål
 
-Etter å ha fullført denne leksjonen, vil du kunne:
+Etter å ha fullført denne leksjonen, vil du vite hvordan du:
 
-- Bygge produksjonsklare AI-agenter med Microsoft Agent Framework
-- Anvende kjernefunksjonene i Microsoft Agent Framework i dine agentiske brukstilfeller
-- Bruke avanserte mønstre inkludert arbeidsflyter, mellomvare og observabilitet
+- Bygger produksjonsklare AI-agenter ved å bruke Microsoft Agent Framework
+- Anvender kjernefunksjonene i Microsoft Agent Framework på dine agentiske brukstilfeller
+- Bruker avanserte mønstre inkludert arbeidsflyter, mellomvare og observabilitet
 
 ## Eksempelkode 
 
-Eksempelkode for [Microsoft Agent Framework (MAF)](https://aka.ms/ai-agents-beginners/agent-framework) finnes i dette depotet under filene `xx-python-agent-framework` og `xx-dotnet-agent-framework`.
+Eksempelkode for [Microsoft Agent Framework (MAF)](https://aka.ms/ai-agents-beginners/agent-framework) finnes i dette arkivet under filene `xx-python-agent-framework` og `xx-dotnet-agent-framework`.
 
 ## Forstå Microsoft Agent Framework
 
 ![Framework Intro](../../../translated_images/no/framework-intro.077af16617cf130c.webp)
 
-[Microsoft Agent Framework (MAF)](https://aka.ms/ai-agents-beginners/agent-framework) er Microsofts enhetlige rammeverk for å bygge AI-agenter. Det tilbyr fleksibilitet til å håndtere det brede spekteret av agentiske brukstilfeller som finnes i både produksjons- og forskningsmiljøer, inkludert:
+[Microsoft Agent Framework (MAF)](https://aka.ms/ai-agents-beginners/agent-framework) er Microsofts enhetlige rammeverk for å bygge AI-agenter. Det tilbyr fleksibilitet til å håndtere den store variasjonen av agentiske brukstilfeller som sees både i produksjon og forskningsmiljøer inkludert:
 
-- **Sekvensiell agentorkestrering** i scenarier hvor steg-for-steg arbeidsflyter er nødvendig.
+- **Sekvensiell agentorkestrering** i scenarier hvor trinnvise arbeidsflyter er nødvendig.
 - **Samtidig orkestrering** i scenarier hvor agenter må fullføre oppgaver samtidig.
-- **Gruppechatsorkestrering** i scenarier hvor agenter kan samarbeide om en oppgave.
-- **Overleveringsorkestrering** i scenarier hvor agenter overlater oppgaven til hverandre etter hvert som deloppgaver fullføres.
+- **Gruppechat-orkestrering** i scenarier hvor agenter kan samarbeide om én oppgave.
+- **Overleveringsorkestrering** i scenarier hvor agenter overleverer oppgaven til hverandre etter hvert som deloppgaver blir fullført.
 - **Magnetisk orkestrering** i scenarier hvor en lederagent oppretter og modifiserer en oppgaveliste og håndterer koordineringen av underagenter for å fullføre oppgaven.
 
-For å levere AI-agenter i produksjon inkluderer MAF også funksjoner for:
+For å levere AI-agenter i produksjon, inneholder MAF også funksjoner for:
 
-- **Observabilitet** gjennom bruk av OpenTelemetry hvor hver handling til AI-agenten inkludert verktøykall, orkestreringstrinn, resonnementstrømmer og ytelsesovervåking gjennom Microsoft Foundry dashboards.
-- **Sikkerhet** ved å hoste agenter nativt på Microsoft Foundry, som inkluderer sikkerhetskontroller som rollebasert tilgang, håndtering av private data og innebygd innholdssikkerhet.
-- **Holdbarhet** ettersom agenttråder og arbeidsflyter kan pause, gjenoppta og komme seg etter feil, noe som muliggjør lengre kjørende prosesser.
-- **Kontroll** da arbeidsflyter med menneskelig i sløyfen støttes, hvor oppgaver merkes som krever menneskelig godkjenning.
+- **Observabilitet** gjennom bruk av OpenTelemetry hvor hver handling fra AI-agenten inkludert verktøykall, orkestreringstrinn, resonnementflyter og ytelsesovervåking gjennom Microsoft Foundry dashboards.
+- **Sikkerhet** ved å hoste agenter nativt på Microsoft Foundry som inkluderer sikkerhetskontroller som rollebasert tilgang, håndtering av private data og innebygd innholdsikkerhet.
+- **Holdbarhet** ettersom agenttråder og arbeidsflyter kan pause, gjenoppta og gjenopprette fra feil som muliggjør lengre kjørende prosesser.
+- **Kontroll** da menneskelig involvering i arbeidsflytene støttes hvor oppgaver merkes som krever menneskelig godkjenning.
 
 Microsoft Agent Framework fokuserer også på å være interoperabel ved å:
 
-- **Være skytjeneste-agnostisk** - Agenter kan kjøre i containere, lokalt og på tvers av flere forskjellige skyer.
-- **Være leverandør-agnostisk** - Agenter kan opprettes via ditt foretrukne SDK inkludert Azure OpenAI og OpenAI
-- **Integrere åpne standarder** - Agenter kan bruke protokoller som Agent-til-Agent (A2A) og Model Context Protocol (MCP) for å oppdage og bruke andre agenter og verktøy.
-- **Plugins og tilkoblinger** - Tilkoblinger kan gjøres til data- og minnetjenester som Microsoft Fabric, SharePoint, Pinecone og Qdrant.
+- **Være sky-uavhengig** - Agenter kan kjøre i containere, lokalt og på tvers av flere forskjellige skyer.
+- **Være leverandøruavhengig** - Agenter kan opprettes gjennom ditt foretrukne SDK inkludert Azure OpenAI og OpenAI
+- **Integrere åpne standarder** - Agenter kan bruke protokoller som Agent-to-Agent(A2A) og Model Context Protocol (MCP) for å oppdage og bruke andre agenter og verktøy.
+- **Plugins og tilkoblinger** - Sammenkoblinger kan gjøres til data- og minnetjenester som Microsoft Fabric, SharePoint, Pinecone og Qdrant.
 
 La oss se på hvordan disse funksjonene anvendes på noen av kjernebegrepene i Microsoft Agent Framework.
 
-## Kjernebegreper i Microsoft Agent Framework
+## Nøkkelbegreper i Microsoft Agent Framework
 
 ### Agenter
 
 ![Agent Framework](../../../translated_images/no/agent-components.410a06daf87b4fef.webp)
 
-**Opprettelse av agent**
+**Opprette agenter**
 
-Agentopprettelse gjøres ved å definere inferenstjenesten (LLM-leverandør), et
-sett med instruksjoner AI-agenten skal følge, og et tilordnet `name`:
+Opprettelse av agent skjer ved å definere inferensetjenesten (LLM-leverandør), et
+sett instruksjoner for AI-agenten å følge, og et tildelt `navn`:
 
 ```python
 agent = AzureOpenAIChatClient(credential=AzureCliCredential()).create_agent( instructions="You are good at recommending trips to customers based on their preferences.", name="TripRecommender" )
 ```
 
-Ovenfor brukes `Azure OpenAI`, men agenter kan opprettes ved hjelp av ulike tjenester inkludert `Microsoft Foundry Agent Service`:
+Ovenfor brukes `Azure OpenAI` men agenter kan opprettes ved bruk av flere tjenester inkludert `Microsoft Foundry Agent Service`:
 
 ```python
 AzureAIAgentClient(async_credential=credential).create_agent( name="HelperAgent", instructions="You are a helpful assistant." ) as agent
 ```
 
-OpenAI `Responses`, `ChatCompletion` API-er
+OpenAI `Responses`, `ChatCompletion` APIer
 
 ```python
 agent = OpenAIResponsesClient().create_agent( name="WeatherBot", instructions="You are a helpful weather assistant.", )
@@ -81,7 +81,7 @@ agent = OpenAIResponsesClient().create_agent( name="WeatherBot", instructions="Y
 agent = OpenAIChatClient().create_agent( name="HelpfulAssistant", instructions="You are a helpful assistant.", )
 ```
 
-eller [MiniMax](https://platform.minimaxi.com/), som tilbyr en OpenAI-kompatibel API med store kontekstvinduer (opptil 204K tokens):
+eller [MiniMax](https://platform.minimaxi.com/), som tilbyr en OpenAI-kompatibel API med store kontekstvinduer (opp til 204K tokens):
 
 ```python
 agent = OpenAIChatClient(base_url="https://api.minimax.io/v1", api_key=os.environ["MINIMAX_API_KEY"], model_id="MiniMax-M3").create_agent( name="HelpfulAssistant", instructions="You are a helpful assistant.", )
@@ -95,7 +95,7 @@ agent = A2AAgent( name=agent_card.name, description=agent_card.description, agen
 
 **Kjøre agenter**
 
-Agenter kjøres med metodene `.run` eller `.run_stream` for henholdsvis ikke-strømmende eller strømmende svar.
+Agenter kjøres ved hjelp av `.run` eller `.run_stream` metoder for henholdsvis ikke-strømmende eller strømmende svar.
 
 ```python
 result = await agent.run("What are good places to visit in Amsterdam?")
@@ -109,13 +109,13 @@ async for update in agent.run_stream("What are the good places to visit in Amste
 
 ```
 
-Hver agentkjøring kan også ha valg for å tilpasse parametere som `max_tokens` brukt av agenten, `tools` agenten kan kalle, og selv `model` som brukes for agenten.
+Hver agentkjøring kan også ha alternativer for å tilpasse parametere som `max_tokens` som brukes av agenten, `tools` som agent kan kalle, og til og med `model` som selv brukes av agenten.
 
-Dette er nyttig i tilfeller hvor spesifikke modeller eller verktøy er påkrevd for å fullføre brukerens oppgave.
+Dette er nyttig i tilfeller hvor spesifikke modeller eller verktøy kreves for å utføre brukerens oppgave.
 
 **Verktøy**
 
-Verktøy kan defineres både ved definering av agenten:
+Verktøy kan defineres både ved opprettelse av agenten:
 
 ```python
 def get_attractions( location: Annotated[str, Field(description="The location to get the top tourist attractions for")], ) -> str: """Get the top tourist attractions for a given location.""" return f"The top attractions for {location} are." 
@@ -127,21 +127,21 @@ agent = ChatAgent( chat_client=OpenAIChatClient(), instructions="You are a helpf
 
 ```
 
-og også når agenten kjøres:
+og også ved kjøring av agenten:
 
 ```python
 
-result1 = await agent.run( "What's the best place to visit in Seattle?", tools=[get_attractions] # Verktøy levert kun for denne kjøringen )
+result1 = await agent.run( "What's the best place to visit in Seattle?", tools=[get_attractions] # Verktøy gitt kun for denne kjøringen )
 ```
 
 **Agenttråder**
 
-Agenttråder brukes til å håndtere samtaler med flere turer. Tråder kan opprettes enten ved:
+Agenttråder brukes til å håndtere flertrinns samtaler. Tråder kan opprettes ved enten:
 
-- Bruke `get_new_thread()` som gjør det mulig å lagre tråden over tid
-- Opprette en tråd automatisk når en agent kjøres, og kun ha tråden gjeldende under den nåværende kjøringen.
+- Bruke `get_new_thread()` som gjør at tråden kan lagres over tid
+- Opprette en tråd automatisk ved kjøring av en agent hvor tråden kun varer under den gjeldende kjøringen.
 
-For å opprette en tråd ser koden slik ut:
+For å opprette en tråd, ser koden slik ut:
 
 ```python
 # Opprett en ny tråd.
@@ -150,7 +150,7 @@ response = await agent.run("Hello, I am here to help you book travel. Where woul
 
 ```
 
-Du kan så serialisere tråden for lagring til senere bruk:
+Du kan deretter serialisere tråden for lagring til senere bruk:
 
 ```python
 # Opprett en ny tråd.
@@ -164,18 +164,18 @@ response = await agent.run("Hello, how are you?", thread=thread)
 
 serialized_thread = await thread.serialize() 
 
-# Deserialiser trådtilstanden etter innlasting fra lagring.
+# Deserialiser trådens tilstand etter lasting fra lagring.
 
 resumed_thread = await agent.deserialize_thread(serialized_thread)
 ```
 
 **Agent Mellomvare**
 
-Agenter samhandler med verktøy og LLM-er for å fullføre brukerens oppgaver. I visse scenarier ønsker vi å utføre eller spore mellom disse samhandlingene. Agent mellomvare gjør dette mulig ved:
+Agenter interagerer med verktøy og LLM-er for å fullføre brukerens oppgaver. I visse scenarier ønsker vi å utføre eller spore handlinger mellom disse interaksjonene. Agent mellomvare gjør dette mulig gjennom:
 
 *Funksjonsmellomvare*
 
-Denne mellomvaren tillater oss å utføre en handling mellom agenten og en funksjon/verktøy som den kaller. Et eksempel på når dette brukes er dersom du vil loggføre funksjonskallet.
+Denne mellomvaren lar oss utføre en handling mellom agenten og en funksjon/verktøy som den vil kalle. Et eksempel på bruk er hvis du ønsker å logge funksjonskallet.
 
 I koden under definerer `next` om neste mellomvare eller den faktiske funksjonen skal kalles.
 
@@ -195,9 +195,9 @@ async def logging_function_middleware(
     print(f"[Function] {context.function.name} completed")
 ```
 
-*Chat Mellomvare*
+*Chat-mellomvare*
 
-Denne mellomvaren tillater oss å utføre eller loggføre en handling mellom agenten og forespørslene til LLM.
+Denne mellomvaren lar oss utføre eller logge en handling mellom agenten og forespørslene mellom LLM.
 
 Dette inneholder viktig informasjon som `messages` som sendes til AI-tjenesten.
 
@@ -220,11 +220,11 @@ async def logging_chat_middleware(
 
 **Agentminne**
 
-Som dekket i leksjonen `Agentic Memory`, er minne et viktig element for å gjøre det mulig for agenten å fungere over forskjellige kontekster. MAF tilbyr flere ulike typer minne:
+Som dekket i `Agentic Memory`-leksjonen, er minne et viktig element for at agenten skal kunne operere over forskjellige kontekster. MAF tilbyr flere forskjellige typer minne:
 
-*Minne i arbeidsminnet*
+*In-memory storage*
 
-Dette er minnet som lagres i tråder under applikasjonskjøringen.
+Dette er minnet lagret i tråder under applikasjonens kjøretid.
 
 ```python
 # Opprett en ny tråd.
@@ -234,12 +234,12 @@ response = await agent.run("Hello, I am here to help you book travel. Where woul
 
 *Vedvarende meldinger*
 
-Dette minnet brukes til lagring av samtalehistorikk på tvers av forskjellige økter. Det defineres ved bruk av `chat_message_store_factory`:
+Dette minnet brukes til lagring av samtalehistorikk over flere økter. Det defineres ved bruk av `chat_message_store_factory`:
 
 ```python
 from agent_framework import ChatMessageStore
 
-# Opprett en tilpasset meldingslager
+# Opprett et egendefinert meldingslager
 def create_message_store():
     return ChatMessageStore()
 
@@ -275,7 +275,7 @@ agent = ChatAgent(
 
 **Agentobservabilitet**
 
-Observabilitet er viktig for å bygge pålitelige og vedlikeholdsvennlige agentiske systemer. MAF integreres med OpenTelemetry for å tilby tracing og målinger for bedre observabilitet.
+Observabilitet er viktig for å bygge pålitelige og vedlikeholdbare agentiske systemer. MAF integreres med OpenTelemetry for å tilby sporing og måleinstrumenter for bedre observabilitet.
 
 ```python
 from agent_framework.observability import get_tracer, get_meter
@@ -291,21 +291,21 @@ counter.add(1, {"key": "value"})
 
 ### Arbeidsflyter
 
-MAF tilbyr arbeidsflyter som er forhåndsdefinerte steg for å fullføre en oppgave og inkluderer AI-agenter som komponenter i stegene.
+MAF tilbyr arbeidsflyter som er forhåndsdefinerte trinn for å fullføre en oppgave og inkluderer AI-agenter som komponenter i disse trinnene.
 
-Arbeidsflyter består av forskjellige komponenter som gir bedre styring av flyten. Arbeidsflyter muliggjør også **multi-agent orkestrering** og **sjekkpunktering** for å lagre arbeidsflytens tilstander.
+Arbeidsflyter består av ulike komponenter som tillater bedre kontrollflyt. Arbeidsflyter muliggjør også **multi-agent orkestrering** og **checkpointing** for å lagre arbeidsflyttilstander.
 
-De viktigste komponentene i en arbeidsflyt er:
+Kjernen i en arbeidsflyt er:
 
 **Utførere**
 
-Utførere mottar innkommende meldinger, utfører tildelte oppgaver, og produserer så en utgående melding. Dette driver arbeidsflyten fremover mot å fullføre den større oppgaven. Utførere kan være enten AI-agent eller spesiallogikk.
+Utførere mottar innkommende meldinger, utfører tildelte oppgaver, og produserer deretter en utgående melding. Dette driver arbeidsflyten fremover mot å fullføre den større oppgaven. Utførere kan være enten AI-agent eller egendefinert logikk.
 
-**Kanter**
+**Kantrer**
 
-Kanter brukes til å definere flyten av meldinger i en arbeidsflyt. Disse kan være:
+Kantrer brukes for å definere flyten av meldinger i en arbeidsflyt. Disse kan være:
 
-*Direkte kanter* - Enkle en-til-en koblinger mellom utførere:
+*Direkte kantrer* - Enkle en-til-en forbindelser mellom utførere:
 
 ```python
 from agent_framework import WorkflowBuilder
@@ -316,65 +316,65 @@ builder.set_start_executor(source_executor)
 workflow = builder.build()
 ```
 
-*Betingede kanter* - Aktiveres når en bestemt betingelse oppfylles. For eksempel, når hotellrom ikke er tilgjengelig, kan en utfører foreslå andre alternativer.
+*Betingede kantrer* - Aktiveres når en viss betingelse er oppfylt. For eksempel, når hotellrom er utilgjengelige, kan en utfører foreslå andre alternativer.
 
-*Switch-case kanter* - Ruter meldinger til ulike utførere basert på definerte betingelser. For eksempel, om en reisekunde har prioritert tilgang og oppgaver håndteres gjennom en annen arbeidsflyt.
+*Switch-case kantrer* - Ruter meldinger til forskjellige utførere basert på definerte betingelser. For eksempel hvis en reisekunde har prioritetsadgang og deres oppgaver vil håndteres via en annen arbeidsflyt.
 
-*Fan-ut kanter* - Sender én melding til flere mål.
+*Fan-ut kantrer* - Sender en melding til flere mål.
 
-*Fan-inn kanter* - Samler flere meldinger fra forskjellige utførere og sender til ett mål.
+*Fan-inn kantrer* - Samler flere meldinger fra ulike utførere og sender til ett mål.
 
 **Hendelser**
 
-For å gi bedre observabilitet i arbeidsflyter tilbyr MAF innebygde hendelser for utførelse inkludert:
+For bedre observabilitet i arbeidsflyter tilbyr MAF innebygde hendelser for utførelse inkludert:
 
-- `WorkflowStartedEvent`  - Workflow-utførelse begynner
-- `WorkflowOutputEvent` - Workflow produserer et resultat
-- `WorkflowErrorEvent` - Workflow opplever en feil
-- `ExecutorInvokeEvent`  - Utfører starter behandling
-- `ExecutorCompleteEvent`  -  Utfører avslutter behandling
+- `WorkflowStartedEvent`  - Arbeidsflytutførelse starter
+- `WorkflowOutputEvent` - Arbeidsflyt produserer en utdata
+- `WorkflowErrorEvent` - Arbeidsflyt støter på en feil
+- `ExecutorInvokeEvent`  - Utfører starter prosessering
+- `ExecutorCompleteEvent`  -  Utfører fullfører prosessering
 - `RequestInfoEvent` - En forespørsel utstedes
 
 ## Avanserte MAF-mønstre
 
-Seksjonene over dekker kjernebegrepene i Microsoft Agent Framework. Når du bygger mer komplekse agenter, er det noen avanserte mønstre å vurdere:
+Seksjonene over dekker nøkkelbegrepene i Microsoft Agent Framework. Når du bygger mer komplekse agenter, her er noen avanserte mønstre å vurdere:
 
-- **Sammensetning av mellomvare**: Kjede flere mellomvarehåndterere (logging, autorisasjon, rate-limiting) ved bruk av funksjons- og chatmellomvare for finjustert kontroll over agentens oppførsel.
-- **Sjekkpunktering av arbeidsflyt**: Bruk hendelser og serialisering for arbeidsflyt for å lagre og gjenoppta langvarige agentprosesser.
-- **Dynamisk verktøyvalg**: Kombiner RAG (Retrieval-Augmented Generation) over verktøybeskrivelser med MAFs verktøyregistrering for å presentere kun relevante verktøy per forespørsel.
-- **Multi-agent overlevering**: Bruk arbeidsflytlene og betinget ruting for å orkestrere overlevering mellom spesialiserte agenter.
+- **Mellomvarekomposisjon**: Kjed flere mellomvarebehandlere (logging, autentisering, ratebegrensning) ved bruk av funksjons- og chat-mellomvare for finmasket kontroll over agentadferd.
+- **Arbeidsflyt-checkpointing**: Bruk arbeidsflythendelser og serialisering for å lagre og gjenoppta langvarige agentprosesser.
+- **Dynamisk verktøyvalg**: Kombiner RAG over verktøybeskrivelser med MAFs verktøyregistrering for å presentere kun relevante verktøy per forespørsel.
+- **Multi-agent overlevering**: Bruk arbeidsflytkantrer og betinget ruting for å orkestrere overleveringer mellom spesialiserte agenter.
 
-## Hoste LangChain / LangGraph Agenter på Microsoft Foundry
+## Hosting LangChain / LangGraph-agenter på Microsoft Foundry
 
-Microsoft Agent Framework er **rammeverks-interoperabelt** — du er ikke begrenset til agenter skrevet med MAF. Hvis du allerede har en agent bygget med **LangChain** eller **LangGraph**, kan du kjøre den som en **Microsoft Foundry-hostet agent** slik at Foundry håndterer runtime, økter, skalering, identitet, og protokollendepunkter for deg, mens agentlogikken din forblir i LangGraph.
+Microsoft Agent Framework er **rammeverks-interoperabelt** — du er ikke begrenset til agenter skrevet med MAF. Hvis du allerede har en agent bygget med **LangChain** eller **LangGraph**, kan du kjøre den som en **Microsoft Foundry-hostet agent** slik at Foundry håndterer kjøretid, økter, skalering, identitet og protokollendepunkter for deg, mens agentlogikken din forblir i LangGraph.
 
 Dette gjøres med `langchain_azure_ai.agents.hosting`-pakken, som eksponerer en kompilert LangGraph-graf over de samme protokollene som Foundry-hostede agenter bruker.
 
-**1. Installer hosting-ekstra:**
+**1. Installer hosting-ekstraen:**
 
 ```bash
 pip install -U "langchain-azure-ai[hosting]>=1.2.4" azure-identity
 ```
 
-`hosting`-ekstraen installerer Foundry-protokollbiblioteker: `azure-ai-agentserver-responses` (OpenAI-kompatibelt `/responses` endepunkt) og `azure-ai-agentserver-invocations` (generisk `/invocations` endepunkt).
+`hosting` ekstraen installerer Foundry protokollbibliotekene: `azure-ai-agentserver-responses` (det OpenAI-kompatible `/responses` endepunktet) og `azure-ai-agentserver-invocations` (det generiske `/invocations` endepunktet).
 
-**2. Velg hosting-protokoll:**
+**2. Velg en hostingprotokoll:**
 
 | Protokoll | Host-klasse | Endepunkt | Bruk når |
-|----------|-----------|----------|----------|
-| **Responses** | `ResponsesHostServer` | `/responses` | Du ønsker OpenAI-kompatibel chat, streaming, svargrafikk og samtaletråder — anbefalt standard for samtaleagenter. |
-| **Invocations** | `InvocationsHostServer` | `/invocations` | Du trenger egendefinert JSON-format, et webhook-lignende endepunkt, eller ikke-samtalebehandling. |
+|----------|--------------|-----------|----------|
+| **Responses** | `ResponsesHostServer` | `/responses` | Du ønsker OpenAI-kompatibel chat, strømming, svarhistorikk og samtaletråding — anbefalt standard for samtaleagenter. |
+| **Invocations** | `InvocationsHostServer` | `/invocations` | Du trenger et egendefinert JSON-format, et webhook-lignende endepunkt, eller ikke-samtaleprosessering. |
 
-Fordi **Responses API er hoved-API-en for agentstil utvikling i Foundry**, start med `ResponsesHostServer` for de fleste agenter.
+Siden **Responses API er hoved-APIen for agentstilutvikling i Foundry**, start med `ResponsesHostServer` for de fleste agenter.
 
 **3. Konfigurer miljøvariabler** (`az login` først slik at `DefaultAzureCredential` kan autentisere):
 
 ```bash
 export FOUNDRY_PROJECT_ENDPOINT="https://<resource>.services.ai.azure.com/api/projects/<project>"
-export FOUNDRY_MODEL_NAME="gpt-4.1"
+export FOUNDRY_MODEL_NAME="gpt-5-mini"
 ```
 
-Når agenten senere kjøres som hostet agent i Foundry, injiserer plattformen automatisk `FOUNDRY_PROJECT_ENDPOINT`.
+Når agenten senere kjører som en hostet agent i Foundry, injiserer plattformen automatisk `FOUNDRY_PROJECT_ENDPOINT`.
 
 **4. Eksponer en LangGraph-agent over Responses-protokollen:**
 
@@ -392,7 +392,7 @@ _AZURE_AI_SCOPE = "https://ai.azure.com/.default"
 
 def build_chat_model() -> ChatOpenAI:
     project_endpoint = os.environ["FOUNDRY_PROJECT_ENDPOINT"].rstrip("/")
-    deployment = os.environ.get("FOUNDRY_MODEL_NAME", "gpt-4.1")
+    deployment = os.environ.get("FOUNDRY_MODEL_NAME", "gpt-5-mini")
     credential = DefaultAzureCredential()
     project = AIProjectClient(endpoint=project_endpoint, credential=credential)
     openai_client = project.get_openai_client()
@@ -418,28 +418,28 @@ if __name__ == "__main__":
 
 Kjør den lokalt med `python main.py`, og send deretter en Responses-forespørsel til `http://localhost:8088/responses`.
 
-**Nøkkeloppførsler:**
+**Nøkkeladferder:**
 
-- **Samtaler**: Klienter fortsetter en samtale ved å sende `previous_response_id` eller en `conversation` ID. Hvis grafen din er kompilert med en LangGraph sjekkpunktfunksjon, kobler Foundry samtaletilstand til sjekkpunktet (bruk en holdbar sjekkpunktfunksjon i produksjon; `MemorySaver` er greit for lokal testing).
-- **Menneske i sløyfen**: Hvis grafen din bruker LangGraph `interrupt()`, eksponerer `ResponsesHostServer` den ventende avbruddet som et Responses `function_call` / `mcp_approval_request` element, og klienter fortsetter med en tilsvarende `function_call_output` / `mcp_approval_response`.
-- **Distribuer til Foundry**: Bruk Azure Developer CLI — `azd ext install azure.ai.agents`, `azd ai agent init -m <manifest>`, `azd ai agent run` (lokalt, krever Docker), deretter `azd provision` og `azd deploy`. Distribusjon av hostede agenter krever **Foundry Project Manager**-rollen.
+- **Samtaler**: Klienter fortsetter en samtale ved å sende `previous_response_id` eller et `conversation` ID. Hvis grafen din er kompilert med en LangGraph-sjekkpunktbehandler, nøkkes samtalestatus i Foundry til sjekkpunktet (bruk en holdbar sjekkpunktbehandler i produksjon; `MemorySaver` er greit for lokal testing).
+- **Menneskelig i løkken**: Hvis grafen din bruker LangGraph `interrupt()`, eksponerer `ResponsesHostServer` den ventende avbrytelsen som et Responses `function_call` / `mcp_approval_request` element, og klienter fortsetter med et samsvarende `function_call_output` / `mcp_approval_response`.
+- **Distribuer til Foundry**: Bruk Azure Developer CLI — `azd ext install azure.ai.agents`, `azd ai agent init -m <manifest>`, `azd ai agent run` (lokalt, krever Docker), deretter `azd provision` og `azd deploy`. Distribusjon av hostet agent krever **Foundry Project Manager**-rollen.
 
-En kjørbar versjon av dette eksempelet finnes i [code-samples/14-langchain-hosted-agent.py](../../../14-microsoft-agent-framework/code-samples/14-langchain-hosted-agent.py). For full gjennomgang (Invocations-protokoll, egendefinerte forespørsels-skjemaer og feilsøking), se [Host LangGraph agents as Foundry hosted agents](https://learn.microsoft.com/azure/foundry/how-to/develop/langchain-hosted-agents).
+En kjørbar versjon av dette eksempelet finnes i [code-samples/14-langchain-hosted-agent.py](../../../14-microsoft-agent-framework/code-samples/14-langchain-hosted-agent.py). For full gjennomgang (Invocations-protokoll, egendefinerte forespørselskjemaer og feilsøking), se [Host LangGraph agents as Foundry hosted agents](https://learn.microsoft.com/azure/foundry/how-to/develop/langchain-hosted-agents).
 
 ## Eksempelkode 
 
-Eksempelkode for Microsoft Agent Framework finnes i dette depotet under filene `xx-python-agent-framework` og `xx-dotnet-agent-framework`.
+Eksempelkode for Microsoft Agent Framework finnes i dette arkivet under filene `xx-python-agent-framework` og `xx-dotnet-agent-framework`.
 
 ## Har du flere spørsmål om Microsoft Agent Framework?
 
-Bli med i [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) for å møte andre elever, delta på kontortider og få svar på dine spørsmål om AI-agenter.
+Bli med i [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) for å møte andre elever, delta på kontortimer og få svar på dine spørsmål om AI-agenter.
 ## Forrige leksjon
 
-[Minne for AI-agenter](../13-agent-memory/README.md)
+[Memory for AI Agents](../13-agent-memory/README.md)
 
 ## Neste leksjon
 
-[Bygge databruksagenter (CUA)](../15-browser-use/README.md)
+[Bygge datamaskinbruk-agenter (CUA)](../15-browser-use/README.md)
 
 ---
 

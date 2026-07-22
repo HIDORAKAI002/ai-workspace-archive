@@ -1,73 +1,73 @@
-# 🔍 Khám Phá Microsoft Agent Framework - Đại Lý Cơ Bản (.NET)
+# 🔍 Khám phá Microsoft Agent Framework - Đại lý cơ bản (.NET)
 
-## 📋 Mục Tiêu Học Tập
+## 📋 Mục tiêu học tập
 
-Ví dụ này khám phá các khái niệm cơ bản của Microsoft Agent Framework thông qua một triển khai đại lý cơ bản trong .NET. Bạn sẽ học các mẫu đại lý cốt lõi và hiểu cách các đại lý thông minh hoạt động bên trong bằng C# và hệ sinh thái .NET.
+Ví dụ này khám phá các khái niệm cơ bản của Microsoft Agent Framework thông qua một triển khai đại lý cơ bản trong .NET. Bạn sẽ học các mẫu đại lý cốt lõi và hiểu cách các đại lý thông minh hoạt động bên trong sử dụng C# và hệ sinh thái .NET.
 
 ### Những gì bạn sẽ khám phá
 
-- 🏗️ **Kiến Trúc Đại Lý**: Hiểu cấu trúc cơ bản của các đại lý AI trong .NET
-- 🛠️ **Tích Hợp Công Cụ**: Cách các đại lý sử dụng các chức năng bên ngoài để mở rộng khả năng  
-- 💬 **Luồng Đàm Thoại**: Quản lý các cuộc trò chuyện đa lượt và ngữ cảnh với quản lý luồng
-- 🔧 **Mẫu Cấu Hình**: Các thực hành tốt nhất cho cài đặt và quản lý đại lý trong .NET
+- 🏗️ **Kiến trúc đại lý**: Hiểu cấu trúc cơ bản của các đại lý AI trong .NET
+- 🛠️ **Tích hợp công cụ**: Cách các đại lý sử dụng các chức năng bên ngoài để mở rộng khả năng  
+- 💬 **Luồng hội thoại**: Quản lý các cuộc trò chuyện đa vòng và ngữ cảnh với quản lý luồng
+- 🔧 **Mẫu cấu hình**: Các thực hành tốt nhất cho thiết lập và quản lý đại lý trong .NET
 
-## 🎯 Các Khái Niệm Chính Được Bao Quát
+## 🎯 Các khái niệm chính được đề cập
 
-### Nguyên Tắc Framework Đại Lý
+### Nguyên tắc Framework đại lý
 
-- **Tự Chủ**: Cách các đại lý tự đưa ra quyết định độc lập sử dụng các trừu tượng AI của .NET
-- **Phản Ứng**: Phản hồi với sự thay đổi môi trường và đầu vào người dùng
-- **Chủ Động**: Chủ động dựa trên mục tiêu và bối cảnh
-- **Khả Năng Giao Tiếp Xã Hội**: Tương tác qua ngôn ngữ tự nhiên với các luồng đàm thoại
+- **Tự chủ**: Cách các đại lý đưa ra quyết định độc lập sử dụng trừu tượng AI của .NET
+- **Phản ứng**: Đáp ứng các thay đổi môi trường và đầu vào của người dùng
+- **Chủ động**: Chủ động dựa trên mục tiêu và ngữ cảnh
+- **Khả năng xã hội**: Tương tác qua ngôn ngữ tự nhiên với các luồng hội thoại
 
-### Các Thành Phần Kỹ Thuật
+### Thành phần kỹ thuật
 
-- **AIAgent**: Tổ chức đại lý cốt lõi và quản lý hội thoại (.NET)
-- **Hàm công cụ**: Mở rộng khả năng đại lý với các phương thức và thuộc tính C#
-- **Tích hợp Azure OpenAI**: Tận dụng mô hình ngôn ngữ qua Azure OpenAI Responses API
-- **Cấu hình An toàn**: Quản lý điểm cuối dựa trên môi trường
+- **AIAgent**: Điều phối đại lý cốt lõi và quản lý hội thoại (.NET)
+- **Chức năng công cụ**: Mở rộng khả năng đại lý với các phương thức và thuộc tính C#
+- **Tích hợp Azure OpenAI**: Ứng dụng các mô hình ngôn ngữ qua Azure OpenAI Responses API
+- **Cấu hình bảo mật**: Quản lý điểm cuối dựa trên môi trường
 
-## 🔧 Ngăn Xếp Kỹ Thuật
+## 🔧 Công nghệ kỹ thuật
 
-### Công Nghệ Cốt Lõi
+### Công nghệ cốt lõi
 
 - Microsoft Agent Framework (.NET)
 - Tích hợp Azure OpenAI (Responses API)
-- Mẫu client Azure.AI.OpenAI
+- Mẫu khách hàng Azure.AI.OpenAI
 - Cấu hình dựa trên môi trường với DotNetEnv
 
-### Khả Năng Đại Lý
+### Khả năng của đại lý
 
-- Hiểu và tạo ngôn ngữ tự nhiên
-- Gọi hàm và sử dụng công cụ với thuộc tính C#
-- Phản hồi theo ngữ cảnh với phiên hội thoại
-- Kiến trúc mở rộng với mẫu tiêm phụ thuộc
+- Hiểu và sinh ngôn ngữ tự nhiên
+- Gọi hàm và sử dụng công cụ với các thuộc tính C#
+- Phản hồi có nhận thức ngữ cảnh với các phiên hội thoại
+- Kiến trúc mở rộng với các mẫu tiêm phụ thuộc
 
-## 📚 So Sánh Framework
+## 📚 So sánh Framework
 
-Ví dụ này trình bày phương pháp Microsoft Agent Framework so với các framework đại lý khác:
+Ví dụ này trình bày cách tiếp cận Microsoft Agent Framework so với các framework đại lý khác:
 
-| Tính năng | Microsoft Agent Framework | Framework Khác |
+| Tính năng | Microsoft Agent Framework | Các Framework khác |
 |---------|-------------------------|------------------|
 | **Tích hợp** | Hệ sinh thái Microsoft gốc | Tương thích đa dạng |
-| **Đơn giản** | API sạch, trực quan | Thường thiết lập phức tạp |
-| **Mở rộng** | Dễ dàng tích hợp công cụ | Phụ thuộc framework |
-| **Sẵn sàng doanh nghiệp** | Xây dựng cho sản xuất | Thay đổi theo framework |
+| **Đơn giản** | API sạch, trực quan | Thường phức tạp khi thiết lập |
+| **Khả năng mở rộng** | Dễ dàng tích hợp công cụ | Phụ thuộc vào framework |
+| **Sẵn sàng doanh nghiệp** | Xây dựng cho sản xuất | Tùy framework |
 
-## 🚀 Bắt Đầu
+## 🚀 Bắt đầu
 
-### Yêu Cầu Trước
+### Yêu cầu trước
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) hoặc cao hơn
 - Một [đăng ký Azure](https://azure.microsoft.com/free/) với tài nguyên Azure OpenAI và triển khai mô hình
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — đăng nhập với `az login`
 
-### Biến Môi Trường Bắt Buộc
+### Biến môi trường yêu cầu
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 # Sau đó đăng nhập để AzureCliCredential có thể lấy token
 az login
 ```
@@ -75,12 +75,12 @@ az login
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # Sau đó đăng nhập để AzureCliCredential có thể lấy token
 az login
 ```
 
-### Mã Ví Dụ
+### Mẫu mã nguồn
 
 Để chạy ví dụ mã,
 
@@ -96,7 +96,7 @@ Hoặc sử dụng dotnet CLI:
 dotnet run ./02-dotnet-agent-framework.cs
 ```
 
-Xem [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) để có mã đầy đủ.
+Xem [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) để biết mã nguồn đầy đủ.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,15 +215,15 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 Những Điểm Cần Ghi Nhớ
+## 🎓 Những điểm chính cần nhớ
 
-1. **Kiến trúc đại lý**: Microsoft Agent Framework cung cấp một cách tiếp cận sạch sẽ, an toàn kiểu để xây dựng đại lý AI trong .NET
-2. **Tích hợp công cụ**: Các hàm được trang trí với thuộc tính `[Description]` trở thành công cụ có sẵn cho đại lý
-3. **Ngữ cảnh hội thoại**: Quản lý phiên cho phép các cuộc trò chuyện đa lượt với nhận biết ngữ cảnh đầy đủ
-4. **Quản lý cấu hình**: Biến môi trường và xử lý chứng chỉ bảo mật theo các thực hành tốt nhất của .NET
+1. **Kiến trúc đại lý**: Microsoft Agent Framework cung cấp cách tiếp cận sạch sẽ, an toàn kiểu trong việc xây dựng đại lý AI trong .NET
+2. **Tích hợp công cụ**: Các hàm trang trí với thuộc tính `[Description]` trở thành công cụ có sẵn cho đại lý
+3. **Ngữ cảnh hội thoại**: Quản lý phiên cho phép các cuộc trò chuyện đa vòng với nhận thức đầy đủ về ngữ cảnh
+4. **Quản lý cấu hình**: Biến môi trường và xử lý bảo mật thông tin đăng nhập theo thực tiễn tốt nhất của .NET
 5. **Azure OpenAI Responses API**: Đại lý sử dụng Azure OpenAI Responses API qua SDK Azure.AI.OpenAI
 
-## 🔗 Tài Nguyên Bổ Sung
+## 🔗 Tài nguyên bổ sung
 
 - [Tài liệu Microsoft Agent Framework](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI trong Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)

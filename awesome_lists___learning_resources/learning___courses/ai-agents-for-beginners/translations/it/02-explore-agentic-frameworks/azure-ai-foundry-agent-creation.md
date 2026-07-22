@@ -1,42 +1,42 @@
 # Sviluppo del Servizio Microsoft Foundry Agent
 
-In questo esercizio, utilizzi gli strumenti del Servizio Microsoft Foundry Agent nel [portale Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) per creare un agente per la Prenotazione di Voli. L'agente sarà in grado di interagire con gli utenti e fornire informazioni sui voli.
+In questo esercizio, utilizzi gli strumenti del Servizio Microsoft Foundry Agent nel [portale Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) per creare un agente per la Prenotazione dei Voli. L'agente sarà in grado di interagire con gli utenti e fornire informazioni sui voli.
 
 ## Prerequisiti
 
 Per completare questo esercizio, ti servono i seguenti elementi:
 1. Un account Azure con una sottoscrizione attiva. [Crea un account gratuitamente](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst).
-2. È necessario disporre dei permessi per creare un hub Microsoft Foundry o che qualcuno lo crei per te.
+2. Devi avere i permessi per creare un hub Microsoft Foundry o farselo creare da qualcuno.
     - Se il tuo ruolo è Collaboratore o Proprietario, puoi seguire i passaggi di questo tutorial.
 
 ## Crea un hub Microsoft Foundry
 
 > **Nota:** Microsoft Foundry era precedentemente noto come Azure AI Studio.
 
-1. Segui queste linee guida dal post del blog [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) per creare un hub Microsoft Foundry.
-2. Quando il tuo progetto è stato creato, chiudi eventuali suggerimenti che vengono mostrati e rivedi la pagina del progetto nel portale Microsoft Foundry, che dovrebbe apparire simile all'immagine seguente:
+1. Segui queste linee guida dal post del blog di [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) per creare un hub Microsoft Foundry.
+2. Quando il tuo progetto è creato, chiudi eventuali suggerimenti che vengono mostrati e rivedi la pagina del progetto nel portale Microsoft Foundry, che dovrebbe apparire simile all'immagine seguente:
 
     ![Microsoft Foundry Project](../../../translated_images/it/azure-ai-foundry.88d0c35298348c2f.webp)
 
 ## Distribuisci un modello
 
-1. Nel pannello a sinistra del tuo progetto, nella sezione **I miei asset**, seleziona la pagina **Modelli + endpoint**.
+1. Nel pannello a sinistra per il tuo progetto, nella sezione **I miei asset**, seleziona la pagina **Modelli + endpoint**.
 2. Nella pagina **Modelli + endpoint**, nella scheda **Distribuzioni modello**, nel menu **+ Distribuisci modello**, seleziona **Distribuisci modello base**.
-3. Cerca nella lista il modello `gpt-4.1-mini`, quindi selezionalo e confermalo.
+3. Cerca il modello `gpt-5-mini` nella lista, quindi selezionalo e conferma.
 
-    > **Nota**: Ridurre il TPM aiuta a evitare di superare il limite della quota disponibile nella sottoscrizione che stai utilizzando.
+    > **Nota**: Ridurre il TPM aiuta a evitare di superare la quota disponibile nella sottoscrizione che stai usando.
 
     ![Model Deployed](../../../translated_images/it/model-deployment.3749c53fb81e18fd.webp)
 
 ## Crea un agente
 
-Ora che hai distribuito un modello, puoi creare un agente. Un agente è un modello di intelligenza artificiale conversazionale che può essere usato per interagire con gli utenti.
+Ora che hai distribuito un modello, puoi creare un agente. Un agente è un modello AI conversazionale che può essere usato per interagire con gli utenti.
 
-1. Nel pannello a sinistra del tuo progetto, nella sezione **Costruisci e Personalizza**, seleziona la pagina **Agenti**.
-2. Clicca su **+ Crea agente** per creare un nuovo agente. Nella finestra di dialogo **Configurazione agente**:
+1. Nel pannello a sinistra per il tuo progetto, nella sezione **Costruisci e Personalizza**, seleziona la pagina **Agenti**.
+2. Clicca su **+ Crea agente** per creare un nuovo agente. Nel riquadro di dialogo **Configurazione agente**:
     - Inserisci un nome per l'agente, come `FlightAgent`.
-    - Assicurati che sia selezionata la distribuzione del modello `gpt-4.1-mini` che hai creato in precedenza.
-    - Imposta le **Istruzioni** in base al prompt che vuoi che l'agente segua. Ecco un esempio:
+    - Assicurati che sia selezionata la distribuzione del modello `gpt-5-mini` creata in precedenza
+    - Imposta le **Istruzioni** secondo il prompt che vuoi far seguire all'agente. Ecco un esempio:
     ```
     You are FlightAgent, a virtual assistant specialized in handling flight-related queries. Your role includes assisting users with searching for flights, retrieving flight details, checking seat availability, and providing real-time flight status. Follow the instructions below to ensure clarity and effectiveness in your responses:
 
@@ -64,42 +64,42 @@ Ora che hai distribuito un modello, puoi creare un agente. Un agente è un model
     
     ```
 > [!NOTE]
-> Per un prompt dettagliato, puoi consultare [questo repository](https://github.com/ShivamGoyal03/RoamMind) per maggiori informazioni.
+> Per un prompt dettagliato, puoi dare un'occhiata a [questo repository](https://github.com/ShivamGoyal03/RoamMind) per maggiori informazioni.
     
-> Inoltre, puoi aggiungere **Knowledge Base** e **Azioni** per potenziare le capacità dell'agente nel fornire maggiori informazioni ed eseguire attività automatizzate basate sulle richieste degli utenti. Per questo esercizio, puoi saltare questi passaggi.
+> Inoltre, puoi aggiungere una **Base di Conoscenza** e **Azioni** per migliorare le capacità dell'agente di fornire più informazioni ed eseguire compiti automatizzati basati sulle richieste dell'utente. Per questo esercizio, puoi saltare questi passaggi.
     
 ![Agent Setup](../../../translated_images/it/agent-setup.9bbb8755bf5df672.webp)
 
-3. Per creare un nuovo agente multi-AI, clicca semplicemente su **Nuovo Agente**. Il nuovo agente creato verrà quindi mostrato nella pagina Agenti.
+3. Per creare un nuovo agente multi-AI, clicca semplicemente su **Nuovo Agente**. L'agente appena creato sarà quindi visualizzato nella pagina Agenti.
 
 
 ## Testa l'agente
 
-Dopo aver creato l'agente, puoi testarlo per vedere come risponde alle domande degli utenti nel playground del portale Microsoft Foundry.
+Dopo aver creato l'agente, puoi testarlo per vedere come risponde alle query degli utenti nel playground del portale Microsoft Foundry.
 
-1. In alto nel pannello **Configurazione** del tuo agente, seleziona **Prova nel playground**.
-2. Nel pannello **Playground**, puoi interagire con l'agente scrivendo domande nella finestra di chat. Per esempio, puoi chiedere all'agente di cercare voli da Seattle a New York il giorno 28.
+1. In cima al pannello **Configurazione** per il tuo agente, seleziona **Prova nel playground**.
+2. Nel pannello **Playground**, puoi interagire con l'agente digitando query nella finestra di chat. Ad esempio, puoi chiedere all'agente di cercare voli da Seattle a New York per il 28.
 
-    > **Nota**: L’agente potrebbe non fornire risposte accurate, poiché in questo esercizio non viene utilizzato alcun dato in tempo reale. Lo scopo è testare la capacità dell’agente di comprendere e rispondere alle domande degli utenti basandosi sulle istruzioni fornite.
+    > **Nota**: L'agente potrebbe non fornire risposte accurate, poiché in questo esercizio non vengono utilizzati dati in tempo reale. Lo scopo è testare la capacità dell'agente di comprendere e rispondere alle domande degli utenti basandosi sulle istruzioni fornite.
 
     ![Agent Playground](../../../translated_images/it/agent-playground.dc146586de715010.webp)
 
-3. Dopo aver testato l'agente, puoi personalizzarlo ulteriormente aggiungendo più intenti, dati di addestramento e azioni per potenziarne le capacità.
+3. Dopo aver testato l'agente, puoi personalizzarlo ulteriormente aggiungendo più intenti, dati di addestramento e azioni per migliorarne le capacità.
 
-## Pulisci le risorse
+## Pulizia delle risorse
 
-Quando hai finito di testare l’agente, puoi eliminarlo per evitare costi aggiuntivi.
-1. Apri il [portale Azure](https://portal.azure.com) e visualizza il contenuto del gruppo di risorse in cui hai distribuito le risorse dell’hub usate in questo esercizio.
+Quando hai finito di testare l'agente, puoi eliminarlo per evitare costi aggiuntivi.
+1. Apri il [portale Azure](https://portal.azure.com) e visualizza il contenuto del gruppo di risorse dove hai distribuito le risorse hub usate in questo esercizio.
 2. Nella barra degli strumenti, seleziona **Elimina gruppo di risorse**.
-3. Inserisci il nome del gruppo di risorse e conferma che vuoi eliminarlo.
+3. Inserisci il nome del gruppo di risorse e conferma di volerlo eliminare.
 
 ## Risorse
 
 - [Documentazione Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst)
 - [Portale Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst)
-- [Iniziare con Microsoft Foundry](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
+- [Introduzione a Microsoft Foundry](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
 - [Fondamenti degli agenti AI su Azure](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
-- [Azure AI Discord](https://aka.ms/AzureAI/Discord)
+- [Discord Azure AI](https://aka.ms/AzureAI/Discord)
 
 ---
 

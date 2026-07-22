@@ -1,39 +1,39 @@
 # 🎨 Agentní návrhové vzory s Azure OpenAI (Responses API) (.NET)
 
-## 📋 Cíle učení
+## 📋 Výukové cíle
 
-Tento příklad demonstruje podnikové návrhové vzory pro tvorbu inteligentních agentů pomocí Microsoft Agent Framework v .NET s integrací Azure OpenAI (Responses API). Naučíte se profesionální vzory a architektonické přístupy, které činí agenty připravenými pro produkci, udržitelnými a škálovatelnými.
+Tento příklad ukazuje podnikové návrhové vzory pro vytváření inteligentních agentů pomocí Microsoft Agent Framework v .NET s integrací Azure OpenAI (Responses API). Naučíte se profesionální vzory a architektonické přístupy, které činí agenty připravenými pro produkci, udržovatelnými a škálovatelnými.
 
 ### Podnikové návrhové vzory
 
-- 🏭 **Factory Pattern**: Standardizovaná tvorba agentů s dependency injection
+- 🏭 **Factory Pattern**: Standardizované vytváření agentů s injektáží závislostí
 - 🔧 **Builder Pattern**: Fluent konfigurace a nastavení agentů
-- 🧵 **Thread-Safe Patterns**: Současné řízení konverzací
-- 📋 **Repository Pattern**: Organizované řízení nástrojů a schopností
+- 🧵 **Thread-Safe Patterns**: Současná správa konverzací
+- 📋 **Repository Pattern**: Organizované spravování nástrojů a schopností
 
 ## 🎯 Architektonické výhody specifické pro .NET
 
 ### Podnikové funkce
 
-- **Silné typování**: Ověření při kompilaci a podpora IntelliSense
-- **Dependency Injection**: Integrovaný DI container
-- **Správa konfigurace**: Vzory IConfiguration a Options
-- **Async/Await**: Prvotřídní podpora asynchronního programování
+- **Silné typování**: Validace během překladu a podpora IntelliSense
+- **Injektáž závislostí**: Integrovaný DI kontejner
+- **Správa konfigurace**: IConfiguration a vzory Options
+- **Async/Await**: Plnohodnotná podpora asynchronního programování
 
-### Vzory připravené na produkci
+### Vzory připravené pro produkci
 
-- **Integrace logování**: ILogger a strukturované logování
-- **Kontroly zdravotního stavu**: Integrovaný monitoring a diagnostika
+- **Integrace logování**: ILogger a podpora strukturovaného logování
+- **Health Checks**: Vestavěné monitorování a diagnostika
 - **Validace konfigurace**: Silné typování s datovými anotacemi
 - **Zpracování chyb**: Strukturované řízení výjimek
 
 ## 🔧 Technická architektura
 
-### Jádrové komponenty .NET
+### Základní komponenty .NET
 
-- **Microsoft.Extensions.AI**: Unified AI service abstractions
-- **Microsoft.Agents.AI**: Podnikový framework pro orchestraci agentů
-- **Azure OpenAI (Responses API)**: Vysokovýkonné vzory klientů API
+- **Microsoft.Extensions.AI**: Unified AI service abstrakce
+- **Microsoft.Agents.AI**: Podnikový rámec pro orchestraci agentů
+- **Azure OpenAI (Responses API)**: Vysokovýkonné vzory klienta API
 - **Konfigurační systém**: appsettings.json a integrace prostředí
 
 ### Implementace návrhových vzorů
@@ -46,108 +46,108 @@ graph LR
     D --> E[AI agent]
 ```
 
-## 🏗️ Demonstrované podnikové vzory
+## 🏗️ Ukázané podnikové vzory
 
-### 1. **Tvořivé vzory**
+### 1. **Tvořící vzory**
 
-- **Agent Factory**: Centralizovaná tvorba agentů s konzistentní konfigurací
-- **Builder Pattern**: Fluent API pro komplexní konfiguraci agentů
+- **Agent Factory**: Centralizované vytváření agentů s konzistentní konfigurací
+- **Builder Pattern**: Fluent API pro složitou konfiguraci agentů
 - **Singleton Pattern**: Sdílené zdroje a správa konfigurace
-- **Dependency Injection**: Volné vazby a testovatelnost
+- **Injektáž závislostí**: Volné vazby a testovatelnost
 
-### 2. **Behaviorální vzory**
+### 2. **Chování vzory**
 
 - **Strategy Pattern**: Zaměnitelné strategie provádění nástrojů
 - **Command Pattern**: Zapouzdřené operace agenta s undo/redo
-- **Observer Pattern**: Řízení životního cyklu agenta na základě událostí
-- **Template Method**: Standardizované pracovní postupy agentů
+- **Observer Pattern**: Událostmi řízená správa životního cyklu agenta
+- **Template Method**: Standardizované pracovní postupy spuštění agenta
 
 ### 3. **Strukturální vzory**
 
-- **Adapter Pattern**: Vrstvu integrace Azure OpenAI (Responses API)
+- **Adapter Pattern**: Vrstva integrace Azure OpenAI (Responses API)
 - **Decorator Pattern**: Vylepšení schopností agenta
-- **Facade Pattern**: Zjednodušené rozhraní interakce s agentem
-- **Proxy Pattern**: Lazy loading a caching pro výkon
+- **Facade Pattern**: Zjednodušené rozhraní pro interakci s agentem
+- **Proxy Pattern**: Lazy loading a cache pro výkon
 
-## 📚 Principy návrhu v .NET
+## 📚 Principy návrhu .NET
 
 ### Principy SOLID
 
 - **Single Responsibility**: Každá komponenta má jeden jasný účel
-- **Open/Closed**: Rozšiřitelná bez úprav
-- **Liskov Substitution**: Implementace nástrojů založené na rozhraní
-- **Interface Segregation**: Zaměřená, kohezní rozhraní
-- **Dependency Inversion**: Závislost na abstrakcích, ne na konkrétnostech
+- **Open/Closed**: Rozšiřitelný bez úprav
+- **Liskov Substitution**: Implementace nástrojů na základě rozhraní
+- **Interface Segregation**: Zaměřená, koherentní rozhraní
+- **Dependency Inversion**: Závislost na abstrakcích, ne na konkrétních třídách
 
 ### Čistá architektura
 
-- **Doménová vrstva**: Základní abstrakce agentů a nástrojů
-- **Aplikační vrstva**: Orchestraci a pracovní postupy agentů
-- **Infrastrukturní vrstva**: Integrace Azure OpenAI (Responses API) a externích služeb
+- **Doménová vrstva**: Základní abstrakce agenta a nástrojů
+- **Aplikační vrstva**: Orchestrace agentů a pracovní postupy
+- **Infrastrukturní vrstva**: Integrace Azure OpenAI (Responses API) a externí služby
 - **Prezentační vrstva**: Uživatelská interakce a formátování odpovědí
 
-## 🔒 Podnikové aspekty
+## 🔒 Podnikové úvahy
 
-### Zabezpečení
+### Bezpečnost
 
-- **Správa přihlašovacích údajů**: Bezpečné zacházení s API klíči pomocí IConfiguration
-- **Validace vstupů**: Silné typování a validace pomocí datových anotací
-- **Sanitizace výstupů**: Bezpečné zpracování a filtrování odpovědí
+- **Správa přihlašovacích údajů**: Bezpečná správa API klíčů s IConfiguration
+- **Validace vstupů**: Silné typování a validace datovými anotacemi
+- **Sanitizace výstupu**: Bezpečné zpracování a filtrování odpovědí
 - **Auditní logování**: Komplexní sledování operací
 
 ### Výkon
 
-- **Asynchronní vzory**: Nezablokované I/O operace
+- **Async vzory**: Neblokující I/O operace
 - **Pooling připojení**: Efektivní správa HTTP klienta
 - **Caching**: Kešování odpovědí pro lepší výkon
-- **Správa zdrojů**: Správné uvolňování a vzory úklidu
+- **Správa zdrojů**: Správné uvolňování a úklid vzorů
 
 ### Škálovatelnost
 
-- **Bezpečnost vlákna**: Podpora současného provádění agentů
-- **Přístup ke zdrojům**: Efektivní využívání zdrojů
-- **Řízení zátěže**: Omezení rychlosti a zvládání zpětného tlaku
-- **Monitoring**: Metriky výkonu a kontroly zdravotního stavu
+- **Bezpečnost vláken**: Podpora souběžného spuštění agentů
+- **Pooling zdrojů**: Efektivní využití zdrojů
+- **Řízení zátěže**: Omezení rychlosti a zpracování zpětného tlaku
+- **Monitorování**: Výkonové metriky a kontroly stavu
 
-## 🚀 Produkční nasazení
+## 🚀 Nasazení do produkce
 
 - **Správa konfigurace**: Nastavení specifická pro prostředí
 - **Strategie logování**: Strukturované logování s korelačními ID
-- **Zpracování chyb**: Globální správa výjimek s řádným zotavením
-- **Monitorování**: Application Insights a výkonnostní čítače
-- **Testování**: Jednotkové testy, integrační testy a vzory zatěžovacího testování
+- **Zpracování chyb**: Globální zpracování výjimek s řádným zotavením
+- **Monitorování**: Application insights a výkonnostní čítače
+- **Testování**: Jednotkové testy, integrační testy a vzory zátěžového testování
 
-Připraveni tvořit inteligentní agenty podnikového rázu s .NET? Postavme něco robustního! 🏢✨
+Připraveno postavit podnikově kvalitní inteligentní agenty s .NET? Navrhněme něco robustního! 🏢✨
 
 ## 🚀 Začínáme
 
 ### Požadavky
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) nebo novější
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) nebo vyšší
 - Předplatné [Azure](https://azure.microsoft.com/free/) s Azure OpenAI zdrojem a nasazením modelu
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — přihlaste se pomocí `az login`
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — přihlášení pomocí `az login`
 
 ### Požadované proměnné prostředí
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Pak se přihlaste, aby AzureCliCredential mohl získat token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Přihlaste se, aby AzureCliCredential mohl získat token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Pak se přihlaste, aby AzureCliCredential mohl získat token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Poté se přihlaste, aby AzureCliCredential mohl získat token
 az login
 ```
 
 ### Ukázkový kód
 
-Pro spuštění ukázkového kódu,
+Pro spuštění příkladu kódu,
 
 ```bash
 # zsh/bash
@@ -155,13 +155,13 @@ chmod +x ./03-dotnet-agent-framework.cs
 ./03-dotnet-agent-framework.cs
 ```
 
-Nebo pomocí dotnet CLI:
+Nebo s využitím dotnet CLI:
 
 ```bash
 dotnet run ./03-dotnet-agent-framework.cs
 ```
 
-Viz [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) pro kompletní kód.
+Podívejte se na [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) pro kompletní kód.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

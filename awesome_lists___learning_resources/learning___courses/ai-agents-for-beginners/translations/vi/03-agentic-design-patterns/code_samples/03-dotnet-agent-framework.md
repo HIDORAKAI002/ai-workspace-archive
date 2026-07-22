@@ -2,137 +2,137 @@
 
 ## 📋 Mục Tiêu Học Tập
 
-Ví dụ này trình bày các mẫu thiết kế cấp doanh nghiệp để xây dựng các agent thông minh sử dụng Microsoft Agent Framework trong .NET với tích hợp Azure OpenAI (Responses API). Bạn sẽ học các mẫu chuyên nghiệp và phương pháp kiến trúc giúp các agent sẵn sàng cho sản xuất, dễ bảo trì và mở rộng.
+Ví dụ này trình bày các mẫu thiết kế cấp doanh nghiệp để xây dựng các agent thông minh sử dụng Microsoft Agent Framework trong .NET với tích hợp Azure OpenAI (Responses API). Bạn sẽ học các mẫu chuyên nghiệp và cách tiếp cận kiến trúc giúp agent sẵn sàng cho sản xuất, dễ bảo trì và mở rộng.
 
-### Các Mẫu Thiết Kế Doanh Nghiệp
+### Mẫu Thiết Kế Cấp Doanh Nghiệp
 
-- 🏭 **Mẫu Nhà Máy (Factory Pattern)**: Tạo agent chuẩn hóa với tiêm phụ thuộc
-- 🔧 **Mẫu Builder**: Cấu hình và thiết lập agent theo kiểu fluent
-- 🧵 **Mẫu An Toàn Luồng (Thread-Safe Patterns)**: Quản lý hội thoại đồng thời
-- 📋 **Mẫu Repository**: Quản lý công cụ và năng lực có tổ chức
+- 🏭 **Mẫu Factory**: Tạo agent chuẩn hóa với dependency injection
+- 🔧 **Mẫu Builder**: Cấu hình và thiết lập agent theo phong cách fluent
+- 🧵 **Mẫu An Toàn Luồng**: Quản lý hội thoại đồng thời
+- 📋 **Mẫu Repository**: Quản lý công cụ và khả năng một cách tổ chức
 
-## 🎯 Lợi Ích Kiến Trúc Cụ Thể Cho .NET
+## 🎯 Lợi Ích Kiến Trúc Đặc Thù cho .NET
 
-### Tính Năng Doanh Nghiệp
+### Tính Năng Cấp Doanh Nghiệp
 
-- **Kiểu Mạnh (Strong Typing)**: Xác thực thời gian biên dịch và hỗ trợ IntelliSense
-- **Tiêm Phụ Thuộc**: Tích hợp container DI có sẵn
-- **Quản Lý Cấu Hình**: Mẫu IConfiguration và Options
+- **Kiểu Mạnh**: Kiểm tra tại thời điểm biên dịch và hỗ trợ IntelliSense
+- **Dependency Injection**: Tích hợp container DI có sẵn
+- **Quản lý Cấu hình**: Các mẫu IConfiguration và Options
 - **Async/Await**: Hỗ trợ lập trình bất đồng bộ hàng đầu
 
 ### Mẫu Sẵn Sàng Cho Sản Xuất
 
-- **Tích Hợp Ghi Nhật Ký**: Hỗ trợ ILogger và ghi nhật ký có cấu trúc
-- **Kiểm Tra Sức Khoẻ**: Giám sát và chẩn đoán tích hợp
-- **Xác Thực Cấu Hình**: Kiểu mạnh với chú thích dữ liệu
-- **Xử Lý Lỗi**: Quản lý ngoại lệ có cấu trúc
+- **Tích hợp Ghi nhật ký**: Hỗ trợ ILogger và ghi nhật ký cấu trúc
+- **Kiểm tra Sức khỏe**: Giám sát và chẩn đoán tích hợp
+- **Xác thực Cấu hình**: Kiểu mạnh với chú thích dữ liệu
+- **Xử lý Lỗi**: Quản lý ngoại lệ có cấu trúc
 
 ## 🔧 Kiến Trúc Kỹ Thuật
 
-### Thành Phần Cốt Lõi .NET
+### Các Thành Phần .NET Cốt Lõi
 
 - **Microsoft.Extensions.AI**: Trừu tượng dịch vụ AI hợp nhất
-- **Microsoft.Agents.AI**: Framework điều phối agent cấp doanh nghiệp
+- **Microsoft.Agents.AI**: Khung điều phối agent cấp doanh nghiệp
 - **Azure OpenAI (Responses API)**: Mẫu client API hiệu suất cao
-- **Hệ Thống Cấu Hình**: appsettings.json và tích hợp môi trường
+- **Hệ thống Cấu hình**: Tích hợp appsettings.json và môi trường
 
-### Triển Khai Mẫu Thiết Kế
+### Triển khai Mẫu Thiết Kế
 
 ```mermaid
 graph LR
-    A[IServiceCollection] --> B[Trình xây dựng tác nhân]
+    A[IServiceCollection] --> B[Trình tạo đại lý]
     B --> C[Cấu hình]
     C --> D[Đăng ký công cụ]
-    D --> E[Tác nhân AI]
+    D --> E[Đại lý AI]
 ```
 
-## 🏗️ Các Mẫu Doanh Nghiệp Demo
+## 🏗️ Các Mẫu Doanh Nghiệp Đã Thể Hiện
 
-### 1. **Mẫu Creational**
+### 1. **Mẫu Tạo Dựng**
 
 - **Agent Factory**: Tạo agent tập trung với cấu hình nhất quán
 - **Mẫu Builder**: API fluent cho cấu hình agent phức tạp
-- **Mẫu Singleton**: Quản lý tài nguyên và cấu hình dùng chung
-- **Tiêm Phụ Thuộc**: Kết nối lỏng và dễ kiểm thử
+- **Mẫu Singleton**: Chia sẻ tài nguyên và quản lý cấu hình
+- **Dependency Injection**: Kết nối lỏng lẻo và khả năng kiểm thử
 
 ### 2. **Mẫu Hành Vi**
 
-- **Mẫu Strategy**: Chiến lược thực thi công cụ có thể hoán đổi
-- **Mẫu Command**: Các hoạt động agent đóng gói với hoàn tác/làm lại
-- **Mẫu Observer**: Quản lý vòng đời agent theo sự kiện
-- **Mẫu Template Method**: Quy trình thực thi agent chuẩn hóa
+- **Mẫu Chiến Lược**: Chiến lược thi hành công cụ có thể thay thế
+- **Mẫu Command**: Các thao tác agent đóng gói với hoàn tác/làm lại
+- **Mẫu Observer**: Quản lý vòng đời agent dựa theo sự kiện
+- **Mẫu Template Method**: Quy trình thực thi agent tiêu chuẩn hóa
 
 ### 3. **Mẫu Cấu Trúc**
 
 - **Mẫu Adapter**: Lớp tích hợp Azure OpenAI (Responses API)
-- **Mẫu Decorator**: Nâng cao năng lực agent
-- **Mẫu Facade**: Giao diện tương tác agent đơn giản hoá
-- **Mẫu Proxy**: Tải trì hoãn và lưu cache để tăng hiệu suất
+- **Mẫu Decorator**: Nâng cao khả năng agent
+- **Mẫu Facade**: Giao diện tương tác agent đơn giản hóa
+- **Mẫu Proxy**: Tải lười và bộ nhớ đệm tăng hiệu năng
 
 ## 📚 Nguyên Tắc Thiết Kế .NET
 
 ### Nguyên Tắc SOLID
 
-- **Trách Nhiệm Đơn Lớn (Single Responsibility)**: Mỗi thành phần có một mục đích rõ ràng
-- **Mở/Rộng (Open/Closed)**: Mở rộng mà không sửa đổi
-- **Thay Thế Liskov (Liskov Substitution)**: Cài đặt công cụ dựa trên giao diện
-- **Phân Tách Giao Diện (Interface Segregation)**: Giao diện tập trung, gắn kết
-- **Đảo Ngược Phụ Thuộc (Dependency Inversion)**: Phụ thuộc vào trừu tượng, không phải thực thể cụ thể
+- **Đơn trách nhiệm**: Mỗi thành phần có một mục đích rõ ràng
+- **Mở/Đóng**: Mở rộng mà không sửa đổi
+- **Thay thế Liskov**: Triển khai công cụ dựa trên giao diện
+- **Phân tách Giao diện**: Giao diện tập trung, liên kết chặt
+- **Đảo ngược Phụ thuộc**: Phụ thuộc vào các trừu tượng, không phải phần cụ thể
 
 ### Kiến Trúc Sạch
 
-- **Lớp Miền (Domain Layer)**: Trừu tượng agent và công cụ cốt lõi
-- **Lớp Ứng Dụng (Application Layer)**: Điều phối agent và quy trình làm việc
-- **Lớp Cơ Sở Hạ Tầng (Infrastructure Layer)**: Tích hợp Azure OpenAI (Responses API) và dịch vụ ngoài
-- **Lớp Trình Bày (Presentation Layer)**: Tương tác người dùng và định dạng phản hồi
+- **Lớp Domain**: Trừu tượng cốt lõi cho agent và công cụ
+- **Lớp Ứng dụng**: Điều phối agent và luồng công việc
+- **Lớp Hạ tầng**: Tích hợp Azure OpenAI (Responses API) và dịch vụ ngoài
+- **Lớp Trình bày**: Tương tác người dùng và định dạng phản hồi
 
-## 🔒 Các Cân Nhắc Doanh Nghiệp
+## 🔒 Các Lưu Ý Cấp Doanh Nghiệp
 
 ### Bảo Mật
 
-- **Quản Lý Chứng Thực**: Xử lý khoá API an toàn với IConfiguration
-- **Xác Thực Đầu Vào**: Kiểu mạnh và xác thực chú thích dữ liệu
-- **Xử Lý Đầu Ra An Toàn**: Quản lý xử lý và lọc phản hồi an toàn
-- **Ghi Nhật Ký Kiểm Tra**: Theo dõi hoạt động toàn diện
+- **Quản lý Thông tin đăng nhập**: Xử lý khóa API an toàn với IConfiguration
+- **Xác thực Đầu vào**: Kiểu mạnh và xác thực chú thích dữ liệu
+- **Làm sạch Đầu ra**: Xử lý và lọc phản hồi an toàn
+- **Ghi nhật ký Kiểm toán**: Theo dõi hoạt động toàn diện
 
-### Hiệu Suất
+### Hiệu Năng
 
-- **Mẫu Async**: Các thao tác I/O không chặn
-- **Quản Lý Pool Kết Nối**: Quản lý client HTTP hiệu quả
-- **Bộ Nhớ Đệm (Caching)**: Lưu bộ nhớ đệm phản hồi để cải thiện hiệu suất
-- **Quản Lý Tài Nguyên**: Mẫu hủy và làm sạch thích hợp
+- **Mẫu Async**: Thao tác I/O không chặn
+- **Pooling Kết nối**: Quản lý client HTTP hiệu quả
+- **Bộ nhớ đệm**: Bộ nhớ đệm phản hồi cải thiện hiệu năng
+- **Quản lý Tài nguyên**: Mẫu hủy và dọn dẹp đúng cách
 
 ### Khả Năng Mở Rộng
 
-- **An Toàn Luồng**: Hỗ trợ thực thi agent đồng thời
-- **Pool Tài Nguyên**: Sử dụng tài nguyên hiệu quả
-- **Quản Lý Tải**: Giới hạn tốc độ và xử lý áp lực ngược
-- **Giám Sát**: Số liệu hiệu suất và kiểm tra sức khoẻ
+- **An toàn Luồng**: Hỗ trợ thực thi agent đồng thời
+- **Pooling Tài nguyên**: Sử dụng tài nguyên hiệu quả
+- **Quản lý Tải**: Giới hạn tần suất và xử lý áp lực ngược
+- **Giám sát**: Chỉ số hiệu năng và kiểm tra sức khỏe
 
 ## 🚀 Triển Khai Sản Xuất
 
-- **Quản Lý Cấu Hình**: Cài đặt theo môi trường
-- **Chiến Lược Ghi Nhật Ký**: Ghi nhật ký có cấu trúc với ID tương quan
-- **Xử Lý Lỗi**: Xử lý ngoại lệ toàn cục với phục hồi đúng cách
-- **Giám Sát**: Application insights và bộ đếm hiệu suất
-- **Kiểm Thử**: Kiểm thử đơn vị, tích hợp và tải
+- **Quản lý Cấu hình**: Cài đặt theo môi trường cụ thể
+- **Chiến lược Ghi nhật ký**: Ghi nhật ký cấu trúc với ID tương quan
+- **Xử lý Lỗi**: Quản lý ngoại lệ toàn cục với khôi phục thích hợp
+- **Giám sát**: Application insights và bộ đếm hiệu năng
+- **Kiểm thử**: Mẫu kiểm thử đơn vị, tích hợp và tải
 
 Sẵn sàng xây dựng các agent thông minh cấp doanh nghiệp với .NET? Hãy cùng kiến trúc một giải pháp vững chắc! 🏢✨
 
 ## 🚀 Bắt Đầu
 
-### Yêu Cầu Tiên Quyết
+### Yêu Cầu Tiền Đề
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) hoặc cao hơn
+- [SDK .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) hoặc phiên bản cao hơn
 - Một [đăng ký Azure](https://azure.microsoft.com/free/) với tài nguyên Azure OpenAI và triển khai mô hình
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — đăng nhập với `az login`
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — đăng nhập bằng `az login`
 
-### Biến Môi Trường Cần Thiết
+### Biến Môi Trường Yêu Cầu
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 # Sau đó đăng nhập để AzureCliCredential có thể lấy token
 az login
 ```
@@ -140,12 +140,12 @@ az login
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # Sau đó đăng nhập để AzureCliCredential có thể lấy token
 az login
 ```
 
-### Mẫu Mã Nguồn
+### Mẫu Mã
 
 Để chạy ví dụ mã,
 
@@ -155,13 +155,13 @@ chmod +x ./03-dotnet-agent-framework.cs
 ./03-dotnet-agent-framework.cs
 ```
 
-Hoặc dùng dotnet CLI:
+Hoặc sử dụng dotnet CLI:
 
 ```bash
 dotnet run ./03-dotnet-agent-framework.cs
 ```
 
-Xem [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) để xem mã hoàn chỉnh.
+Xem [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) để có mã đầy đủ.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

@@ -1,65 +1,65 @@
-# 🔍 Meneroka Rangka Kerja Agen Microsoft - Agen Asas (.NET)
+# 🔍 Menerokai Rangka Kerja Ejen Microsoft - Ejen Asas (.NET)
 
 ## 📋 Objektif Pembelajaran
 
-Contoh ini meneroka konsep asas Rangka Kerja Agen Microsoft melalui pelaksanaan agen asas dalam .NET. Anda akan mempelajari corak agen teras dan memahami bagaimana agen pintar berfungsi di belakang tabir menggunakan C# dan ekosistem .NET.
+Contoh ini meneroka konsep asas Rangka Kerja Ejen Microsoft melalui pelaksanaan ejen asas dalam .NET. Anda akan mempelajari corak teras ejenik dan memahami bagaimana ejen pintar berfungsi menggunakan C# dan ekosistem .NET.
 
 ### Apa Yang Akan Anda Temui
 
-- 🏗️ **Senibina Agen**: Memahami struktur asas agen AI dalam .NET
-- 🛠️ **Integrasi Alat**: Bagaimana agen menggunakan fungsi luaran untuk meluaskan keupayaan  
-- 💬 **Aliran Perbualan**: Menguruskan perbualan berbilang giliran dan konteks dengan pengurusan thread
-- 🔧 **Corak Konfigurasi**: Amalan terbaik untuk penyediaan dan pengurusan agen dalam .NET
+- 🏗️ **Seni Bina Ejen**: Memahami struktur asas ejen AI dalam .NET
+- 🛠️ **Integrasi Alat**: Bagaimana ejen menggunakan fungsi luar untuk meluaskan keupayaan  
+- 💬 **Aliran Perbualan**: Mengurus perbualan berbilang pusingan dan konteks dengan pengurusan thread
+- 🔧 **Corak Konfigurasi**: Amalan terbaik untuk penyediaan dan pengurusan ejen dalam .NET
 
-## 🎯 Konsep Utama Yang Diliputi
+## 🎯 Konsep Utama Yang Diterokai
 
-### Prinsip Rangka Kerja Agenik
+### Prinsip Rangka Kerja Ejenik
 
-- **Autonomi**: Bagaimana agen membuat keputusan bebas menggunakan abstraksi AI .NET
+- **Autonomi**: Bagaimana ejen membuat keputusan secara bebas menggunakan abstraksi AI .NET
 - **Reaktiviti**: Bertindak balas terhadap perubahan persekitaran dan input pengguna
 - **Proaktiviti**: Mengambil inisiatif berdasarkan matlamat dan konteks
-- **Keupayaan Sosial**: Berinteraksi melalui bahasa semula jadi dengan thread perbualan
+- **Kebolehan Sosial**: Berinteraksi melalui bahasa semula jadi dengan thread perbualan
 
 ### Komponen Teknikal
 
-- **AIAgent**: Pengurusan orkestrasen teras agen dan perbualan (.NET)
-- **Fungsi Alat**: Memperluaskan keupayaan agen dengan kaedah dan atribut C#
-- **Integrasi Azure OpenAI**: Memanfaatkan model bahasa melalui Azure OpenAI Responses API
-- **Konfigurasi Selamat**: Pengurusan titik akhir berdasarkan persekitaran
+- **AIAgent**: Orkestrasi teras ejen dan pengurusan perbualan (.NET)
+- **Fungsi Alat**: Meluaskan keupayaan ejen dengan kaedah dan atribut C#
+- **Integrasi Azure OpenAI**: Memanfaatkan model bahasa melalui API Respon Azure OpenAI
+- **Konfigurasi Selamat**: Pengurusan titik akhir berasaskan persekitaran
 
-## 🔧 Stak Teknikal
+## 🔧 Tim Teknikal
 
 ### Teknologi Teras
 
-- Rangka Kerja Agen Microsoft (.NET)
-- Integrasi Azure OpenAI (Responses API)
+- Rangka Kerja Ejen Microsoft (.NET)
+- Integrasi Azure OpenAI (API Respon)
 - Corak klien Azure.AI.OpenAI
-- Konfigurasi berdasarkan persekitaran dengan DotNetEnv
+- Konfigurasi berasaskan persekitaran dengan DotNetEnv
 
-### Keupayaan Agen
+### Keupayaan Ejen
 
-- Kefahaman dan penjanaan bahasa semula jadi
+- Pemahaman dan penjanaan bahasa semula jadi
 - Panggilan fungsi dan penggunaan alat dengan atribut C#
-- Respons sedar konteks dengan sesi perbualan
-- Senibina boleh diperluaskan dengan corak suntikan kebergantungan
+- Respon peka konteks dengan sesi perbualan
+- Seni bina boleh luaskan dengan corak suntikan kebergantungan
 
 ## 📚 Perbandingan Rangka Kerja
 
-Contoh ini menunjukkan pendekatan Rangka Kerja Agen Microsoft berbanding rangka kerja agenik lain:
+Contoh ini menunjukkan pendekatan Rangka Kerja Ejen Microsoft berbanding rangka kerja ejenik lain:
 
-| Ciri | Rangka Kerja Agen Microsoft | Rangka Kerja Lain |
+| Ciri | Rangka Kerja Ejen Microsoft | Rangka Kerja Lain |
 |---------|-------------------------|------------------|
-| **Integrasi** | Ekosistem Microsoft asli | Keserasian pelbagai |
-| **Kesederhanaan** | API yang bersih dan intuitif | Biasanya penyediaan rumit |
-| **Kebolehpanjangan** | Integrasi alat mudah | Bergantung pada rangka kerja |
-| **Sedia untuk Perusahaan** | Dibina untuk produksi | Berbeza mengikut rangka kerja |
+| **Integrasi** | Ekosistem asli Microsoft | Keserasian pelbagai |
+| **Kesederhanaan** | API yang bersih, intuitif | Selalunya penyediaan rumit |
+| **Kebolehluasan** | Integrasi alat mudah | Bergantung pada rangka kerja |
+| **Sedia untuk Perusahaan** | Dibina untuk pengeluaran | Berbeza mengikut rangka kerja |
 
 ## 🚀 Memulakan
 
 ### Prasyarat
 
 - [SDK .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) atau lebih tinggi
-- [Langganan Azure](https://azure.microsoft.com/free/) dengan sumber Azure OpenAI dan penempatan model
+- Sebuah [langganan Azure](https://azure.microsoft.com/free/) dengan sumber Azure OpenAI dan penyebaran model
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — log masuk dengan `az login`
 
 ### Pembolehubah Persekitaran Diperlukan
@@ -67,20 +67,20 @@ Contoh ini menunjukkan pendekatan Rangka Kerja Agen Microsoft berbanding rangka 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Kemudian log masuk supaya AzureCliCredential dapat memperoleh token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Kemudian daftar masuk supaya AzureCliCredential dapat mendapatkan token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Kemudian log masuk supaya AzureCliCredential boleh mendapatkan token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Kemudian daftar masuk supaya AzureCliCredential boleh mendapatkan token
 az login
 ```
 
-### Kod Contoh
+### Contoh Kod
 
 Untuk menjalankan contoh kod,
 
@@ -96,7 +96,7 @@ Atau menggunakan CLI dotnet:
 dotnet run ./02-dotnet-agent-framework.cs
 ```
 
-Lihat [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) untuk keseluruhan kod.
+Lihat [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) untuk kod lengkap.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,17 +215,17 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 Pengambilan Utama
+## 🎓 Isi Penting
 
-1. **Senibina Agen**: Rangka Kerja Agen Microsoft menyediakan pendekatan yang bersih dan selamat jenis untuk membina agen AI dalam .NET
-2. **Integrasi Alat**: Fungsi yang dihias dengan atribut `[Description]` menjadi alat yang tersedia untuk agen
-3. **Konteks Perbualan**: Pengurusan sesi membolehkan perbualan berbilang giliran dengan kesedaran konteks penuh
+1. **Seni Bina Ejen**: Rangka Kerja Ejen Microsoft menyediakan pendekatan bersih dan selamat jenis untuk membina ejen AI dalam .NET
+2. **Integrasi Alat**: Fungsi yang dihias dengan atribut `[Description]` menjadi alat tersedia untuk ejen
+3. **Konteks Perbualan**: Pengurusan sesi membolehkan perbualan berbilang pusingan dengan kesedaran konteks penuh
 4. **Pengurusan Konfigurasi**: Pembolehubah persekitaran dan pengendalian kelayakan selamat mengikut amalan terbaik .NET
-5. **Azure OpenAI Responses API**: Agen menggunakan Azure OpenAI Responses API melalui SDK Azure.AI.OpenAI
+5. **Azure OpenAI Responses API**: Ejen menggunakan API Respon Azure OpenAI melalui SDK Azure.AI.OpenAI
 
 ## 🔗 Sumber Tambahan
 
-- [Dokumentasi Rangka Kerja Agen Microsoft](https://learn.microsoft.com/agent-framework)
+- [Dokumentasi Rangka Kerja Ejen Microsoft](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI dalam Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
 - [Aplikasi Fail Tunggal .NET](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)

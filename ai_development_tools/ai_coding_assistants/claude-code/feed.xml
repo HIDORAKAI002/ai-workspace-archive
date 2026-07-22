@@ -6,7 +6,50 @@
   <author><name>Anthropic</name></author>
   <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/blob/main/CHANGELOG.md"/>
   <link rel="self" type="application/atom+xml" href="https://raw.githubusercontent.com/anthropics/claude-code/main/feed.xml"/>
-  <updated>2026-07-21T21:35:04Z</updated>
+  <updated>2026-07-22T21:24:49Z</updated>
+  <entry>
+    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.218</id>
+    <title>Claude Code v2.1.218</title>
+    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.218"/>
+    <updated>2026-07-22T21:24:49Z</updated>
+    <content type="html">&lt;p&gt;• Changed /code-review to run as a background subagent, so review work no longer fills your conversation and keeps stacked slash commands as its review target&lt;/p&gt;
+&lt;p&gt;• Added screen-reader announcements of deleted text for word and line deletions (Option+Delete, Ctrl+W, Cmd+Backspace, Ctrl+U, Ctrl+K) in --ax-screen-reader mode&lt;/p&gt;
+&lt;p&gt;• Fixed Windows paths with \u-prefixed segments (like C:\Users\unicorn) being corrupted into CJK characters in tool inputs, which made those files inaccessible&lt;/p&gt;
+&lt;p&gt;• Fixed the left arrow key discarding the conversation with no undo: presses right after editing now ask to confirm, and Esc in the agent view returns to the conversation it backgrounded&lt;/p&gt;
+&lt;p&gt;• Added HTTP status and error text to claude mcp list and /mcp when a server fails to connect, and a warning for MCP config values with hidden leading or trailing whitespace&lt;/p&gt;
+&lt;p&gt;• Fixed multi-line paste collapsing into one line with j in place of newlines in terminals that encode pasted newlines as Ctrl+J&lt;/p&gt;
+&lt;p&gt;• Fixed /context reporting stale pre-compact token usage after compacting from the message picker&lt;/p&gt;
+&lt;p&gt;• Fixed /ultrareview failing on descriptive arguments like "review my auth changes" — they now run a review of your current branch with the text applied as a note to the findings&lt;/p&gt;
+&lt;p&gt;• Fixed /code-review ultra silently running a local review in non-interactive sessions — it now launches the cloud review&lt;/p&gt;
+&lt;p&gt;• Fixed gateway spend metering to price Bedrock application-inference-profile ARNs and other config-mapped upstream model IDs at the configured model's rates&lt;/p&gt;
+&lt;p&gt;• Fixed mojibake when a long IDE selection was truncated mid-emoji, and a case where a tool executor error could be silently dropped&lt;/p&gt;
+&lt;p&gt;• Fixed an engine teardown race that could start and abandon a phantom turn, and made input pushed after close consistently rejected&lt;/p&gt;
+&lt;p&gt;• Fixed spurious "[Request interrupted by user]" messages after interrupted tool calls, and an unpaired tool_use block left in the transcript when a tool aborted mid-response&lt;/p&gt;
+&lt;p&gt;• Fixed VoiceOver reading "new line" instead of echoing the typed space at the end of the input in --ax-screen-reader mode&lt;/p&gt;
+&lt;p&gt;• Fixed plugin and settings panels not moving the terminal cursor to the focused row, so screen readers and magnifiers can follow arrow-key navigation&lt;/p&gt;
+&lt;p&gt;• Fixed crashes (maximum call stack exceeded) when a deeply nested watched directory tree was deleted or moved, and when rendering deeply nested UI trees&lt;/p&gt;
+&lt;p&gt;• Fixed pull request events occasionally being lost when a session exited immediately after creating or linking a PR&lt;/p&gt;
+&lt;p&gt;• Fixed the Bedrock setup wizard failing profile verification for assume-role profiles in partitioned AWS regions and on proxy-only networks&lt;/p&gt;
+&lt;p&gt;• Fixed rare negative or incorrect turn duration measurements after a system clock adjustment by timing turns with a monotonic clock&lt;/p&gt;
+&lt;p&gt;• Fixed the "N MCP servers need authentication" startup notice over-counting claude.ai connectors that aren't connected in claude.ai&lt;/p&gt;
+&lt;p&gt;• Fixed prompt history entries being dropped or duplicated when history writes raced or failed&lt;/p&gt;
+&lt;p&gt;• Fixed a retry loop that re-sent identical doomed requests after a context-overflow error with a large thinking budget; Ctrl+B backgrounding now applies the same background-shell caps as other paths&lt;/p&gt;
+&lt;p&gt;• Fixed agent frontmatter hooks running from untrusted folders: hooks now require the agent file's own folder to have accepted workspace trust&lt;/p&gt;
+&lt;p&gt;• Fixed fork-session lineage being lost after compaction in headless and SDK sessions&lt;/p&gt;
+&lt;p&gt;• Fixed a resumed session failing every turn, or crashing on resume, when its history held a malformed delta attachment&lt;/p&gt;
+&lt;p&gt;• Improved /ultrareview error feedback so Claude can correct an invalid argument instead of retrying it unchanged&lt;/p&gt;
+&lt;p&gt;• Improved auto mode: the dangerous-rm, background-&amp;amp;, and suspicious-Windows-path checks no longer open permission dialogs; the auto-mode classifier adjudicates them instead&lt;/p&gt;
+&lt;p&gt;• Improved sandbox command restrictions for IDE interactions&lt;/p&gt;
+&lt;p&gt;• Improved trust dialogs to name the repository root the grant covers&lt;/p&gt;
+&lt;p&gt;• Changed /deep-research to start only when invoked manually; Claude no longer launches it on its own&lt;/p&gt;
+&lt;p&gt;• Changed plan mode with auto to no longer prompt for Bash commands the static analyzer can't prove read-only; the auto-mode classifier judges them instead&lt;/p&gt;
+&lt;p&gt;• Added an announcement when fast mode changes as a result of switching models via /config model=&amp;lt;x&amp;gt; or Remote Control&lt;/p&gt;
+&lt;p&gt;• Changed server-managed settings so benign feature and cost toggles no longer trigger the settings-approval prompt&lt;/p&gt;
+&lt;p&gt;• Changed agent markdown files to reject agent names containing :, which is reserved for plugin namespacing&lt;/p&gt;
+&lt;p&gt;• Changed skills with context: fork to run in the background by default; opt out per skill with background: false&lt;/p&gt;
+&lt;p&gt;• Added yes/no/on/off/1/0 (case-insensitive) as accepted values for skill and plugin frontmatter booleans, alongside true/false&lt;/p&gt;
+&lt;p&gt;• Fixed remote sessions continuing to send heartbeats after their worker was replaced, which left long-lived desktop and IDE processes retrying a rejected request every few seconds forever&lt;/p&gt;</content>
+  </entry>
   <entry>
     <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.217</id>
     <title>Claude Code v2.1.217</title>
@@ -598,12 +641,5 @@
 &lt;p&gt;• /login now opens the sign-in dialog from the claude agents view instead of saying it isn't available&lt;/p&gt;
 &lt;p&gt;• Subagents now treat messages from the agent that launched them as normal task direction; an agent's message is still never treated as the user's approval&lt;/p&gt;
 &lt;p&gt;• Removed the /agents wizard; ask Claude to create or manage subagents, or edit .claude/agents/ directly&lt;/p&gt;</content>
-  </entry>
-  <entry>
-    <id>https://github.com/anthropics/claude-code/releases/tag/v2.1.197</id>
-    <title>Claude Code v2.1.197</title>
-    <link rel="alternate" type="text/html" href="https://github.com/anthropics/claude-code/releases/tag/v2.1.197"/>
-    <updated>2026-06-30T17:56:29Z</updated>
-    <content type="html">&lt;p&gt;• Introducing Claude Sonnet 5: now the default model in Claude Code, with a native 1M-token context window and promotional pricing of $2/$10 per Mtok through August 31. Update to version 2.1.197 for access. https://www.anthropic.com/news/claude-sonnet-5&lt;/p&gt;</content>
   </entry>
 </feed>

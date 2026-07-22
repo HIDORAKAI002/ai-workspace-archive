@@ -1,10 +1,10 @@
-# 🎯 Suunnittelu ja Design-mallit Azure OpenAI:n kanssa (Responses API) (.NET)
+# 🎯 Suunnittelu ja suunnittelumallit Azure OpenAI:n kanssa (Vastaus-API) (.NET)
 
 ## 📋 Oppimistavoitteet
 
-Tämä muistikirja demonstroi yritystason suunnittelu- ja design-malleja älykkäiden agenttien rakentamiseen Microsoft Agent Frameworkin avulla .NET:ssä ja Azure OpenAI:lla (Responses API). Opit luomaan agentteja, jotka voivat purkaa monimutkaisia ongelmia, suunnitella monivaiheisia ratkaisuja ja suorittaa kehittyneitä työnkulkuja .NET:n yritysominaisuuksilla.
+Tämä muistikirja esittelee yritystason suunnittelu- ja suunnittelumalleja älykkäiden agenttien rakentamiseen Microsoft Agent Frameworkin avulla .NET:llä ja Azure OpenAI:lla (Vastaus-API). Opit luomaan agenteja, jotka osaavat hajottaa monimutkaisia ongelmia, suunnitella monivaiheisia ratkaisuja ja suorittaa kehittyneitä työnkulkuja .NET:n yritysominaisuuksilla.
 
-## ⚙️ Esivaatimukset ja asennus
+## ⚙️ Edellytykset ja asennus
 
 **Kehitysympäristö:**
 - .NET 9.0 SDK tai uudempi
@@ -22,21 +22,21 @@ Tämä muistikirja demonstroi yritystason suunnittelu- ja design-malleja älykk�
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
-**Ympäristökonfiguraatio (.env-tiedosto):**
+**Ympäristöasetukset (.env-tiedosto):**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
-## Koodin suoritus
+## Koodin suorittaminen
 
-Tämä oppitunti sisältää .NET Single File App -toteutuksen. Aja se näin:
+Tämä oppitunti sisältää .NET Single File App -toteutuksen. Suorita se näin:
 
 ```bash
 # Tee tiedostosta suoritettava (Linux/macOS)
 chmod +x 07-dotnet-agent-framework.cs
 
-# Käynnistä sovellus
+# Suorita sovellus
 ./07-dotnet-agent-framework.cs
 ```
 
@@ -48,19 +48,19 @@ dotnet run 07-dotnet-agent-framework.cs
 
 ## Koodin toteutus
 
-Täysi toteutus löytyy tiedostosta `07-dotnet-agent-framework.cs`, joka demonstroi:
+Täydellinen toteutus on saatavilla tiedostossa `07-dotnet-agent-framework.cs`, jossa näytetään:
 
-- Ympäristökonfiguraation lataamisen DotNetEnv-kirjastolla
-- Azure OpenAI -asiakkaan konfiguroinnin ja AI-agentin luomisen käyttämällä `GetChatClient().AsAIAgent()`
-- Rakenteellisten tietomallien (Plan ja TravelPlan) määrittelyn JSON-serialisoinnilla
-- Rakenteellisen ulostulon AI-agentin luomisen JSON-skenen avulla
-- Suunnittelupyyntöjen suorittamisen tyyppiä turvaavin vastauksin
+- Ympäristöasetusten lataaminen DotNetEnv:llä
+- Azure OpenAI -asiakkaan konfigurointi ja AI-agentin luominen `GetChatClient().AsAIAgent()` avulla
+- Rakenteellisten tietomallien (Plan ja TravelPlan) määrittely JSON-serialisoinnilla
+- AI-agentin luominen rakenteellisella tuotoksella JSON-skeemalla
+- Suunnittelupyyntöjen suorittaminen tyyppiturvallisilla vastauksilla
 
 ## Keskeiset käsitteet
 
-### Rakenteellinen suunnittelu tyyppiä turvaavilla malleilla
+### Rakenteellinen suunnittelu tyyppiturvallisilla malleilla
 
-Agentti käyttää C#-luokkia määrittämään suunnittelun ulostulojen rakenteen:
+Agentti käyttää C#-luokkia määrittämään suunnittelutuotosten rakenteen:
 
 ```csharp
 public class Plan
@@ -82,9 +82,9 @@ public class TravelPlan
 }
 ```
 
-### JSON-skenaari rakenteellisille ulostuloille
+### JSON-skeema rakenteellisille tuotoksille
 
-Agentti on konfiguroitu palauttamaan vastauksia, jotka vastaavat TravelPlan-skenaariota:
+Agentti on konfiguroitu palauttamaan vastauksia, jotka vastaavat TravelPlan-skeemaa:
 
 ```csharp
 ChatClientAgentOptions agentOptions = new()
@@ -103,18 +103,18 @@ ChatClientAgentOptions agentOptions = new()
 
 ### Suunnitteluagentin ohjeet
 
-Agentti toimii koordinaattorina, jakaen tehtäviä erikoistuneille ala-agenteille:
+Agentti toimii koordinaattorina ja delegoi tehtäviä erikoistuneille aliagenteille:
 
-- FlightBooking: Lentojen varaamiseen ja lentotietojen tarjoamiseen
+- FlightBooking: Lennon varaamiseen ja lentotietojen tarjoamiseen
 - HotelBooking: Hotellien varaamiseen ja hotellitietojen tarjoamiseen
-- CarRental: Autovuokrauksen varaamiseen ja autonvuokraustietojen tarjoamiseen
+- CarRental: Auton vuokraamiseen ja autovuokratietojen tarjoamiseen
 - ActivitiesBooking: Aktiviteettien varaamiseen ja aktiviteettitietojen tarjoamiseen
-- DestinationInfo: Kohdetietojen tarjoamiseen
-- DefaultAgent: Yleisten pyyntöjen hoitamiseen
+- DestinationInfo: Matkakohteiden tietojen tarjoamiseen
+- DefaultAgent: Yleisten pyyntöjen käsittelyyn
 
 ## Odotettu tulos
 
-Kun ajat agenttia matkan suunnittelupyyntöä varten, se analysoi pyynnön ja luo rakenteellisen suunnitelman sopivilla tehtävien kohdistuksilla erikoistuneille agenteille, JSON-muotoon TravelPlan-skenaarion mukaisesti.
+Kun suoritat agentin matkasuunnittelupyynnöllä, se analysoi pyynnön ja luo rakenteellisen suunnitelman sopivilla tehtäväjaoilla erikoistuneille agenteille, muotoiltuna JSONiksi, joka noudattaa TravelPlan-skeemaa.
 
 ---
 

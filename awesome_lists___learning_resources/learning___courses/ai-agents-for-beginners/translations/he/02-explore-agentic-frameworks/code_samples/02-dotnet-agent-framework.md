@@ -1,60 +1,60 @@
-# 🔍 חקר מסגרת הסוכן של מיקרוסופט - סוכן בסיסי (.NET)
+# 🔍 חקר מסגרת הסוכן של מייקרוסופט - סוכן בסיסי (.NET)
 
 ## 📋 מטרות הלמידה
 
-דוגמה זו חוקרת את המושגים הבסיסיים של מסגרת הסוכן של מיקרוסופט באמצעות יישום סוכן בסיסי ב-.NET. תלמדו את דפוסי הסוכנים המרכזיים ותבינו כיצד סוכנים אינטיליגנטיים פועלים מתחת לפני השטח תוך שימוש ב-C# ובמערכת האקולוגית של .NET.
+דוגמה זו חוקרת את המושגים הבסיסיים של מסגרת הסוכן של מייקרוסופט דרך יישום סוכן בסיסי ב-.NET. תלמדו דפוסי סוכנות מרכזיים ותבינו כיצד סוכנים אינטיליגנטיים פועלים מתחת לפני השטח באמצעות C# ואקוסיסטם ה-.NET.
 
 ### מה תגלה
 
-- 🏗️ **ארכיטקטורת סוכן**: הבנת המבנה הבסיסי של סוכני בינה מלאכותית ב-.NET
-- 🛠️ **שילוב כלים**: איך סוכנים משתמשים בפונקציות חיצוניות להרחבת היכולות  
-- 💬 **זרימת שיחה**: ניהול שיחות רב-סיבוביות והקשר באמצעות ניהול אשכולות
-- 🔧 **דפוסי קונפיגורציה**: שיטות עבודה מומלצות להגדרת וניהול סוכן ב-.NET
+- 🏗️ **ארכיטקטורת סוכן**: הבנת המבנה הבסיסי של סוכני AI ב-.NET
+- 🛠️ **שילוב כלים**: כיצד סוכנים משתמשים בפונקציות חיצוניות להרחבת יכולות  
+- 💬 **זרימת שיחה**: ניהול שיחות רב-סבביות והקשר עם ניהול תהליכים
+- 🔧 **דפוסי תצורה**: שיטות מיטביות להגדרת וניהול סוכנים ב-.NET
 
-## 🎯 מושגי מפתח מכוסים
+## 🎯 מושגים מרכזיים כלולים
 
-### עקרונות מסגרת הסוכן
+### עקרונות מסגרת סוכנות
 
-- **אוטונומיה**: איך סוכנים מקבלים החלטות עצמאיות באמצעות הפשטות AI ב-.NET
-- **תגובתיות**: תגובה לשינויים סביבתיים וקלטי משתמש
-- **יוזמה**: לקיחת יוזמה על בסיס יעדים והקשר
-- **יכולת חברתית**: אינטראקציה בשפה טבעית עם אשכולות שיחה
+- **אוטונומיה**: כיצד סוכנים מקבלים החלטות עצמאיות באמצעות הפשטות AI ב-.NET
+- **תגובתיות**: תגובה לשינויים בסביבה ולקלטי המשתמש
+- **יוזמה**: ייזום פעולות על בסיס מטרות והקשר
+- **יכולת חברתית**: אינטראקציה באמצעות שפה טבעית עם שרשורי שיחה
 
-### מרכיבים טכניים
+### רכיבים טכניים
 
-- **AIAgent**: תזמור ליבה של הסוכן וניהול שיחות (.NET)
-- **פונקציות כלי עבודה**: הרחבת יכולות הסוכן עם שיטות ותכונות ב-C#
-- **שילוב Azure OpenAI**: ניצול מודלי שפה באמצעות Azure OpenAI Responses API
-- **קונפיגורציה מאובטחת**: ניהול נקודות קצה המבוסס על סביבה
+- **AIAgent**: תזמור מרכזי וניהול שיחות של הסוכן (.NET)
+- **פונקציות כלים**: הרחבת יכולות הסוכן באמצעות מתודות ותכונות ב-C#
+- **שילוב Azure OpenAI**: ניצול מודלי שפה דרך API של תגובות Azure OpenAI
+- **תצורה בטוחה**: ניהול נקודות קצה מבוסס סביבה
 
-## 🔧 טכנולוגיות טכניות
+## 🔧 ארכיטקטורה טכנית
 
 ### טכנולוגיות מרכזיות
 
-- Microsoft Agent Framework (.NET)
-- שילוב Azure OpenAI (Responses API)
+- מסגרת הסוכן של מייקרוסופט (.NET)
+- שילוב Azure OpenAI (API תגובות)
 - דפוסי לקוח Azure.AI.OpenAI
-- קונפיגורציה מבוססת סביבה עם DotNetEnv
+- תצורה מבוססת סביבה עם DotNetEnv
 
-### יכולות הסוכן
+### יכולות סוכן
 
-- הבנת ויצירת שפה טבעית
-- קריאות פונקציה ושימוש בכלי עם תכונות C#
-- תגובות מודעות להקשר במפגשי שיחה
-- ארכיטקטורה ניתנת להרחבה עם דפוסי הזרקת תלויות
+- הבנת והפקת שפה טבעית
+- קריאת פונקציות ושימוש בכלים עם תכונות ב-C#
+- תגובות בהקשר עם מושבי שיחה
+- ארכיטקטורה ניתנת להרחבה עם דפוסי הזרקת תלות
 
 ## 📚 השוואת מסגרות
 
-דוגמה זו מדגימה את גישת מסגרת הסוכן של מיקרוסופט בהשוואה למסגרות סוכן אחרות:
+דוגמה זו ממחישה את גישת מסגרת הסוכן של מייקרוסופט לעומת מסגרות סוכנות אחרות:
 
-| תכונה | מסגרת הסוכן של מיקרוסופט | מסגרות אחרות |
+| תכונה | מסגרת הסוכן של מייקרוסופט | מסגרות אחרות |
 |---------|-------------------------|------------------|
-| **שילוב** | מערכת אקולוגית מקומית של מיקרוסופט | תאימות משתנה |
-| **פשטות** | API נקי ואינטואיטיבי | לעתים קרובות התקנה מורכבת |
+| **שילוב** | אקוסיסטם מייקרוסופט מקורי | תאימות משתנה |
+| **פשטות** | API נקי ואינטואיטיבי | לעיתים הגדרה מורכבת |
 | **הרחבה** | שילוב כלים קל | תלוי במסגרת |
-| **מוכן לארגונים** | בנוי לייצור | משתנה לפי המסגרת |
+| **מוכן לעסקים** | מיועד לפרודקשן | משתנה לפי המסגרת |
 
-## 🚀 התחלה
+## 🚀 התחלה מהירה
 
 ### דרישות מוקדמות
 
@@ -62,20 +62,20 @@
 - [מנוי Azure](https://azure.microsoft.com/free/) עם משאב Azure OpenAI ופריסת מודל
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — התחבר עם `az login`
 
-### משתני סביבה נדרשים
+### משתני סביבה דרושים
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# לאחר מכן התחבר כדי ש-AzureCliCredential יוכל לקבל אסימון
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# התחבר כדי ש-AzureCliCredential יוכל לקבל אסימון
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # לאחר מכן היכנס כדי ש-AzureCliCredential יוכל לקבל אסימון
 az login
 ```
@@ -90,13 +90,13 @@ chmod +x ./02-dotnet-agent-framework.cs
 ./02-dotnet-agent-framework.cs
 ```
 
-או באמצעות כלי הפקודה dotnet CLI:
+או באמצעות ממשק הפקודה dotnet:
 
 ```bash
 dotnet run ./02-dotnet-agent-framework.cs
 ```
 
-ראו את [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) עבור הקוד המלא.
+ראה [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) עבור הקוד המלא.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,20 +215,20 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 נקודות עיקריות
+## 🎓 נקודות מרכזיות
 
-1. **ארכיטקטורת סוכן**: מסגרת הסוכן של מיקרוסופט מספקת גישה נקייה ובטיחותית טיפוסית לבניית סוכני AI ב-.NET
-2. **שילוב כלים**: פונקציות המצויידות בתכונות `[Description]` הופכות לכלים זמינים לסוכן
-3. **הקשר שיחה**: ניהול מפגשים מאפשר שיחות רב-סיבוביות במודעות מלאה להקשר
-4. **ניהול קונפיגורציה**: משתני סביבה וטיפול מאובטח באישורים עוקבים אחרי שיטות העבודה המומלצות ב-.NET
-5. **Azure OpenAI Responses API**: הסוכן משתמש ב-Azure OpenAI Responses API דרך Azure.AI.OpenAI SDK
+1. **ארכיטקטורת סוכן**: מסגרת הסוכן של מייקרוסופט מספקת גישה נקייה ובטוחה מבחינת סוגים לבניית סוכני AI ב-.NET
+2. **שילוב כלים**: פונקציות המעוטרות בתכונות `[Description]` הופכות לכלים זמינים עבור הסוכן
+3. **הקשר שיחה**: ניהול מושבים מאפשר שיחות רב-סבביות עם מודעות מלאה להקשר
+4. **ניהול תצורה**: משתני סביבה וטיפול מאובטח באישורים לפי שיטות העבודה הטובות של .NET
+5. **API תגובות Azure OpenAI**: הסוכן משתמש ב-API תגובות Azure OpenAI דרך SDK של Azure.AI.OpenAI
 
 ## 🔗 משאבים נוספים
 
-- [תיעוד מסגרת הסוכן של מיקרוסופט](https://learn.microsoft.com/agent-framework)
-- [Azure OpenAI במיקרוסופט פאונדרי](https://learn.microsoft.com/azure/ai-services/openai/)
+- [תיעוד מסגרת הסוכן של מייקרוסופט](https://learn.microsoft.com/agent-framework)
+- [Azure OpenAI במייקרוסופט Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [אפליקציות בקובץ יחיד ב-.NET](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [אפליקציות קובץ יחיד ב-.NET](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

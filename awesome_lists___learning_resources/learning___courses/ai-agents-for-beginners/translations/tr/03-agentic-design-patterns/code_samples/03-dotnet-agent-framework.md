@@ -2,12 +2,12 @@
 
 ## 📋 Öğrenme Hedefleri
 
-Bu örnek, Azure OpenAI (Responses API) entegrasyonuyla .NET'te Microsoft Agent Framework kullanarak akıllı ajanlar oluşturmak için kurumsal düzeyde tasarım desenlerini göstermektedir. Ajanları üretime hazır, sürdürülebilir ve ölçeklenebilir hale getiren profesyonel desenleri ve mimari yaklaşımları öğreneceksiniz.
+Bu örnek, Azure OpenAI (Responses API) entegrasyonu ile .NET'te Microsoft Agent Framework kullanarak akıllı ajanlar oluşturmak için kurumsal düzeyde tasarım desenlerini göstermektedir. Ajanları üretime hazır, sürdürülebilir ve ölçeklenebilir hale getiren profesyonel desenleri ve mimari yaklaşımları öğreneceksiniz.
 
 ### Kurumsal Tasarım Desenleri
 
-- 🏭 **Fabrika Deseni**: Bağımlılık enjeksiyonu ile standart ajan oluşturma
-- 🔧 **Yapıcı Deseni**: Akıcı ajan yapılandırması ve ayarı
+- 🏭 **Fabrika Deseni**: Bağımlılık enjeksiyonu ile standart ajans oluşturma
+- 🔧 **Kurucu Deseni**: Akıcı ajan yapılandırma ve kurulum
 - 🧵 **İş Parçacığı Güvenli Desenler**: Eşzamanlı konuşma yönetimi
 - 📋 **Depo Deseni**: Düzenli araç ve yetenek yönetimi
 
@@ -15,7 +15,7 @@ Bu örnek, Azure OpenAI (Responses API) entegrasyonuyla .NET'te Microsoft Agent 
 
 ### Kurumsal Özellikler
 
-- **Güçlü Tip Desteği**: Derleme zamanı doğrulama ve IntelliSense desteği
+- **Güçlü Tip Kontrolü**: Derleme zamanı doğrulaması ve IntelliSense desteği
 - **Bağımlılık Enjeksiyonu**: Yerleşik DI konteyner entegrasyonu
 - **Yapılandırma Yönetimi**: IConfiguration ve Options desenleri
 - **Async/Await**: Birinci sınıf asenkron programlama desteği
@@ -23,8 +23,8 @@ Bu örnek, Azure OpenAI (Responses API) entegrasyonuyla .NET'te Microsoft Agent 
 ### Üretime Hazır Desenler
 
 - **Kayıt Entegrasyonu**: ILogger ve yapılandırılmış kayıt desteği
-- **Sağlık Kontrolleri**: Yerleşik izleme ve teşhis
-- **Yapılandırma Doğrulama**: Veri açıklamaları ile güçlü tip desteği
+- **Sağlık Kontrolleri**: Yerleşik izleme ve tanılama
+- **Yapılandırma Doğrulaması**: Veri açıklamaları ile güçlü tip kontrolü
 - **Hata Yönetimi**: Yapılandırılmış istisna yönetimi
 
 ## 🔧 Teknik Mimari
@@ -33,7 +33,7 @@ Bu örnek, Azure OpenAI (Responses API) entegrasyonuyla .NET'te Microsoft Agent 
 
 - **Microsoft.Extensions.AI**: Birleşik AI servis soyutlamaları
 - **Microsoft.Agents.AI**: Kurumsal ajan orkestrasyon çerçevesi
-- **Azure OpenAI (Responses API)**: Yüksek performanslı API istemcisi desenleri
+- **Azure OpenAI (Responses API)**: Yüksek performanslı API istemci desenleri
 - **Yapılandırma Sistemi**: appsettings.json ve ortam entegrasyonu
 
 ### Tasarım Deseni Uygulaması
@@ -48,36 +48,36 @@ graph LR
 
 ## 🏗️ Gösterilen Kurumsal Desenler
 
-### 1. **Oluşturucu Desenler**
+### 1. **Yaratıcı Desenler**
 
-- **Ajan Fabrikası**: Tutarlı yapılandırmayla merkezi ajan oluşturma
-- **Yapıcı Deseni**: Karmaşık ajan yapılandırması için akıcı API
-- **Singleton Deseni**: Paylaşılan kaynaklar ve yapılandırma yönetimi
+- **Ajan Fabrikası**: Tutarlı yapılandırma ile merkezi ajan oluşturma
+- **Kurucu Deseni**: Karmaşık ajan yapılandırması için akıcı API
+- **Tekil Desen**: Paylaşılan kaynaklar ve yapılandırma yönetimi
 - **Bağımlılık Enjeksiyonu**: Gevşek bağlılık ve test edilebilirlik
 
 ### 2. **Davranışsal Desenler**
 
 - **Strateji Deseni**: Değiştirilebilir araç yürütme stratejileri
-- **Komut Deseni**: Geri al/ileri al destekli kapsüllenmiş ajan işlemleri
-- **Gözlemci Deseni**: Olay odaklı ajan yaşam döngüsü yönetimi
-- **Şablon Yöntemi**: Standart ajan yürütme iş akışları
+- **Komut Deseni**: Geri alma/yineleme ile kapsüllenmiş ajan işlemleri
+- **Gözlemci Deseni**: Olay tabanlı ajan yaşam döngüsü yönetimi
+- **Şablon Metot**: Standart ajan yürütme iş akışları
 
 ### 3. **Yapısal Desenler**
 
 - **Adaptör Deseni**: Azure OpenAI (Responses API) entegrasyon katmanı
-- **Dekoratör Deseni**: Ajan yetenek geliştirme
-- **Cephe Deseni**: Basitleştirilmiş ajan etkileşim arayüzleri
+- **Dekoratör Deseni**: Ajan yeteneklerinin geliştirilmesi
+- **Fasade Deseni**: Basitleştirilmiş ajan etkileşim arayüzleri
 - **Vekil Deseni**: Performans için tembel yükleme ve önbellekleme
 
-## 📚 .NET Tasarım İlkeleri
+## 📚 .NET Tasarım Prensipleri
 
-### SOLID İlkeleri
+### SOLID Prensipleri
 
 - **Tek Sorumluluk**: Her bileşenin net bir amacı vardır
 - **Açık/Kapalı**: Değişiklik yapmadan genişletilebilir
-- **Liskov İkamesi**: Arayüz tabanlı araç uygulamaları
-- **Arayüz Ayrımı**: Odaklı, tutarlı arayüzler
-- **Bağımlılık Tersine Çevirme**: Somut değil soyutlamalara bağımlılık
+- **Liskov Yerine Geçme**: Arayüz tabanlı araç uygulamaları
+- **Arayüz Ayrımı**: Odaklı, uyumlu arayüzler
+- **Bağımlılık Tersine Çevirme**: Somut değil soyutlara bağlı olun
 
 ### Temiz Mimari
 
@@ -90,38 +90,38 @@ graph LR
 
 ### Güvenlik
 
-- **Kimlik Bilgisi Yönetimi**: IConfiguration ile güvenli API anahtarı yönetimi
-- **Girdi Doğrulama**: Güçlü tip ve veri açıklaması doğrulaması
+- **Kimlik Bilgisi Yönetimi**: IConfiguration ile güvenli API anahtarı işlemleri
+- **Girdi Doğrulaması**: Güçlü tip ve veri açıklaması doğrulaması
 - **Çıktı Temizleme**: Güvenli yanıt işleme ve filtreleme
 - **Denetim Kaydı**: Kapsamlı işlem takibi
 
 ### Performans
 
 - **Asenkron Desenler**: Engellemeyen G/Ç işlemleri
-- **Bağlantı Havuzu**: Verimli HTTP istemci yönetimi
-- **Önbellekleme**: Performansı artırmak için yanıt önbellekleme
-- **Kaynak Yönetimi**: Doğru imha ve temizleme desenleri
+- **Bağlantı Havuzu**: Etkin HTTP istemci yönetimi
+- **Önbellekleme**: İyileştirilmiş performans için yanıt önbellekleme
+- **Kaynak Yönetimi**: Doğru boşaltma ve temizleme desenleri
 
 ### Ölçeklenebilirlik
 
 - **İş Parçacığı Güvenliği**: Eşzamanlı ajan yürütme desteği
-- **Kaynak Havuzlama**: Verimli kaynak kullanımı
+- **Kaynak Havuzu**: Verimli kaynak kullanımı
 - **Yük Yönetimi**: Oran sınırlama ve geri basınç yönetimi
-- **İzleme**: Performans metrikleri ve sağlık kontrolleri
+- **İzleme**: Performans ölçümleri ve sağlık kontrolleri
 
 ## 🚀 Üretim Dağıtımı
 
-- **Yapılandırma Yönetimi**: Ortam özel ayarları
+- **Yapılandırma Yönetimi**: Ortama özgü ayarlar
 - **Kayıt Stratejisi**: Korelasyon kimlikleri ile yapılandırılmış kayıt
-- **Hata Yönetimi**: Küresel istisna yönetimi ve uygun kurtarma
-- **İzleme**: Uygulama içgörüleri ve performans sayacı
-- **Test**: Birim testleri, entegrasyon testleri ve yük test desenleri
+- **Hata Yönetimi**: Küresel istisna yönetimi ve doğru kurtarma
+- **İzleme**: Uygulama içgörüleri ve performans sayaçları
+- **Test**: Birim testleri, entegrasyon testleri ve yük testi desenleri
 
 .NET ile kurumsal düzeyde akıllı ajanlar oluşturmaya hazır mısınız? Hadi sağlam bir mimari kuralım! 🏢✨
 
 ## 🚀 Başlarken
 
-### Ön Koşullar
+### Önkoşullar
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) veya üstü
 - Azure OpenAI kaynağı ve model dağıtımı olan bir [Azure aboneliği](https://azure.microsoft.com/free/)
@@ -132,22 +132,22 @@ graph LR
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# AzureCliCredential bir token alabilmesi için ardından giriş yapın
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Sonra AzureCliCredential bir token alabilmesi için oturum açın
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Ardından AzureCliCredential bir token alabilmesi için giriş yapın
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# AzureCliCredential bir token alabilmesi için oturum açın
 az login
 ```
 
 ### Örnek Kod
 
-Kod örneğini çalıştırmak için,
+Kodu çalıştırmak için,
 
 ```bash
 # zsh/bash
@@ -155,7 +155,7 @@ chmod +x ./03-dotnet-agent-framework.cs
 ./03-dotnet-agent-framework.cs
 ```
 
-Ya da dotnet CLI kullanarak:
+Veya dotnet CLI kullanarak:
 
 ```bash
 dotnet run ./03-dotnet-agent-framework.cs
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

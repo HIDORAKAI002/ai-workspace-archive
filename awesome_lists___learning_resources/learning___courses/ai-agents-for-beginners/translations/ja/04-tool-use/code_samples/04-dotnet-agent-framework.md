@@ -1,39 +1,39 @@
-# 🛠️ Azure OpenAI（Responses API）による高度なツール使用 (.NET)
+# 🛠️ Azure OpenAI（Responses API）を用いた高度なツール活用（.NET）
 
 ## 📋 学習目標
 
-このノートブックでは、Microsoft Agent Framework を用いた .NET によるエンタープライズレベルのツール統合パターンを Azure OpenAI（Responses API）で実演します。C# の強力な型付けと .NET のエンタープライズ機能を活用し、複数の専門的なツールを備えた高度なエージェント構築を学びます。
+このノートブックは、.NETのMicrosoft Agent Frameworkを用いてAzure OpenAI（Responses API）と連携したエンタープライズレベルのツール統合パターンを紹介します。複数の専門的なツールを組み合わせた高度なエージェントの構築方法を、C#の強い型付けや.NETのエンタープライズ機能を活用しながら学びます。
 
-### 習得する高度なツール機能
+### マスターする高度なツール機能
 
 - 🔧 <strong>マルチツールアーキテクチャ</strong>：複数の専門機能を持つエージェントの構築
-- 🎯 <strong>型安全なツール実行</strong>：C# のコンパイル時検証の活用
-- 📊 <strong>エンタープライズツールパターン</strong>：本番対応ツール設計とエラー処理
-- 🔗 <strong>ツールの合成</strong>：複雑なビジネスワークフローのためのツール結合
+- 🎯 <strong>型安全なツール実行</strong>：C#のコンパイル時検証の活用
+- 📊 <strong>エンタープライズ向けツールパターン</strong>：本番対応のツール設計とエラーハンドリング
+- 🔗 <strong>ツールの合成</strong>：複雑な業務ワークフローのためのツールの組み合わせ
 
-## 🎯 .NET ツールアーキテクチャの利点
+## 🎯 .NETツールアーキテクチャの利点
 
-### エンタープライズツールの特徴
+### エンタープライズ向けツール機能
 
-- <strong>コンパイル時検証</strong>：強力な型付けでツールパラメータの正確性を保証
-- <strong>依存性注入</strong>：IoCコンテナ統合によるツール管理
-- **非同期パターン（Async/Await）**：適切なリソース管理を伴う非ブロッキングツール実行
-- <strong>構造化ログ記録</strong>：実行監視のための組み込みログ統合
+- <strong>コンパイル時検証</strong>：強い型付けがツールパラメーターの正確性を保証
+- <strong>依存性注入</strong>：IoCコンテナによるツール管理の統合
+- <strong>非同期処理パターン</strong>：リソース管理に配慮した非同期ツール実行
+- <strong>構造化ログ</strong>：ツール実行の監視のための組み込みログ統合
 
 ### 本番対応パターン
 
-- <strong>例外処理</strong>：型付き例外での包括的エラー管理
+- <strong>例外処理</strong>：型付き例外による包括的なエラー管理
 - <strong>リソース管理</strong>：適切な破棄パターンとメモリ管理
-- <strong>パフォーマンス監視</strong>：組み込みメトリックとパフォーマンスカウンター
-- <strong>設定管理</strong>：検証付き型安全な設定
+- <strong>パフォーマンス監視</strong>：内蔵のメトリクスおよびパフォーマンスカウンター
+- <strong>構成管理</strong>：検証付きの型安全な設定管理
 
 ## 🔧 技術アーキテクチャ
 
-### コア .NET ツールコンポーネント
+### コアの.NETツールコンポーネント
 
-- **Microsoft.Extensions.AI**：統合されたツール抽象レイヤー
-- **Microsoft.Agents.AI**：エンタープライズレベルのツールオーケストレーション
-- **Azure OpenAI（Responses API）**：接続プーリングを備えた高性能APIクライアント
+- **Microsoft.Extensions.AI**：統合ツール抽象レイヤー
+- **Microsoft.Agents.AI**：エンタープライズ向けツールオーケストレーション
+- **Azure OpenAI (Responses API)**：接続プーリング対応の高性能APIクライアント
 
 ### ツール実行パイプライン
 
@@ -54,56 +54,56 @@ graph LR
 
 ### 1. <strong>データ処理ツール</strong>
 
-- <strong>入力検証</strong>：データ注釈付きの強力な型付け
+- <strong>入力検証</strong>：データ注釈を活用した強い型付け
 - <strong>変換操作</strong>：型安全なデータ変換とフォーマット
-- <strong>ビジネスロジック</strong>：ドメイン固有の計算および分析ツール
-- <strong>出力フォーマット</strong>：構造化された応答生成
+- <strong>ビジネスロジック</strong>：ドメイン固有の計算や分析ツール
+- <strong>出力フォーマット</strong>：構造化されたレスポンス生成
 
 ### 2. <strong>統合ツール</strong>
 
-- **APIコネクター**：HttpClientによるRESTfulサービス統合
-- <strong>データベースツール</strong>：Entity Framework統合によるデータアクセス
+- **APIコネクター**：HttpClientを用いたRESTfulサービス連携
+- <strong>データベースツール</strong>：Entity Frameworkによるデータアクセス統合
 - <strong>ファイル操作</strong>：検証付きの安全なファイルシステム操作
-- <strong>外部サービス</strong>：サードパーティサービス統合パターン
+- <strong>外部サービス</strong>：サードパーティサービス連携パターン
 
 ### 3. <strong>ユーティリティツール</strong>
 
 - <strong>テキスト処理</strong>：文字列操作とフォーマットユーティリティ
-- <strong>日時操作</strong>：文化に配慮した日時計算
-- <strong>数学的ツール</strong>：精密計算と統計操作
-- <strong>検証ツール</strong>：ビジネスルールの検証とデータ検証
+- <strong>日時操作</strong>：カルチャー対応の日時計算
+- <strong>数学的ツール</strong>：精密計算および統計演算
+- <strong>検証ツール</strong>：ビジネスルール検証とデータ検証
 
-強力で型安全なツール機能を備えた .NET のエンタープライズレベルのエージェントを構築する準備はできましたか？ プロフェッショナルなソリューションを設計しましょう！🏢⚡
+強力で型安全なツール機能を備えたエンタープライズ級エージェントを.NETで構築する準備はできましたか？プロフェッショナルグレードのソリューション設計に取りかかりましょう！🏢⚡
 
 ## 🚀 はじめに
 
 ### 前提条件
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 以上
-- Azure OpenAI リソースとモデルデプロイメントを持つ [Azure サブスクリプション](https://azure.microsoft.com/free/)
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` でサインイン
+- Azure OpenAIリソースとモデル展開を持つ [Azureサブスクリプション](https://azure.microsoft.com/free/)
+- `az login` でサインインする [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)
 
 ### 必須環境変数
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# 次にサインインして、AzureCliCredentialがトークンを取得できるようにします
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# AzureCliCredentialがトークンを取得できるようにサインインしてください
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# その後、AzureCliCredentialがトークンを取得できるようにサインインします
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# それからサインインして、AzureCliCredential がトークンを取得できるようにします
 az login
 ```
 
 ### サンプルコード
 
-コード例を実行するには、
+コード例の実行方法：
 
 ```bash
 # zsh/bash
@@ -111,7 +111,7 @@ chmod +x ./04-dotnet-agent-framework.cs
 ./04-dotnet-agent-framework.cs
 ```
 
-または dotnet CLI を使用して：
+またはdotnet CLIを使用して：
 
 ```bash
 dotnet run ./04-dotnet-agent-framework.cs
@@ -168,7 +168,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

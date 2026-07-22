@@ -1,41 +1,41 @@
 # Microsoft Foundry Agent Service-utveckling
 
-I denna övning använder du Microsoft Foundry Agent Service-verktygen i [Microsoft Foundry-portalen](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) för att skapa en agent för Flygbokning. Agenten kommer att kunna interagera med användare och ge information om flyg.
+I den här övningen använder du verktygen för Microsoft Foundry Agent Service i [Microsoft Foundry-portalen](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) för att skapa en agent för flygbokning. Agenten kommer att kunna interagera med användare och tillhandahålla information om flyg.
 
 ## Förutsättningar
 
 För att slutföra denna övning behöver du följande:
 1. Ett Azure-konto med en aktiv prenumeration. [Skapa ett konto gratis](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst).
-2. Du behöver behörighet att skapa en Microsoft Foundry-hubb eller ha en skapad för dig.
+2. Du behöver behörigheter för att skapa en Microsoft Foundry-hubb eller ha en skapad åt dig.
     - Om din roll är Bidragsgivare eller Ägare kan du följa stegen i denna handledning.
 
 ## Skapa en Microsoft Foundry-hubb
 
-> **Notera:** Microsoft Foundry hette tidigare Azure AI Studio.
+> **Notera:** Microsoft Foundry var tidigare känt som Azure AI Studio.
 
-1. Följ dessa riktlinjer från [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) blogginlägget för att skapa en Microsoft Foundry-hubb.
-2. När ditt projekt är skapat, stäng alla tips som visas och granska projektsidan i Microsoft Foundry-portalen, som bör se ut ungefär som följande bild:
+1. Följ riktlinjerna från [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) bloggpost för att skapa en Microsoft Foundry-hubb.
+2. När ditt projekt är skapat, stäng eventuella tips som visas och granska projektsidan i Microsoft Foundry-portalen, som bör se ut ungefär som på bilden nedan:
 
     ![Microsoft Foundry Project](../../../translated_images/sv/azure-ai-foundry.88d0c35298348c2f.webp)
 
 ## Distribuera en modell
 
-1. I fönstret till vänster för ditt projekt, under avsnittet **Mina tillgångar**, välj sidan **Modeller + slutpunkter**.
-2. På sidan **Modeller + slutpunkter**, på fliken **Modelldistributioner**, i menyn **+ Distribuera modell**, välj **Distribuera baskmodell**.
-3. Sök efter modellen `gpt-4.1-mini` i listan, välj den och bekräfta.
+1. I rutan till vänster för ditt projekt, under avsnittet **Mina tillgångar**, välj sidan **Modeller + slutpunkter**.
+2. På sidan **Modeller + slutpunkter**, under fliken **Modelldistributioner**, i menyn **+ Distribuera modell**, välj **Distribuera basmodell**.
+3. Sök efter modellen `gpt-5-mini` i listan, välj den och bekräfta.
 
-    > **Notera**: Att minska TPM hjälper till att undvika överanvändning av kvoten på prenumerationen du använder.
+    > **Notera**: Att minska TPM hjälper till att undvika att överskrida den kvot som finns i den prenumeration du använder.
 
     ![Model Deployed](../../../translated_images/sv/model-deployment.3749c53fb81e18fd.webp)
 
 ## Skapa en agent
 
-Nu när du har distribuerat en modell kan du skapa en agent. En agent är en konversationell AI-modell som kan användas för att interagera med användare.
+Nu när du har distribuerat en modell kan du skapa en agent. En agent är en konversationsbaserad AI-modell som kan användas för att interagera med användare.
 
-1. I fönstret till vänster för ditt projekt, under avsnittet **Bygg & Anpassa**, välj sidan **Agenter**.
-2. Klicka på **+ Skapa agent** för att skapa en ny agent. Under dialogrutan **Agentinställning**:
+1. I rutan till vänster för ditt projekt, under avsnittet **Bygg & Anpassa**, välj sidan **Agenter**.
+2. Klicka på **+ Skapa agent** för att skapa en ny agent. Under dialogrutan **Agentinstallation**:
     - Ange ett namn för agenten, till exempel `FlightAgent`.
-    - Säkerställ att distributionen för modellen `gpt-4.1-mini` som du skapade tidigare är vald
+    - Kontrollera att den tidigare skapade modell-distributionen `gpt-5-mini` är vald.
     - Ange **Instruktioner** enligt den prompt du vill att agenten ska följa. Här är ett exempel:
     ```
     You are FlightAgent, a virtual assistant specialized in handling flight-related queries. Your role includes assisting users with searching for flights, retrieving flight details, checking seat availability, and providing real-time flight status. Follow the instructions below to ensure clarity and effectiveness in your responses:
@@ -64,39 +64,39 @@ Nu när du har distribuerat en modell kan du skapa en agent. En agent är en kon
     
     ```
 > [!NOTE]
-> För en detaljerad prompt kan du kolla in [detta repository](https://github.com/ShivamGoyal03/RoamMind) för mer information.
+> För en detaljerad prompt kan du titta på [detta arkiv](https://github.com/ShivamGoyal03/RoamMind) för mer information.
     
-> Dessutom kan du lägga till **Kunskapsbas** och **Åtgärder** för att förbättra agentens förmåga att leverera mer information och utföra automatiska uppgifter baserat på användarförfrågningar. För denna övning kan du hoppa över dessa steg.
+> Dessutom kan du lägga till **Kunskapsbas** och **Åtgärder** för att förbättra agentens förmåga att ge mer information och utföra automatiserade uppgifter baserat på användarens önskemål. För denna övning kan du hoppa över dessa steg.
     
 ![Agent Setup](../../../translated_images/sv/agent-setup.9bbb8755bf5df672.webp)
 
-3. För att skapa en ny multi-AI-agent klickar du helt enkelt på **Ny Agent**. Den nyligen skapade agenten visas sedan på Agent-sidan.
+3. För att skapa en ny multi-AI-agent, klicka helt enkelt på **Ny agent**. Den nyss skapade agenten kommer då att visas på sidan Agenter.
 
 
 ## Testa agenten
 
 Efter att ha skapat agenten kan du testa den för att se hur den svarar på användarfrågor i Microsoft Foundry-portals lekplats.
 
-1. Överst i fönstret **Inställning** för din agent, välj **Testa i lekplats**.
-2. I fönstret **Lekplats** kan du interagera med agenten genom att skriva frågor i chattfönstret. Till exempel kan du be agenten att söka efter flyg från Seattle till New York den 28:e.
+1. Överst i **Installations**panelen för din agent väljer du **Testa i lekplats**.
+2. I **Lekplats**-panelen kan du interagera med agenten genom att skriva frågor i chattfönstret. Till exempel kan du be agenten att söka efter flyg från Seattle till New York den 28:e.
 
-    > **Notera**: Agenten kanske inte ger korrekta svar eftersom ingen realtidsdata används i denna övning. Syftet är att testa agentens förmåga att förstå och svara på användarfrågor baserat på de givna instruktionerna.
+    > **Notera**: Agenten kan ge inexakta svar eftersom ingen realtidsdata används i den här övningen. Syftet är att testa agentens förmåga att förstå och svara på användarfrågor baserat på de angivna instruktionerna.
 
     ![Agent Playground](../../../translated_images/sv/agent-playground.dc146586de715010.webp)
 
-3. Efter att ha testat agenten kan du anpassa den ytterligare genom att lägga till fler intentioner, träningsdata och åtgärder för att förbättra dess kapacitet.
+3. Efter att ha testat agenten kan du anpassa den ytterligare genom att lägga till fler avsikter, träningsdata och åtgärder för att förbättra dess kapacitet.
 
-## Rensa upp resurser
+## Rensa resurser
 
-När du är klar med att testa agenten kan du ta bort den för att undvika extra kostnader.
+När du är klar med att testa agenten kan du ta bort den för att undvika ytterligare kostnader.
 1. Öppna [Azure-portalen](https://portal.azure.com) och visa innehållet i resursgruppen där du distribuerade hubbresurserna som användes i denna övning.
-2. På verktygsfältet, välj **Ta bort resursgrupp**.
+2. På verktygsfältet väljer du **Ta bort resursgrupp**.
 3. Ange resursgruppens namn och bekräfta att du vill ta bort den.
 
 ## Resurser
 
 - [Microsoft Foundry-dokumentation](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst)
-- [Microsoft Foundry-portal](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst)
+- [Microsoft Foundry-portalen](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst)
 - [Kom igång med Microsoft Foundry](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
 - [Grundläggande om AI-agenter på Azure](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
 - [Azure AI Discord](https://aka.ms/AzureAI/Discord)

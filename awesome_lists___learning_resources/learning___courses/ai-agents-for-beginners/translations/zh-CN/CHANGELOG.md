@@ -1,91 +1,108 @@
 # 更新日志
 
-本文件记录了 **AI Agents for Beginners** 课程的所有重要变更。
+所有对 **AI 入门代理** 课程的重要更新均记录在此文件中。
+
+## [发布] — 2026-07-14
+
+本次发布将课程从两个新弃用的模型中移除，将剩余的课程笔记本迁移至稳定的 Microsoft Agent Framework API，并将 Python 笔记本针对实时 Microsoft Foundry 部署进行了验证。
+
+### 变更
+
+- **移除了弃用的模型（`gpt-4.1` / `gpt-4.1-mini` → `gpt-5-mini`）。** `gpt-4.1` 和 `gpt-4.1-mini` 均已弃用（正式退役日期为 **2026 年 10 月 14 日**）。将课程中的所有引用（文档、`.env.example`，Python/.NET 笔记本和示例）替换为非弃用的 `gpt-5-mini`。第 16 课的模型路由示例依然使用 `gpt-5-nano`（小型）和 `gpt-5-mini`（大型）形成大小对比。第三方文件 ([15-browser-use/llms.txt](../../15-browser-use/llms.txt))、历史 GitHub Models 文本以及 `azure-openai-to-responses` 技能的能力说明有意保持不变。
+- **第 14 课交接笔记本迁移至稳定 API。** [14-handoff.ipynb](./14-microsoft-agent-framework/code-samples/14-handoff.ipynb) 现在使用 `agent_framework.orchestrations.HandoffBuilder` 搭配 `.with_start_agent(...)`、`HandoffAgentUserRequest.create_response(...)`、基于 `event.type` 的流式处理，以及 `FoundryChatClient`（替代已移除的 pre-1.0 `HandoffBuilder`/`ChatMessage`/`RequestInfoEvent` 符号）。
+- **第 14 课人机交互笔记本迁移至稳定 API。** [14-human-loop.ipynb](./14-microsoft-agent-framework/code-samples/14-human-loop.ipynb) 现在通过 `ctx.request_info(...)` + `@response_handler`（替代已移除的 `RequestInfoExecutor` / `RequestInfoMessage` / `RequestResponse`）实现暂停，使用 `WorkflowBuilder(start_executor=..., output_executors=[...])` 构建，通过 `default_options={"response_format": ...}` 传递结构化输出，且使用脚本化回答使笔记本无需阻塞 `input()` 即可无人值守运行。
+- <strong>环境配置</strong>（[.env.example](../../.env.example)）：模型部署名称切换为 `gpt-5-mini`；新增 `AZURE_AI_SMALL_MODEL` / `AZURE_AI_LARGE_MODEL`（第 16 课路由）以及之前遗漏的 `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME`（第 15 课浏览器使用）。
+- <strong>依赖项</strong>（[requirements.txt](../../requirements.txt)）：将 `agent-framework`、`agent-framework-foundry` 和 `agent-framework-openai` 固定为 `~=1.10.0` 版本，以确保自洽且经过验证的版本集（1.11.0 版本包含对本课程所用接口的实验性破坏性变更）。
+
+### 备注与已知限制
+
+- **已针对实时 Microsoft Foundry 验证。** Python 笔记本使用 `nbconvert` 无头执行，针对 Microsoft Foundry 项目使用 `gpt-5-mini`（第 16 课路由使用 `gpt-5-nano`）进行了测试。请在自己的项目中部署相当的非弃用模型；笔记本从环境变量 `AZURE_AI_MODEL_DEPLOYMENT_NAME` / `AZURE_OPENAI_DEPLOYMENT` 读取部署名称。
+- <strong>部分课程仍需额外资源。</strong>第 05 课需要 Azure AI 搜索；第 08 课的 Bing 基础工作流（`04.python-agent-framework-workflow-aifoundry-condition.ipynb`）需要连接 Bing 和 Microsoft Foundry Agent Service 托管工具；第 13 课（Cognee）和第 17 课（Foundry Local）需要它们各自的运行时环境。
 
 ## [发布] — 2026-07-13
 
-本次发布新增了两个完成部署章节的课程——将代理扩展到 Microsoft Foundry 和缩减到单个工作站——以及一个冒烟测试流水线、焕新的课程导航、新增学习者技能和更新的品牌标识。
+本次发布新增了两个完成部署流程的新课程——使代理可扩展至 Microsoft Foundry 以及缩减至单台工作站，此外还包含一次冒烟测试管道、更新后的课程导航、新增学习者技能和品牌更新。
 
 ### 新增
 
-- **第16课 — 使用 Microsoft Foundry 部署可扩展代理。** 新增课程 [16-deploying-scalable-agents/README.md](./16-deploying-scalable-agents/README.md) 和可运行笔记本 [16-python-agent-framework.ipynb](./16-deploying-scalable-agents/code_samples/16-python-agent-framework.ipynb)，构建生产级客户支持代理（工具、RAG、记忆、模型路由、响应缓存、人工审批、评估门控和 OpenTelemetry 跟踪），包含开发/部署/运行时的 Mermaid 图，知识检测、作业和挑战。
-- **第17课 — 使用 Foundry Local 和 Qwen 创建本地 AI 代理。** 新增课程 [17-creating-local-ai-agents/README.md](./17-creating-local-ai-agents/README.md) 和笔记本 [17-local-agent-foundry-local.ipynb](./17-creating-local-ai-agents/code_samples/17-local-agent-foundry-local.ipynb)，构建完全在设备上的工程助理（通过 Foundry Local 使用 Qwen 函数调用，沙箱文件工具，本地 Chroma RAG，可选本地 MCP），包含本地专用/本地 RAG/调用工具的图示，知识检测、作业和挑战。
-- **冒烟测试流水线。** 新增 [AI Smoke Test](https://github.com/marketplace/actions/ai-smoke-test) 工作流 [.github/workflows/smoke-test.yml](../../.github/workflows/smoke-test.yml)，以及为第01、04、05 和 16 课中可部署代理提供的各课目录 [tests/](./tests/README.md)，带有索引 README 将各目录映射到对应课程和托管代理名。第16课增加“使用冒烟测试验证已部署代理”章节；第01/04/05课新增可选冒烟测试指引。
-- **学习者技能。** 新增代理技能于 `.agents/skills/`： [deploying-scalable-agents](./.agents/skills/deploying-scalable-agents/SKILL.md)、[local-ai-agents](./.agents/skills/local-ai-agents/SKILL.md)（涵盖第16和17课指导），和[testing-course-samples](./.agents/skills/testing-course-samples/SKILL.md)（如何针对实时 Microsoft Foundry / Azure OpenAI 设置验证笔记本示例）。
-- **笔记本验证运行器。** 新增 [scripts/validate-notebooks.ps1](../../scripts/validate-notebooks.ps1)，使用 `nbconvert` 无头执行所有 Python 笔记本并输出通过/失败矩阵（和 `results.json`）。自动检测仓库根目录和 Python，默认排除非课程笔记本（如 `.venv`、`site-packages`、`translations`、技能模板资源）及 `.NET` 笔记本，支持参数 `-Filter`、`-Timeout`、`-List`、`-IncludeDotnet` 及 `-Python`。
-- **课程导航。** 为第11至15课补充增加了前一课/后一课链接，保证整套课程 00 → 18 双向连贯跳转。
-- **新缩略图。** 第16和17课的课程缩略图，以及更新的仓库社交分享图像 [images/repo-thumbnailv3.png](./images/repo-thumbnailv3.png)（现展示两个新课程和 `aka.ms/ai-agents-beginners` 链接）。
-- <strong>依赖项</strong> ([requirements.txt](../../requirements.txt))：为第17课新增 `foundry-local-sdk` 和 `chromadb`。
+- **第 16 课——使用 Microsoft Foundry 部署可扩展代理。** 新课程 [16-deploying-scalable-agents/README.md](./16-deploying-scalable-agents/README.md) 及可运行笔记本 [16-python-agent-framework.ipynb](./16-deploying-scalable-agents/code_samples/16-python-agent-framework.ipynb)，构建生产级客户支持代理（工具、RAG、记忆、模型路由、响应缓存、人类审批、评估门控及 OpenTelemetry 跟踪），包括开发/部署/运行时的 Mermaid 图示、知识检测、作业和挑战。
+- **第 17 课——使用 Foundry Local 和 Qwen 创建本地 AI 代理。** 新课程 [17-creating-local-ai-agents/README.md](./17-creating-local-ai-agents/README.md) 及笔记本 [17-local-agent-foundry-local.ipynb](./17-creating-local-ai-agents/code_samples/17-local-agent-foundry-local.ipynb)，构建完全本地运行的工程助理（通过 Foundry Local 使用 Qwen 函数调用、沙箱文件工具、本地 RAG 使用 Chroma、可选本地 MCP），含本地专用 / 本地 RAG / 调用工具的图示、知识检测、作业和挑战。
+- **冒烟测试管道。** 新增 [AI Smoke Test](https://github.com/marketplace/actions/ai-smoke-test) 工作流 [.github/workflows/smoke-test.yml](../../.github/workflows/smoke-test.yml)，以及针对第 01、04、05 和 16 课部署代理的每课目录，位于 [tests/](./tests/README.md)，含索引 README 将每个目录映射到对应课程序列号及托管代理名称。第 16 课新增“使用冒烟测试验证已部署代理”章节；第 01/04/05 课增加可选冒烟测试指引。
+- **学习者技能。** 新增 .agents/skills/ 下的代理技能：[deploying-scalable-agents](./.agents/skills/deploying-scalable-agents/SKILL.md)、[local-ai-agents](./.agents/skills/local-ai-agents/SKILL.md)（涵盖第 16 和 17 课内容），以及 [testing-course-samples](./.agents/skills/testing-course-samples/SKILL.md)（如何针对实时 Microsoft Foundry / Azure OpenAI 环境验证笔记本示例）。
+- **笔记本验证运行器。** 新增 [scripts/validate-notebooks.ps1](../../scripts/validate-notebooks.ps1)，使用 `nbconvert` 无头执行每个 Python 笔记本并打印 PASS/FAIL 矩阵（以及 `results.json`）。自动检测仓库根目录和 Python 环境，默认排除非课程笔记本（`.venv`、`site-packages`、`translations`、技能模板资源）和 .NET 笔记本，支持 `-Filter`、`-Timeout`、`-List`、`-IncludeDotnet` 和 `-Python` 参数。
+- **课程导航。** 为第 11 至 15 课添加了“上一课/下一课”链接（此前缺失），使整个课程从 00 至 18 课双向串联。
+- **新缩略图。** 为第 16 和 17 课新增课程缩略图，刷新了仓库社交图像 [images/repo-thumbnailv3.png](./images/repo-thumbnailv3.png)（现展示两门新课及 `aka.ms/ai-agents-beginners` 链接）。
+- <strong>依赖项</strong>（[requirements.txt](../../requirements.txt)）：为第 17 课新增了 `foundry-local-sdk` 和 `chromadb` 依赖。
 
 ### 变更
 
-- **主 [README.md](./README.md)** 课程表：第16和17课现已链接到内容（之前显示“敬请期待”）；仓库主图更换为 `repo-thumbnailv3.png`。
-- **[STUDY_GUIDE.md](./STUDY_GUIDE.md)**：新增第16和17课至逐课指南和学习路径，及增加“通过冒烟测试验证已部署代理”章节。
-- **[AGENTS.md](./AGENTS.md)**：更新课程数量/描述（00–18），新增冒烟测试验证章节，添加第16和17课示例命名。
-- **[18-securing-ai-agents/README.md](./18-securing-ai-agents/README.md)**：“上一课”链接更新为第17课（原为第15课），完成课程链。
-- **非弃用模型的标准化引用。** 将课程中所有 `gpt-4o` / `gpt-4o-mini` 替换为 `gpt-4.1-mini`（全部版本的 `gpt-4o` 将于2026年退役）。第16课的模型路由示例继续使用小型 `gpt-4.1-mini` 和大型 `gpt-4.1` 对比。Python 笔记本改从环境变量（`AZURE_AI_MODEL_DEPLOYMENT_NAME` / `AZURE_OPENAI_DEPLOYMENT`）选取模型，避免硬编码。
+- **主 [README.md](./README.md)** 课程序列表：第 16 和 17 课现已链接到课程内容（此前标记为“敬请期待”）；仓库图像更新为 `repo-thumbnailv3.png`。
+- **[STUDY_GUIDE.md](./STUDY_GUIDE.md)**：将第 16 和 17 课加入逐课指南及学习路径，并新增“使用冒烟测试验证已部署代理”章节。
+- **[AGENTS.md](./AGENTS.md)**：更新课程数目/描述（00–18 课），新增冒烟测试验证章节，添加第 16 和 17 课示例命名示范。
+- **[18-securing-ai-agents/README.md](./18-securing-ai-agents/README.md)**：“上一课”链接更改为第 17 课（原为第 15 课），完成课程链路闭合。
+- **对非弃用模型的标准化引用。** 将课程中所有 `gpt-4o` / `gpt-4o-mini` 的引用（文档、`.env.example`、Python/.NET 笔记本及示例）替换为 `gpt-4.1-mini` — `gpt-4o`（所有版本）将于 2026 年退役。第 16 课模型路由示例保持用 `gpt-4.1-mini`（小型）和 `gpt-4.1`（大型）形成大小对比。Python 笔记本现在从环境变量 (`AZURE_AI_MODEL_DEPLOYMENT_NAME` / `AZURE_OPENAI_DEPLOYMENT`) 选择模型，而非硬编码模型名称。
 
-### 注意事项及已知限制
+### 备注与已知限制
 
-- **未对实时 Azure 运行。** 新课程的笔记本为教学示例；请在您的 Microsoft Foundry / Foundry Local 环境中运行验证。冒烟测试工作流需部署课程代理并配置拥有 **Azure AI User** 角色的 Azure OIDC 秘钥（`AZURE_CLIENT_ID`、`AZURE_TENANT_ID`、`AZURE_SUBSCRIPTION_ID`），作用域为 Foundry 项目级。
-- **第17课仅限本地运行。** 无 Foundry Responses 端点，冒烟测试不适用；通过在本地工作站运行笔记本验证。
+- **未针对实时 Azure 执行。** 新课程笔记本为教学示例；请针对你自己的 Microsoft Foundry / Foundry Local 环境运行和验证。冒烟测试工作流要求你部署课中代理，并在 Foundry 项目范围内为 Azure OIDC 密钥（`AZURE_CLIENT_ID`、`AZURE_TENANT_ID`、`AZURE_SUBSCRIPTION_ID`）配置具有 **Azure AI 用户** 角色。
+- **第 17 课仅限本地运行。** 它没有 Foundry Responses 端点，因此冒烟测试操作不适用；请通过在工作站上运行笔记本进行验证。
 
 ## [发布] — 2026-07-06
 
-本次发布将课程迁移为 **Azure OpenAI Responses API**，统一产品命名为 **Microsoft Foundry** 和 **Microsoft Agent Framework (MAF)**，淘汰 GitHub 模型，更新 SDK 版本，新增本地模型和在 Foundry 上托管其他框架的内容。
+本次发布将课程迁移至 **Azure OpenAI Responses API**，将产品命名标准化为 **Microsoft Foundry** 和 **Microsoft Agent Framework (MAF)**，废弃 GitHub Models，更新 SDK 版本，新增本地模型及在 Foundry 上托管其他框架的内容。
 
 ### 新增
 
-- <strong>迁移技能</strong> — 安装 [`azure-openai-to-responses`](./.agents/skills/azure-openai-to-responses/SKILL.md) 代理技能（来自 [Azure-Samples/azure-openai-to-responses](https://github.com/Azure-Samples/azure-openai-to-responses)），放置于 `.agents/skills/`，包含引用和扫描脚本。
-- **Foundry Local（设备端运行模型）** — 在 [00-course-setup/README.md](./00-course-setup/README.md) 增加“备用提供方：Foundry Local”章节，涵盖安装 (`winget` / `brew`)、`foundry model run` 命令、`foundry-local-sdk`，以及如何通过 `OpenAIChatClient` 将 `FoundryLocalManager` 接入 Microsoft Agent Framework。
-- **在 Microsoft Foundry 上托管 LangChain / LangGraph 代理** — 在 [14-microsoft-agent-framework/README.md](./14-microsoft-agent-framework/README.md) 新增章节，并提供可运行示例 [14-langchain-hosted-agent.py](../../14-microsoft-agent-framework/code-samples/14-langchain-hosted-agent.py)，使用 `langchain-azure-ai[hosting]` 和 `ResponsesHostServer` （即 `/responses` 协议），基于 [Microsoft Learn](https://learn.microsoft.com/azure/foundry/how-to/develop/langchain-hosted-agents)。
-- **微软 Opal 计划** — 在 [15-browser-use/README.md](./15-browser-use/README.md) 新增“真实案例：微软 Opal 计划”章节，将 Opal 定义为企业计算使用代理，并映射到课程概念（人类在环、信任/安全、规划、技能）。
-- **第二个第02课 Python 示例** — 新增 [02-python-agent-framework-azure-openai.ipynb](./02-explore-agentic-frameworks/code_samples/02-python-agent-framework-azure-openai.ipynb)（见“变更”——从之前的语义内核笔记本迁移），并在课程 README 中链接。
-- **新增“模型与提供方”章** 于 [STUDY_GUIDE.md](./STUDY_GUIDE.md)。
+- <strong>迁移技能</strong> — 安装了 [`azure-openai-to-responses`](./.agents/skills/azure-openai-to-responses/SKILL.md) 代理技能（来自 [Azure-Samples/azure-openai-to-responses](https://github.com/Azure-Samples/azure-openai-to-responses)），放置在 `.agents/skills/`，含其引用及扫描脚本。
+- **Foundry Local（本地运行模型）** — 在 [00-course-setup/README.md](./00-course-setup/README.md) 中新增“替代提供者：Foundry Local”章节，介绍安装方法（`winget` / `brew`）、`foundry model run`、`foundry-local-sdk`，以及通过 `OpenAIChatClient` 将 `FoundryLocalManager` 绑定到 Microsoft Agent Framework。
+- **在 Microsoft Foundry 上托管 LangChain / LangGraph 代理** — 在 [14-microsoft-agent-framework/README.md](./14-microsoft-agent-framework/README.md) 新增章节，并提供了可运行示例 [14-langchain-hosted-agent.py](../../14-microsoft-agent-framework/code-samples/14-langchain-hosted-agent.py)，使用 `langchain-azure-ai[hosting]` 和 `ResponsesHostServer`（`/responses` 协议），基于 [Microsoft Learn](https://learn.microsoft.com/azure/foundry/how-to/develop/langchain-hosted-agents)。
+- **Microsoft Project Opal** — 在 [15-browser-use/README.md](./15-browser-use/README.md) 中新增“真实案例示范：Microsoft Project Opal”章节，将 Opal 作为企业计算使用代理，并映射至课程概念（人机交互、信任/安全、规划、技能）。
+- **第二个第 02 课 Python 示例** — 新增了 [02-python-agent-framework-azure-openai.ipynb](./02-explore-agentic-frameworks/code_samples/02-python-agent-framework-azure-openai.ipynb)（见“变更”——从此前的 Semantic Kernel 笔记本迁移而来），并将其链接至课程 README。
+- **新增“模型与提供者”章节** 于 [STUDY_GUIDE.md](./STUDY_GUIDE.md)。
 
 ### 变更
 
-- **聊天补全 → 响应 API（Python）**。直接调用模型的示例迁移到响应 API（`client.responses.create(input=..., store=False)`，`resp.output_text`），使用针对稳定版 Azure OpenAI `/openai/v1/` 端点的 `OpenAI` 客户端（无 `api_version`）。受影响示例包括：
+- **Chat Completions → Responses API（Python）。** 直接调用模型的示例迁移至 Responses API（使用 `client.responses.create(input=..., store=False)`，结果通过 `resp.output_text` 获取），使用 `OpenAI` 客户端调用稳定的 Azure OpenAI `/openai/v1/` 终结点（无 `api_version`）。涉及示例包括：
   - [06-building-trustworthy-agents/code_samples/06-system-message-framework.ipynb](./06-building-trustworthy-agents/code_samples/06-system-message-framework.ipynb)
   - [06-building-trustworthy-agents/code_samples/06-human-in-the-loop.ipynb](./06-building-trustworthy-agents/code_samples/06-human-in-the-loop.ipynb)
-  - [04-tool-use/README.md](./04-tool-use/README.md) — 功能调用完整流程（工具结构扁平化为响应格式，工具结果返回为 `function_call_output`、`max_output_tokens` 等字段）。
-- **GitHub 模型 → Azure OpenAI。** GitHub 模型已弃用（2026年7月退役），且不支持响应 API。所有 GitHub 模型代码路径已迁移为 Azure OpenAI / Microsoft Foundry，覆盖 Python 和 .NET 示例：
-  - Python：第08课工作流笔记本（`01`–`03`），第14课（`14-handoff`、`14-human-loop`、`hotel_booking_workflow_sample.py`）。
-  - .NET：`01`–`04`、`07`、`08`，包含 `*-dotnet-agent-framework.cs` 和相关 `.md` 文档，第08课 .NET 工作流笔记本/文档（`01`–`03`）现使用 `AzureOpenAIClient(...).GetOpenAIResponseClient(deployment).CreateAIAgent(...)`，配合 `AzureCliCredential`。
-- **语义内核 → Microsoft Agent Framework。** 原 `02-semantic-kernel.ipynb` 重写为结合 Microsoft Agent Framework 和 Azure OpenAI（响应 API），并更名为 `02-python-agent-framework-azure-openai.ipynb`。
-- **统一使用 `FoundryChatClient` + `as_agent` 模式。** README 及笔记本中引用 `AzureAIProjectAgentProvider` 调用统一采用第01课和框架示例使用的标准模式：`FoundryChatClient(project_endpoint=..., model=..., credential=AzureCliCredential())` 和 `provider.as_agent(...)`。升级覆盖第02至14课 README 和笔记本（如第13课内存，第14课所有示例，`11-agentic-protocols/code_samples/github-mcp/app.py`）。
-- **产品命名调整。** 英文内容中统一替换：
-  - "Azure AI Foundry" / "Azure AI Studio" → **Microsoft Foundry**
-  - "Azure AI Agent Service" → **Microsoft Foundry Agent Service**
-  - （保持不变：“Azure OpenAI”、“Azure AI Search”、“Azure AI Inference”及环境变量名称）
+  - [04-tool-use/README.md](./04-tool-use/README.md) — 完整函数调用演练（工具架构转换为 Responses 格式，工具结果作为 `function_call_output`、`max_output_tokens` 等返回）。
+
+- **GitHub 模型 → Azure OpenAI。** GitHub 模型已弃用（**2026 年 7 月退休**），且不支持 Responses API。所有 GitHub 模型代码路径均已转换为 Azure OpenAI / Microsoft Foundry，覆盖 Python 和 .NET 示例：
+  - Python：第 08 课工作流笔记本（`01`–`03`）、第 14 课（`14-handoff`、`14-human-loop`、`hotel_booking_workflow_sample.py`）。
+  - .NET：`01`–`04`、`07`、`08` `*-dotnet-agent-framework.cs` 及配套的 `.md` 文档，以及第 08 课 dotNET 工作流笔记本/`.md`（`01`–`03`）现在使用 `AzureOpenAIClient(...).GetOpenAIResponseClient(deployment).CreateAIAgent(...)` 并结合 `AzureCliCredential`。
+- **语义内核 → Microsoft Agent Framework。** 之前的 `02-semantic-kernel.ipynb` 现已重写为使用带有 Azure OpenAI（Responses API）的 Microsoft Agent Framework，并重命名为 `02-python-agent-framework-azure-openai.ipynb`。
+- **统一使用 `FoundryChatClient` + `as_agent`。** README 和笔记本中引用的 `AzureAIProjectAgentProvider` 代码统一采用第 01 课和框架自带示例中使用的标准模式：`FoundryChatClient(project_endpoint=..., model=..., credential=AzureCliCredential())` 配合 `provider.as_agent(...)`。已在第 02–14 课的 README 和笔记本中更新（例如，第 13 课内存，第 14 课所有笔记本，`11-agentic-protocols/code_samples/github-mcp/app.py`）。
+- **产品命名。** 英文内容整体重命名：
+  - “Azure AI Foundry” / “Azure AI Studio” → **Microsoft Foundry**
+  - “Azure AI Agent Service” → **Microsoft Foundry Agent Service**
+  - （不变：“Azure OpenAI”、“Azure AI Search”、“Azure AI Inference” 以及环境变量名称。）
 - <strong>依赖项</strong> ([requirements.txt](../../requirements.txt))：
-  - 固定版本 `agent-framework>=1.10.0`、`agent-framework-foundry>=1.10.0`、`agent-framework-openai>=1.10.0`。
-  - 固定版本 `openai>=1.108.1`（响应 API 所需最低版本）。
-  - 移除 `azure-ai-inference`（仅用于已迁移的 GitHub 模型示例）。
-- <strong>环境配置</strong> ([.env.example](../../.env.example))：移除 GitHub 模型变量（`GITHUB_TOKEN`、`GITHUB_ENDPOINT`、`GITHUB_MODEL_ID`）；新增 `AZURE_OPENAI_ENDPOINT`、`AZURE_OPENAI_DEPLOYMENT` 和可选 `AZURE_OPENAI_API_KEY`；命名更新为 Microsoft Foundry。
-- <strong>文档</strong> — 更新 [00-course-setup/README.md](./00-course-setup/README.md)、[AGENTS.md](./AGENTS.md)、[README.md](./README.md) 和 [STUDY_GUIDE.md](./STUDY_GUIDE.md) 以反映上述内容（环境变量配置、验证代码段、提供方指导、命名等）。
+  - 固定 `agent-framework>=1.10.0`、`agent-framework-foundry>=1.10.0`、`agent-framework-openai>=1.10.0`。
+  - 固定 `openai>=1.108.1`（Responses API 的最低版本）。
+  - 移除 `azure-ai-inference`（仅在迁移的 GitHub 模型示例中使用）。
+- <strong>环境配置</strong> ([.env.example](../../.env.example))：移除 GitHub 模型变量 (`GITHUB_TOKEN`、`GITHUB_ENDPOINT`、`GITHUB_MODEL_ID`)；新增 `AZURE_OPENAI_ENDPOINT`、`AZURE_OPENAI_DEPLOYMENT` 和可选的 `AZURE_OPENAI_API_KEY`；命名统一为 Microsoft Foundry。
+- <strong>文档</strong> — 更新了 [00-course-setup/README.md](./00-course-setup/README.md)、[AGENTS.md](./AGENTS.md)、[README.md](./README.md) 和 [STUDY_GUIDE.md](./STUDY_GUIDE.md) 以反映上述内容（环境变量设置、验证代码片段、提供程序指南、命名）。
 
-### 移除
+### 已移除
 
-- 移除设置文档中的 GitHub 模型入门步骤及环境变量（被 Azure OpenAI / Microsoft Foundry 替代）。
+- GitHub 模型入门步骤及环境变量，从设置文档中移除（已由 Azure OpenAI / Microsoft Foundry 取代）。
 
 ### 安全 / 隐私（公开共享清理）
 
-- 清理了泄露真实 **Azure 订阅 ID**、资源组/资源名称和 Bing 连接 ID 以及开发者 <strong>本地文件路径和用户名</strong> 的 Jupyter 笔记本输出，具体文件：
+- 清理了泄露真实 **Azure 订阅 ID**、资源组 / 资源名称、Bing 连接 ID 以及开发者 <strong>本地文件路径和用户名</strong> 的 Jupyter 笔记本执行输出，涉及：
   - `08-multi-agent/code_samples/workflows-agent-framework/dotNET/04.dotnet-agent-framework-workflow-aifoundry-condition.ipynb`
-
   - `08-multi-agent/code_samples/workflows-agent-framework/python/04.python-agent-framework-workflow-aifoundry-condition.ipynb`
   - `15-browser-use/15-browser-user.ipynb`
-- 已确认跟踪的英文内容中不存在任何 API 密钥、令牌、订阅 ID 或个人路径（遗留的 `GITHUB_TOKEN` 引用是工作流程中的 GitHub Actions 令牌和第 11 课设置中的 GitHub MCP 服务器 PAT —— 两者都是合法且与 GitHub 模型无关）。
+- 确认在已跟踪的英文内容中，未残留任何 API 密钥、令牌、订阅 ID 或个人路径（剩余的 `GITHUB_TOKEN` 引用为工作流中的 GitHub Actions 令牌和第 11 课设置中的 GitHub MCP 服务器 PAT，均合法且与 GitHub 模型无关）。
 
-### 备注和已知限制
+### 备注及已知限制
 
-- **未执行/编译。** 这些是更新了 API/命名正确性的教学示例；未针对实时 Azure 资源运行，也未在此环境中编译 .NET 示例。请基于您自己的 Microsoft Foundry / Azure OpenAI 部署进行验证。
-- **模型部署必须支持 Responses API。** 使用诸如 `gpt-4.1-mini`、`gpt-4.1` 或 `gpt-5.x` 模型的部署。旧模型支持核心 Responses 功能但并非全部功能。
-- **代理框架版本。** 示例针对最新的 MAF（`>=1.10.0`）。规范的代理创建调用为 `client.as_agent(...)`；API 经框架发布文档及已安装版本验证。如选择其他版本，请确认方法是否可用（`as_agent` 与 `create_agent`）。
-- **第 08 课工作流笔记本 04** 有意保留了 `AzureAIAgentClient`（来自 `agent-framework-azure-ai`），因为它使用了 Microsoft Foundry Agent Service 托管工具（Bing 定位、代码解释器）；该客户端已基于 Responses。
-- **.NET 默认部署。** 之前第 08 课中的两份 dotNET 工作流示例硬编码了特定模型；现在默认使用 `AZURE_OPENAI_DEPLOYMENT`（`gpt-4.1-mini`）。如果示例涉及多模态/视觉输入，请将 `AZURE_OPENAI_DEPLOYMENT` 设置为合适模型。
-- **Foundry Local** 暴露 OpenAI 兼容的 **Chat Completions** 端点，适用于本地开发；若需完整 Responses API 功能集，请使用 Azure OpenAI / Microsoft Foundry。
+- **未执行/编译。** 这些均为为 API/命名正确性更新的教学示例；未在实时 Azure 资源上运行，且 .NET 示例未在此环境下编译。请根据你自己的 Microsoft Foundry / Azure OpenAI 部署进行验证。
+- **模型部署必须支持 Responses API。** 使用诸如 `gpt-4.1-mini`、`gpt-4.1` 或 `gpt-5.x` 的部署。旧模型支持核心 Responses 功能，但并非所有特性。
+- **Agent-framework 版本。** 示例针对最新 MAF（`>=1.10.0`）。典型的代理创建调用为 `client.as_agent(...)`；API 已依据框架发布文档及安装的构建进行验证。若固定不同版本，请确认方法可用性（`as_agent` vs `create_agent`）。
+- **第 08 课工作流笔记本 04** 有意保留 `AzureAIAgentClient`（来自 `agent-framework-azure-ai`），因为使用了 Microsoft Foundry Agent Service 托管工具（Bing 基础知识、代码解释器）；其已基于 Responses。
+- **.NET 默认部署。** 两个第 08 课 dotNET 工作流示例之前硬编码了特定模型；现默认使用 `AZURE_OPENAI_DEPLOYMENT`（`gpt-4.1-mini`）。若示例依赖多模态/视觉输入，请将 `AZURE_OPENAI_DEPLOYMENT` 设置为合适模型。
+- **Foundry Local** 暴露了一个兼容 OpenAI 的 <strong>聊天补全</strong> 端点，旨在本地开发；完整的 Responses API 功能请使用 Azure OpenAI / Microsoft Foundry。
 
 ---
 

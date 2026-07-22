@@ -1,40 +1,40 @@
-# 🎨 Azure OpenAI (Responses API) सँग Agentic Design Patterns (.NET)
+# 🎨 Azure OpenAI (Responses API) सँग Agentic डिजाइन ढाँचा (.NET)
 
-## 📋 सिकाइ उद्देश्यहरू
+## 📋 सिकाइका उद्देश्यहरू
 
-यो उदाहरणले .NET मा Microsoft Agent Framework र Azure OpenAI (Responses API) एकीकरण प्रयोग गरेर बुद्धिमान एजेन्टहरू निर्माण गर्नका लागि उद्यम-ग्रेड डिजाइन ढाँचाहरू प्रदर्शन गर्दछ। तपाईंले व्यावसायिक ढाँचाहरू र वास्तुकला दृष्टिकोणहरू सिक्नुहुनेछ जसले एजेन्टहरू उत्पादन-तयार, मर्मतयोग्य, र स्केलेबल बनाउँछन्।
+यो उदाहरणले .NET मा Microsoft Agent Framework प्रयोग गरी Azure OpenAI (Responses API) एकीकरण सहित बुद्धिमान एजेन्टहरू निर्माण गर्नका लागि उद्यम-स्तरका डिजाइन ढाँचाहरू देखाउँछ। तपाईंले व्यावसायिक ढाँचा र वास्तुकला दृष्टिकोणहरू सिक्नुहुनेछ जसले एजेन्टहरूलाई उत्पादनयोग्य, मर्मतयोग्य, र स्केलेबल बनाउँछ।
 
 ### उद्यम डिजाइन ढाँचाहरू
 
-- 🏭 **Factory Pattern**: निर्भरता इंजेक्शन सहित मानकीकृत एजेन्ट सिर्जना
+- 🏭 **Factory Pattern**: आश्रितता इंजेक्शनसहित मानकीकृत एजेन्ट सिर्जना
 - 🔧 **Builder Pattern**: फ्लुएन्ट एजेन्ट कन्फिगरेसन र सेटअप
-- 🧵 **Thread-Safe Patterns**: समानान्तर कुराकानी व्यवस्थापन
-- 📋 **Repository Pattern**: टूल र क्षमता व्यवस्थापन सुगठित तरिकाले
+- 🧵 **Thread-Safe Patterns**: समवर्ती संवाद व्यवस्थापन
+- 📋 **Repository Pattern**: व्यवस्थित उपकरण र क्षमता व्यवस्थापन
 
-## 🎯 .NET-विशिष्ट वास्तुकला लाभहरू
+## 🎯 .NET-विशेष वास्तुकला लाभहरू
 
 ### उद्यम सुविधाहरू
 
-- **सबल टाइपिंग**: कम्पाइल-समय प्रमाणीकरण र IntelliSense समर्थन
-- **निर्भरता इंजेक्शन**: बिल्ट-इन DI कन्टेनर एकीकरण
-- **कन्फिगरेसन व्यवस्थापन**: IConfiguration र Options ढाँचाहरू
+- **Strong Typing**: कम्पाइल-टाइम मान्यकरण र IntelliSense सहयोग
+- **Dependency Injection**: बिल्ट-इन DI कन्टेनर एकीकरण
+- **Configuration Management**: IConfiguration र Options ढाँचाहरू
 - **Async/Await**: प्रथम श्रेणी असिंक्रोनस प्रोग्रामिङ समर्थन
 
 ### उत्पादन-तयार ढाँचाहरू
 
-- **लॉगिङ एकीकरण**: ILogger र संरचित लगिङ समर्थन
-- **स्वास्थ्य जाँचहरू**: बिल्ट-इन निगरानी र निदान
-- **कन्फिगरेसन प्रमाणीकरण**: डाटा अनुशासनसहित सशक्त टाइपिंग
-- **त्रुटि ह्यान्डलिङ**: संरचित अपवाद व्यवस्थापन
+- **Logging Integration**: ILogger र संरचित लगिङ समर्थन
+- **Health Checks**: बिल्ट-इन अनुगमन र निदान
+- **Configuration Validation**: डाटा एनोटेसनसहितको मजबूत टाइपिङ
+- **Error Handling**: संरचित अपवाद व्यवस्थापन
 
 ## 🔧 प्राविधिक वास्तुकला
 
-### मुख्य .NET कम्पोनेन्टहरू
+### मूल .NET कम्पोनेन्टहरू
 
 - **Microsoft.Extensions.AI**: एकीकृत AI सेवा अमूर्तता
-- **Microsoft.Agents.AI**: उद्यम एजेन्ट आयोजन फ्रेमवर्क
+- **Microsoft.Agents.AI**: उद्यम एजेन्ट अर्गनाइजेसन फ्रेमवर्क
 - **Azure OpenAI (Responses API)**: उच्च-प्रदर्शन API क्लाइन्ट ढाँचाहरू
-- **कन्फिगरेसन सिस्टम**: appsettings.json र वातावरण एकीकरण
+- **Configuration System**: appsettings.json र वातावरण एकीकरण
 
 ### डिजाइन ढाँचा कार्यान्वयन
 
@@ -42,126 +42,126 @@
 graph LR
     A[IServiceCollection] --> B[एजेन्ट बिल्डर]
     B --> C[कन्फिगरेसन]
-    C --> D[टुल रजिस्ट्री]
+    C --> D[टूल रजिष्ट्रि]
     D --> E[एआई एजेन्ट]
 ```
 
-## 🏗️ उद्यम ढाँचाहरू प्रदर्शित गरियो
+## 🏗️ प्रदर्शन गरिएको उद्यम ढाँचाहरू
 
 ### 1. **सिर्जनात्मक ढाँचाहरू**
 
-- **एजेन्ट फ्याक्टरी**: निरन्तर कन्फिगरेसन सहित केंद्रीकृत एजेन्ट सिर्जना
-- **Builder Pattern**: जटिल एजेन्ट कन्फिगरेसनको लागि फ्लुएन्ट API
+- **Agent Factory**: एउटै कन्फिगरेसनसहित केन्द्रीयकृत एजेन्ट सिर्जना
+- **Builder Pattern**: जटिल एजेन्ट कन्फिगरेसनका लागि फ्लुएन्ट API
 - **Singleton Pattern**: साझा स्रोतहरू र कन्फिगरेसन व्यवस्थापन
-- **निर्भरता इंजेक्शन**: फुकुवा जोडना र परीक्षणयोग्यता
+- **Dependency Injection**: खुकुलो जोड र परीक्षणयोग्य बनाउने
 
 ### 2. **व्यवहारिक ढाँचाहरू**
 
-- **Strategy Pattern**: विकल्पीय उपकरण कार्यान्वयन रणनीतिहरू
-- **Command Pattern**: उल्टाउन/फेरि गर्ने क्षमतासहित क्याप्सुलेटेड एजेन्ट अपरेसनहरू
-- **Observer Pattern**: घटना-सञ्चालित एजेन्ट जीवनचक्र व्यवस्थापन
-- **Template Method**: मानकीकृत एजेन्ट कार्यान्वयन कार्यप्रवाहहरू
+- **Strategy Pattern**: विनिमेय उपकरण कार्यान्वयन रणनीतिहरू
+- **Command Pattern**: अनडू/रिडू सहित समाविष्ट एजेन्ट अपरेसनहरू
+- **Observer Pattern**: घटना-आधारित एजेन्ट जीवनचक्र व्यवस्थापन
+- **Template Method**: मानकीकृत एजेन्ट कार्यप्रवाहहरू
 
 ### 3. **संरचनात्मक ढाँचाहरू**
 
 - **Adapter Pattern**: Azure OpenAI (Responses API) एकीकरण तह
-- **Decorator Pattern**: एजेन्ट क्षमता वृद्धि
-- **Facade Pattern**: सरलीकृत एजेन्ट अन्तरक्रिया इन्टरफेसहरू
-- **Proxy Pattern**: प्रदर्शनको लागि लेजी लोडिङ र क्यासिङ
+- **Decorator Pattern**: एजेन्ट क्षमताको वृद्धि
+- **Facade Pattern**: सरल एजेन्ट अन्तरक्रिया इन्टरफेसहरू
+- **Proxy Pattern**: प्रदर्शनका लागि लेजी लोडिंग र क्याचिङ
 
 ## 📚 .NET डिजाइन सिद्धान्तहरू
 
 ### SOLID सिद्धान्तहरू
 
-- **Single Responsibility**: प्रत्येक कम्पोनेन्टको एउटा स्पष्ट उद्देश्य हुन्छ
-- **Open/Closed**: परिमार्जन बिना विस्तारयोग्य
+- **Single Responsibility**: प्रत्येक कम्पोनेन्टको स्पष्ट उद्देश्य
+- **Open/Closed**: संशोधन बिना विस्तारयोग्य
 - **Liskov Substitution**: इन्टरफेस-आधारित उपकरण कार्यान्वयनहरू
-- **Interface Segregation**: लक्षित, एकल उद्देश्यका इन्टरफेसहरू
-- **Dependency Inversion**: अमूर्तताहरूमा निर्भर, भौतिकताहरूमा होइन
+- **Interface Segregation**: लक्षित, समेकित इन्टरफेसहरू
+- **Dependency Inversion**: अमूर्ततामा निर्भर, कंक्रीटमा होइन
 
 ### सफा वास्तुकला
 
-- **Domain Layer**: मुख्य एजेन्ट र उपकरण अमूर्तताहरू
-- **Application Layer**: एजेन्ट आयोजन र कार्यप्रवाहहरू
-- **Infrastructure Layer**: Azure OpenAI (Responses API) एकीकरण र बाहिरी सेवाहरू
-- **Presentation Layer**: प्रयोगकर्ता अन्तरक्रिया र प्रतिक्रिया स्वरूपण
+- **Domain Layer**: मूल एजेन्ट र उपकरण अमूर्तता
+- **Application Layer**: एजेन्ट अर्गनाइजेसन र कार्यप्रवाहहरू
+- **Infrastructure Layer**: Azure OpenAI (Responses API) एकीकरण र बाह्य सेवाहरू
+- **Presentation Layer**: प्रयोगकर्ता अन्तरक्रिया र जवाफ स्वरूपण
 
-## 🔒 उद्यम विचारहरू
+## 🔒 उद्यम विचारणीयताहरू
 
 ### सुरक्षा
 
-- **प्रमाणीकरण व्यवस्थापन**: IConfiguration द्वारा सुरक्षित API कुञ्जी ह्यान्डलिङ
-- **इनपुट प्रमाणीकरण**: मजबूत टाइपिंग र डाटा अनुशासन प्रमाणीकरण
-- **आउटपुट सफाइ**: सुरक्षित प्रतिक्रिया प्रशोधन र फिल्टरिङ
-- **अडिट लगिङ**: व्यापक अपरेसन ट्र्याकिङ
+- **Credential Management**: IConfiguration प्रयोग गरेर सुरक्षित API कुञ्जी ह्यान्डलिङ
+- **Input Validation**: दृढ टाइपिङ र डाटा एनोटेसन मान्यकरण
+- **Output Sanitization**: सुरक्षित जवाफ प्रक्रिया र छनौट
+- **Audit Logging**: समग्र अपरेशन ट्र्याकिङ
 
 ### प्रदर्शन
 
-- **Async ढाँचाहरू**: नन-ब्लकिङ I/O अपरेसनहरू
-- **कनेक्शन पूलिङ**: प्रभावकारी HTTP क्लाइन्ट व्यवस्थापन
-- **क्यासिङ**: सुधारिएको प्रदर्शनको लागि प्रतिक्रिया क्यासिङ
-- **स्रोत व्यवस्थापन**: उपयुक्त नष्ट गर्ने र सफाइ ढाँचाहरू
+- **Async Patterns**: गैर-रोकिने I/O अपरेसनहरू
+- **Connection Pooling**: दक्ष HTTP क्लाइन्ट व्यवस्थापन
+- **Caching**: प्रदर्शन सुधारका लागि जवाफ क्याचिङ
+- **Resource Management**: उचित नष्ट र सफाइ ढाँचाहरू
 
 ### स्केलेबिलिटी
 
-- **थ्रेड सुरक्षा**: समानान्तर एजेन्ट कार्यान्वयन समर्थन
-- **स्रोत पूलिङ**: प्रभावकारी स्रोत उपयोग
-- **लोड व्यवस्थापन**: दर सीमितरण र पछाडि दबाब ह्यान्डलिङ
-- **निगरानी**: प्रदर्शन मेट्रिक्स र स्वास्थ्य जाँचहरू
+- **Thread Safety**: समवर्ती एजेन्ट कार्यान्वयन समर्थन
+- **Resource Pooling**: प्रभावकारी स्रोत उपयोग
+- **Load Management**: दर सीमितीकरण र ब्याकप्रेशर ह्यान्डलिङ
+- **Monitoring**: प्रदर्शन मेट्रिक्स र स्वास्थ्य जाँच
 
-## 🚀 उत्पादन तैनाती
+## 🚀 उत्पादन परिनियोजन
 
-- **कन्फिगरेसन व्यवस्थापन**: वातावरण-विशिष्ट सेटिङहरू
-- **लगिङ रणनीति**: सहसम्बन्ध आईडीहरू सहित संरचित लगिङ
-- **त्रुटि ह्यान्डलिङ**: उचित पुनःप्राप्तिसहित विश्वव्यापी अपवाद व्यवस्थापन
-- **निगरानी**: एप्लिकेशन इनसाइट्स र प्रदर्शन काउन्टरहरू
-- **परीक्षण**: युनिट परीक्षणहरू, एकिकृत परीक्षणहरू, र लोड परीक्षण ढाँचाहरू
+- **Configuration Management**: वातावरण-विशेष सेटिङहरू
+- **Logging Strategy**: सहसंबंधित ID हरूसहित संरचित लगिङ
+- **Error Handling**: सही पुनःप्राप्तिसहित विश्वव्यापी अपवाद व्यवस्थापन
+- **Monitoring**: एप्लिकेसन इनसाइट्स र प्रदर्शन काउन्टरहरू
+- **Testing**: युनिट टेस्ट, इंटीग्रेशन टेस्ट र लोड टेस्ट ढाँचाहरू
 
-.NET सँग उद्यम-ग्रेड बुद्धिमान एजेन्टहरू निर्माण गर्न तयार? आउनुहोस् केहि बलियो वास्तुकला बनाऔं! 🏢✨
+.NET सँग उद्यम-स्तर बुद्धिमान एजेन्टहरू बनाउन तयार हुनुहुन्छ? केही ठोस वास्तुकला तयार गरौं! 🏢✨
 
-## 🚀 सुरु गर्नुहोस्
+## 🚀 सुरूवात गर्ने तरिका
 
-### पूर्वशर्तहरू
+### आवश्यकताहरू
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) वा माथि
-- Azure OpenAI स्रोत र मोडेल डिप्लोइमेन्ट सहितको [Azure सदस्यता](https://azure.microsoft.com/free/)
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` प्रयोग गरी साइन इन गर्नुहोस्
+- Azure OpenAI स्रोत र मोडेल डिप्लोयमेन्ट सहितको [Azure सदस्यता](https://azure.microsoft.com/free/)
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` सँग साइन इन गर्नुहोस्
 
 ### आवश्यक वातावरण भेरिएबलहरू
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# त्यसपछि साइन इन गर्नुहोस् ताकि AzureCliCredential टोकन प्राप्त गर्न सकोस्
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# त्यसपछि साइन इन गर्नुहोस् ताकि AzureCliCredential ले टोकन प्राप्त गर्न सकोस्
 az login
 ```
 
 ```powershell
-# PowerShell
+# पावरशेल
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# त्यसपछि साइन इन गर्नुहोस् ताकि AzureCliCredential ले टोकन प्राप्त गर्न सक्छ
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# त्यसपछि साइन इन गर्नुहोस् ताकि AzureCliCredential ले टोकन प्राप्त गर्न सकून्
 az login
 ```
 
-### नमूना कोड
+### नमुना कोड
 
 कोड उदाहरण चलाउन,
 
 ```bash
-# जेडएसएच/बाश
+# zsh/bash
 chmod +x ./03-dotnet-agent-framework.cs
 ./03-dotnet-agent-framework.cs
 ```
 
-वा dotnet CLI प्रयोग गरी:
+वा dotnet CLI मार्फत:
 
 ```bash
 dotnet run ./03-dotnet-agent-framework.cs
 ```
 
-सम्पूर्ण कोडको लागि [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) हेर्नुहोस्।
+पूर्ण कोडका लागि [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) हेर्नुहोस्।
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

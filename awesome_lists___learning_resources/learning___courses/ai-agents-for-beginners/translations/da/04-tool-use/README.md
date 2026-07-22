@@ -1,76 +1,76 @@
 [![Hvordan man designer gode AI-agenter](../../../translated_images/da/lesson-4-thumbnail.546162853cb3daff.webp)](https://youtu.be/vieRiPRx-gI?si=cEZ8ApnT6Sus9rhn)
 
-> _(Klik på billedet ovenfor for at se videoen af denne lektion)_
+> _(Klik på billedet ovenfor for at se videoen til denne lektion)_
 
-# Designmønster for brug af værktøjer
+# Tool Use Design Pattern
 
-Værktøjer er interessante, fordi de giver AI-agenter en bredere række af kapaciteter. I stedet for at agenten kun har et begrænset sæt handlinger, den kan udføre, kan agenten nu ved at tilføje et værktøj udføre en bred vifte af handlinger. I dette kapitel vil vi se på designmønsteret for brug af værktøjer, som beskriver, hvordan AI-agenter kan bruge specifikke værktøjer til at opnå deres mål.
+Værktøjer er interessante, fordi de giver AI-agenter mulighed for at have et bredere udvalg af kapaciteter. I stedet for at agenten kun har et begrænset sæt handlinger, den kan udføre, kan den med et værktøj nu udføre en lang række handlinger. I dette kapitel vil vi se på Tool Use Design Pattern, som beskriver, hvordan AI-agenter kan bruge specifikke værktøjer for at opnå deres mål.
 
 ## Introduktion
 
 I denne lektion søger vi at besvare følgende spørgsmål:
 
-- Hvad er designmønsteret for brug af værktøjer?
-- Hvad er anvendelsestilfælde, det kan anvendes på?
-- Hvad er elementerne/opbygningsblokke, der er nødvendige for at implementere designmønsteret?
-- Hvilke særlige overvejelser er der ved brug af designmønsteret for brug af værktøjer til at bygge troværdige AI-agenter?
+- Hvad er Tool Use Design Pattern?
+- Hvilke brugstilfælde kan den anvendes til?
+- Hvilke elementer/byggesten er nødvendige for at implementere designmønstret?
+- Hvilke særlige overvejelser er der ved at bruge Tool Use Design Pattern til at bygge pålidelige AI-agenter?
 
 ## Læringsmål
 
-Efter at have gennemført denne lektion vil du kunne:
+Efter at have gennemført denne lektion vil du være i stand til at:
 
-- Definere designmønsteret for brug af værktøjer og dets formål.
-- Identificere anvendelsestilfælde, hvor designmønsteret for brug af værktøjer er anvendeligt.
-- Forstå de nøgleelementer, der er nødvendige for at implementere designmønsteret.
-- Genkende overvejelser for at sikre troværdighed i AI-agenter, der bruger dette designmønster.
+- Definere Tool Use Design Pattern og dets formål.
+- Identificere brugstilfælde, hvor Tool Use Design Pattern er anvendeligt.
+- Forstå de nøgleelementer, der er nødvendige for at implementere designmønstret.
+- Genkende overvejelser for at sikre pålidelighed i AI-agenter, der bruger dette designmønster.
 
-## Hvad er designmønsteret for brug af værktøjer?
+## Hvad er Tool Use Design Pattern?
 
-**Designmønsteret for brug af værktøjer** fokuserer på at give LLM'er evnen til at interagere med eksterne værktøjer for at nå specifikke mål. Værktøjer er kode, der kan udføres af en agent for at foretage handlinger. Et værktøj kan være en simpel funktion som en lommeregner eller et API-opkald til en tredjepartstjeneste som aktiekursopsøgning eller vejrudsigt. I konteksten af AI-agenter er værktøjer designet til at blive udført af agenter som svar på **funktionsopkald genereret af modellen**.
+**Tool Use Design Pattern** fokuserer på at give LLM'er muligheden for at interagere med eksterne værktøjer for at opnå specifikke mål. Værktøjer er kode, som en agent kan udføre for at foretage handlinger. Et værktøj kan være en simpel funktion som en lommeregner eller et API-kald til en tredjepartstjeneste som aktiekurstjek eller vejrudsigt. I forbindelse med AI-agenter er værktøjerne designet til at blive udført af agenter som svar på **modelgenererede funktionskald**.
 
-## Hvad er anvendelsestilfældene, det kan anvendes på?
+## Hvilke brugstilfælde kan den anvendes til?
 
-AI-agenter kan udnytte værktøjer til at fuldføre komplekse opgaver, hente oplysninger eller træffe beslutninger. Designmønsteret for brug af værktøjer anvendes ofte i scenarier, der kræver dynamisk interaktion med eksterne systemer som databaser, webservices eller kodefortolkere. Denne evne er nyttig til en række forskellige anvendelsestilfælde, herunder:
+AI-agenter kan udnytte værktøjer til at udføre komplekse opgaver, hente information eller træffe beslutninger. Tool Use Design Pattern bruges ofte i scenarier, der kræver dynamisk interaktion med eksterne systemer, såsom databaser, webtjenester eller kodefortolkere. Denne evne er nyttig i flere forskellige brugstilfælde, herunder:
 
-- **Dynamisk informationsindsamling:** Agenter kan forespørge eksterne API'er eller databaser for at hente opdaterede data (f.eks. forespørgsel til en SQLite-database for dataanalyse, hente aktiekurser eller vejrdata).
-- **Kodeeksekvering og fortolkning:** Agenter kan køre kode eller scripts for at løse matematiske problemer, generere rapporter eller udføre simuleringer.
-- **Automatisering af workflow:** Automatisering af gentagne eller flerstegs workflow ved integration af værktøjer som opgaveplanlæggere, e-mail-tjenester eller datapipelines.
-- **Kundesupport:** Agenter kan interagere med CRM-systemer, billetsystemer eller vidensdatabaser for at løse brugerhenvendelser.
-- **Indholdsgenerering og redigering:** Agenter kan bruge værktøjer som grammatikkontrol, tekstopsummering eller evaluering af indholdssikkerhed til at hjælpe med opgaver inden for indholdsskabelse.
+- **Dynamisk informationshentning:** Agenter kan forespørge eksterne API'er eller databaser for at hente opdaterede data (f.eks. forespørgsler i en SQLite-database til dataanalyse, hentning af aktiekurser eller vejrdata).
+- **Kodeeksekvering og fortolkning:** Agenter kan udføre kode eller scripts for at løse matematiske problemer, generere rapporter eller lave simuleringer.
+- **Workflow-automatisering:** Automatisering af gentagne eller flertrinsarbejdsgange ved at integrere værktøjer som opgaveplanlæggere, e-mail-tjenester eller datapipelines.
+- **Kundesupport:** Agenter kan interagere med CRM-systemer, supportsystemer eller vidensbaser for at løse brugerforespørgsler.
+- **Indholdsgenerering og redigering:** Agenter kan bruge værktøjer som grammatikcheckere, tekstopsummatorer eller indholdssikkerhedsvurderinger til at hjælpe med indholdsopgaver.
 
-## Hvad er elementerne/opbygningsblokkene, der er nødvendige for at implementere designmønsteret for brug af værktøjer?
+## Hvilke elementer/byggesten er nødvendige for at implementere Tool Use Design Pattern?
 
-Disse opbygningsblokke tillader AI-agenten at udføre en bred vifte af opgaver. Lad os se på nøgleelementerne, der er nødvendige for at implementere designmønsteret for brug af værktøjer:
+Disse byggesten gør det muligt for AI-agenten at udføre et bredt spektrum af opgaver. Lad os se på de vigtigste elementer, der er nødvendige for at implementere Tool Use Design Pattern:
 
-- **Funktions-/værktøjsskemaer**: Detaljerede definitioner af tilgængelige værktøjer, inklusive funktionsnavn, formål, nødvendige parametre og forventede output. Disse skemaer gør det muligt for LLM at forstå, hvilke værktøjer der er tilgængelige, og hvordan man konstruerer gyldige anmodninger.
+- **Funktions-/værktøjsskemaer**: Detaljerede definitioner af tilgængelige værktøjer, inklusive funktionsnavn, formål, nødvendige parametre og forventede outputs. Disse skemaer gør det muligt for LLM at forstå, hvilke værktøjer der er tilgængelige, og hvordan man konstruerer gyldige forespørgsler.
 
-- **Logik for funktionsudførelse**: Styrer hvordan og hvornår værktøjer bliver kaldt baseret på brugerens hensigt og samtalekontekst. Dette kan inkludere planlægningsmoduler, rute-mekanismer eller betingede flows, der dynamisk bestemmer brugen af værktøjer.
+- **Funktionsudførelseslogik**: Styrer hvornår og hvordan værktøjer påkaldes baseret på brugerens hensigt og samtalekontekst. Dette kan inkludere planlægningsmoduler, rutealgoritmer eller betingede flow, der dynamisk bestemmer værktøjsbrug.
 
-- **Beskedhåndteringssystem**: Komponenter, der styrer den konverserende strøm mellem brugerinput, LLM-svar, værktøjskald og værktøjsoutput.
+- **Beskedhåndteringssystem**: Komponenter der håndterer samtaleflowet mellem brugerinput, LLM-svar, værktøjskald og værktøjsoutput.
 
-- **Værktøjsintegrationsrammeværk**: Infrastruktur, der forbinder agenten med forskellige værktøjer, uanset om de er simple funktioner eller komplekse eksterne tjenester.
+- **Værktøjsintegrationsrammeværk**: Infrastruktur, der forbinder agenten med forskellige værktøjer, hvad enten det er simple funktioner eller komplekse eksterne tjenester.
 
 - **Fejlhåndtering og validering**: Mekanismer til at håndtere fejl i værktøjsudførelse, validere parametre og håndtere uventede svar.
 
-- **Statusstyring**: Holder styr på samtalekontekst, tidligere værktøjsinteraktioner og vedvarende data for at sikre konsistens på tværs af flere runder af interaktion.
+- **Tilstandsstyring**: Holder styr på samtalekontekst, tidligere værktøjsinteraktioner og persistent data for at sikre konsistens på tværs af flertrinsinteraktioner.
 
-Lad os nu se nærmere på funktions-/værktøjskald.
+Lad os nu se nærmere på Funktions-/værktøjskald.
  
 ### Funktions-/værktøjskald
 
-Funktionskald er den primære måde, vi gør det muligt for store sprogmodeller (LLM'er) at interagere med værktøjer på. Du vil ofte se 'funktion' og 'værktøj' brugt i flæng, fordi 'funktioner' (blokke af genbrugelig kode) er de 'værktøjer', agenter bruger til at udføre opgaver. For at en funktions kode kan blive kaldt, skal en LLM sammenligne brugerens anmodning med funktionens beskrivelse. For at gøre dette sendes et skema, der indeholder beskrivelser af alle tilgængelige funktioner, til LLM. Derefter vælger LLM den mest passende funktion til opgaven og returnerer dens navn og argumenter. Den valgte funktion kaldes, dens svar sendes tilbage til LLM, som bruger informationen til at svare på brugerens anmodning.
+Funktionskald er den primære måde, hvorpå vi gør det muligt for Large Language Models (LLM'er) at interagere med værktøjer. Du vil ofte se 'Function' og 'Tool' brugt om hinanden, fordi 'funktioner' (genanvendelige kodeblokke) er de 'værktøjer', agenter bruger til at udføre opgaver. For at en funktions kode kan påkaldes, skal LLM sammenligne brugerens forespørgsel med funktionens beskrivelse. Til det sendes et skema, der indeholder beskrivelserne af alle tilgængelige funktioner, til LLM'en. LLM'en vælger derefter den mest passende funktion til opgaven og returnerer dens navn og argumenter. Den valgte funktion påkaldes, dens svar sendes tilbage til LLM'en, som bruger informationen til at svare på brugerens forespørgsel.
 
-For udviklere, der vil implementere funktionskald for agenter, skal du bruge:
+For udviklere, der vil implementere funktionskald til agenter, skal du bruge:
 
 1. En LLM-model, der understøtter funktionskald
-2. Et skema, der indeholder funktionsbeskrivelser
-3. Koden til hver beskrevet funktion
+2. Et skema med funktionsbeskrivelser
+3. Koden til hver beskrevne funktion
 
-Lad os bruge eksemplet med at få den aktuelle tid i en by til at illustrere:
+Lad os bruge eksemplet med at hente det aktuelle klokkeslæt i en by til at illustrere:
 
 1. **Initialiser en LLM, der understøtter funktionskald:**
 
-    Ikke alle modeller understøtter funktionskald, så det er vigtigt at tjekke, at den LLM, du bruger, gør det.     <a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/function-calling" target="_blank">Azure OpenAI</a> understøtter funktionskald. Vi kan starte med at initialisere OpenAI-klienten mod Azure OpenAI **Responses API** (det stabile `/openai/v1/` endpoint — ingen `api_version` nødvendig). 
+    Ikke alle modeller understøtter funktionskald, så det er vigtigt at tjekke, at den LLM, du bruger, gør.     <a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/function-calling" target="_blank">Azure OpenAI</a> understøtter funktionskald. Vi kan starte med at initialisere OpenAI klienten mod Azure OpenAI **Responses API** (den stabile `/openai/v1/` endpoint — uden `api_version`). 
 
     ```python
     # Initialiser OpenAI-klienten til Azure OpenAI (Responses API, v1-endpoint)
@@ -83,11 +83,11 @@ Lad os bruge eksemplet med at få den aktuelle tid i en by til at illustrere:
 
 1. **Opret et funktionsskema**:
 
-    Dernæst definerer vi et JSON-skema, som indeholder funktionsnavn, beskrivelse af hvad funktionen gør, og navnene og beskrivelserne af funktionsparametrene.
-    Vi sender så dette skema til klienten, der tidligere blev oprettet sammen med brugerens anmodning om at finde tiden i San Francisco. Det, der er vigtigt at bemærke, er, at et **værktøjskald** er det, der returneres, **ikke** det endelige svar på spørgsmålet. Som nævnt tidligere returnerer LLM navnet på den funktion, den valgte til opgaven, og argumenterne, der skal videregives til den.
+    Dernæst definerer vi et JSON-skema, der indeholder funktionsnavn, beskrivelse af hvad funktionen gør, samt navnene og beskrivelserne af funktionsparametrene.
+    Vi sender så dette skema til klienten, som vi oprettede tidligere, sammen med brugerens forespørgsel om at finde tiden i San Francisco. Det vigtige at bemærke er, at et **værktøjskald** er det, der returneres, **ikke** det endelige svar på spørgsmålet. Som nævnt tidligere returnerer LLM navnet på den funktion, den valgte til opgaven, samt argumenterne, der passerer til den.
 
     ```python
-    # Funktionsbeskrivelse for modellen at læse (Responses API fladt værktøjsformat)
+    # Funktionsbeskrivelse for modellen at læse (Responses API flat tool format)
     tools = [
         {
             "type": "function",
@@ -109,7 +109,7 @@ Lad os bruge eksemplet med at få den aktuelle tid i en by til at illustrere:
    
     ```python
   
-    # Initial brugerbesked
+    # Initielt brugermeddelelse
     messages = [{"role": "user", "content": "What's the current time in San Francisco"}]
 
     # Første API-kald: Bed modellen om at bruge funktionen
@@ -122,7 +122,7 @@ Lad os bruge eksemplet med at få den aktuelle tid i en by til at illustrere:
     )
 
     # Responses API returnerer værktøjskald som function_call elementer i response.output.
-    # Tilføj dem til samtalen, så modellen har fuld kontekst ved næste runde.
+    # Tilføj dem til samtalen, så modellen har fuld kontekst ved næste omgang.
     messages += response.output
 
     print("Model's response:")
@@ -135,10 +135,10 @@ Lad os bruge eksemplet med at få den aktuelle tid i en by til at illustrere:
     [ResponseFunctionToolCall(arguments='{"location":"San Francisco"}', call_id='call_pOsKdUlqvdyttYB67MOj434b', name='get_current_time', type='function_call')]
     ```
   
-1. **Den funktionskode, der skal udføre opgaven:**
+1. **Funktionens kode, der skal udføre opgaven:**
 
-    Nu, hvor LLM har valgt hvilken funktion, der skal køres, skal koden, der udfører opgaven, implementeres og eksekveres.
-    Vi kan implementere koden til at hente den aktuelle tid i Python. Vi skal også skrive koden for at udtrække navnet og argumenterne fra response_message for at få det endelige resultat.
+    Nu, hvor LLM har valgt, hvilken funktion der skal køres, skal koden, der udfører opgaven, implementeres og udføres.
+    Vi kan implementere koden til at hente det aktuelle klokkeslæt i Python. Vi skal også skrive koden til at udtrække navn og argumenter fra response_message for at få det endelige resultat.
 
     ```python
       def get_current_time(location):
@@ -198,22 +198,22 @@ Lad os bruge eksemplet med at få den aktuelle tid i en by til at illustrere:
       The current time in San Francisco is 09:24 AM.
      ```
 
-Funktionskald er kernen i de fleste, hvis ikke alle, designmønstre for brug af værktøjer til agenter, men det kan nogle gange være udfordrende at implementere fra bunden.
-Som vi lærte i [Lektion 2](../../../02-explore-agentic-frameworks) giver agentiske rammer os færdigbyggede byggeklodser til at implementere brug af værktøjer.
+Funktionskald er kernen i de fleste, hvis ikke alle, agent-værktøjsbrugsmønstre, men implementering fra bunden kan nogle gange være udfordrende.
+Som vi lærte i [Lektion 2](../../../02-explore-agentic-frameworks) giver agentiske frameworks os færdige byggesten til at implementere værktøjsbrug.
  
-## Eksempler på brug af værktøjer med agentiske rammer
+## Værktøjsbrugs Eksempler med Agentiske Frameworks
 
-Her er nogle eksempler på, hvordan du kan implementere designmønsteret for brug af værktøjer ved hjælp af forskellige agentiske rammer:
+Her er nogle eksempler på, hvordan du kan implementere Tool Use Design Pattern ved brug af forskellige agentiske frameworks:
 
 ### Microsoft Agent Framework
 
-<a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Agent Framework</a> er en open source AI-ramme til at bygge AI-agenter. Den forenkler processen med funktionskald ved at lade dig definere værktøjer som Python-funktioner med `@tool`-dekorationen. Rammen håndterer kommunikationen frem og tilbage mellem modellen og din kode. Den giver også adgang til færdigbyggede værktøjer som Fil-søgning og Kodefortolker via `FoundryChatClient`.
+<a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Agent Framework</a> er et open-source AI-framework til at bygge AI-agenter. Det forenkler processen med at bruge funktionskald ved at lade dig definere værktøjer som Python-funktioner med `@tool` dekorationen. Frameworket håndterer kommunikationen frem og tilbage mellem modellen og din kode. Det giver også adgang til færdigbyggede værktøjer som File Search og Code Interpreter via `FoundryChatClient`.
 
 Følgende diagram illustrerer processen med funktionskald i Microsoft Agent Framework:
 
-![funktionskald](../../../translated_images/da/functioncalling-diagram.a84006fc287f6014.webp)
+![function calling](../../../translated_images/da/functioncalling-diagram.a84006fc287f6014.webp)
 
-I Microsoft Agent Framework defineres værktøjer som dekorerede funktioner. Vi kan konvertere den `get_current_time` funktion, vi så tidligere, til et værktøj ved at bruge `@tool` dekoratøren. Rammen vil automatisk serialisere funktionen og dens parametre og skabe skemaet, der sendes til LLM.
+I Microsoft Agent Framework defineres værktøjer som decorerede funktioner. Vi kan omdanne `get_current_time` funktionen, vi så tidligere, til et værktøj ved at bruge `@tool` dekoratoren. Frameworket vil automatisk serialisere funktionen og dens parametre og skabe det skema, der sendes til LLM.
 
 ```python
 import os
@@ -240,42 +240,42 @@ response = await agent.run("What time is it?")
   
 ### Microsoft Foundry Agent Service
 
-<a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Foundry Agent Service</a> er en nyere agentisk ramme, designet til at give udviklere mulighed for sikkert at bygge, udrulle og skalere AI-agenter af høj kvalitet og med mulighed for udvidelse uden at skulle håndtere de underliggende compute- og lagerressourcer. Det er særligt nyttigt til virksomhedsapplikationer, da det er en fuldt administreret service med sikkerhed på virksomhedsniveau.
+<a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Foundry Agent Service</a> er et nyere agentisk framework, der er designet til at give udviklere mulighed for sikkert at bygge, implementere og skalere AI-agenter af høj kvalitet og udvidelige AI-agenter uden at skulle administrere den underliggende compute- og lagringsressourcer. Det er særlig nyttigt til virksomhedsapplikationer, da det er en fuldt administreret service med sikkerhed i virksomhedskvalitet.
 
-Sammenlignet med at udvikle direkte med LLM API'en tilbyder Microsoft Foundry Agent Service nogle fordele, herunder:
+Sammenlignet med udvikling direkte med LLM API'en tilbyder Microsoft Foundry Agent Service flere fordele, herunder:
 
-- Automatisk værktøjskald – ingen behov for at analysere et værktøjskald, kalde værktøjet og håndtere svaret; alt dette sker nu server-side
-- Sikkert administrerede data – i stedet for at håndtere din egen samtalestatus kan du stole på threads til at lagre alle de oplysninger, du har brug for
-- Værktøjer klar til brug – værktøjer, som du kan bruge til at interagere med dine datakilder, såsom Bing, Azure AI Search og Azure Functions.
+- Automatisk værktøjskald – ingen behov for at parse et værktøjskald, påkalde værktøjet og håndtere svaret; alt dette håndteres nu server-side
+- Sikkert administrerede data – i stedet for at styre din egen samtalestatus, kan du stole på threads til at gemme al den information, du har brug for
+- Værktøjer klar til brug – værktøjer, du kan bruge til at interagere med dine datakilder, som Bing, Azure AI Search og Azure Functions.
 
-Værktøjerne tilgængelige i Microsoft Foundry Agent Service kan opdeles i to kategorier:
+De værktøjer, der er tilgængelige i Microsoft Foundry Agent Service, kan opdeles i to kategorier:
 
-1. Videnværktøjer:
+1. Vidensværktøjer:
     - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/bing-grounding?tabs=python&pivots=overview" target="_blank">Grounding med Bing Search</a>
-    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/file-search?tabs=python&pivots=overview" target="_blank">Fil-søgning</a>
+    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/file-search?tabs=python&pivots=overview" target="_blank">File Search</a>
     - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/azure-ai-search?tabs=azurecli%2Cpython&pivots=overview-azure-ai-search" target="_blank">Azure AI Search</a>
 
 2. Handlingsværktøjer:
     - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/function-calling?tabs=python&pivots=overview" target="_blank">Funktionskald</a>
-    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/code-interpreter?tabs=python&pivots=overview" target="_blank">Kodefortolker</a>
+    - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/code-interpreter?tabs=python&pivots=overview" target="_blank">Code Interpreter</a>
     - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/openapi-spec?tabs=python&pivots=overview" target="_blank">OpenAPI-definerede værktøjer</a>
     - <a href="https://learn.microsoft.com/azure/ai-services/agents/how-to/tools/azure-functions?pivots=overview" target="_blank">Azure Functions</a>
 
-Agent Servicen giver os mulighed for at kunne bruge disse værktøjer samlet som et `toolset`. Den bruger også `threads`, som holder styr på beskedhistorikken fra en bestemt samtale.
+Agent Service gør det muligt at bruge disse værktøjer samlet som en `toolset`. Den bruger også `threads`, som holder styr på historikken af beskeder fra en bestemt samtale.
 
-Forestil dig, at du er salgsagent i et firma kaldet Contoso. Du vil udvikle en samtaleagent, der kan besvare spørgsmål om dine salgsdata.
+Forestil dig, at du er salgsagent i en virksomhed kaldet Contoso. Du ønsker at udvikle en samtaleagent, der kan besvare spørgsmål om dine salgsdata.
 
 Følgende billede illustrerer, hvordan du kunne bruge Microsoft Foundry Agent Service til at analysere dine salgsdata:
 
-![Agent Service i aktion](../../../translated_images/da/agent-service-in-action.34fb465c9a84659e.webp)
+![Agentisk Service i Aktion](../../../translated_images/da/agent-service-in-action.34fb465c9a84659e.webp)
 
-For at bruge nogle af disse værktøjer med servicen kan vi oprette en klient og definere et værktøj eller toolset. For at implementere dette praktisk kan vi bruge følgende Python-kode. LLM vil kunne se på toolsettet og beslutte, om den vil bruge den brugerdefinerede funktion, `fetch_sales_data_using_sqlite_query`, eller den færdigbyggede Kodefortolker afhængigt af brugerens anmodning.
+For at bruge nogle af disse værktøjer med servicen kan vi oprette en klient og definere et værktøj eller en toolset. For at implementere dette praktisk kan vi bruge følgende Python-kode. LLM vil kunne se på toolset'et og beslutte, om den skal bruge den brugerdefinerede funktion `fetch_sales_data_using_sqlite_query` eller den indbyggede Code Interpreter, afhængigt af brugerens forespørgsel.
 
 ```python 
 import os
 from azure.ai.projects import AIProjectClient
 from azure.identity import DefaultAzureCredential
-from fetch_sales_data_functions import fetch_sales_data_using_sqlite_query # fetch_sales_data_using_sqlite_query funktion som kan findes i filen fetch_sales_data_functions.py.
+from fetch_sales_data_functions import fetch_sales_data_using_sqlite_query # fetch_sales_data_using_sqlite_query funktion, som kan findes i en fetch_sales_data_functions.py fil.
 from azure.ai.projects.models import ToolSet, FunctionTool, CodeInterpreterTool
 
 project_client = AIProjectClient.from_connection_string(
@@ -286,7 +286,7 @@ project_client = AIProjectClient.from_connection_string(
 # Initialiser værktøjssæt
 toolset = ToolSet()
 
-# Initialiser funktion kaldende agent med funktionen fetch_sales_data_using_sqlite_query og tilføj den til værktøjssættet
+# Initialiser funktionskaldsagent med funktionen fetch_sales_data_using_sqlite_query og tilføj den til værktøjssættet
 fetch_data_function = FunctionTool(fetch_sales_data_using_sqlite_query)
 toolset.add(fetch_data_function)
 
@@ -294,25 +294,25 @@ toolset.add(fetch_data_function)
 code_interpreter = CodeInterpreterTool()toolset.add(code_interpreter)
 
 agent = project_client.agents.create_agent(
-    model="gpt-4.1-mini", name="my-agent", instructions="You are helpful agent", 
+    model="gpt-5-mini", name="my-agent", instructions="You are helpful agent", 
     toolset=toolset
 )
 ```
 
-## Hvilke særlige overvejelser er der ved brug af designmønsteret for brug af værktøjer til at bygge troværdige AI-agenter?
+## Hvilke særlige overvejelser er der ved at bruge Tool Use Design Pattern til at bygge pålidelige AI-agenter?
 
-En almindelig bekymring ved dynamisk genereret SQL fra LLM'er er sikkerhed, især risikoen for SQL-injektion eller skadelig handling som at slette eller manipulere databasen. Selvom disse bekymringer er legitime, kan de effektivt afbødes ved korrekt konfiguration af databaseadgangstilladelser. For de fleste databaser indebærer dette at konfigurere databasen som skrivebeskyttet. For database services som PostgreSQL eller Azure SQL bør appen tildeles en skrivebeskyttet (SELECT) rolle.
+En almindelig bekymring ved dynamisk SQL genereret af LLM'er er sikkerhed, især risikoen for SQL-injektion eller skadelige handlinger som at droppe eller manipulere med databasen. Selvom disse bekymringer er berettigede, kan de effektivt imødegås ved korrekt konfiguration af databaseadgangstilladelser. For de fleste databaser indebærer det at konfigurere databasen som skrivebeskyttet. For databaseservices som PostgreSQL eller Azure SQL bør appen tildeles en skrivebeskyttet (SELECT) rolle.
 
-At køre appen i et sikkert miljø øger beskyttelsen yderligere. I virksomhedsscenarier ekstraheres og transformeres data typisk fra operationelle systemer til en skrivebeskyttet database eller datalager med et brugervenligt skema. Denne tilgang sikrer, at data er sikre, optimeret til ydeevne og tilgængelighed, og at appen har begrænset, skrivebeskyttet adgang.
+Kørsel af appen i et sikkert miljø forbedrer beskyttelsen yderligere. I virksomheds-scenarier bliver data typisk ekstraheret og transformeret fra operationelle systemer til en skrivebeskyttet database eller datawarehouse med et brugervenligt skema. Denne tilgang sikrer, at data er sikre, optimeret til ydeevne og tilgængelighed, og at appen har begrænset, skrivebeskyttet adgang.
 
 ## Eksempelkoder
 
 - Python: [Agent Framework](./code_samples/04-python-agent-framework.ipynb)
 - .NET: [Agent Framework](./code_samples/04-dotnet-agent-framework.md)
 
-## Har du flere spørgsmål om designmønstre for brug af værktøjer?
+## Har du flere spørgsmål om Tool Use Design Pattern?
 
-Deltag i [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) for at møde andre lærende, deltage i kontortimer og få svar på dine spørgsmål om AI-agenter.
+Deltag i [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) for at møde andre lærende, deltage i kontortimer og få besvaret dine spørgsmål om AI-agenter.
 
 ## Yderligere ressourcer
 
@@ -321,9 +321,9 @@ Deltag i [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) for 
 - <a href="https://learn.microsoft.com/azure/ai-services/agents/overview" target="_blank">Microsoft Agent Framework Oversigt</a>
 
 
-## Røgtest af denne Agent (valgfrit)
+## Røgtest af denne agent (valgfrit)
 
-Efter du har lært at implementere agenter i [Lesson 16](../16-deploying-scalable-agents/README.md), kan du røgteste denne lektions `TravelToolAgent` (kalder den stadig sine værktøjer og svarer?) med [`tests/lesson-04-smoke-tests.json`](../../../tests/lesson-04-smoke-tests.json). Se [`tests/README.md`](../tests/README.md) for hvordan du kører den.
+Efter du har lært at implementere agenter i [Lektion 16](../16-deploying-scalable-agents/README.md), kan du røgteste denne lektions `TravelToolAgent` (kalder den stadig sine værktøjer og svarer?) med [`tests/lesson-04-smoke-tests.json`](../../../tests/lesson-04-smoke-tests.json). Se [`tests/README.md`](../tests/README.md) for, hvordan du kører den.
 
 ## Forrige lektion
 

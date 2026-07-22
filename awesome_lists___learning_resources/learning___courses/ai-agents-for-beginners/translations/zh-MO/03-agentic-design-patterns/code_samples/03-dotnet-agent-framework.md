@@ -1,153 +1,153 @@
-# 🎨 使用 Azure OpenAI（Responses API）（.NET）設計自主代理模式
+# 🎨 使用 Azure OpenAI (Responses API) 的智能代理設計模式 (.NET)
 
 ## 📋 學習目標
 
-本範例展示如何使用 .NET 的 Microsoft Agent Framework 結合 Azure OpenAI（Responses API）整合，建立企業級智能代理的設計模式。您將學習使代理能達到生產環境需求、易於維護與擴展的專業模式和架構方法。
+此範例展示了企業級設計模式，用於通過 .NET 中的 Microsoft Agent Framework 與 Azure OpenAI (Responses API) 集成來構建智能代理。你將學習專業的設計模式和架構方法，使代理具備生產就緒性、易於維護且可擴展。
 
-### 企業設計模式
+### 企業級設計模式
 
-- 🏭 <strong>工廠模式</strong>：透過依賴注入標準化代理建立
-- 🔧 <strong>建造者模式</strong>：流暢配置與組裝代理
-- 🧵 <strong>線程安全模式</strong>：並發對話管理
-- 📋 <strong>倉儲模式</strong>：有組織的工具與能力管理
+- 🏭 <strong>工廠模式</strong>：通過依賴注入標準化代理創建
+- 🔧 <strong>建造者模式</strong>：流暢的代理配置與設置
+- 🧵 <strong>線程安全模式</strong>：並發會話管理
+- 📋 <strong>倉儲模式</strong>：有組織的工具和能力管理
 
-## 🎯 .NET 特定架構優勢
+## 🎯 .NET 專屬架構優勢
 
-### 企業特性
+### 企業功能
 
-- <strong>強型別</strong>：編譯時驗證與 IntelliSense 支援
-- <strong>依賴注入</strong>：內建 DI 容器整合
-- <strong>設定管理</strong>：IConfiguration 與 Options 模式
+- <strong>強類型</strong>：編譯時驗證與 IntelliSense 支援
+- <strong>依賴注入</strong>：內建 DI 容器集成
+- <strong>配置管理</strong>：IConfiguration 與 Options 模式
 - **非同步/等待**：一流的非同步程式設計支援
 
 ### 生產就緒模式
 
-- <strong>日誌整合</strong>：ILogger 與結構化日誌支援
+- <strong>日誌整合</strong>：ILogger 和結構化日誌支持
 - <strong>健康檢查</strong>：內建監控與診斷
-- <strong>設定驗證</strong>：強型別配合資料標註
+- <strong>配置驗證</strong>：強類型和數據註解驗證
 - <strong>錯誤處理</strong>：結構化異常管理
 
 ## 🔧 技術架構
 
 ### 核心 .NET 元件
 
-- **Microsoft.Extensions.AI**：統一 AI 服務抽象
-- **Microsoft.Agents.AI**：企業代理協調框架
-- **Azure OpenAI（Responses API）**：高效能 API 用戶端模式
-- <strong>設定系統</strong>：appsettings.json 與環境整合
+- **Microsoft.Extensions.AI**：統一 AI 服務抽象層
+- **Microsoft.Agents.AI**：企業級代理編排框架
+- **Azure OpenAI (Responses API)**：高效能 API 客戶端模式
+- <strong>配置系統</strong>：appsettings.json 與環境集成
 
 ### 設計模式實作
 
 ```mermaid
 graph LR
-    A[IServiceCollection] --> B[代理建構器]
+    A[IServiceCollection] --> B[代理構建器]
     B --> C[配置]
     C --> D[工具註冊表]
-    D --> E[人工智能代理]
+    D --> E[AI 代理]
 ```
 
-## 🏗️ 展示的企業模式
+## 🏗️ 展示的企業級設計模式
 
 ### 1. <strong>創建型模式</strong>
 
-- <strong>代理工廠</strong>：集中式代理建立與一致配置
-- <strong>建造者模式</strong>：為複雜代理配置的流暢 API
-- <strong>單例模式</strong>：共用資源與設定管理
+- <strong>代理工廠</strong>：集中式代理創建與一致配置
+- <strong>建造者模式</strong>：複雜代理配置的流暢 API
+- <strong>單例模式</strong>：共享資源及配置管理
 - <strong>依賴注入</strong>：鬆耦合與可測試性
 
 ### 2. <strong>行為型模式</strong>
 
 - <strong>策略模式</strong>：可互換的工具執行策略
-- <strong>命令模式</strong>：封裝代理操作並支援復原/重做
+- <strong>命令模式</strong>：封裝代理操作，支援撤銷/重做
 - <strong>觀察者模式</strong>：事件驅動的代理生命週期管理
-- <strong>模板方法</strong>：標準化代理執行工作流程
+- <strong>模板方法</strong>：標準化代理執行流程
 
 ### 3. <strong>結構型模式</strong>
 
-- <strong>介面轉接器模式</strong>：Azure OpenAI（Responses API）整合層
-- <strong>裝飾者模式</strong>：增強代理能力
-- <strong>外觀模式</strong>：簡化代理互動介面
-- <strong>代理模式</strong>：懶加載與快取以提升效能
+- <strong>適配器模式</strong>：Azure OpenAI (Responses API) 整合層
+- <strong>裝飾者模式</strong>：代理能力增強
+- <strong>外觀模式</strong>：簡化代理交互界面
+- <strong>代理模式</strong>：延遲加載與快取提升效能
 
 ## 📚 .NET 設計原則
 
 ### SOLID 原則
 
-- <strong>單一職責</strong>：每個元件有明確單一目的
-- **開放／封閉**：擴展時無需修改原始碼
-- <strong>李氏取代原則</strong>：基於介面的工具實作
+- <strong>單一職責</strong>：每個元件都有單一明確職責
+- <strong>開放封閉</strong>：可擴展但不修改
+- <strong>里氏替換</strong>：基於介面的工具實作
 - <strong>介面隔離</strong>：專注且內聚的介面
 - <strong>依賴反轉</strong>：依賴抽象而非具體實作
 
-### 清潔架構
+### 潔淨架構
 
-- <strong>領域層</strong>：核心代理與工具抽象
-- <strong>應用層</strong>：代理協調與工作流程
-- <strong>基礎設施層</strong>：Azure OpenAI（Responses API）整合與外部服務
-- <strong>展示層</strong>：用戶互動與回應格式化
+- <strong>領域層</strong>：核心代理和工具抽象
+- <strong>應用層</strong>：代理編排與流程
+- <strong>基礎設施層</strong>：Azure OpenAI (Responses API) 集成與外部服務
+- <strong>表現層</strong>：用戶互動與回應格式化
 
 ## 🔒 企業考量
 
 ### 安全性
 
-- <strong>認證管理</strong>：使用 IConfiguration 安全管理 API 金鑰
-- <strong>輸入驗證</strong>：強型別與資料標註驗證
-- <strong>輸出淨化</strong>：安全的回應處理與過濾
+- <strong>憑證管理</strong>：透過 IConfiguration 安全管理 API 密鑰
+- <strong>輸入驗證</strong>：強類型與數據註解驗證
+- <strong>輸出淨化</strong>：安全回應處理與過濾
 - <strong>審計日誌</strong>：全面操作追蹤
 
-### 效能
+### 性能
 
 - <strong>非同步模式</strong>：非阻塞 I/O 操作
-- <strong>連線池</strong>：高效 HTTP 用戶端管理
-- <strong>快取</strong>：回應快取以提升效能
-- <strong>資源管理</strong>：適當釋放與清理模式
+- <strong>連接池</strong>：高效 HTTP 客戶端管理
+- <strong>快取</strong>：回應快取提升性能
+- <strong>資源管理</strong>：正確釋放與清理模式
 
-### 擴展性
+### 可擴展性
 
-- <strong>線程安全</strong>：支援代理並發執行
-- <strong>資源池</strong>：有效利用資源
-- <strong>負載管理</strong>：速率限制與背壓處理
-- <strong>監控</strong>：效能指標與健康檢查
+- <strong>線程安全</strong>：支援並發代理執行
+- <strong>資源池</strong>：高效資源利用
+- <strong>負載管理</strong>：速率限制與反壓處理
+- <strong>監控</strong>：性能指標與健康檢查
 
-## 🚀 生產環境部署
+## 🚀 生產部署
 
-- <strong>設定管理</strong>：環境專屬設定
-- <strong>日誌策略</strong>：結構化日誌及相關性 ID
+- <strong>配置管理</strong>：環境特定設定
+- <strong>日誌策略</strong>：結構化日誌與關聯 ID
 - <strong>錯誤處理</strong>：全域異常處理與適當恢復
-- <strong>監控</strong>：應用洞察與效能計數
+- <strong>監控</strong>：應用洞察與性能計數器
 - <strong>測試</strong>：單元測試、整合測試與負載測試模式
 
-準備用 .NET 建立企業級智能代理了嗎？讓我們架構一個堅固的系統吧！🏢✨
+準備好用 .NET 構建企業級智能代理了嗎？讓我們架構一個強固的系統吧！🏢✨
 
 ## 🚀 開始使用
 
-### 前置需求
+### 先決條件
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更新版本
-- 擁有 Azure OpenAI 資源與模型部署的 [Azure 訂閱](https://azure.microsoft.com/free/)
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — 使用 `az login` 登入
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更高版本
+- 擁有一個具備 Azure OpenAI 資源和模型部署的 [Azure 訂閱](https://azure.microsoft.com/free/)
+- 安裝 [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — 並以 `az login` 登入
 
-### 必要環境變數
+### 必須的環境變數
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# 然後登入，讓 AzureCliCredential 可以取得權杖
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# 然後登入，以便 AzureCliCredential 獲取憑證令牌
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # 然後登入，讓 AzureCliCredential 可以取得權杖
 az login
 ```
 
 ### 範例程式碼
 
-執行此範例程式碼，
+執行程式碼範例，請執行
 
 ```bash
 # zsh/bash
@@ -161,7 +161,7 @@ chmod +x ./03-dotnet-agent-framework.cs
 dotnet run ./03-dotnet-agent-framework.cs
 ```
 
-完整程式碼請見 [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs)。
+完整程式碼請參考 [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs)。
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

@@ -1,16 +1,16 @@
-# 🎯 Azure OpenAI (Responses API) ile Planlama ve Tasarım Desenleri (.NET)
+# 🎯 Azure OpenAI ile Planlama ve Tasarım Kalıpları (Responses API) (.NET)
 
 ## 📋 Öğrenme Hedefleri
 
-Bu not defteri, Azure OpenAI (Responses API) kullanarak .NET'te Microsoft Agent Framework ile akıllı ajanlar oluşturmak için kurumsal seviye planlama ve tasarım desenlerini gösterir. Karmaşık problemleri parçalara ayırabilen, çok adımlı çözümler planlayabilen ve .NET'in kurumsal özellikleriyle gelişmiş iş akışlarını yürütebilen ajanlar oluşturmayı öğreneceksiniz.
+Bu not defteri, Azure OpenAI (Responses API) ile .NET'te Microsoft Agent Framework kullanarak zeki ajanlar oluşturmak için kurumsal düzeyde planlama ve tasarım kalıplarını göstermektedir. Karmaşık problemleri parçalayabilen, çok adımlı çözümler planlayabilen ve .NET'in kurumsal özellikleriyle gelişmiş iş akışlarını yürütebilen ajanlar oluşturmayı öğreneceksiniz.
 
-## ⚙️ Ön Koşullar & Kurulum
+## ⚙️ Ön Koşullar ve Kurulum
 
 **Geliştirme Ortamı:**
-- .NET 9.0 SDK veya üstü
-- Visual Studio 2022 veya C# uzantılı VS Code
-- Azure OpenAI kaynağı ve model dağıtımı içeren bir Azure aboneliği
-- Azure CLI — `az login` ile giriş yapın
+- .NET 9.0 SDK veya üzeri
+- Visual Studio 2022 veya C# eklentili VS Code
+- Azure OpenAI kaynağı ve model dağıtımı olan bir Azure aboneliği
+- Azure CLI — `az login` ile oturum açın
 
 **Gerekli Bağımlılıklar:**
 ```xml
@@ -22,15 +22,15 @@ Bu not defteri, Azure OpenAI (Responses API) kullanarak .NET'te Microsoft Agent 
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
-**Ortam Konfigürasyonu (.env dosyası):**
+**Ortam Yapılandırması (.env dosyası):**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
 ## Kodu Çalıştırma
 
-Bu derste .NET Tek Dosya Uygulaması uygulanmıştır. Çalıştırmak için:
+Bu ders, .NET Tek Dosya Uygulaması uygulaması içerir. Çalıştırmak için:
 
 ```bash
 # Dosyayı çalıştırılabilir yap (Linux/macOS)
@@ -48,17 +48,17 @@ dotnet run 07-dotnet-agent-framework.cs
 
 ## Kod Uygulaması
 
-Tam uygulama `07-dotnet-agent-framework.cs` dosyasında mevcuttur ve şunları gösterir:
+Tam uygulama `07-dotnet-agent-framework.cs` dosyasında mevcuttur. Bu dosya şunları gösterir:
 
-- DotNetEnv ile ortam konfigürasyonunun yüklenmesi
-- Azure OpenAI istemcisinin yapılandırılması ve `GetChatClient().AsAIAgent()` ile bir yapay zeka ajanı oluşturulması
-- JSON serileştirme ile yapılandırılmış veri modellerinin tanımlanması (Plan ve TravelPlan)
-- JSON şeması kullanarak yapılandırılmış çıktı üreten bir yapay zeka ajanı oluşturulması
-- Tip-güvenli yanıtlarla planlama isteklerinin yürütülmesi
+- DotNetEnv ile ortam yapılandırmasının yüklenmesi
+- `GetChatClient().AsAIAgent()` kullanarak Azure OpenAI istemcisinin yapılandırılması ve bir yapay zeka ajanı oluşturulması
+- JSON serileştirmesi ile yapılandırılmış veri modellerinin (Plan ve TravelPlan) tanımlanması
+- JSON şeması kullanarak yapılandırılmış çıktı sağlayan bir yapay zeka ajanı oluşturulması
+- Tip güvenli yanıtlarla planlama isteklerinin gerçekleştirilmesi
 
-## Ana Kavramlar
+## Temel Kavramlar
 
-### Tip-Güvenli Modellerle Yapılandırılmış Planlama
+### Tip Güvenli Modellerle Yapılandırılmış Planlama
 
 Ajan, planlama çıktılarının yapısını tanımlamak için C# sınıflarını kullanır:
 
@@ -82,7 +82,7 @@ public class TravelPlan
 }
 ```
 
-### Yapılandırılmış Çıktılar için JSON Şeması
+### Yapılandırılmış Çıktılar İçin JSON Şeması
 
 Ajan, TravelPlan şemasına uygun yanıtlar dönecek şekilde yapılandırılmıştır:
 
@@ -103,18 +103,18 @@ ChatClientAgentOptions agentOptions = new()
 
 ### Planlama Ajanı Talimatları
 
-Ajan koordinatör olarak görev yapar ve uzman alt ajanlara görevleri devreder:
+Ajan, görevleri uzman alt ajanlara devreden bir koordinatör olarak görev yapar:
 
-- FlightBooking: Uçuş rezervasyonları ve uçuş bilgisi sağlama
-- HotelBooking: Otel rezervasyonları ve otel bilgisi sağlama
-- CarRental: Araç kiralama ve araç kiralama bilgisi sağlama
-- ActivitiesBooking: Aktivite rezervasyonları ve aktivite bilgisi sağlama
-- DestinationInfo: Varış yerleri hakkında bilgi sağlama
-- DefaultAgent: Genel istekleri işleme
+- FlightBooking: Uçuş rezervasyonları yapmak ve uçuş bilgileri sağlamak için
+- HotelBooking: Otel rezervasyonları yapmak ve otel bilgileri sağlamak için
+- CarRental: Araç kiralama işlemleri yapmak ve araç kiralama bilgileri sağlamak için
+- ActivitiesBooking: Aktivite rezervasyonları yapmak ve aktivite bilgileri sağlamak için
+- DestinationInfo: Varış noktaları hakkında bilgi sağlamak için
+- DefaultAgent: Genel istekleri yönetmek için
 
 ## Beklenen Çıktı
 
-Seyahat planlama isteği ile ajanı çalıştırdığınızda, istek analiz edilir ve uzman ajanlara uygun görev atamalarıyla yapılandırılmış, TravelPlan şemasına uygun JSON formatında bir plan oluşturulur.
+Seyahat planlama isteğiyle ajan çalıştırıldığında, istek analiz edilir ve uzman ajanlara uygun görev atamaları yapılmış yapılandırılmış bir plan oluşturulur. Çıktı, TravelPlan şemasına uygun JSON formatındadır.
 
 ---
 

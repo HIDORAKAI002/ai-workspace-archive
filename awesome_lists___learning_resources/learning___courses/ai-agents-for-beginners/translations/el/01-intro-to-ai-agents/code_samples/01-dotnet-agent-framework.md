@@ -1,40 +1,40 @@
-# 🌍 Πράκτορας Ταξιδιών AI με Microsoft Agent Framework (.NET)
+# 🌍 Πράκτορας Ταξιδιών AI με το Microsoft Agent Framework (.NET)
 
 ## 📋 Επισκόπηση Σεναρίου
 
-Αυτό το παράδειγμα δείχνει πώς να δημιουργήσετε έναν έξυπνο πράκτορα προγραμματισμού ταξιδιών χρησιμοποιώντας το Microsoft Agent Framework για .NET. Ο πράκτορας μπορεί να δημιουργεί αυτόματα εξατομικευμένα ημερήσια δρομολόγια για τυχαίους προορισμούς σε όλο τον κόσμο.
+Αυτό το παράδειγμα δείχνει πώς να δημιουργήσετε έναν ευφυή πράκτορα προγραμματισμού ταξιδιών χρησιμοποιώντας το Microsoft Agent Framework για .NET. Ο πράκτορας μπορεί να δημιουργήσει αυτόματα εξατομικευμένα δρομολόγια ημερήσιων εκδρομών για τυχαίους προορισμούς ανά τον κόσμο.
 
-### Βασικές Δυνατότητες:
+### Κύριες Δυνατότητες:
 
-- 🎲 **Επιλογή Τυχαίου Προορισμού**: Χρησιμοποιεί ένα προσαρμοσμένο εργαλείο για την επιλογή σημείων διακοπών
-- 🗺️ **Εξυπνος Προγραμματισμός Ταξιδιού**: Δημιουργεί λεπτομερή ημερήσια δρομολόγια
-- 🔄 **Ροή σε Πραγματικό Χρόνο**: Υποστηρίζει τόσο άμεσες όσο και ροές απαντήσεων
+- 🎲 **Τυχαία Επιλογή Προορισμού**: Χρησιμοποιεί ένα προσαρμοσμένο εργαλείο για την επιλογή σημείων διακοπών
+- 🗺️ **Ευφυής Προγραμματισμός Ταξιδιών**: Δημιουργεί λεπτομερή δρομολόγια μέρα με τη μέρα
+- 🔄 **Ρεαλιστικός Streaming**: Υποστηρίζει άμεσες και ροές απαντήσεων
 - 🛠️ **Ενσωμάτωση Προσαρμοσμένων Εργαλείων**: Δείχνει πώς να επεκτείνετε τις δυνατότητες του πράκτορα
 
 ## 🔧 Τεχνική Αρχιτεκτονική
 
-### Κύριες Τεχνολογίες
+### Βασικές Τεχνολογίες
 
 - **Microsoft Agent Framework**: Τελευταία υλοποίηση .NET για ανάπτυξη πρακτόρων AI
 - **Azure OpenAI (Responses API)**: Χρησιμοποιεί το Azure OpenAI Responses API για εκτέλεση μοντέλου
 - **Azure Identity**: Ασφαλής σύνδεση μέσω `AzureCliCredential` (`az login`)
-- **Ασφαλής Διαμόρφωση**: Διαχείριση τελικού σημείου με βάση το περιβάλλον
+- **Ασφαλής Διαμόρφωση**: Διαχείριση endpoint με βάση το περιβάλλον
 
-### Βασικά Στοιχεία
+### Κύρια Συστατικά
 
-1. **AIAgent**: Ο κύριος οργανωτής πράκτορας που διαχειρίζεται τη ροή της συνομιλίας
-2. **Προσαρμοσμένα Εργαλεία**: Συναρτήσεις `GetRandomDestination()` διαθέσιμες στον πράκτορα
-3. **Client Responses**: Διάλογος βασισμένος στο Azure OpenAI Responses
-4. **Υποστήριξη Streaming**: Δυνατότητες δημιουργίας απαντήσεων σε πραγματικό χρόνο
+1. **AIAgent**: Ο κύριος διαχειριστής του διαλόγου του πράκτορα
+2. **Προσαρμοσμένα Εργαλεία**: Συνάρτηση `GetRandomDestination()` διαθέσιμη στον πράκτορα
+3. **Πελάτης Responses**: Διάλογος βασισμένος στο Azure OpenAI Responses
+4. **Υποστήριξη Streaming**: Δυνατότητες παραγωγής απαντήσεων σε πραγματικό χρόνο
 
-### Μοτίβο Ενσωμάτωσης
+### Πρότυπο Ενσωμάτωσης
 
 ```mermaid
 graph LR
-    A[Αίτημα Χρήστη] --> B[Πράκτορας ΤΝ]
-    B --> C[Azure OpenAI (API Απαντήσεων)]
+    A[Αίτημα χρήστη] --> B[Πράκτορας ΤΝ]
+    B --> C[Azure OpenAI (API απαντήσεων)]
     B --> D[Εργαλείο GetRandomDestination]
-    C --> E[Πρόγραμμα Ταξιδιού]
+    C --> E[Ταξιδιωτικό Δρομολόγιο]
     D --> E
 ```
 
@@ -43,30 +43,30 @@ graph LR
 ### Προαπαιτούμενα
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) ή νεότερο
-- Ένα [Azure συνδρομή](https://azure.microsoft.com/free/) με έναν πόρο Azure OpenAI και ανάπτυξη μοντέλου
-- Το [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — συνδεθείτε με `az login`
+- Μια [εγγραφή Azure](https://azure.microsoft.com/free/) με πόρο Azure OpenAI και ανάπτυξη μοντέλου
+- Το [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — είσοδος με `az login`
 
 ### Απαιτούμενες Μεταβλητές Περιβάλλοντος
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Στη συνέχεια, συνδεθείτε για να μπορέσει το AzureCliCredential να πάρει ένα διακριτικό πρόσβασης
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Στη συνέχεια συνδεθείτε ώστε το AzureCliCredential να μπορέσει να πάρει ένα token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Στη συνέχεια, συνδεθείτε ώστε το AzureCliCredential να μπορεί να λάβει ένα διακριτικό
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Στη συνέχεια, συνδεθείτε ώστε το AzureCliCredential να μπορεί να πάρει ένα διακριτικό
 az login
 ```
 
 ### Παράδειγμα Κώδικα
 
-Για να τρέξετε το παράδειγμα κώδικα,
+Για να εκτελέσετε το παράδειγμα κώδικα,
 
 ```bash
 # zsh/bash
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,19 +157,19 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 Βασικά Μαθήματα
+## 🎓 Κύρια Συμπεράσματα
 
-1. **Αρχιτεκτονική Πράκτορα**: Το Microsoft Agent Framework παρέχει μια καθαρή, τύπου ασφαλή προσέγγιση για την κατασκευή πρακτόρων AI σε .NET
-2. **Ενσωμάτωση Εργαλείων**: Συναρτήσεις με διακοσμητικά `[Description]` γίνονται διαθέσιμα εργαλεία για τον πράκτορα
-3. **Διαχείριση Διαμόρφωσης**: Μεταβλητές περιβάλλοντος και ασφαλής διαχείριση διαπιστευτηρίων ακολουθούν τις βέλτιστες πρακτικές .NET
-4. **Azure OpenAI Responses API**: Ο πράκτορας χρησιμοποιεί το Azure OpenAI Responses API μέσω του Azure.AI.OpenAI SDK
+1. **Αρχιτεκτονική Πράκτορα**: Το Microsoft Agent Framework παρέχει μία καθαρή, τύπου-ασφαλή προσέγγιση για την κατασκευή πρακτόρων AI σε .NET
+2. **Ενσωμάτωση Εργαλείων**: Οι συναρτήσεις με το χαρακτηριστικό `[Description]` γίνονται διαθέσιμα εργαλεία για τον πράκτορα
+3. **Διαχείριση Διαμόρφωσης**: Οι μεταβλητές περιβάλλοντος και η ασφαλής διαχείριση διαπιστευτηρίων ακολουθούν τις βέλτιστες πρακτικές .NET
+4. **Azure OpenAI Responses API**: Ο πράκτορας χρησιμοποιεί το Azure OpenAI Responses API μέσω του SDK Azure.AI.OpenAI
 
 ## 🔗 Πρόσθετοι Πόροι
 
 - [Τεκμηρίωση Microsoft Agent Framework](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI στο Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [.NET Single File Apps](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [Εφαρμογές μίας αρχείου .NET](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

@@ -1,18 +1,18 @@
-# 🎯 Corak Perancangan & Reka Bentuk dengan Azure OpenAI (Responses API) (.NET)
+# 🎯 Perancangan & Corak Reka Bentuk dengan Azure OpenAI (API Tindak Balas) (.NET)
 
 ## 📋 Objektif Pembelajaran
 
-Buku nota ini mempamerkan corak perancangan dan reka bentuk gred perusahaan untuk membina ejen pintar menggunakan Microsoft Agent Framework dalam .NET dengan Azure OpenAI (Responses API). Anda akan belajar bagaimana membuat ejen yang boleh mengurai masalah kompleks, merancang penyelesaian berbilang langkah, dan melaksanakan aliran kerja yang canggih dengan ciri perusahaan .NET.
+Buku nota ini menunjukkan corak perancangan dan reka bentuk kelas perusahaan untuk membina agen pintar menggunakan Microsoft Agent Framework dalam .NET dengan Azure OpenAI (API Tindak Balas). Anda akan belajar mencipta agen yang boleh memecahkan masalah kompleks, merancang penyelesaian berbilang langkah, dan melaksanakan aliran kerja yang canggih dengan ciri perusahaan .NET.
 
 ## ⚙️ Keperluan & Persediaan
 
 **Persekitaran Pembangunan:**
-- SDK .NET 9.0 atau lebih tinggi
+- .NET 9.0 SDK atau lebih tinggi
 - Visual Studio 2022 atau VS Code dengan sambungan C#
 - Langganan Azure dengan sumber Azure OpenAI dan penyebaran model
-- Azure CLI — log masuk dengan `az login`
+- Azure CLI — daftar masuk dengan `az login`
 
-**Kebergantungan Diperlukan:**
+**Pergantungan Diperlukan:**
 ```xml
 <PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
 <PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
@@ -25,7 +25,7 @@ Buku nota ini mempamerkan corak perancangan dan reka bentuk gred perusahaan untu
 **Konfigurasi Persekitaran (fail .env):**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
 ## Menjalankan Kod
@@ -33,14 +33,14 @@ AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
 Pelajaran ini termasuk pelaksanaan Aplikasi Fail Tunggal .NET. Untuk menjalankannya:
 
 ```bash
-# Jadikan fail boleh dijalankan (Linux/macOS)
+# Jadikan fail boleh dilaksanakan (Linux/macOS)
 chmod +x 07-dotnet-agent-framework.cs
 
 # Jalankan aplikasi
 ./07-dotnet-agent-framework.cs
 ```
 
-Atau gunakan arahan dotnet run:
+Atau gunakan perintah dotnet run:
 
 ```bash
 dotnet run 07-dotnet-agent-framework.cs
@@ -48,19 +48,19 @@ dotnet run 07-dotnet-agent-framework.cs
 
 ## Pelaksanaan Kod
 
-Pelaksanaan lengkap terdapat dalam `07-dotnet-agent-framework.cs`, yang menunjukkan:
+Pelaksanaan lengkap tersedia dalam `07-dotnet-agent-framework.cs`, yang menunjukkan:
 
 - Memuat konfigurasi persekitaran dengan DotNetEnv
-- Mengkonfigurasi klien Azure OpenAI dan mencipta ejen AI menggunakan `GetChatClient().AsAIAgent()`
-- Mendefinisikan model data berstruktur (Plan dan TravelPlan) dengan penjerihan JSON
-- Mencipta ejen AI dengan keluaran berstruktur menggunakan skema JSON
-- Melaksanakan permintaan perancangan dengan respons yang selamat jenis
+- Mengkonfigurasi klien Azure OpenAI dan mencipta agen AI menggunakan `GetChatClient().AsAIAgent()`
+- Mendefinisikan model data berstruktur (Plan dan TravelPlan) dengan penyerialan JSON
+- Mencipta agen AI dengan output berstruktur menggunakan skema JSON
+- Melaksanakan permintaan perancangan dengan tindak balas yang jenis-selamat
 
 ## Konsep Utama
 
-### Perancangan Berstruktur dengan Model Selamat Jenis
+### Perancangan Berstruktur dengan Model Jenis-Selamat
 
-Ejen menggunakan kelas C# untuk mentakrifkan struktur keluaran perancangan:
+Agen menggunakan kelas C# untuk menentukan struktur output perancangan:
 
 ```csharp
 public class Plan
@@ -82,9 +82,9 @@ public class TravelPlan
 }
 ```
 
-### Skema JSON untuk Keluaran Berstruktur
+### Skema JSON untuk Output Berstruktur
 
-Ejen dikonfigurasi untuk memulangkan respons yang mematuhi skema TravelPlan:
+Agen dikonfigurasi untuk mengembalikan tindak balas yang sepadan dengan skema TravelPlan:
 
 ```csharp
 ChatClientAgentOptions agentOptions = new()
@@ -101,20 +101,20 @@ ChatClientAgentOptions agentOptions = new()
 };
 ```
 
-### Arahan Ejen Perancangan
+### Arahan Agen Perancangan
 
-Ejen bertindak sebagai penyelaras, mendelegasi tugas kepada sub-ejen khusus:
+Agen bertindak sebagai penyelaras, mendelegasikan tugasan kepada sub-agen khusus:
 
-- TempahanPenerbangan: Untuk menempah penerbangan dan menyediakan maklumat penerbangan
-- TempahanHotel: Untuk menempah hotel dan menyediakan maklumat hotel
-- SewaKereta: Untuk menempah kereta dan menyediakan maklumat sewa kereta
-- TempahanAktiviti: Untuk menempah aktiviti dan menyediakan maklumat aktiviti
-- MaklumatDestinasi: Untuk menyediakan maklumat tentang destinasi
-- EjenLalai: Untuk mengendalikan permintaan umum
+- FlightBooking: Untuk tempahan penerbangan dan menyediakan maklumat penerbangan
+- HotelBooking: Untuk tempahan hotel dan menyediakan maklumat hotel
+- CarRental: Untuk tempahan kereta dan menyediakan maklumat sewaan kereta
+- ActivitiesBooking: Untuk tempahan aktiviti dan menyediakan maklumat aktiviti
+- DestinationInfo: Untuk menyediakan maklumat tentang destinasi
+- DefaultAgent: Untuk mengendalikan permintaan am
 
-## Keluaran Dijangka
+## Output Yang Dijangka
 
-Apabila anda menjalankan ejen dengan permintaan perancangan perjalanan, ia akan menganalisis permintaan dan menjana rancangan berstruktur dengan tugasan yang sesuai kepada ejen khusus, diformatkan sebagai JSON yang mematuhi skema TravelPlan.
+Apabila anda menjalankan agen dengan permintaan perancangan perjalanan, ia akan menganalisis permintaan dan menghasilkan pelan berstruktur dengan penugasan tugasan yang sesuai kepada agen khusus, diformatkan sebagai JSON yang mematuhi skema TravelPlan.
 
 ---
 

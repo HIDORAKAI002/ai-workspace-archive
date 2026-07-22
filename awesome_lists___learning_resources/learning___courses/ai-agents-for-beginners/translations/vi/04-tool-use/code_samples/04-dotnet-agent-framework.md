@@ -1,85 +1,85 @@
-# 🛠️ Sử Dụng Công Cụ Nâng Cao với Azure OpenAI (API Responses) (.NET)
+# 🛠️ Sử Dụng Công Cụ Nâng Cao với Azure OpenAI (Responses API) (.NET)
 
 ## 📋 Mục Tiêu Học Tập
 
-Notebook này trình bày các mẫu tích hợp công cụ cấp doanh nghiệp sử dụng Microsoft Agent Framework trong .NET với Azure OpenAI (API Responses). Bạn sẽ học cách xây dựng các agent phức tạp với nhiều công cụ chuyên biệt, tận dụng kiểu dữ liệu mạnh của C# và các tính năng doanh nghiệp của .NET.
+Sổ tay này trình bày các mẫu tích hợp công cụ cấp doanh nghiệp sử dụng Microsoft Agent Framework trong .NET với Azure OpenAI (Responses API). Bạn sẽ học cách xây dựng các đại lý tinh vi với nhiều công cụ chuyên biệt, tận dụng kiểu mạnh của C# và các tính năng doanh nghiệp của .NET.
 
-### Các Tính Năng Công Cụ Nâng Cao Bạn Sẽ Thành Thạo
+### Khả Năng Công Cụ Nâng Cao Bạn Sẽ Thành Thạo
 
-- 🔧 **Kiến Trúc Đa Công Cụ**: Xây dựng agent với nhiều năng lực chuyên biệt
-- 🎯 **Thực Thi Công Cụ An Toàn Kiểu Dữ Liệu**: Tận dụng xác nhận thời gian biên dịch của C#
+- 🔧 **Kiến Trúc Đa Công Cụ**: Xây dựng các đại lý với nhiều khả năng chuyên biệt
+- 🎯 **Thực Thi Công Cụ An Toàn Kiểu**: Tận dụng kiểm tra thời gian biên dịch của C#
 - 📊 **Mẫu Công Cụ Cấp Doanh Nghiệp**: Thiết kế công cụ sẵn sàng sản xuất và xử lý lỗi
-- 🔗 **Gộp Công Cụ**: Kết hợp các công cụ cho quy trình kinh doanh phức tạp
+- 🔗 **Kết Hợp Công Cụ**: Kết hợp các công cụ cho quy trình công việc kinh doanh phức tạp
 
 ## 🎯 Lợi Ích Kiến Trúc Công Cụ .NET
 
-### Tính Năng Công Cụ Doanh Nghiệp
+### Tính Năng Công Cụ Cấp Doanh Nghiệp
 
-- **Xác Thực Thời Gian Biên Dịch**: Kiểu dữ liệu mạnh đảm bảo tham số công cụ chính xác
+- **Kiểm Tra Thời Gian Biên Dịch**: Kiểu mạnh đảm bảo tính đúng đắn tham số công cụ
 - **Tiêm Phụ Thuộc**: Tích hợp container IoC cho quản lý công cụ
-- **Mẫu Async/Await**: Thực thi công cụ không chặn với quản lý tài nguyên phù hợp
-- **Ghi Nhật Ký Cấu Trúc**: Tích hợp ghi nhật ký tích hợp để giám sát thực thi công cụ
+- **Mẫu Async/Await**: Thực thi công cụ không chặn với quản lý tài nguyên hợp lý
+- **Ghi Nhật Ký Cấu Trúc**: Tích hợp ghi nhật ký sẵn có để theo dõi thực thi công cụ
 
 ### Mẫu Sẵn Sàng Sản Xuất
 
-- **Xử Lý Ngoại Lệ**: Quản lý lỗi toàn diện với ngoại lệ kiểu hóa
-- **Quản Lý Tài Nguyên**: Mẫu giải phóng và quản lý bộ nhớ thích hợp
-- **Giám Sát Hiệu Suất**: Thước đo và bộ đếm hiệu suất tích hợp sẵn
+- **Xử Lý Ngoại Lệ**: Quản lý lỗi toàn diện với ngoại lệ kiểu mạnh
+- **Quản Lý Tài Nguyên**: Mẫu xử lý hủy đúng cách và quản lý bộ nhớ
+- **Giám Sát Hiệu Suất**: Đếm số liệu và bộ đếm hiệu suất sẵn có
 - **Quản Lý Cấu Hình**: Cấu hình an toàn kiểu với xác thực
 
 ## 🔧 Kiến Trúc Kỹ Thuật
 
 ### Thành Phần Công Cụ Cốt Lõi .NET
 
-- **Microsoft.Extensions.AI**: Lớp trừu tượng công cụ thống nhất
+- **Microsoft.Extensions.AI**: Lớp trừu tượng công cụ hợp nhất
 - **Microsoft.Agents.AI**: Điều phối công cụ cấp doanh nghiệp
-- **Azure OpenAI (API Responses)**: Client API hiệu năng cao với connection pooling
+- **Azure OpenAI (Responses API)**: Client API hiệu năng cao với pool kết nối
 
-### Đường Ống Thực Thi Công Cụ
+### Quy Trình Thực Thi Công Cụ
 
 ```mermaid
 graph LR
-    A[Yêu cầu người dùng] --> B[Phân tích đại lý]
-    B --> C[Lựa chọn công cụ]
-    C --> D[Xác thực loại]
-    B --> E[Ràng buộc tham số]
-    E --> F[Thực thi công cụ]
+    A[Yêu Cầu Người Dùng] --> B[Phân Tích Đại Lý]
+    B --> C[Lựa Chọn Công Cụ]
+    C --> D[Xác Thực Loại]
+    B --> E[Ràng Buộc Tham Số]
+    E --> F[Thực Thi Công Cụ]
     C --> F
-    F --> G[Xử lý kết quả]
+    F --> G[Xử Lý Kết Quả]
     D --> G
-    G --> H[Phản hồi]
+    G --> H[Phản Hồi]
 ```
 
-## 🛠️ Các Loại & Mẫu Công Cụ
+## 🛠️ Danh Mục & Mẫu Công Cụ
 
 ### 1. **Công Cụ Xử Lý Dữ Liệu**
 
-- **Xác Thực Đầu Vào**: Kiểu dữ liệu mạnh với chú thích dữ liệu
-- **Các Phép Biến Đổi**: Chuyển đổi và định dạng dữ liệu an toàn kiểu
-- **Logic Kinh Doanh**: Công cụ tính toán và phân tích theo miền
+- **Xác Thực Đầu Vào**: Kiểu mạnh với chú thích dữ liệu
+- **Phép Biến Đổi**: Chuyển đổi và định dạng dữ liệu an toàn kiểu
+- **Logic Kinh Doanh**: Công cụ tính toán và phân tích theo lĩnh vực
 - **Định Dạng Đầu Ra**: Tạo phản hồi có cấu trúc
 
 ### 2. **Công Cụ Tích Hợp** 
 
 - **Kết Nối API**: Tích hợp dịch vụ RESTful với HttpClient
 - **Công Cụ Cơ Sở Dữ Liệu**: Tích hợp Entity Framework cho truy cập dữ liệu
-- **Phép Toán Tệp**: Thao tác hệ thống tệp an toàn với xác thực
+- **Thao Tác Tập Tin**: Thao tác an toàn trên hệ thống tập tin với xác thực
 - **Dịch Vụ Bên Ngoài**: Mẫu tích hợp dịch vụ bên thứ ba
 
 ### 3. **Công Cụ Tiện Ích**
 
 - **Xử Lý Văn Bản**: Tiện ích thao tác và định dạng chuỗi
-- **Phép Toán Ngày/Giờ**: Tính toán ngày/giờ có nhận thức văn hóa
+- **Thao Tác Ngày/Giờ**: Tính toán ngày/giờ theo văn hóa
 - **Công Cụ Toán Học**: Tính toán chính xác và thao tác thống kê
 - **Công Cụ Xác Thực**: Xác thực quy tắc kinh doanh và kiểm tra dữ liệu
 
-Sẵn sàng xây dựng các agent cấp doanh nghiệp với khả năng công cụ mạnh mẽ, an toàn kiểu trong .NET? Hãy kiến tạo những giải pháp chuyên nghiệp! 🏢⚡
+Sẵn sàng xây dựng đại lý cấp doanh nghiệp với khả năng công cụ mạnh mẽ và an toàn kiểu trong .NET? Hãy kiến trúc các giải pháp chuyên nghiệp nào! 🏢⚡
 
 ## 🚀 Bắt Đầu
 
-### Yêu Cầu Trước
+### Yêu Cầu Tiền Đề
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) hoặc cao hơn
+- [Bộ SDK .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) hoặc cao hơn
 - Một [đăng ký Azure](https://azure.microsoft.com/free/) với tài nguyên Azure OpenAI và triển khai mô hình
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — đăng nhập với `az login`
 
@@ -88,7 +88,7 @@ Sẵn sàng xây dựng các agent cấp doanh nghiệp với khả năng công 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 # Sau đó đăng nhập để AzureCliCredential có thể lấy token
 az login
 ```
@@ -96,12 +96,12 @@ az login
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Sau đó đăng nhập để AzureCliCredential có thể lấy một mã thông báo
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Sau đó đăng nhập để AzureCliCredential có thể lấy token
 az login
 ```
 
-### Mẫu Mã
+### Mã Ví Dụ
 
 Để chạy ví dụ mã,
 
@@ -117,7 +117,7 @@ Hoặc sử dụng dotnet CLI:
 dotnet run ./04-dotnet-agent-framework.cs
 ```
 
-Xem [`04-dotnet-agent-framework.cs`](../../../../04-tool-use/code_samples/04-dotnet-agent-framework.cs) để xem mã hoàn chỉnh.
+Xem [`04-dotnet-agent-framework.cs`](../../../../04-tool-use/code_samples/04-dotnet-agent-framework.cs) cho mã đầy đủ.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -168,7 +168,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
