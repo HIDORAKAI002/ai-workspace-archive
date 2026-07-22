@@ -81,6 +81,7 @@ import {
 	executeTestRun,
 	findAndReplace,
 	type CreatedResourceTriggerKind,
+	type PreviewCardKind,
 	type Tool,
 	type ToolCallbacks,
 	type ToolDisplayAction
@@ -1103,6 +1104,7 @@ ${pipelineBullet}
 - After creating or editing a script or flow draft, run test_run_script, test_run_flow, or test_run_step with representative args before reporting that it works. These tools prefer drafts, so testing does not require deployment.
 - Use list_runs to find recent runs (optionally filtered by path, creator, label, or status), then get_job_logs with a returned id to inspect a specific run's logs — without starting a new test run.
 - Use open_page to show a workspace page with filters applied — Runs, Schedules, Variables, Resources, Assets, Audit logs, or Workspace settings on a specific tab (e.g. "open the failed runs of f/foo/bar", "open the schedule for X", "open the git sync settings"). Only the pages listed for this user in the tool are available; don't offer pages that aren't listed. Don't use it as a substitute for list_runs when you just need the data yourself.
+- Whenever you ask the user to perform a manual step in the UI — fill in a resource's credentials, set a secret variable's value, adjust a schedule or setting — call open_page in the same message, targeted at that item (pass open with its path to land in its edit drawer, or the page's filters otherwise). Never just describe where to click.
 - When the user is happy with the changes and wants to review or deploy them, use open_page with page "compare" — it opens the Compare & Deploy review page.${
 		previewTools
 			? ' By default it preselects the items this chat modified; pass items ("<kind>:<path>" entries) to control the selection'
@@ -2194,7 +2196,7 @@ const openPageFullSchema = z.object({
 		.string()
 		.optional()
 		.describe(
-			'Schedules/Triggers: exact schedule or trigger path to open in the edit drawer, e.g. f/foo/my_schedule'
+			'Schedules/Triggers/Variables/Resources: exact item path to open in the edit drawer, e.g. f/foo/my_schedule. Use it whenever the user should act on one specific item (e.g. fill in credentials) so they land directly in its editor.'
 		),
 	summary: z
 		.string()
@@ -2244,7 +2246,7 @@ const OPEN_PAGE_FIELD_PAGES: Record<string, OpenPageName[]> = {
 	schedule_path: ['runs', 'schedules'],
 	job_kinds: ['runs'],
 	user: ['runs'],
-	open: ['schedules', 'triggers'],
+	open: ['schedules', 'triggers', 'variables', 'resources'],
 	summary: ['schedules'],
 	trigger_kind: ['triggers'],
 	resource_type: ['resources'],
@@ -2295,7 +2297,7 @@ function buildOpenPageDefSchema(
 }
 
 const OPEN_PAGE_DESCRIPTION =
-	'Open a Windmill page with filters applied — Runs, Schedules, Variables, Resources, Assets, Audit logs, Folders, Groups, Triggers (by kind), Workspace settings (on a specific tab), or the Compare & Deploy review page. Inside an AI session it opens as a tab in the side-panel preview next to the chat; elsewhere it offers a clickable link. Use after surfacing something the user likely wants to inspect (e.g. "show me the failed runs of X", "open the schedule for Y", "open the git sync settings", "open the kafka triggers"), and use page "compare" when the user wants to review and deploy pending changes (the items field controls which changes are preselected). This is the only way to show one of these pages in the session preview — open_preview only handles editable items (scripts, flows, raw apps, pipelines). Only pages listed for this user are available; do not offer others.'
+	'Open a Windmill page with filters applied — Runs, Schedules, Variables, Resources, Assets, Audit logs, Folders, Groups, Triggers (by kind), Workspace settings (on a specific tab), or the Compare & Deploy review page. Inside an AI session it opens as a tab in the side-panel preview next to the chat; elsewhere it offers a clickable link. Use after surfacing something the user likely wants to inspect (e.g. "show me the failed runs of X", "open the schedule for Y", "open the git sync settings", "open the kafka triggers"), and ALWAYS when asking the user to perform a manual step themselves (fill in a resource\'s credentials, set a variable\'s value — pass open with the item path so its edit drawer opens directly). Use page "compare" when the user wants to review and deploy pending changes (the items field controls which changes are preselected). This is the only way to show one of these pages in the session preview — open_preview only handles editable items (scripts, flows, raw apps, pipelines). Only pages listed for this user are available; do not offer others.'
 
 // Non-arg inputs the URL builder needs: the chat's operating workspace (the compare
 // page cannot fall back to its own store default inside a session preview) and the
@@ -2318,9 +2320,12 @@ export function buildOpenPageUrl(page: OpenPageName, a: OpenPageArgs, ctx: OpenP
 				filters: { path: a.path, schedule_path: a.schedule_path, summary: a.summary }
 			})
 		case 'variables':
-			return buildVariablesUrl({ path: a.path, owner: a.owner })
+			return buildVariablesUrl({ open: a.open, filters: { path: a.path, owner: a.owner } })
 		case 'resources':
-			return buildResourcesUrl({ path: a.path, resource_type: a.resource_type, owner: a.owner })
+			return buildResourcesUrl({
+				open: a.open,
+				filters: { path: a.path, resource_type: a.resource_type, owner: a.owner }
+			})
 		case 'assets':
 			return buildAssetsUrl({ path: a.path })
 		case 'audit_logs':
@@ -2419,7 +2424,9 @@ export const openPageTool: Tool<{}> = {
 		if (page === 'triggers' && triggerKind && !allowedTriggerKinds().includes(triggerKind)) {
 			return `${TRIGGER_PAGES[triggerKind].label} aren't available on this instance.`
 		}
-		const urlWorkspace = workspaceId ?? get(workspaceStore)
+		// Headless callers (ai_evals) have neither helpers.operatingWorkspace nor a
+		// populated workspaceStore; the chat loop's workspace is still correct there.
+		const urlWorkspace = workspaceId ?? get(workspaceStore) ?? ctx.workspace
 		if (!urlWorkspace) {
 			return 'Error: no workspace is selected, so no page can be opened.'
 		}
@@ -3473,6 +3480,9 @@ type WriteDraftCtx = {
 	// reloads the preview of the session that issued the deploy — not the
 	// UI-active one. Undefined for the global side-panel chat.
 	sessionId?: string
+	// Present when the ctx is the raw tool `fn` context — session chats carry
+	// their id here (see SessionToolHelpers / sessionIdFromCtx).
+	helpers?: unknown
 }
 
 // Sessions are the only context where `open_preview` makes sense — the global
@@ -3551,7 +3561,7 @@ export function setOpenPreviewHandler(handler: OpenPreviewHandler | undefined): 
 function openSessionPreview(
 	args: { kind: 'script' | 'flow' | 'raw_app' | 'pipeline'; path: string },
 	sessionId: string | undefined
-) {
+): string {
 	if (!openPreviewHandler) {
 		return 'Error: open_preview is only available inside an AI session. Tell the user to switch to a session to view the preview, or describe the item textually.'
 	}
@@ -3912,6 +3922,34 @@ function draftWriteFailure(result: DraftPersistResult, ctx: WriteDraftCtx): stri
 	return undefined
 }
 
+// Item kinds a session preview can host, keyed by the draft item kind a write
+// resolves to. Kinds absent here (resources, variables, triggers, legacy `app`)
+// have no preview panel, so no card is offered for them.
+const PREVIEW_CARD_KIND_BY_ITEM_KIND: Partial<
+	Record<DraftPersistResult['itemKind'], PreviewCardKind>
+> = {
+	script: 'script',
+	flow: 'flow',
+	raw_app: 'raw_app'
+}
+
+// Offer a preview card for a write that landed a previewable item. Session chats
+// only: the card opens the item in the side panel, which the global side-panel
+// chat has no equivalent of. `path` is the item's display path (what
+// `open_preview` takes), not its synthetic draft storage key.
+function maybeAttachPreviewCard(
+	ctx: WriteDraftCtx,
+	itemKind: DraftPersistResult['itemKind'],
+	path: string
+): void {
+	// Write tools pass the raw tool ctx, whose session id lives in `helpers` —
+	// `ctx.sessionId` is only set by callers that thread it explicitly.
+	if (!ctx.sessionId && !sessionIdFromCtx(ctx)) return
+	const kind = PREVIEW_CARD_KIND_BY_ITEM_KIND[itemKind]
+	if (!kind) return
+	ctx.toolCallbacks.setToolStatus(ctx.toolId, { previewCard: { kind, path } })
+}
+
 // App write tools build varied success messages but share the same conflict /
 // save-failure handling; `onSaved` supplies the per-tool status + message.
 function finishAppDraftWrite(
@@ -3922,6 +3960,7 @@ function finishAppDraftWrite(
 	const failure = draftWriteFailure(result, ctx)
 	if (failure) return failure
 	ctx.toolCallbacks.onItemModified?.(result.itemKind, result.storagePath)
+	maybeAttachPreviewCard(ctx, result.itemKind, result.item.path)
 	const { content, message } = onSaved()
 	ctx.toolCallbacks.setToolStatus(ctx.toolId, { content, result: 'Saved as draft' })
 	return JSON.stringify({ success: true, message }, null, 2)
@@ -3935,6 +3974,7 @@ function finishDraftWrite(
 	const failure = draftWriteFailure(result, ctx)
 	if (failure) return failure
 	ctx.toolCallbacks.onItemModified?.(result.itemKind, result.storagePath)
+	maybeAttachPreviewCard(ctx, result.itemKind, result.item.path)
 	const stored = result.item
 	const verb = existed ? 'Updated' : 'Created'
 	// Don't echo the flow value back: the model just sent it in the write call,
