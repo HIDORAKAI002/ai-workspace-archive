@@ -2,87 +2,87 @@
 
 ## 📋 学习目标
 
-本示例通过.NET中的基础代理实现，探索 Microsoft Agent Framework 的基本概念。您将学习核心的代理模式，并理解智能代理在 C# 和 .NET 生态系统中如何在幕后工作。
+本示例通过在 .NET 中实现基础代理，探索 Microsoft Agent Framework 的基本概念。您将学习核心代理模式，并通过 C# 和 .NET 生态系统了解智能代理的运行原理。
 
-### 您将发现的内容
+### 您将发现
 
-- 🏗️ <strong>代理架构</strong>：理解.NET中AI代理的基本结构
+- 🏗️ <strong>代理架构</strong>：理解 .NET 中人工智能代理的基本结构
 - 🛠️ <strong>工具集成</strong>：代理如何使用外部函数扩展功能  
-- 💬 <strong>对话流程</strong>：使用线程管理管理多轮对话和上下文
-- 🔧 <strong>配置模式</strong>：在.NET中设置和管理代理的最佳实践
+- 💬 <strong>对话流程</strong>：通过线程管理管理多轮对话与上下文
+- 🔧 <strong>配置模式</strong>：.NET 中代理设置和管理的最佳实践
 
 ## 🎯 涉及的关键概念
 
 ### 代理框架原则
 
-- <strong>自治性</strong>：代理如何使用.NET AI抽象独立做出决策
-- <strong>反应性</strong>：响应环境变化和用户输入
-- <strong>主动性</strong>：基于目标和上下文采取主动行动
-- <strong>社交能力</strong>：通过自然语言与对话线程互动
+- <strong>自治性</strong>：代理如何使用 .NET AI 抽象独立决策
+- <strong>响应性</strong>：响应环境变化和用户输入
+- <strong>主动性</strong>：基于目标和上下文主动采取行动
+- <strong>社交能力</strong>：通过自然语言和对话线程进行交互
 
 ### 技术组件
 
-- **AIAgent**：核心代理编排和对话管理（.NET）
-- <strong>工具函数</strong>：使用C#方法和属性扩展代理功能
-- **Azure OpenAI 集成**：通过 Azure OpenAI Responses API 利用语言模型
+- **AIAgent**：核心代理协调和对话管理 (.NET)
+- <strong>工具函数</strong>：通过 C# 方法和特性扩展代理功能
+- **Azure OpenAI 集成**：利用 Azure OpenAI Responses API 调用语言模型
 - <strong>安全配置</strong>：基于环境的端点管理
 
 ## 🔧 技术栈
 
 ### 核心技术
 
-- Microsoft Agent Framework（.NET）
-- Azure OpenAI (Responses API) 集成
+- Microsoft Agent Framework (.NET)
+- Azure OpenAI（Responses API）集成
 - Azure.AI.OpenAI 客户端模式
 - 使用 DotNetEnv 进行基于环境的配置
 
-### 代理功能
+### 代理能力
 
 - 自然语言理解与生成
-- 使用带属性的函数调用和工具使用
-- 具备会话上下文感知的响应
-- 通过依赖注入模式支持可扩展架构
+- 使用 C# 特性进行函数调用和工具使用
+- 具备上下文感知的对话会话响应
+- 通过依赖注入模式实现可扩展架构
 
 ## 📚 框架比较
 
-本示例展示了 Microsoft Agent Framework 与其他代理框架的对比：
+本示例演示 Microsoft Agent Framework 方法与其他代理框架的对比：
 
 | 特性 | Microsoft Agent Framework | 其他框架 |
 |---------|-------------------------|------------------|
-| <strong>集成</strong> | 原生 Microsoft 生态系统 | 兼容性多样 |
-| <strong>简洁性</strong> | 清晰、直观的API | 通常设置复杂 |
-| <strong>可扩展性</strong> | 易于集成工具 | 依赖于框架 |
-| <strong>企业级准备</strong> | 为生产环境构建 | 根据框架不同而异 |
+| <strong>集成</strong> | 原生微软生态系统 | 兼容性多样 |
+| <strong>简洁性</strong> | 清晰直观的 API | 通常设置复杂 |
+| <strong>可扩展性</strong> | 轻松集成工具 | 依赖于框架 |
+| <strong>企业级</strong> | 面向生产环境构建 | 取决于框架 |
 
-## 🚀 快速开始
+## 🚀 入门
 
-### 先决条件
+### 前置条件
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更高版本
-- 拥有 [Azure 订阅](https://azure.microsoft.com/free/) 并具备 Azure OpenAI 资源和模型部署
-- 已安装 [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — 使用 `az login` 登录
+- 拥有 Azure OpenAI 资源和模型部署的 [Azure 订阅](https://azure.microsoft.com/free/)
+- 安装 [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) 并使用 `az login` 登录
 
 ### 所需环境变量
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# 然后登录，以便 AzureCliCredential 可以获取令牌
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# 然后登录，以便 AzureCliCredential 能获取令牌
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # 然后登录，以便 AzureCliCredential 可以获取令牌
 az login
 ```
 
 ### 示例代码
 
-运行示例代码，
+运行代码示例，
 
 ```bash
 # zsh/bash
@@ -96,7 +96,7 @@ chmod +x ./02-dotnet-agent-framework.cs
 dotnet run ./02-dotnet-agent-framework.cs
 ```
 
-查看完整代码，请参见 [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs)。
+完整代码请参见 [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs)。
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,20 +215,20 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 关键收获
+## 🎓 关键要点
 
-1. <strong>代理架构</strong>：Microsoft Agent Framework 提供一种清晰、类型安全的方式来构建 .NET AI 代理
-2. <strong>工具集成</strong>：带有 `[Description]` 属性的函数成为代理可用工具
-3. <strong>对话上下文</strong>：会话管理支持多轮对话并具备完整上下文感知
+1. <strong>代理架构</strong>：Microsoft Agent Framework 提供用于在 .NET 中构建 AI 代理的清晰、类型安全的方法
+2. <strong>工具集成</strong>：带有 `[Description]` 特性的函数成为代理可用的工具
+3. <strong>对话上下文</strong>：会话管理支持多轮对话的完整上下文感知
 4. <strong>配置管理</strong>：环境变量和安全凭证处理遵循 .NET 最佳实践
 5. **Azure OpenAI Responses API**：代理通过 Azure.AI.OpenAI SDK 使用 Azure OpenAI Responses API
 
-## 🔗 额外资源
+## 🔗 其他资源
 
 - [Microsoft Agent Framework 文档](https://learn.microsoft.com/agent-framework)
-- [Microsoft Foundry 中的 Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
+- [微软 Foundry 中的 Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [.NET 单文件应用](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [.NET 单文件应用程序](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

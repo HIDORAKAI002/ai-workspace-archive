@@ -2,13 +2,13 @@
 
 ## 📋 Objetivos de Aprendizagem
 
-Este exemplo demonstra padrões de design a nível empresarial para construir agentes inteligentes usando o Microsoft Agent Framework em .NET com integração do Azure OpenAI (Responses API). Aprenderá padrões profissionais e abordagens arquitetónicas que tornam os agentes prontos para produção, fáceis de manter e escaláveis.
+Este exemplo demonstra padrões de design de nível empresarial para construir agentes inteligentes usando o Microsoft Agent Framework em .NET com integração Azure OpenAI (Responses API). Aprenderá padrões profissionais e abordagens arquitetónicas que tornam os agentes prontos para produção, fáceis de manter e escaláveis.
 
-### Padrões de Design Empresarial
+### Padrões de Design Empresariais
 
-- 🏭 **Padrão Factory**: Criação padronizada de agentes com injeção de dependências
-- 🔧 **Padrão Builder**: Configuração e preparação fluente de agentes
-- 🧵 **Padrões Thread-Safe**: Gestão concorrente de conversas
+- 🏭 **Padrão Factory**: Criação de agentes padronizada com injeção de dependências
+- 🔧 **Padrão Builder**: Configuração e montagem fluente de agentes
+- 🧵 **Padrões Thread-Safe**: Gestão concorrente de conversações
 - 📋 **Padrão Repository**: Gestão organizada de ferramentas e capacidades
 
 ## 🎯 Benefícios Arquitetónicos Específicos do .NET
@@ -16,27 +16,27 @@ Este exemplo demonstra padrões de design a nível empresarial para construir ag
 ### Funcionalidades Empresariais
 
 - **Tipagem Forte**: Validação em tempo de compilação e suporte IntelliSense
-- **Injeção de Dependências**: Integração do contentor DI incorporado
+- **Injeção de Dependências**: Integração com contentor DI incorporado
 - **Gestão de Configuração**: Padrões IConfiguration e Options
 - **Async/Await**: Suporte de primeira classe para programação assíncrona
 
 ### Padrões Prontos para Produção
 
-- **Integração de Logging**: Suporte ILogger e logging estruturado
-- **Verificações de Saúde**: Monitorização e diagnóstico incorporados
-- **Validação de Configuração**: Tipagem forte com anotações de dados
-- **Gestão de Erros**: Gestão estruturada de exceções
+- **Integração de Logging**: ILogger e suporte a logging estruturado
+- **Health Checks**: Monitorização e diagnósticos incorporados
+- **Validação de Configuração**: Tipagem forte com data annotations
+- **Tratamento de Erros**: Gestão estruturada de exceções
 
 ## 🔧 Arquitetura Técnica
 
-### Componentes Core do .NET
+### Componentes Principais do .NET
 
-- **Microsoft.Extensions.AI**: Abstrações unificadas para serviços AI
+- **Microsoft.Extensions.AI**: Abstrações unificadas de serviços AI
 - **Microsoft.Agents.AI**: Framework empresarial de orquestração de agentes
-- **Azure OpenAI (Responses API)**: Padrões de cliente API de alta performance
-- **Sistema de Configuração**: appsettings.json e integração de ambiente
+- **Azure OpenAI (Responses API)**: Padrões de clientes API de alta performance
+- **Sistema de Configuração**: appsettings.json e integração ambiental
 
-### Implementação de Padrão de Design
+### Implementação do Padrão de Design
 
 ```mermaid
 graph LR
@@ -52,96 +52,96 @@ graph LR
 
 - **Agent Factory**: Criação centralizada de agentes com configuração consistente
 - **Padrão Builder**: API fluente para configuração complexa de agentes
-- **Padrão Singleton**: Gestão de recursos partilhados e configuração
-- **Injeção de Dependências**: Acoplamento fraco e testabilidade
+- **Padrão Singleton**: Gestão de recursos e configuração partilhados
+- **Injeção de Dependências**: Baixo acoplamento e testabilidade
 
 ### 2. **Padrões Comportamentais**
 
-- **Padrão Strategy**: Estratégias intercambiáveis para execução de ferramentas
-- **Padrão Command**: Operações encapsuladas do agente com desfazer/refazer
-- **Padrão Observer**: Gestão do ciclo de vida do agente baseada em eventos
-- **Template Method**: Fluxos de trabalho padronizados para execução de agentes
+- **Padrão Strategy**: Estratégias intercambiáveis de execução de ferramentas
+- **Padrão Command**: Operações do agente encapsuladas com undo/redo
+- **Padrão Observer**: Gestão de ciclo de vida do agente dirigida por eventos
+- **Template Method**: Fluxos de trabalho de execução do agente padronizados
 
 ### 3. **Padrões Estruturais**
 
-- **Padrão Adapter**: Camada de integração com Azure OpenAI (Responses API)
+- **Padrão Adapter**: Camada de integração Azure OpenAI (Responses API)
 - **Padrão Decorator**: Melhoria das capacidades do agente
-- **Padrão Facade**: Interfaces simplificadas de interação do agente
+- **Padrão Facade**: Interfaces simplificadas de interação com o agente
 - **Padrão Proxy**: Lazy loading e caching para performance
 
-## 📚 Princípios de Design .NET
+## 📚 Princípios de Design do .NET
 
 ### Princípios SOLID
 
-- **Responsabilidade Única**: Cada componente tem um propósito claro
-- **Aberto/Fechado**: Extensível sem modificação
-- **Substituição de Liskov**: Implementações de ferramentas baseadas em interfaces
-- **Segregação de Interfaces**: Interfaces focadas e coesas
-- **Inversão de Dependências**: Dependência de abstrações, não de concretizações
+- **Single Responsibility**: Cada componente tem uma finalidade clara
+- **Open/Closed**: Extensível sem modificação
+- **Liskov Substitution**: Implementações de ferramentas baseadas em interfaces
+- **Interface Segregation**: Interfaces focadas e coesas
+- **Dependency Inversion**: Dependência de abstrações, não de concretizações
 
-### Arquitetura Limpa
+### Clean Architecture
 
-- **Camada de Domínio**: Abstrações centrais de agentes e ferramentas
-- **Camada de Aplicação**: Orquestração e fluxos de trabalho dos agentes
-- **Camada de Infraestrutura**: Integração Azure OpenAI (Responses API) e serviços externos
-- **Camada de Apresentação**: Interação do utilizador e formatação de respostas
+- **Domain Layer**: Abstrações centrais de agente e ferramentas
+- **Application Layer**: Orquestração do agente e fluxos de trabalho
+- **Infrastructure Layer**: Integração Azure OpenAI (Responses API) e serviços externos
+- **Presentation Layer**: Interação do utilizador e formatação de respostas
 
 ## 🔒 Considerações Empresariais
 
 ### Segurança
 
-- **Gestão de Credenciais**: Manipulação segura de chaves API com IConfiguration
-- **Validação de Entrada**: Tipagem forte e validação de anotações de dados
-- **Saneamento de Saída**: Processamento e filtragem segura de respostas
-- **Logging de Auditoria**: Rastreio abrangente de operações
+- **Gestão de Credenciais**: Gestão segura de chaves API com IConfiguration
+- **Validação de Entrada**: Tipagem forte e validação com data annotations
+- **Sanitização de Saída**: Processamento e filtro seguro das respostas
+- **Logging de Auditoria**: Rastreio abrangente das operações
 
 ### Performance
 
-- **Padrões Assíncronos**: Operações I/O não bloqueantes
-- **Pool de Conexões**: Gestão eficiente de clientes HTTP
-- **Caching**: Cache de respostas para melhor performance
-- **Gestão de Recursos**: Descarte e limpeza adequados
+- **Padrões Async**: Operações I/O não bloqueantes
+- **Connection Pooling**: Gestão eficiente do cliente HTTP
+- **Caching**: Cache das respostas para melhorar performance
+- **Gestão de Recursos**: Padrões adequados de descarte e limpeza
 
 ### Escalabilidade
 
-- **Segurança de Threads**: Suporte a execução concorrente de agentes
-- **Pool de Recursos**: Utilização eficiente de recursos
-- **Gestão de Carga**: Limitação de taxa e controlo de sobrecarga
-- **Monitorização**: Métricas de performance e verificações de saúde
+- **Thread Safety**: Suporte à execução concorrente de agentes
+- **Pooling de Recursos**: Utilização eficiente de recursos
+- **Gestão de Carga**: Limitação de taxa e gestão de backpressure
+- **Monitorização**: Métricas de performance e health checks
 
-## 🚀 Implantação em Produção
+## 🚀 Implementação em Produção
 
-- **Gestão de Configuração**: Configurações específicas por ambiente
+- **Gestão de Configuração**: Definições específicas para o ambiente
 - **Estratégia de Logging**: Logging estruturado com IDs de correlação
-- **Gestão de Erros**: Tratamento global de exceções com recuperação adequada
-- **Monitorização**: Application Insights e contadores de performance
-- **Testes**: Testes unitários, de integração e de carga
+- **Tratamento de Erros**: Gestão global de exceções com recuperação adequada
+- **Monitorização**: Application insights e contadores de performance
+- **Testes**: Testes unitários, integração e de carga
 
 Pronto para construir agentes inteligentes de nível empresarial com .NET? Vamos arquitetar algo robusto! 🏢✨
 
-## 🚀 Primeiros Passos
+## 🚀 Começar
 
 ### Pré-requisitos
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) ou superior
-- Uma [subscripción Azure](https://azure.microsoft.com/free/) com um recurso Azure OpenAI e um deployment de modelo
-- A [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — inicie sessão com `az login`
+- Uma [assinatura Azure](https://azure.microsoft.com/free/) com um recurso Azure OpenAI e um deployment de modelo
+- A [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — iniciar sessão com `az login`
 
 ### Variáveis de Ambiente Necessárias
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Depois, inicie sessão para que o AzureCliCredential possa obter um token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Depois inicie sessão para que o AzureCliCredential possa obter um token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Depois inicie sessão para que o AzureCliCredential possa obter um token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Em seguida, inicie sessão para que o AzureCliCredential possa obter um token
 az login
 ```
 
@@ -155,7 +155,7 @@ chmod +x ./03-dotnet-agent-framework.cs
 ./03-dotnet-agent-framework.cs
 ```
 
-Ou usando o dotnet CLI:
+Ou usando a CLI dotnet:
 
 ```bash
 dotnet run ./03-dotnet-agent-framework.cs
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

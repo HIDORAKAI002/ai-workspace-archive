@@ -1,29 +1,29 @@
 # 🔍 Pagsusuri sa Microsoft Agent Framework - Basic Agent (.NET)
 
-## 📋 Mga Layunin sa Pagkatuto
+## 📋 Mga Layunin ng Pagkatuto
 
-Ang halimbawang ito ay sumusuri sa mga pangunahing konsepto ng Microsoft Agent Framework sa pamamagitan ng isang basic agent na implementasyon sa .NET. Matututuhan mo ang mga pangunahing pattern ng agent at mauunawaan kung paano gumagana ang mga intelligent agents sa likod gamit ang C# at ekosistemang .NET.
+Tinutuklas ng halimbawang ito ang mga pangunahing konsepto ng Microsoft Agent Framework sa pamamagitan ng isang basic agent implementation sa .NET. Matututuhan mo ang mga pangunahing pattern ng mga ahente at maunawaan kung paano gumagana ang mga intelligent agents sa likod ng eksena gamit ang C# at ang .NET ecosystem.
 
-### Mga Matutuklasan Mo
+### Ano ang Iyong Matutuklasan
 
-- 🏗️ **Arkitektura ng Agent**: Pag-unawa sa pangunahing estruktura ng AI agents sa .NET
-- 🛠️ **Integrasyon ng Tool**: Paano gumagamit ang mga agent ng panlabas na mga function upang palawakin ang kakayahan  
-- 💬 **Daloy ng Pag-uusap**: Pamamahala ng multi-turn na mga pag-uusap at konteksto gamit ang thread management
-- 🔧 **Mga Pattern ng Konigurasyon**: Mga pinakamahusay na kasanayan sa pag-setup at pamamahala ng agent sa .NET
+- 🏗️ **Arkitektura ng Ahente**: Pag-unawa sa pangunahing istruktura ng mga AI agent sa .NET
+- 🛠️ **Integrasyon ng Tool**: Kung paano ginagamit ng mga ahente ang mga panlabas na function para palawakin ang kakayahan  
+- 💬 **Daloy ng Usapan**: Pamamahala ng mga multi-turn na pag-uusap at konteksto gamit ang thread management
+- 🔧 **Mga Pattern ng Konfigurasyon**: Pinakamahuhusay na kasanayan para sa setup at pamamahala ng ahente sa .NET
 
 ## 🎯 Mga Pangunahing Konsepto na Tinalakay
 
 ### Mga Prinsipyo ng Agentic Framework
 
-- **Autonomy**: Paano gumagawa ng mga independiyenteng desisyon ang mga agent gamit ang .NET AI abstractions
-- **Reactivity**: Pagtugon sa mga pagbabago sa kapaligiran at mga input ng user
-- **Proactivity**: Pagsisimula batay sa mga layunin at konteksto
-- **Social Ability**: Pakikipag-ugnayan sa pamamagitan ng natural na wika gamit ang conversation threads
+- **Autonomiya**: Kung paano gumagawa ang mga ahente ng independiyenteng mga desisyon gamit ang .NET AI abstractions
+- **Reaktibidad**: Pagtugon sa mga pagbabago sa kapaligiran at mga input ng user
+- **Proaktibidad**: Pagsisimula ng aksyon batay sa mga layunin at konteksto
+- **Kakayahang Panlipunan**: Pakikipag-ugnayan gamit ang natural na wika sa mga thread ng pag-uusap
 
 ### Mga Teknikal na Komponent
 
-- **AIAgent**: Pangunahing orchestration ng agent at pamamahala ng pag-uusap (.NET)
-- **Mga Tool Functions**: Pinalalawak ang mga kakayahan ng agent gamit ang C# methods at attributes
+- **AIAgent**: Pangunahing orchestration ng ahente at pamamahala ng pag-uusap (.NET)
+- **Mga Tool na Function**: Pagpapalawak ng kakayahan ng ahente gamit ang mga C# method at attribute
 - **Integrasyon ng Azure OpenAI**: Paggamit ng mga language model sa pamamagitan ng Azure OpenAI Responses API
 - **Secure Configuration**: Pamamahala ng endpoint batay sa kapaligiran
 
@@ -33,32 +33,32 @@ Ang halimbawang ito ay sumusuri sa mga pangunahing konsepto ng Microsoft Agent F
 
 - Microsoft Agent Framework (.NET)
 - Integrasyon ng Azure OpenAI (Responses API)
-- Mga pattern ng Azure.AI.OpenAI client
-- Konigurasyon batay sa kapaligiran gamit ang DotNetEnv
+- Patterns ng Azure.AI.OpenAI client
+- Konfigurasyon batay sa kapaligiran gamit ang DotNetEnv
 
-### Mga Kakayahan ng Agent
+### Mga Kakayahan ng Ahente
 
-- Pag-unawa at pagbuo ng natural na wika
-- Pagtawag ng function at paggamit ng tool gamit ang C# attributes
-- Mga tugon na aware sa konteksto gamit ang conversation sessions
-- Napapalawak na arkitektura gamit ang mga pattern ng dependency injection
+- Pag-unawa at paglikha ng natural na wika
+- Pagtawag ng function at paggamit ng tool gamit ang mga C# attribute
+- Mga tugon na may kaalaman sa konteksto gamit ang mga sesyon ng pag-uusap
+- Extensible na arkitektura gamit ang mga dependency injection pattern
 
 ## 📚 Paghahambing ng Framework
 
-Ipinapakita ng halimbawang ito ang paraan ng Microsoft Agent Framework kumpara sa iba pang mga agentic frameworks:
+Ipinapakita ng halimbawang ito ang approach ng Microsoft Agent Framework kumpara sa ibang mga agentic framework:
 
 | Feature | Microsoft Agent Framework | Ibang Framework |
 |---------|-------------------------|------------------|
-| **Integrasyon** | Katutubong ekosistema ng Microsoft | Iba't ibang compatibility |
-| **Kasimplehan** | Malinis, intuitibong API | Kadalasang komplikadong setup |
-| **Napapalawak** | Madaling integrasyon ng tool | Depende sa framework |
-| **Handa sa Enterprise** | Ginawa para sa production | Nagkakaiba-iba ayon sa framework |
+| **Integrasyon** | Katutubong Microsoft ecosystem | Iba-ibang compatible |
+| **Simple** | Malinis, intuitive na API | Kadalasang komplikadong setup |
+| **Extensibility** | Madaling integrasyon ng tool | Nakadepende sa framework |
+| **Handa para sa Enterprise** | Ginawa para sa produksyon | Nagbabago depende sa framework |
 
 ## 🚀 Pagsisimula
 
 ### Mga Kinakailangan
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) o mas mataas pa
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) o mas mataas
 - Isang [Azure subscription](https://azure.microsoft.com/free/) na may Azure OpenAI resource at model deployment
 - Ang [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — mag-sign in gamit ang `az login`
 
@@ -67,22 +67,22 @@ Ipinapakita ng halimbawang ito ang paraan ng Microsoft Agent Framework kumpara s
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Mag-sign in muna para makuha ng AzureCliCredential ang token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Pagkatapos mag-sign in upang makakuha ang AzureCliCredential ng token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Mag-sign in muna upang makakuha ng token ang AzureCliCredential
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Pagkatapos mag-sign in upang makakuha ng token ang AzureCliCredential
 az login
 ```
 
-### Halimbawang Code
+### Sample Code
 
-Upang patakbuhin ang halimbawang code,
+Para patakbuhin ang code example,
 
 ```bash
 # zsh/bash
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,18 +215,18 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 Pangunahing Mga Natutunan
+## 🎓 Mga Pangunahing Aral
 
-1. **Arkitektura ng Agent**: Nagbibigay ang Microsoft Agent Framework ng malinis, type-safe na paraan sa paggawa ng AI agents sa .NET
-2. **Integrasyon ng Tool**: Ang mga function na may dekorasyong `[Description]` ay nagiging available na tools para sa agent
-3. **Konteksto ng Pag-uusap**: Pinahihintulutan ng session management ang multi-turn na mga pag-uusap na may ganap na kamalayan sa konteksto
-4. **Pamamahala ng Konigurasyon**: Sinusunod ang environment variables at ligtas na paghawak ng credential ayon sa pinakamahusay na practice ng .NET
-5. **Azure OpenAI Responses API**: Ginagamit ng agent ang Azure OpenAI Responses API sa pamamagitan ng Azure.AI.OpenAI SDK
+1. **Arkitektura ng Ahente**: Nagbibigay ang Microsoft Agent Framework ng malinis, type-safe na paraan para gumawa ng AI agents sa .NET
+2. **Integrasyon ng Tool**: Ang mga function na decorated ng `[Description]` attributes ay nagiging available na tool para sa ahente
+3. **Konteksto ng Pag-uusap**: Pinapahintulutan ng session management ang multi-turn na pag-uusap na may buong kaalaman sa konteksto
+4. **Pamamahala ng Konfigurasyon**: Sinusunod ang mga environment variable at secure na paghawak ng kredensyal ng pinakamahuhusay na kasanayan ng .NET
+5. **Azure OpenAI Responses API**: Ginagamit ng ahente ang Azure OpenAI Responses API sa pamamagitan ng Azure.AI.OpenAI SDK
 
-## 🔗 Karagdagang Mga Mapagkukunan
+## 🔗 Karagdagang Mga Sanggunian
 
 - [Microsoft Agent Framework Documentation](https://learn.microsoft.com/agent-framework)
-- [Azure OpenAI sa Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
+- [Azure OpenAI in Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
 - [.NET Single File Apps](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 

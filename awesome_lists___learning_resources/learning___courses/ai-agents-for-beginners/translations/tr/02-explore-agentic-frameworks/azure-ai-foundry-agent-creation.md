@@ -1,42 +1,42 @@
-# Microsoft Foundry Ajan Servisi Geliştirme
+# Microsoft Foundry Ajan Hizmeti Geliştirme
 
-Bu egzersizde, Uçuş Rezervasyonu için bir ajan oluşturmak üzere [Microsoft Foundry portalında](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) Microsoft Foundry Agent Service araçlarını kullanacaksınız. Ajan, kullanıcılarla etkileşimde bulunabilecek ve uçuşlar hakkında bilgi sağlayabilecektir.
+Bu egzersizde, [Microsoft Foundry portalı](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst) içindeki Microsoft Foundry Ajan Hizmeti araçlarını kullanarak Uçuş Rezervasyonu için bir ajan oluşturacaksınız. Ajan, kullanıcılarla etkileşim kurabilecek ve uçuşlar hakkında bilgi sağlayabilecektir.
 
-## Önkoşullar
+## Ön koşullar
 
-Bu egzersizi tamamlamak için şunlara ihtiyacınız var:
+Bu egzersizi tamamlamak için aşağıdaki gereksinimlere ihtiyacınız vardır:
 1. Aktif aboneliğe sahip bir Azure hesabı. [Ücretsiz bir hesap oluşturun](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst).
-2. Bir Microsoft Foundry hub'ı oluşturma izniniz olması veya sizin için oluşturulmuş olması gerekir.
+2. Bir Microsoft Foundry hub’ı oluşturmak için izinlere sahip olmanız ya da sizin için birinin oluşturmuş olması gerekir.
     - Rolünüz Katkıda Bulunan veya Sahip ise, bu öğreticideki adımları takip edebilirsiniz.
 
-## Bir Microsoft Foundry hub'ı oluşturma
+## Microsoft Foundry hub oluşturun
 
-> **Not:** Microsoft Foundry daha önce Azure AI Studio olarak bilinirdi.
+> **Not:** Microsoft Foundry önceden Azure AI Studio olarak bilinmekteydi.
 
-1. Bir Microsoft Foundry hub'ı oluşturmak için [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) blog yazısındaki kılavuzları izleyin.
-2. Projeniz oluşturulduğunda, görüntülenen ipuçlarını kapatın ve Microsoft Foundry portalındaki proje sayfasını inceleyin; aşağıdaki resme benzer olmalıdır:
+1. Microsoft Foundry hub oluşturmak için [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) blog yazısındaki kılavuzları takip edin.
+2. Projeniz oluşturulduğunda, görüntülenen ipuçlarını kapatın ve Microsoft Foundry portalındaki proje sayfasını inceleyin; sayfa aşağıdaki görsele benzer olmalıdır:
 
     ![Microsoft Foundry Project](../../../translated_images/tr/azure-ai-foundry.88d0c35298348c2f.webp)
 
-## Bir model dağıtma
+## Bir model dağıtın
 
-1. Proje için sol taraftaki panelde, **Varlıklarım** bölümünde **Modeller + uç noktalar** sayfasını seçin.
+1. Projenizin sol panelinde, **Varlıklarım** bölümünde, **Modeller + uç noktalar** sayfasını seçin.
 2. **Modeller + uç noktalar** sayfasında, **Model dağıtımları** sekmesinde, **+ Model dağıt** menüsünden **Temel modeli dağıt** seçeneğini seçin.
-3. Listede `gpt-4.1-mini` modelini arayın, ardından seçin ve onaylayın.
+3. Listeden `gpt-5-mini` modelini arayın, sonra seçin ve onaylayın.
 
-    > **Not**: TPM'i düşürmek, kullandığınız abonelikte mevcut olan kota aşımını önlemeye yardımcı olur.
+    > **Not**: TPM'yi düşürmek, kullandığınız abonelikteki kota aşımını önlemeye yardımcı olur.
 
     ![Model Deployed](../../../translated_images/tr/model-deployment.3749c53fb81e18fd.webp)
 
-## Bir ajan oluşturma
+## Bir ajan oluşturun
 
-Artık bir model dağıttığınıza göre, bir ajan oluşturabilirsiniz. Ajan, kullanıcılarla etkileşimde bulunmak için kullanılabilen bir konuşma AI modelidir.
+Model dağıttıktan sonra bir ajan oluşturabilirsiniz. Ajan, kullanıcılarla etkileşim kurmak için kullanılan konuşma tabanlı bir yapay zeka modelidir.
 
-1. Proje için sol taraftaki panelde, **Oluştur & Özelleştir** bölümünde **Ajanlar** sayfasını seçin.
-2. Yeni bir ajan oluşturmak için **+ Ajan oluştur** seçeneğine tıklayın. **Ajan Kurulumu** iletişim kutusunda:
-    - Ajan için `FlightAgent` gibi bir ad girin.
-    - Daha önce oluşturduğunuz `gpt-4.1-mini` model dağıtımının seçili olduğundan emin olun.
-    - Ajanın izlemesini istediğiniz istem doğrultusunda **Talimatları** ayarlayın. İşte bir örnek:
+1. Projenizin sol panelinde, **Oluştur & Özelleştir** bölümünde, **Ajanlar** sayfasını seçin.
+2. Yeni bir ajan oluşturmak için **+ Ajan oluştur** butonuna tıklayın. **Ajan Kurulumu** iletişim kutusunda:
+    - Ajana bir ad girin, örneğin `FlightAgent`.
+    - Daha önce oluşturduğunuz `gpt-5-mini` model dağıtımının seçili olduğundan emin olun.
+    - Ajana uyulacak talimatları **Talimatlar** bölümüne girin. İşte bir örnek:
     ```
     You are FlightAgent, a virtual assistant specialized in handling flight-related queries. Your role includes assisting users with searching for flights, retrieving flight details, checking seat availability, and providing real-time flight status. Follow the instructions below to ensure clarity and effectiveness in your responses:
 
@@ -64,41 +64,41 @@ Artık bir model dağıttığınıza göre, bir ajan oluşturabilirsiniz. Ajan, 
     
     ```
 > [!NOTE]
-> Ayrıntılı bir istem için daha fazla bilgiye [bu depodan](https://github.com/ShivamGoyal03/RoamMind) ulaşabilirsiniz.
+> Daha detaylı bir talimat için, [bu depoyu](https://github.com/ShivamGoyal03/RoamMind) inceleyebilirsiniz.
     
-> Ayrıca, kullanıcının taleplerine göre daha fazla bilgi sağlamak ve otomatik görevleri yerine getirmek için **Bilgi Tabanı** ve **Eylemler** ekleyerek ajanın yeteneklerini geliştirebilirsiniz. Bu egzersiz için bu adımları geçebilirsiniz.
+> Ayrıca, ajanın kullanıcı isteklerine göre daha fazla bilgi sunmasını ve otomatik görevler yapmasını sağlamak için **Bilgi Tabanı** ve **Eylemler** ekleyebilirsiniz. Bu egzersizde bu adımlar atlanabilir.
     
 ![Agent Setup](../../../translated_images/tr/agent-setup.9bbb8755bf5df672.webp)
 
-3. Yeni çoklu-AI ajanı oluşturmak için sadece **Yeni Ajan** seçeneğine tıklayın. Yeni oluşturulan ajan Ajanlar sayfasında görünecektir.
+3. Yeni bir çoklu yapay zekâ ajanı oluşturmak için sadece **Yeni Ajan** butonuna tıklayın. Oluşturulan ajan Ajanlar sayfasında görünecektir.
 
 
-## Ajani test etme
+## Ajanı test edin
 
-Ajanı oluşturduktan sonra, Microsoft Foundry portalındaki oyun alanında kullanıcılardan gelen sorgulara nasıl yanıt verdiğini test edebilirsiniz.
+Ajanı oluşturduktan sonra, Microsoft Foundry portalının oyun alanında kullanıcı sorgularına nasıl yanıt verdiğini test edebilirsiniz.
 
-1. Ajanınızın **Kurulum** panelinin üst kısmında **Oyun alanında dene** seçeneğini seçin.
-2. **Oyun alanı** panelinde, sohbet penceresine sorgular yazarak ajanla etkileşimde bulunabilirsiniz. Örneğin, ajanı 28'inde Seattle'dan New York'a uçuş araması yapması için sorabilirsiniz.
+1. Ajanınız için **Kurulum** panelinin üstünde, **Oyun alanında dene** seçeneğini seçin.
+2. **Oyun alanı** panelinde, sohbet penceresine sorgular yazarak ajanla etkileşimde bulunabilirsiniz. Örneğin, ajan’dan 28’inde Seattle’dan New York’a uçuş aramasını isteyebilirsiniz.
 
-    > **Not**: Bu egzersizde gerçek zamanlı veri kullanılmadığı için ajanın verdiği yanıtlar tam olarak doğru olmayabilir. Amaç, ajanın sağlanan talimatlara göre kullanıcı sorgularını anlama ve yanıt verme yeteneğini test etmektir.
+    > **Not**: Bu egzersizde gerçek zamanlı veri kullanılmadığından ajan doğru yanıtlar vermeyebilir. Amaç, ajanın verilen talimatlara dayanarak kullanıcı sorgularını anlayıp yanıt verme yeteneğini test etmektir.
 
     ![Agent Playground](../../../translated_images/tr/agent-playground.dc146586de715010.webp)
 
-3. Ajani test ettikten sonra, daha fazla niyet, eğitim verisi ve eylem ekleyerek yeteneklerini artırmak için özelleştirebilirsiniz.
+3. Ajanı test ettikten sonra, daha fazla niyet, eğitim verisi ve eylem ekleyerek yeteneklerini geliştirebilirsiniz.
 
-## Kaynakları temizleme
+## Kaynakları temizleyin
 
 Ajanı test etmeyi bitirdiğinizde, ek maliyetlerden kaçınmak için silebilirsiniz.
-1. [Azure portalını](https://portal.azure.com) açın ve bu egzersizde kullanacağınız hub kaynaklarının dağıtıldığı kaynak grubunun içeriğini görüntüleyin.
-2. Araç çubuğunda **Kaynak grubunu sil** seçeneğini tıklayın.
+1. [Azure portalını](https://portal.azure.com) açın ve bu egzersizde kullandığınız hub kaynaklarını dağıttığınız kaynak grubunun içeriğine bakın.
+2. Araç çubuğunda, **Kaynak grubunu sil** seçeneğini seçin.
 3. Kaynak grubu adını girin ve silmek istediğinizi onaylayın.
 
 ## Kaynaklar
 
-- [Microsoft Foundry belgeleri](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst)
+- [Microsoft Foundry dokümantasyonu](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst)
 - [Microsoft Foundry portalı](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst)
 - [Microsoft Foundry ile Başlarken](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
-- [Azure'da AI ajanlarının temel prensipleri](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
+- [Azure’daki AI ajanlarının Temelleri](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
 - [Azure AI Discord](https://aka.ms/AzureAI/Discord)
 
 ---

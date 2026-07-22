@@ -1,88 +1,88 @@
-# 🔍 A Microsoft Agent Framework felfedezése - Alapügynök (.NET)
+# 🔍 A Microsoft Agent Framework felfedezése - Alap ügynök (.NET)
 
 ## 📋 Tanulási célok
 
-Ez a példa bemutatja a Microsoft Agent Framework alapvető fogalmait egy .NET-ben készült alapügynök megvalósításán keresztül. Megtanulod az alapvető ügynöki mintákat, és megérted, hogyan működnek az intelligens ügynökök a C# és a .NET ökoszisztéma használatával.
+Ez a példa a Microsoft Agent Framework alapfogalmait vizsgálja meg egy alap ügynök megvalósításán keresztül .NET-ben. Megtanulod a fő ügynökös mintákat és megérted, hogyan működnek az intelligens ügynökök a háttérben C# és a .NET ökoszisztéma használatával.
 
-### Amit felfedezhetsz
+### Amit felfedezel
 
-- 🏗️ **Ügynök architektúra**: Az AI-ügynökök alapvető szerkezetének megértése .NET-en belül
-- 🛠️ **Eszköz integráció**: Hogyan használják az ügynökök a külső funkciókat képességeik bővítésére  
-- 💬 **Párbeszédfolyam**: Többfordulós beszélgetések és kontextus kezelése szálkezeléssel
-- 🔧 **Konfigurációs minták**: Legjobb gyakorlatok az ügynök beállításához és kezeléséhez .NET-ben
+- 🏗️ **Ügynök architektúra**: Az AI ügynökök alapstruktúrájának megértése .NET-ben
+- 🛠️ **Eszközintegráció**: Hogyan használják az ügynökök a külső funkciókat képességeik kibővítésére  
+- 💬 **Párbeszédfolyam**: Többfordulós beszélgetések kezelése és a kontextus menedzsmentje szál kezeléssel
+- 🔧 **Konfigurációs minták**: Ügynök beállításának és kezelésének legjobb gyakorlatai .NET-ben
 
 ## 🎯 Főbb lefedett fogalmak
 
-### Ügynöki keretrendszer alapelvek
+### Ügynökkeretelvek alapjai
 
-- **Autonómia**: Hogyan hoznak az ügynökök önálló döntéseket a .NET AI absztrakciók segítségével
-- **Reaktivitás**: Válaszadás a környezeti változásokra és a felhasználói inputokra
+- **Autonómia**: Az ügynökök hogyan hoznak önálló döntéseket .NET AI absztrakciók segítségével
+- **Reaktivitás**: Reagálás a környezeti változásokra és a felhasználói bemenetekre
 - **Proaktivitás**: Kezdeményezés vállalása célok és kontextus alapján
-- **Szociális képesség**: Természetes nyelven való interakció beszélgetési szálakon keresztül
+- **Társas képesség**: Természetes nyelven való kommunikáció beszélgetési szálakon keresztül
 
-### Technikai alkotóelemek
+### Műszaki összetevők
 
-- **AIAgent**: Alapvető ügynök szervezés és beszélgetés-kezelés (.NET)
-- **Eszközfunkciók**: Ügynöki képességek bővítése C# metódusokkal és attribútumokkal
-- **Azure OpenAI integráció**: Nyelvi modellek kihasználása az Azure OpenAI Responses API segítségével
-- **Biztonságos konfiguráció**: Környezetalapú végpont-kezelés
+- **AIAgent**: Az ügynök fő szervezése és a beszélgetés menedzsmentje (.NET)
+- **Eszközfunkciók**: Az ügynök képességeinek kiterjesztése C# metódusokkal és attribútumokkal
+- **Azure OpenAI integráció**: Nyelvi modellek használata az Azure OpenAI Responses API-n keresztül
+- **Biztonságos konfiguráció**: Környezet-alapú végpont menedzsment
 
-## 🔧 Technológiai stack
+## 🔧 Műszaki háttér
 
-### Alap technológiák
+### Alapvető technológiák
 
 - Microsoft Agent Framework (.NET)
 - Azure OpenAI (Responses API) integráció
-- Azure.AI.OpenAI kliens minták
-- Környezet-alapú konfiguráció DotNetEnv használatával
+- Azure.AI.OpenAI kliensminták
+- Környezeti konfiguráció DotNetEnv segítségével
 
-### Ügynöki képességek
+### Ügynök képességek
 
-- Természetes nyelv értése és generálása
-- Függvényhívás és eszközhasználat C# attribútumokkal
-- Kontextus-tudatos válaszok beszélgetési munkamenetekkel
-- Bővíthető architektúra függőség-injektálási mintákkal
+- Természetes nyelv megértése és generálása
+- Funkcióhívás és eszközhasználat C# attribútumokkal
+- Kontextus-érzékeny válaszok beszélgetési munkamenetekkel
+- Kiterjeszthető architektúra függőséginjektálási mintákkal
 
 ## 📚 Keretrendszer összehasonlítás
 
-Ez a példa a Microsoft Agent Framework megközelítését mutatja be más ügynöki keretrendszerekhez képest:
+Ez a példa bemutatja a Microsoft Agent Framework megközelítését más ügynökkeretekhez képest:
 
-| Funkció | Microsoft Agent Framework | Egyéb keretrendszerek |
+| Jellemző | Microsoft Agent Framework | Egyéb keretrendszerek |
 |---------|-------------------------|------------------|
 | **Integráció** | Natív Microsoft ökoszisztéma | Változó kompatibilitás |
 | **Egyszerűség** | Tiszta, intuitív API | Gyakran bonyolult beállítás |
-| **Bővíthetőség** | Könnyű eszközintegráció | Keretrendszer függő |
-| **Vállalati kész** | Gyártásra tervezve | Keretrendszertől függ |
+| **Kiterjeszthetőség** | Könnyű eszközintegráció | Keretrendszer-függő |
+| **Vállalati használatra kész** | Termelésre tervezve | Keretrendszerenként változó |
 
-## 🚀 Kezdés
+## 🚀 Első lépések
 
 ### Előfeltételek
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) vagy újabb
-- Egy [Azure-előfizetés](https://azure.microsoft.com/free/) Azure OpenAI erőforrással és modellszolgáltatással
-- Az [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — bejelentkezés `az login` paranccsal
+- Egy [Azure előfizetés](https://azure.microsoft.com/free/) Azure OpenAI erőforrással és modell telepítéssel
+- Az [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — bejelentkezés `az login` parancssal
 
 ### Szükséges környezeti változók
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Jelentkezzen be, hogy az AzureCliCredential tokenhez juthasson
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Jelentkezzen be, hogy az AzureCliCredential beszerezhessen egy tokent
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Ezután jelentkezzen be, hogy az AzureCliCredential szerezzen egy tokent
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Ezután jelentkezzen be, hogy az AzureCliCredential tokenhez juthasson
 az login
 ```
 
-### Minta kód
+### Mintakód
 
-A kód példa futtatásához,
+A példa kód futtatásához,
 
 ```bash
 # zsh/bash
@@ -96,7 +96,7 @@ Vagy a dotnet CLI használatával:
 dotnet run ./02-dotnet-agent-framework.cs
 ```
 
-Lásd a teljes kódot a [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) fájlban.
+A teljes kód a [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) fájlban.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -217,18 +217,18 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 
 ## 🎓 Főbb tanulságok
 
-1. **Ügynök architektúra**: A Microsoft Agent Framework tiszta, típusbiztos megközelítést kínál AI ügynökök építéséhez .NET-ben
-2. **Eszköz integráció**: A `[Description]` attribútummal ellátott függvények rendelkezésre álló eszközökké válnak az ügynök számára
-3. **Párbeszéd kontextus**: A munkamenetkezelés lehetővé teszi a többfordulós beszélgetéseket teljes kontextus-tudatossággal
-4. **Konfigurációs menedzsment**: A környezeti változók és a biztonságos hitelesítési kezelés a .NET legjobb gyakorlatai szerint történik
-5. **Azure OpenAI Responses API**: Az ügynök az Azure.AI.OpenAI SDK-n keresztül használja az Azure OpenAI Responses API-t
+1. **Ügynök architektúra**: A Microsoft Agent Framework tiszta, típusbiztos megközelítést nyújt AI ügynökök építéséhez .NET-ben
+2. **Eszközintegráció**: A `[Description]` attribútummal ellátott függvények az ügynök számára elérhető eszközökké válnak
+3. **Beszélgetési kontextus**: A munkamenet-kezelés lehetővé teszi a többfordulós párbeszédeket teljes kontextus észleléssel
+4. **Konfiguráció menedzsment**: A környezeti változók és a biztonságos hitelesítő kezelése a .NET legjobb gyakorlatait követi
+5. **Azure OpenAI Responses API**: Az ügynök az Azure OpenAI Responses API-t használja az Azure.AI.OpenAI SDK-n keresztül
 
 ## 🔗 További források
 
 - [Microsoft Agent Framework dokumentáció](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI a Microsoft Foundry-ban](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [.NET Single File Apps](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [.NET Egyszeri fájl alkalmazások](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

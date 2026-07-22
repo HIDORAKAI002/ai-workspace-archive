@@ -1,42 +1,42 @@
-# 🎨 Agenttipohjaiset suunnittelumallit Azure OpenAI:n kanssa (Responses API) (.NET)
+# 🎨 Agenttipohjaiset suunnittelumallit Azure OpenAI:n (Responses API) kanssa (.NET)
 
 ## 📋 Oppimistavoitteet
 
-Tämä esimerkki havainnollistaa yritystason suunnittelumalleja älykkäiden agenttien rakentamiseen Microsoft Agent Frameworkia .NET:ssä käyttäen Azure OpenAI -integraatiota (Responses API). Opit ammattimaiset mallit ja arkkitehtoniset lähestymistavat, jotka tekevät agenteista tuotantovalmiita, ylläpidettäviä ja skaalautuvia.
+Tämä esimerkki havainnollistaa yritystason suunnittelumalleja älykkäiden agenttien rakentamiseen Microsoft Agent Frameworkin avulla .NET:ssä Azure OpenAI:n (Responses API) integroinnin kanssa. Opit ammattimaiset mallit ja arkkitehtoniset lähestymistavat, jotka tekevät agenteista tuotantovalmiita, ylläpidettäviä ja skaalautuvia.
 
-### Yritystason suunnittelumallit
+### Yrityksen suunnittelumallit
 
-- 🏭 **Tehdasmalli (Factory Pattern)**: Standardoitu agenttien luonti riippuvuussien avulla
-- 🔧 **Builder-malli**: Sulava agentin määrityksen ja konfiguroinnin järjestelmä
-- 🧵 **Thread-safe -mallit**: Samanaikainen keskustelun hallinta
-- 📋 **Repository-malli**: Työkalujen ja kyvykkyyksien järjestelmällinen hallinta
+- 🏭 **Factory Pattern**: Standardoitu agenttien luonti riippuvuuksien injektiolla
+- 🔧 **Builder Pattern**: Sujuva agenttien konfigurointi ja asetusten määrittely
+- 🧵 **Thread-Safe Patterns**: Samanaikainen keskustelujen hallinta
+- 📋 **Repository Pattern**: Järjestelmällinen työkalujen ja kykyjen hallinta
 
-## 🎯 .NET-spesifiset arkkitehtoniset edut
+## 🎯 .NET-spesifit arkkitehtuuriset hyödyt
 
-### Yritysominaisuudet
+### Yritystason ominaisuudet
 
-- **Vahva tyyppitarkistus**: Käännösaikatarkistus ja IntelliSense-tuki
-- **Riippuvuussietokyky**: Sisäänrakennettu DI-kontainerin integrointi
-- **Konfiguraation hallinta**: IConfiguration- ja Options-mallit
+- **Vahva tyyppimääritys**: Käännösaikainen validointi ja IntelliSense-tuki
+- **Riippuvuuksien injektio**: Sisäänrakennettu DI-kontaineri-integraatio
+- **Konfiguraation hallinta**: IConfiguration ja Options-mallit
 - **Async/Await**: Ensiluokkainen asynkroninen ohjelmointi
 
 ### Tuotantovalmiit mallit
 
-- **Lokitusintegraatio**: ILogger- ja rakenteellinen lokitus
-- **Terveystarkastukset**: Sisäänrakennetut valvonta- ja diagnostiikkaominaisuudet
-- **Konfiguraation validointi**: Vahva tyyppitarkistus ja dataannotaatiot
+- **Lokikirjausintegraatio**: ILogger ja strukturoitu lokikirjaus
+- **Terveystarkastukset**: Sisäänrakennettu valvonta ja diagnostiikka
+- **Konfiguraation validointi**: Vahva tyyppimääritys ja data-anotoinnit
 - **Virheenkäsittely**: Rakenteellinen poikkeusten hallinta
 
 ## 🔧 Tekninen arkkitehtuuri
 
 ### Keskeiset .NET-komponentit
 
-- **Microsoft.Extensions.AI**: Yhtenäiset tekoälypalveluiden abstraktiot
+- **Microsoft.Extensions.AI**: Yhtenäistetyt tekoälypalvelujen abstraktiot
 - **Microsoft.Agents.AI**: Yritystason agenttien orkestrointikehys
-- **Azure OpenAI (Responses API)**: Korkean suorituskyvyn API-asiakasrajapintamallit
-- **Konfiguraatiojärjestelmä**: appsettings.json ja ympäristöön integrointi
+- **Azure OpenAI (Responses API)**: Korkean suorituskyvyn API-asiakasmallit
+- **Konfiguraatiojärjestelmä**: appsettings.json ja ympäristön integrointi
 
-### Suunnittelumallien toteutus
+### Suunnittelumallin toteutus
 
 ```mermaid
 graph LR
@@ -46,93 +46,93 @@ graph LR
     D --> E[AI-agentti]
 ```
 
-## 🏗️ Näytetyt yritysmallit
+## 🏗️ Näytetyt yrityksen mallit
 
-### 1. **Oluemallit**
+### 1. **Luomismallit**
 
-- **Agenttitehdas**: Keskitetty agenttien luonti yhdenmukaisella määrityksellä
-- **Builder-malli**: Sulava API monimutkaiseen agentin määritykseen
+- **Agenttitehdas**: Keskitetty agenttien luonti johdonmukaisella konfiguraatiolla
+- **Builder-malli**: Sujuva API monimutkaiseen agenttikonfiguraatioon
 - **Singleton-malli**: Jaetut resurssit ja konfiguraation hallinta
-- **Riippuvuussieto**: Löysä kytkentä ja testattavuus
+- **Riippuvuuksien injektio**: Löysä kytkentä ja testattavuus
 
 ### 2. **Käyttäytymismallit**
 
-- **Strategiamalli**: Vaihdettavat työkalun suoritusstrategiat
-- **Komentomalli**: Kapseloidut agentin toiminnot peru/tee uudelleen -toiminnolla
-- **Havaitsijamalli**: Tapahtumapohjainen agentin elinkaaren hallinta
-- **Template Method**: Standardoidut agentin suoritusprosessit
+- **Strategia-malli**: Vaihdettavat työkalujen suoritustrategiat
+- **Komentomalli**: Kapseloidut agenttitoiminnot kumoamis- ja uudelleentoimintamahdollisuudella
+- **Observer-malli**: Tapahtumapohjainen agentin elinkaaren hallinta
+- **Template Method**: Standardoidut agentin suoritustyönkulut
 
-### 3. **Rakenneperiaatteet**
+### 3. **Rakenne- eli struktuurimallit**
 
-- **Sovitinmalli (Adapter Pattern)**: Azure OpenAI:n (Responses API) integrointikerros
-- **Koristelijämalli (Decorator Pattern)**: Agentin kykyjen parantaminen
-- **Fasadi-malli (Facade Pattern)**: Yksinkertaistetut agentin rajapinnat
-- **Proxymalli**: Laiska lataus ja välimuisti suorituskyvyn parantamiseen
+- **Adapter-malli**: Azure OpenAI (Responses API) -integraatiokerros
+- **Koristelija-malli**: Agentin kyvykkyyksien laajennus
+- **Sivellin-malli**: Yksinkertaistetut agenttien vuorovaikutusrajapinnat
+- **Proxy-malli**: Laiska lataus ja välimuisti suorituskyvyn parantamiseksi
 
-## 📚 .NET-suunnitteluperiaatteet
+## 📚 .NET Suunnitteluperiaatteet
 
 ### SOLID-periaatteet
 
-- **Yksi vastuualue (Single Responsibility)**: Jokaisella osalla on yksi selkeä tarkoitus
-- **Avoin/suljettu (Open/Closed)**: Laajennettavissa ilman muokkausta
-- **Liskov substitution -periaate**: Rajapintapohjaiset työkalujen toteutukset
-- **Rajapintojen erottelu (Interface Segregation)**: Tarkoituksenmukaiset ja koherentit rajapinnat
-- **Riippuvuuksien kääntäminen (Dependency Inversion)**: Riippuvuudet abstraktioihin, ei konkreettisiin toteutuksiin
+- **Single Responsibility**: Jokaisella komponentilla on yksi selkeä tehtävä
+- **Open/Closed**: Laajennettavissa ilman muokkausta
+- **Liskov Substitution**: Rajapintaan perustuvat työkalujen toteutukset
+- **Interface Segregation**: Tarkoituksenmukaiset, yhtenäiset rajapinnat
+- **Dependency Inversion**: Riippuvuus abstraktioista, ei konkreettisista
 
-### Puhtaan arkkitehtuurin periaatteet
+### Puhtaan arkkitehtuurin malli
 
-- **Domain-kerros**: Agentin ja työkalujen ydinastraktiot
-- **Sovelluskerros**: Agenttien orkestrointi ja työnkulut
-- **Infrastruktuurikerros**: Azure OpenAI (Responses API) -integraatio ja ulkopuoliset palvelut
-- **Esityskerros**: Käyttäjävuorovaikutus ja vastausten muotoilu
+- **Domain Layer**: Keskeiset agentti- ja työkalun abstraktiot
+- **Application Layer**: Agentin orkestrointi ja työnkulut
+- **Infrastructure Layer**: Azure OpenAI (Responses API) -integraatio ja ulkoiset palvelut
+- **Presentation Layer**: Käyttäjän vuorovaikutus ja vastausten muotoilu
 
 ## 🔒 Yritystason näkökohdat
 
-### Tietoturva
+### Turvallisuus
 
-- **Tunnistetietojen hallinta**: Turvallinen API-avainten käsittely IConfiguration:n avulla
-- **Syötteiden validointi**: Vahva tyyppitarkistus ja dataannotaatiot
+- **Tunnistetietojen hallinta**: Turvallinen API-avainten käsittely IConfigurationin avulla
+- **Syötteen validointi**: Vahva tyyppimääritys ja data-anotointien tarkistus
 - **Tulosten puhdistus**: Turvallinen vastausten käsittely ja suodatus
-- **Auditointilokit**: Kattava operaatioiden seuranta
+- **Auditointilokitus**: Kattava toimintojen seuranta
 
 ### Suorituskyky
 
 - **Asynkroniset mallit**: Ei-estävät I/O-toiminnot
-- **Yhteyspoolaus**: Tehokas HTTP-asiakkaiden hallinta
+- **Yhteyspoolaus**: Tehokas HTTP-asiakashallinta
 - **Välimuisti**: Vastausten välimuisti suorituskyvyn parantamiseksi
-- **Resurssien hallinta**: Oikea poisto- ja puhdistusperiaate
+- **Resurssien hallinta**: Oikeaoppinen vapautus ja siivousmallit
 
 ### Skaalautuvuus
 
-- **Säikeiden turvallisuus**: Samanaikaisen agentin suorituskyvyn tuki
-- **Resurssien poolaus**: Tehokas resurssien käyttö
-- **Kuormanhallinta**: Nopeusrajoitukset ja virtaustakaiskujen hallinta
+- **Thread-safety**: Samanaikainen agenttien suorittaminen
+- **Resurssipoolaus**: Tehokas resurssien hyödyntäminen
+- **Kuormanhallinta**: Nopeusrajoitus ja backpressuren käsittely
 - **Valvonta**: Suorituskykymittarit ja terveystarkastukset
 
-## 🚀 Tuotantokäyttöönotto
+## 🚀 Tuotantoon käyttöönotto
 
 - **Konfiguraation hallinta**: Ympäristökohtaiset asetukset
-- **Lokitusstrategia**: Rakenteellinen lokitus ja korrelaatio-ID:t
-- **Virheenkäsittely**: Globaalit poikkeustenhallinta ja asianmukainen palautuminen
-- **Valvonta**: Sovellusinsightit ja suorituskykymittarit
-- **Testaus**: Yksikkö-, integraatio- ja kuormitustestauksen mallit
+- **Lokitusstrategia**: Strukturoitu lokitus korrelaatio-ID:illä
+- **Virheenkäsittely**: Globaalit poikkeusten käsittelyt oikealla palautuksella
+- **Valvonta**: Sovelluksen näkymät ja suorituskykymittarit
+- **Testaus**: Yksikkötestit, integraatiotestit ja kuormitustestausmallit
 
-Valmiina rakentamaan yritystason älykkäitä agenteja .NET:llä? Rakennetaan jotain vankkaa! 🏢✨
+Valmis rakentamaan yritystason älykkäitä agenteja .NETillä? Rakennetaan jotain kestävää! 🏢✨
 
 ## 🚀 Aloittaminen
 
-### Ennen aloitusta
+### Esivaatimukset
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) tai uudempi
-- [Azure-tili](https://azure.microsoft.com/free/) jossa Azure OpenAI -resurssi ja mallin käyttöönotto
-- Azure CLI ([oppaat](https://learn.microsoft.com/cli/azure/install-azure-cli)) — kirjaudu sisään komennolla `az login`
+- [Azure-tilaus](https://azure.microsoft.com/free/), jossa on Azure OpenAI -resurssi ja mallin käyttöönotto
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — kirjaudu sisään `az login`-komennolla
 
 ### Vaaditut ympäristömuuttujat
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 # Kirjaudu sitten sisään, jotta AzureCliCredential voi saada tokenin
 az login
 ```
@@ -140,14 +140,14 @@ az login
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Kirjaudu sitten sisään, jotta AzureCliCredential voi saada tokenin
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Kirjaudu sitten sisään, jotta AzureCliCredential voi saada tunnuksen
 az login
 ```
 
 ### Esimerkkikoodi
 
-Suorita koodiesimerkki,
+Koodiesimerkin suorittamiseksi,
 
 ```bash
 # zsh/bash
@@ -155,13 +155,13 @@ chmod +x ./03-dotnet-agent-framework.cs
 ./03-dotnet-agent-framework.cs
 ```
 
-Tai käytä dotnet CLI:tä:
+Tai käyttäen dotnet CLI:tä:
 
 ```bash
 dotnet run ./03-dotnet-agent-framework.cs
 ```
 
-Katso [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) täydellinen koodi.
+Katso täydellinen koodi tiedostosta [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs).
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

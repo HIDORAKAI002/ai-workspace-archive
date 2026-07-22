@@ -2,71 +2,71 @@
 
 ## 📋 Forgatókönyv áttekintése
 
-Ez a példa bemutatja, hogyan lehet intelligens utazástervező ügynököt építeni a Microsoft Agent Framework .NET-es verziójával. Az ügynök automatikusan képes személyre szabott egynapos kirándulásokat generálni véletlenszerű célpontokra szerte a világon.
+Ez a példa bemutatja, hogyan építsünk intelligens utazási tervező ügynököt a Microsoft Agent Framework .NET-es verziójával. Az ügynök automatikusan képes személyre szabott egynapos kirándulási útvonalakat generálni véletlenszerű úti célokhoz világszerte.
 
-### Kulcsfontosságú képességek:
+### Fő képességek:
 
-- 🎲 **Véletlenszerű célpont választás**: Egyedi eszközt használ a nyaralóhelyek kiválasztására
-- 🗺️ **Intelligens utazástervezés**: Részletes napi lebontású útiterv készítése
-- 🔄 **Valós idejű streaming**: Azonnali és folyamatos válaszadás támogatása
-- 🛠️ **Egyedi eszköz integráció**: Bemutatja, hogyan bővíthető az ügynök képessége
+- 🎲 **Véletlenszerű úti cél kiválasztása**: Egyedi eszközt használ nyaralóhelyek kiválasztásához
+- 🗺️ **Intelligens utazástervezés**: Részletes napi bontású útiterv készítése
+- 🔄 **Valós idejű streamelés**: Támogatja a közvetlen és folyamatos válaszokat is
+- 🛠️ **Egyedi eszköz integráció**: Bemutatja, hogyan bővíthetők az ügynök képességei
 
 ## 🔧 Műszaki architektúra
 
-### Központi technológiák
+### Alap technológiák
 
-- **Microsoft Agent Framework**: Legújabb .NET megvalósítás AI ügynök fejlesztéshez
-- **Azure OpenAI (Responses API)**: Az Azure OpenAI Responses API használata a modell lekérdezéséhez
-- **Azure Identity**: Biztonságos bejelentkezés `AzureCliCredential` segítségével (`az login`)
-- **Biztonságos konfiguráció**: Környezet alapú végpont kezelés
+- **Microsoft Agent Framework**: A legújabb .NET megvalósítás AI ügynökök fejlesztéséhez
+- **Azure OpenAI (Responses API)**: Az Azure OpenAI Responses API-t használja modellkövetkeztetéshez
+- **Azure Identity**: Biztonságos bejelentkezés `AzureCliCredential`-lel (`az login`)
+- **Biztonságos konfiguráció**: Környezet alapú végpontkezelés
 
-### Főbb összetevők
+### Fő összetevők
 
-1. **AIAgent**: A fő ügynök, amely irányítja a beszélgetés folyamatát
+1. **AIAgent**: A fő ügynök, amely kezeli a beszélgetés folyamatát
 2. **Egyedi eszközök**: `GetRandomDestination()` függvény elérhető az ügynök számára
-3. **Responses kliens**: Azure OpenAI Responses alapú beszélgetési felület
-4. **Streaming támogatás**: Valós idejű válaszgenerálási képességek
+3. **Responses Client**: Azure OpenAI Responses alapú beszélgetési interfész
+4. **Streaming támogatás**: Valós idejű válaszgenerálási lehetőségek
 
 ### Integrációs minta
 
 ```mermaid
 graph LR
-    A[Felhasználói kérelem] --> B[MI ügynök]
+    A[Felhasználói kérés] --> B[Mesterséges intelligencia ügynök]
     B --> C[Azure OpenAI (Válaszok API)]
     B --> D[GetRandomDestination eszköz]
-    C --> E[Utazási útvonalterv]
+    C --> E[Utazási útiterv]
     D --> E
 ```
 
-## 🚀 Kezdés
+## 🚀 Kezdő lépések
 
 ### Előfeltételek
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) vagy újabb
 - Egy [Azure előfizetés](https://azure.microsoft.com/free/) Azure OpenAI erőforrással és modell telepítéssel
-- Az [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — bejelentkezés `az login` segítségével
+- Az [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — jelentkezz be `az login` parancssal
 
 ### Szükséges környezeti változók
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Ezután jelentkezzen be, hogy az AzureCliCredential tokenhez juthasson
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Ezután jelentkezz be, hogy az AzureCliCredential tokenhez juthasson
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Ezután jelentkezz be, hogy az AzureCliCredential tokenhez jusson
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Ezután jelentkezzen be, hogy az AzureCliCredential tokenhez juthasson
 az login
 ```
 
-### Mintakód
+### Példa kód
 
-A kód példány futtatásához,
+A kód példa futtatásához,
 
 ```bash
 # zsh/bash
@@ -80,7 +80,7 @@ Vagy a dotnet CLI használatával:
 dotnet run ./01-dotnet-agent-framework.cs
 ```
 
-Lásd a [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) fájlt a teljes kódért.
+Lásd a teljes kódot a [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) fájlban.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,17 +157,17 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 Főbb tanulságok
+## 🎓 Fő tanulságok
 
-1. **Ügynök architektúra**: A Microsoft Agent Framework tiszta, típusbiztos megközelítést kínál AI ügynökök .NET-ben történő fejlesztéséhez
-2. **Eszköz integráció**: A `[Description]` attribútummal ellátott függvények elérhető eszközökké válnak az ügynöknek
-3. **Konfiguráció kezelés**: A környezeti változók és a biztonságos hitelesítő adatok kezelése a .NET legjobb gyakorlatait követi
+1. **Ügynök architektúra**: A Microsoft Agent Framework tiszta, típusbiztos megközelítést nyújt AI ügynökök fejlesztéséhez .NET-ben
+2. **Eszköz integráció**: A `[Description]` attribútummal ellátott függvények elérhető eszközökké válnak az ügynök számára
+3. **Konfigurációkezelés**: A környezeti változók és biztonságos hitelesítő kezelés a .NET legjobb gyakorlatait követi
 4. **Azure OpenAI Responses API**: Az ügynök az Azure.AI.OpenAI SDK-n keresztül használja az Azure OpenAI Responses API-t
 
 ## 🔗 További források
 
 - [Microsoft Agent Framework dokumentáció](https://learn.microsoft.com/agent-framework)
-- [Azure OpenAI a Microsoft Foundry-ban](https://learn.microsoft.com/azure/ai-services/openai/)
+- [Azure OpenAI a Microsoft Foundryban](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
 - [.NET Egy fájl alkalmazások](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 

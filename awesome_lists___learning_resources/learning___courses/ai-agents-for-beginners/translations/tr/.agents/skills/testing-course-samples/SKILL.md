@@ -1,73 +1,80 @@
 ---
 name: testing-course-samples
 ---
-# Kurs Örneklerini Test Etme
+# Ders Örneklerini Test Etme
 
-Ders not defterlerinin ve kod örneklerinin canlı bir
-Microsoft Foundry / Azure OpenAI kurulumu üzerinde çalıştığını doğrulayın. Repo,
-her bir Python not defterini başlıksız olarak çalıştıran ve bir GEÇTİ/KALDI matrisi yazdıran
-[`scripts/validate-notebooks.ps1`](../../../../../scripts/validate-notebooks.ps1) adında bir çalıştırıcı sağlar.
+Ders defterlerinin ve kod örneklerinin canlı bir
+Microsoft Foundry / Azure OpenAI kurulumu üzerinde çalıştığını doğrulayın. Depo,
+her Python defterini başsız olarak çalıştıran ve PASS/FAIL matrisi yazdıran
+[`scripts/validate-notebooks.ps1`](../../../../../scripts/validate-notebooks.ps1) adlı bir çalıştırıcı sağlar.
 
-## Ne zaman kullanılmalı
-- "Tüm not defterlerini / örnekleri Azure aboneliğime karşı doğrula."
-- "Paketleri güncelledikten veya modelleri değiştirdikten sonra kursu hızlıca test et."
-- "Hangi dersler hala canlı olarak geçiyor / kalıyor?"
+## Ne Zaman Kullanılır
+- "Tüm defterleri / örnekleri Azure aboneliğime karşı doğrulamak için."
+- "Paketleri yükselttikten veya modelleri değiştirdikten sonra kursu hızlıca test etmek için."
+- "Hangi dersler canlı olarak hala geçiyor / başarısız oluyor?"
 
-Bu aracı, AI Smoke Test GitHub Action için **kullanmayın** (bu eylem *kullanıma alınmış*
-barındırılan ajanları doğrular — bkz. [`tests/README.md`](../../../tests/README.md)). Bu beceri
-not defterlerini yerel olarak çalıştırır.
+AI Smoke Test GitHub Action (yayınlanmış
+barındırılan ajanları doğrulayan — bkz. [`tests/README.md`](../../../tests/README.md)) için **kullanmayın**. Bu beceri
+defterleri yerel olarak çalıştırır.
 
-## Önkoşullar (önce kontrol edin)
-1. Kurs bağımlılıkları ile **Python 3.12+**: `python -m pip install -r requirements.txt`
-   ve ayrıca yürütücü: `python -m pip install nbconvert ipykernel`.
-2. Repo kökünde **`.env` dosyası** ( [`.env.example`](../../../../../.env.example) dosyasından kopyalayın) en azından şunları içermeli:
+## Ön Koşullar (önce kontrol edin)
+1. **Python 3.12+** ve kurs bağımlılıkları: `python -m pip install -r requirements.txt`
+   artı yürütücü: `python -m pip install nbconvert ipykernel`.
+2. Depo kökünde **`.env`** dosyası ([`.env.example`](../../../../../.env.example) dosyasından kopyalayın) en az şunları içermeli:
    - `AZURE_AI_PROJECT_ENDPOINT` — Foundry proje uç noktası
      (`https://<account>.services.ai.azure.com/api/projects/<project>`)
-   - `AZURE_AI_MODEL_DEPLOYMENT_NAME` — kullanımdan kalkmamış bir dağıtım (örn. `gpt-4.1-mini`)
-   - Azure OpenAI'yi doğrudan çağıran dersler için `AZURE_OPENAI_ENDPOINT` (`https://<account>.openai.azure.com`) ve `AZURE_OPENAI_DEPLOYMENT`
-     (Ders 06, 02-azure-openai, 14 handoff/human-loop).
+   - `AZURE_AI_MODEL_DEPLOYMENT_NAME` — kullanım dışı olmayan bir dağıtım (ör. `gpt-5-mini`)
+   - `AZURE_OPENAI_ENDPOINT` (`https://<account>.openai.azure.com`) ve `AZURE_OPENAI_DEPLOYMENT`
+     Azure OpenAI'yi doğrudan çağıran dersler için (Ders 06, 02-azure-openai, 14 handoff/human-loop).
 3. **`az login`** tamamlanmış — örnekler `AzureCliCredential` ile kimlik doğrular (Entra ID, anahtarsız).
-4. Model dağıtımının mevcut olduğunu doğrulayın:
+4. Model dağıtımının var olduğunu doğrulayın:
    `az cognitiveservices account deployment list -g <rg> -n <account> -o table`.
 
 ## Doğrulamayı Çalıştırma
 ```powershell
-# Tüm Python defterleri (.NET, .venv, site-packages, çeviriler, yetenek varlıkları atlanır)
+# Tüm Python defterleri (.NET, .venv, site-packages, çeviriler, beceri varlıkları atlanır)
 pwsh scripts/validate-notebooks.ps1
 
-# Hücre başına daha uzun zamanaşımıyla tek bir ders
+# Her hücre için daha uzun zaman aşımı olan tek bir ders
 pwsh scripts/validate-notebooks.ps1 -Filter '08-*' -Timeout 600
 
-# Sadece çalışacakları listele (çalıştırma yok)
+# Sadece çalıştırılacakları listele (çalıştırma yok)
 pwsh scripts/validate-notebooks.ps1 -List
 
-# Açıkça yorumlayıcı (örneğin `python` PATH'ta değilse, Windows Store takma adı gibi)
+# Açık yorumlayıcı (örneğin `python` PATH'de değilse, Windows Store takma adı gibi)
 pwsh scripts/validate-notebooks.ps1 -Python "C:/path/to/python.exe"
 ```
-Betik, yürütülen kopyaları, not-defterine özel günlükleri ve `results.json` dosyasını
-`$env:TEMP\aiab-nbval` yoluna yazar ve başarısızlık sayısı ile çıkar.
+Betik, çalıştırılan kopyaları, her-defter günlüklerini ve `results.json` dosyasını
+`$env:TEMP\aiab-nbval` içine yazar ve başarısızlık sayısıyla çıkar.
 
-## Sonuçların Yorumlanması
-- `GEÇTİ` — not defteri baştan sona herhangi bir hücre hatası olmadan çalıştı.
-- `KALDI` — ilk `*Error` / `*Exception` satırı gösterilir; tam geri izleme için
+Geçici hatalar (paylaşılan abonelik HTTP 429 hız sınırları, zaman zaman bir
+`AzureCliCredential` belirteç sorunu veya zaman aşımı) otomatik olarak tekrar denenir
+(`-Retries`, varsayılan 2, `-RetryDelaySeconds` geri çekilme ile, varsayılan 20). Eğer bir
+model dağıtımı sürekli 429 alıyorsa, aboneliğin GlobalStandard
+TPM kotasını kontrol edin (`az cognitiveservices usage list -l <region>`) — tek bir
+dağıtım kapasitesini artırmak, *abonelik* kotası dolduğunda yardımcı olmaz.
+
+## Sonuçları Yorumlama
+- `PASS` — defter hücre hatası olmadan uçtan uca çalıştı.
+- `FAIL` — ilk `*Error` / `*Exception` satırı gösterilir; tam yığın izleme için
   çıktı dizinindeki eşleşen `log_*.txt` dosyasını açın.
-- Tek bir not defteri başarısızlığı, `-Timeout` tarafından sınırlandırılır (her hücre için), böylece takılan
-  insan-dahil hücre asılı kalmak yerine `StdinNotImplementedError` olarak görünür.
+- Tek bir defter hatası `-Timeout` ile sınırlıdır (her hücre için), bu yüzden takılan
+  insan-döngüsü hücresi takılmak yerine `StdinNotImplementedError` olarak görünür.
 
-## Ek kaynak gerektiren dersler (bunlar olmadan başarısız olmaları beklenir)
-| Ders | Ek gereksinim |
+## Ek Kaynak Gerektiren Dersler (onlar olmadan başarısız olması beklenir)
+| Ders | Ek Gereksinim |
 |--------|-------------------|
-| 05 Agentic RAG | Azure AI Search (`AZURE_SEARCH_SERVICE_ENDPOINT`, anahtar) — bellekte bir yedek yolu var |
+| 05 Agentic RAG | Azure AI Search (`AZURE_SEARCH_SERVICE_ENDPOINT`, anahtar) — bir bellek içi geri dönüş yolu bulunur |
 | 11 MCP / GitHub | GitHub MCP sunucusu + PAT |
-| 13 memory (cognee) | `cognee` model sağlayıcı ile yapılandırıldı |
-| 15 browser-use | Playwright tarayıcıları yüklü (`playwright install`) + `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME` |
-| 17 local agent | Foundry Local çalışma zamanı + indirilmiş bir Qwen modeli (cihaz üzerinde, bulut yok) |
-| `*-dotnet-*` not defterleri | .NET Interactive çekirdeği (varsayılan olarak hariç tutulur; `-IncludeDotnet` kullanın) |
+| 13 memory (cognee) | Model sağlayıcı ile yapılandırılmış `cognee` |
+| 15 browser-use | Playwright tarayıcıları kurulmuş (`playwright install`) + `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME` |
+| 17 local agent | Foundry Yerel çalışma zamanı + indirilen bir Qwen modeli (cihazda, bulut yok) |
+| `*-dotnet-*` defterleri | .NET Interactive çekirdeği (varsayılan olarak hariç tutulur; `-IncludeDotnet` kullanın) |
 
 ## Geri Bildirim
-Dersi baz alarak gruplandırılmış bir GEÇTİ/KALDI tablosu olarak özetleyin. Gerçek regresyonları
-(düzeltilmesi gereken kod/konfigürasyon hataları) ortam eksikliklerinden (Eksik Search/Foundry Local/PAT)
-ayırın ve her gerçek hata için başarısız olan `log_*.txt` dosyasını belirtin.
+Dersi baz alarak gruplandırılmış bir PASS/FAIL tablosu olarak özetleyin. Gerçek
+gerilemeleri (düzeltilecek kod/yapılandırma hataları) ortam eksikliklerinden
+(eksik Search/Foundry Local/PAT) ayırın ve her gerçek hata için başarısız olan `log_*.txt` dosyasına atıfta bulunun.
 
 ---
 

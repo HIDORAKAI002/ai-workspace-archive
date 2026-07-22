@@ -1,26 +1,26 @@
 [![Menjelajahi Kerangka Kerja Agen AI](../../../translated_images/id/lesson-2-thumbnail.c65f44c93b8558df.webp)](https://youtu.be/ODwF-EZo_O8?si=1xoy_B9RNQfrYdF7)
 
-> _(Klik gambar di atas untuk menonton video pelajaran ini)_
+> _(Klik gambar di atas untuk melihat video pelajaran ini)_
 
 # Jelajahi Kerangka Kerja Agen AI
 
-Kerangka kerja agen AI adalah platform perangkat lunak yang dirancang untuk menyederhanakan pembuatan, penyebaran, dan pengelolaan agen AI. Kerangka kerja ini menyediakan komponen yang telah dibangun sebelumnya, abstraksi, dan alat yang memudahkan pengembangan sistem AI yang kompleks bagi pengembang.
+Kerangka kerja agen AI adalah platform perangkat lunak yang dirancang untuk menyederhanakan pembuatan, penyebaran, dan pengelolaan agen AI. Kerangka kerja ini menyediakan pengembang dengan komponen yang sudah dibuat sebelumnya, abstraksi, dan alat yang mempermudah pengembangan sistem AI yang kompleks.
 
-Kerangka kerja ini membantu pengembang untuk fokus pada aspek unik aplikasi mereka dengan memberikan pendekatan standar terhadap tantangan umum dalam pengembangan agen AI. Mereka meningkatkan skalabilitas, aksesibilitas, dan efisiensi dalam membangun sistem AI.
+Kerangka kerja ini membantu pengembang fokus pada aspek unik dari aplikasi mereka dengan menyediakan pendekatan standar untuk tantangan umum dalam pengembangan agen AI. Mereka meningkatkan skalabilitas, aksesibilitas, dan efisiensi dalam membangun sistem AI.
 
-## Pengantar
+## Pendahuluan 
 
 Pelajaran ini akan membahas:
 
-- Apa itu Kerangka Kerja Agen AI dan apa yang dapat dicapai pengembang dengannya?
-- Bagaimana tim dapat menggunakan ini untuk dengan cepat membuat prototipe, iterasi, dan meningkatkan kemampuan agen mereka?
+- Apa itu Kerangka Kerja Agen AI dan apa yang memungkinkan pengembang untuk capai?
+- Bagaimana tim dapat menggunakan ini untuk cepat membuat prototipe, iterasi, dan meningkatkan kemampuan agen mereka?
 - Apa perbedaan antara kerangka kerja dan alat yang dibuat oleh Microsoft (<a href="https://aka.ms/ai-agents-beginners/ai-agent-service" target="_blank">Microsoft Foundry Agent Service</a> dan <a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/responses" target="_blank">Microsoft Agent Framework</a>)?
 - Bisakah saya mengintegrasikan alat ekosistem Azure saya yang sudah ada secara langsung, atau apakah saya memerlukan solusi mandiri?
 - Apa itu Microsoft Foundry Agent Service dan bagaimana ini membantu saya?
 
 ## Tujuan Pembelajaran
 
-Tujuan pelajaran ini adalah membantu Anda memahami:
+Tujuan dari pelajaran ini adalah membantu Anda memahami:
 
 - Peran Kerangka Kerja Agen AI dalam pengembangan AI.
 - Cara memanfaatkan Kerangka Kerja Agen AI untuk membangun agen cerdas.
@@ -29,42 +29,42 @@ Tujuan pelajaran ini adalah membantu Anda memahami:
 
 ## Apa itu Kerangka Kerja Agen AI dan apa yang memungkinkan pengembang lakukan?
 
-Kerangka Kerja AI tradisional dapat membantu Anda mengintegrasikan AI ke dalam aplikasi Anda dan membuat aplikasi tersebut lebih baik dengan cara berikut:
+Kerangka kerja AI tradisional dapat membantu Anda mengintegrasikan AI ke dalam aplikasi Anda dan membuat aplikasi tersebut lebih baik dengan cara berikut:
 
-- **Personalisasi**: AI dapat menganalisis perilaku dan preferensi pengguna untuk menyediakan rekomendasi, konten, dan pengalaman yang dipersonalisasi.
+- **Personalisasi**: AI dapat menganalisis perilaku dan preferensi pengguna untuk memberikan rekomendasi, konten, dan pengalaman yang dipersonalisasi.
 Contoh: Layanan streaming seperti Netflix menggunakan AI untuk menyarankan film dan acara berdasarkan riwayat tontonan, meningkatkan keterlibatan dan kepuasan pengguna.
-- **Otomatisasi dan Efisiensi**: AI dapat mengotomatiskan tugas berulang, menyederhanakan alur kerja, dan meningkatkan efisiensi operasional.
+- **Automasi dan Efisiensi**: AI dapat mengotomatisasi tugas berulang, menyederhanakan alur kerja, dan meningkatkan efisiensi operasional.
 Contoh: Aplikasi layanan pelanggan menggunakan chatbot bertenaga AI untuk menangani pertanyaan umum, mengurangi waktu respons dan membebaskan agen manusia untuk masalah yang lebih kompleks.
-- **Pengalaman Pengguna yang Ditingkatkan**: AI dapat memperbaiki pengalaman pengguna secara keseluruhan dengan menyediakan fitur cerdas seperti pengenalan suara, pemrosesan bahasa alami, dan teks prediktif.
-Contoh: Asisten virtual seperti Siri dan Google Assistant menggunakan AI untuk memahami dan merespons perintah suara, memudahkan pengguna berinteraksi dengan perangkat mereka.
+- **Peningkatan Pengalaman Pengguna**: AI dapat meningkatkan pengalaman pengguna secara keseluruhan dengan menyediakan fitur cerdas seperti pengenalan suara, pemrosesan bahasa alami, dan teks prediktif.
+Contoh: Asisten virtual seperti Siri dan Google Assistant menggunakan AI untuk memahami dan merespons perintah suara, mempermudah pengguna berinteraksi dengan perangkat mereka.
 
-### Semua itu terdengar hebat, lalu mengapa kita membutuhkan Kerangka Kerja Agen AI?
+### Semua itu terdengar hebat, jadi mengapa kita perlu Kerangka Kerja Agen AI?
 
-Kerangka kerja agen AI mewakili sesuatu yang lebih dari sekadar kerangka kerja AI. Mereka dirancang untuk memungkinkan pembuatan agen cerdas yang dapat berinteraksi dengan pengguna, agen lain, dan lingkungan untuk mencapai tujuan tertentu. Agen ini dapat menunjukkan perilaku otonom, membuat keputusan, dan beradaptasi dengan kondisi yang berubah. Mari kita lihat beberapa kemampuan utama yang diaktifkan oleh Kerangka Kerja Agen AI:
+Kerangka kerja Agen AI mewakili sesuatu yang lebih dari sekadar kerangka kerja AI. Mereka dirancang untuk memungkinkan pembuatan agen cerdas yang dapat berinteraksi dengan pengguna, agen lain, dan lingkungan untuk mencapai tujuan tertentu. Agen ini dapat menunjukkan perilaku otonom, mengambil keputusan, dan beradaptasi dengan kondisi yang berubah. Mari kita lihat beberapa kemampuan utama yang diaktifkan oleh Kerangka Kerja Agen AI:
 
-- **Kolaborasi dan Koordinasi Agen**: Memungkinkan pembuatan beberapa agen AI yang dapat bekerja sama, berkomunikasi, dan berkoordinasi untuk menyelesaikan tugas kompleks.
-- **Otomatisasi dan Manajemen Tugas**: Menyediakan mekanisme untuk mengotomatiskan alur kerja multi-langkah, delegasi tugas, dan manajemen tugas dinamis antar agen.
-- **Pemahaman Konteks dan Adaptasi**: Membekali agen dengan kemampuan untuk memahami konteks, beradaptasi dengan lingkungan yang berubah, dan membuat keputusan berdasarkan informasi waktu nyata.
+- **Kolaborasi dan Koordinasi Agen**: Memungkinkan pembuatan banyak agen AI yang dapat bekerja sama, berkomunikasi, dan berkoordinasi untuk menyelesaikan tugas kompleks.
+- **Automasi dan Manajemen Tugas**: Menyediakan mekanisme untuk mengotomatisasi alur kerja multi-langkah, delegasi tugas, dan manajemen tugas dinamis di antara agen.
+- **Pemahaman Kontekstual dan Adaptasi**: Membekali agen dengan kemampuan untuk memahami konteks, beradaptasi dengan lingkungan yang berubah, dan mengambil keputusan berdasarkan informasi waktu nyata.
 
-Jadi, secara ringkas, agen memungkinkan Anda melakukan lebih banyak, membawa otomatisasi ke tingkat berikutnya, menciptakan sistem yang lebih cerdas yang dapat beradaptasi dan belajar dari lingkungan mereka.
+Jadi, singkatnya, agen memungkinkan Anda melakukan lebih banyak, membawa otomasi ke tingkat berikutnya, untuk menciptakan sistem yang lebih cerdas yang dapat beradaptasi dan belajar dari lingkungan mereka.
 
-## Bagaimana cara dengan cepat membuat prototipe, iterasi, dan meningkatkan kemampuan agen?
+## Bagaimana cara cepat membuat prototipe, iterasi, dan meningkatkan kemampuan agen?
 
-Ini adalah lanskap yang bergerak cepat, tetapi ada beberapa hal yang umum pada sebagian besar Kerangka Kerja Agen AI yang dapat membantu Anda dengan cepat membuat prototipe dan iterasi, yaitu komponen modul, alat kolaboratif, dan pembelajaran waktu nyata. Mari kita bahas ini:
+Ini adalah lanskap yang bergerak cepat, tetapi ada beberapa hal yang umum di sebagian besar Kerangka Kerja Agen AI yang dapat membantu Anda membuat prototipe dan iterasi dengan cepat, yaitu komponen modul, alat kolaboratif, dan pembelajaran waktu nyata. Mari kita selami ini:
 
-- **Gunakan Komponen Modular**: SDK AI menawarkan komponen yang telah dibangun sebelumnya seperti konektor AI dan Memori, pemanggilan fungsi menggunakan bahasa alami atau plugin kode, templat prompt, dan lainnya.
-- **Manfaatkan Alat Kolaboratif**: Rancang agen dengan peran dan tugas tertentu, memungkinkan mereka untuk menguji dan menyempurnakan alur kerja kolaboratif.
-- **Belajar secara Waktu Nyata**: Terapkan loop umpan balik di mana agen belajar dari interaksi dan menyesuaikan perilaku mereka secara dinamis.
+- **Gunakan Komponen Modular**: SDK AI menawarkan komponen yang sudah dibuat sebelumnya seperti konektor AI dan Memori, pemanggilan fungsi menggunakan bahasa alami atau plugin kode, template prompt, dan lainnya.
+- **Manfaatkan Alat Kolaboratif**: Rancang agen dengan peran dan tugas spesifik, memungkinkan mereka untuk menguji dan menyempurnakan alur kerja kolaboratif.
+- **Belajar secara Real-Time**: Terapkan loop umpan balik di mana agen belajar dari interaksi dan menyesuaikan perilaku mereka secara dinamis.
 
 ### Gunakan Komponen Modular
 
-SDK seperti Microsoft Agent Framework menawarkan komponen yang telah dibuat seperti konektor AI, definisi alat, dan manajemen agen.
+SDK seperti Microsoft Agent Framework menawarkan komponen yang sudah dibuat seperti konektor AI, definisi alat, dan manajemen agen.
 
-**Bagaimana tim dapat menggunakan ini**: Tim dapat dengan cepat merakit komponen ini untuk membuat prototipe fungsional tanpa memulai dari awal, memungkinkan eksperimen dan iterasi yang cepat.
+**Bagaimana tim dapat menggunakan ini**: Tim dapat dengan cepat merakit komponen ini untuk membuat prototipe fungsional tanpa memulai dari nol, memungkinkan eksperimen dan iterasi yang cepat.
 
-**Cara kerjanya dalam praktik**: Anda dapat menggunakan parser bawaan untuk mengekstrak informasi dari masukan pengguna, modul memori untuk menyimpan dan mengambil data, dan generator prompt untuk berinteraksi dengan pengguna, semua tanpa harus membangun komponen ini dari awal.
+**Bagaimana cara kerjanya dalam praktik**: Anda dapat menggunakan parser yang sudah dibuat untuk mengekstrak informasi dari masukan pengguna, modul memori untuk menyimpan dan mengambil data, dan generator prompt untuk berinteraksi dengan pengguna, semuanya tanpa harus membangun komponen ini dari awal.
 
-**Contoh kode**. Mari kita lihat contoh bagaimana Anda dapat menggunakan Microsoft Agent Framework dengan `FoundryChatClient` agar model merespons input pengguna dengan pemanggilan alat:
+**Contoh kode**. Mari kita lihat contoh bagaimana Anda dapat menggunakan Microsoft Agent Framework dengan `FoundryChatClient` untuk membuat model merespons masukan pengguna dengan pemanggilan alat:
 
 ``` python
 # Contoh Microsoft Agent Framework Python
@@ -98,22 +98,22 @@ async def main():
 
     response = await agent.run("I'd like to go to New York on January 1, 2025")
     print(response)
-    # Contoh keluaran: Penerbangan Anda ke New York pada 1 Januari 2025 telah berhasil dipesan. Selamat jalan! ✈️🗽
+    # Contoh output: Penerbangan Anda ke New York pada 1 Januari 2025 telah berhasil dipesan. Selamat jalan! ✈️🗽
 
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-Apa yang bisa Anda lihat dari contoh ini adalah bagaimana Anda dapat memanfaatkan parser pra-bangun untuk mengekstrak informasi kunci dari input pengguna, seperti asal, tujuan, dan tanggal dari permintaan pemesanan penerbangan. Pendekatan modular ini memungkinkan Anda untuk fokus pada logika tingkat tinggi.
+Apa yang Anda lihat dari contoh ini adalah bagaimana Anda dapat memanfaatkan parser yang sudah dibuat untuk mengekstrak informasi kunci dari masukan pengguna, seperti asal, tujuan, dan tanggal permintaan pemesanan penerbangan. Pendekatan modular ini memungkinkan Anda fokus pada logika tingkat tinggi.
 
 ### Manfaatkan Alat Kolaboratif
 
 Kerangka kerja seperti Microsoft Agent Framework memfasilitasi pembuatan banyak agen yang dapat bekerja sama.
 
-**Bagaimana tim dapat menggunakan ini**: Tim dapat merancang agen dengan peran dan tugas tertentu, memungkinkan mereka untuk menguji dan menyempurnakan alur kerja kolaboratif dan meningkatkan efisiensi sistem secara keseluruhan.
+**Bagaimana tim dapat menggunakan ini**: Tim dapat merancang agen dengan peran dan tugas spesifik, memungkinkan mereka menguji dan menyempurnakan alur kerja kolaboratif serta meningkatkan efisiensi sistem secara keseluruhan.
 
-**Cara kerjanya dalam praktik**: Anda dapat membuat tim agen di mana setiap agen memiliki fungsi khusus, seperti pengambilan data, analisis, atau pengambilan keputusan. Agen-agen ini dapat berkomunikasi dan berbagi informasi untuk mencapai tujuan bersama, seperti menjawab pertanyaan pengguna atau menyelesaikan tugas.
+**Bagaimana cara kerjanya dalam praktik**: Anda dapat membuat tim agen di mana setiap agen memiliki fungsi khusus, seperti pengambilan data, analisis, atau pengambilan keputusan. Agen-agen ini dapat berkomunikasi dan berbagi informasi untuk mencapai tujuan bersama, seperti menjawab pertanyaan pengguna atau menyelesaikan tugas.
 
 **Contoh kode (Microsoft Agent Framework)**:
 
@@ -150,32 +150,32 @@ analysis_result = await agent_analyze.run(f"Analyze this data: {retrieval_result
 print(analysis_result)
 ```
 
-Apa yang Anda lihat dalam kode sebelumnya adalah bagaimana Anda dapat membuat tugas yang melibatkan beberapa agen yang bekerja bersama untuk menganalisis data. Setiap agen melakukan fungsi khusus, dan tugas dilaksanakan dengan mengoordinasikan agen agar mencapai hasil yang diinginkan. Dengan menciptakan agen khusus dengan peran tertentu, Anda dapat meningkatkan efisiensi dan kinerja tugas.
+Apa yang Anda lihat pada kode sebelumnya adalah bagaimana Anda dapat membuat tugas yang melibatkan beberapa agen bekerja sama untuk menganalisis data. Setiap agen melakukan fungsi khusus, dan tugas dieksekusi dengan mengoordinasikan agen untuk mencapai hasil yang diinginkan. Dengan membuat agen khusus dengan peran khusus, Anda dapat meningkatkan efisiensi dan kinerja tugas.
 
-### Belajar secara Waktu Nyata
+### Belajar secara Real-Time
 
-Kerangka kerja canggih menyediakan kemampuan untuk pemahaman konteks dan adaptasi waktu nyata.
+Kerangka kerja canggih menyediakan kemampuan untuk pemahaman dan adaptasi konteks secara real-time.
 
-**Bagaimana tim dapat menggunakan ini**: Tim dapat menerapkan loop umpan balik di mana agen belajar dari interaksi dan menyesuaikan perilaku mereka secara dinamis, menghasilkan peningkatan dan penyempurnaan kemampuan yang berkesinambungan.
+**Bagaimana tim dapat menggunakan ini**: Tim dapat menerapkan loop umpan balik di mana agen belajar dari interaksi dan menyesuaikan perilaku mereka secara dinamis, menghasilkan peningkatan dan penyempurnaan kemampuan secara terus-menerus.
 
-**Cara kerjanya dalam praktik**: Agen dapat menganalisis umpan balik pengguna, data lingkungan, dan hasil tugas untuk memperbarui basis pengetahuan mereka, menyesuaikan algoritma pengambilan keputusan, dan meningkatkan kinerja seiring waktu. Proses pembelajaran iteratif ini memungkinkan agen beradaptasi dengan kondisi yang berubah dan preferensi pengguna, meningkatkan efektivitas sistem secara keseluruhan.
+**Bagaimana cara kerjanya dalam praktik**: Agen dapat menganalisis umpan balik pengguna, data lingkungan, dan hasil tugas untuk memperbarui basis pengetahuan mereka, menyesuaikan algoritme pengambilan keputusan, dan meningkatkan kinerja seiring waktu. Proses pembelajaran iteratif ini memungkinkan agen beradaptasi dengan kondisi yang berubah dan preferensi pengguna, meningkatkan efektivitas sistem secara keseluruhan.
 
 ## Apa perbedaan antara Microsoft Agent Framework dan Microsoft Foundry Agent Service?
 
-Ada banyak cara untuk membandingkan pendekatan ini, tetapi mari kita lihat beberapa perbedaan utama dalam hal desain, kemampuan, dan kasus penggunaan target:
+Ada banyak cara untuk membandingkan pendekatan ini, tetapi mari kita lihat beberapa perbedaan utama dari segi desain, kemampuan, dan kasus penggunaan yang ditargetkan:
 
 ## Microsoft Agent Framework (MAF)
 
-Microsoft Agent Framework menyediakan SDK yang disederhanakan untuk membangun agen AI menggunakan `FoundryChatClient`. Ini memungkinkan pengembang untuk membuat agen yang memanfaatkan model Azure OpenAI dengan pemanggilan alat bawaan, manajemen percakapan, dan keamanan kelas perusahaan melalui identitas Azure.
+Microsoft Agent Framework menyediakan SDK yang ringkas untuk membangun agen AI menggunakan `FoundryChatClient`. Ini memungkinkan pengembang membuat agen yang memanfaatkan model Azure OpenAI dengan pemanggilan alat bawaan, manajemen percakapan, dan keamanan tingkat perusahaan melalui identitas Azure.
 
 **Kasus Penggunaan**: Membangun agen AI siap produksi dengan penggunaan alat, alur kerja multi-langkah, dan skenario integrasi perusahaan.
 
-Berikut beberapa konsep inti penting dari Microsoft Agent Framework:
+Berikut adalah beberapa konsep inti penting dari Microsoft Agent Framework:
 
-- **Agen**. Agen dibuat melalui `FoundryChatClient` dan dikonfigurasi dengan nama, instruksi, dan alat. Agen dapat:
-  - **Memproses pesan pengguna** dan menghasilkan respons menggunakan model Azure OpenAI.
+- **Agen**. Sebuah agen dibuat melalui `FoundryChatClient` dan dikonfigurasi dengan nama, instruksi, dan alat. Agen dapat:
+  - **Memproses pesan pengguna** dan menghasilkan tanggapan menggunakan model Azure OpenAI.
   - **Memanggil alat** secara otomatis berdasarkan konteks percakapan.
-  - **Mempertahankan status percakapan** sepanjang berbagai interaksi.
+  - **Mempertahankan status percakapan** di beberapa interaksi.
 
   Berikut adalah cuplikan kode yang menunjukkan cara membuat agen:
 
@@ -198,7 +198,7 @@ Berikut beberapa konsep inti penting dari Microsoft Agent Framework:
     print(response)
     ```
 
-- **Alat**. Kerangka kerja mendukung pendefinisian alat sebagai fungsi Python yang dapat dipanggil agen secara otomatis. Alat didaftarkan saat membuat agen:
+- **Alat**. Kerangka kerja mendukung definisi alat sebagai fungsi Python yang dapat dipanggil agen secara otomatis. Alat didaftarkan saat membuat agen:
 
     ```python
     def get_weather(location: str) -> str:
@@ -212,7 +212,7 @@ Berikut beberapa konsep inti penting dari Microsoft Agent Framework:
     )
     ```
 
-- **Koordinasi Multi-Agen**. Anda dapat membuat beberapa agen dengan spesialisasi berbeda dan mengoordinasikan kerja mereka:
+- **Koordinasi Multi-Agen**. Anda dapat membuat banyak agen dengan spesialisasi berbeda dan mengoordinasikan pekerjaan mereka:
 
     ```python
     planner = provider.as_agent(
@@ -230,26 +230,26 @@ Berikut beberapa konsep inti penting dari Microsoft Agent Framework:
     result = await executor.run(f"Execute this plan: {plan}")
     ```
 
-- **Integrasi Identitas Azure**. Kerangka kerja menggunakan `AzureCliCredential` (atau `DefaultAzureCredential`) untuk otentikasi aman tanpa kunci, menghilangkan kebutuhan mengelola kunci API secara langsung.
+- **Integrasi Identitas Azure**. Kerangka kerja menggunakan `AzureCliCredential` (atau `DefaultAzureCredential`) untuk autentikasi tanpa kunci yang aman, menghilangkan kebutuhan mengelola kunci API secara langsung.
 
 ## Microsoft Foundry Agent Service
 
-Microsoft Foundry Agent Service adalah tambahan yang lebih baru, diperkenalkan di Microsoft Ignite 2024. Ini memungkinkan pengembangan dan penyebaran agen AI dengan model yang lebih fleksibel, seperti langsung memanggil LLM open-source seperti Llama 3, Mistral, dan Cohere.
+Microsoft Foundry Agent Service adalah tambahan yang lebih baru, diperkenalkan pada Microsoft Ignite 2024. Ini memungkinkan pengembangan dan penyebaran agen AI dengan model yang lebih fleksibel, seperti memanggil langsung LLM open-source seperti Llama 3, Mistral, dan Cohere.
 
-Microsoft Foundry Agent Service menyediakan mekanisme keamanan perusahaan yang lebih kuat dan metode penyimpanan data, sehingga cocok untuk aplikasi perusahaan. 
+Microsoft Foundry Agent Service menyediakan mekanisme keamanan perusahaan yang lebih kuat dan metode penyimpanan data, menjadikannya cocok untuk aplikasi perusahaan.
 
-Ia bekerja langsung dengan Microsoft Agent Framework untuk membangun dan menyebarkan agen.
+Ini bekerja langsung dengan Microsoft Agent Framework untuk membangun dan menyebarkan agen.
 
-Layanan ini saat ini berada dalam Pratinjau Publik dan mendukung Python serta C# untuk membangun agen.
+Layanan ini saat ini dalam Pratinjau Publik dan mendukung Python dan C# untuk membangun agen.
 
-Menggunakan Microsoft Foundry Agent Service Python SDK, kita bisa membuat agen dengan alat yang didefinisikan pengguna:
+Dengan menggunakan Microsoft Foundry Agent Service Python SDK, kita dapat membuat agen dengan alat yang ditentukan pengguna:
 
 ```python
 import asyncio
 from azure.identity import DefaultAzureCredential
 from azure.ai.projects import AIProjectClient
 
-# Mendefinisikan fungsi alat
+# Definisikan fungsi alat
 def get_specials() -> str:
     """Provides a list of specials from the menu."""
     return """
@@ -271,7 +271,7 @@ async def main() -> None:
     )
 
     agent = project_client.agents.create_agent(
-        model="gpt-4.1-mini",
+        model="gpt-5-mini",
         name="Host",
         instructions="Answer questions about the menu.",
         tools=[get_specials, get_item_price],
@@ -304,15 +304,15 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-### Konsep Inti
+### Konsep inti
 
 Microsoft Foundry Agent Service memiliki konsep inti berikut:
 
-- **Agen**. Microsoft Foundry Agent Service terintegrasi dengan Microsoft Foundry. Dalam Microsoft Foundry, Agen AI bertindak sebagai microservice "pintar" yang dapat digunakan untuk menjawab pertanyaan (RAG), melakukan aksi, atau sepenuhnya mengotomatisasi alur kerja. Ini dicapai dengan menggabungkan kekuatan model AI generatif dengan alat yang memungkinkan akses dan interaksi dengan sumber data dunia nyata. Berikut contoh agen:
+- **Agen**. Microsoft Foundry Agent Service terintegrasi dengan Microsoft Foundry. Dalam Microsoft Foundry, Agen AI berperan sebagai microservice "pintar" yang dapat digunakan untuk menjawab pertanyaan (RAG), melakukan tindakan, atau sepenuhnya mengotomatisasi alur kerja. Ini dicapai dengan menggabungkan kekuatan model AI generatif dengan alat yang memungkinkan akses dan interaksi dengan sumber data dunia nyata. Berikut adalah contoh agen:
 
     ```python
     agent = project_client.agents.create_agent(
-        model="gpt-4.1-mini",
+        model="gpt-5-mini",
         name="my-agent",
         instructions="You are helpful agent",
         tools=code_interpreter.definitions,
@@ -320,9 +320,9 @@ Microsoft Foundry Agent Service memiliki konsep inti berikut:
     )
     ```
 
-    Dalam contoh ini, agen dibuat dengan model `gpt-4.1-mini`, nama `my-agent`, dan instruksi `You are helpful agent`. Agen dilengkapi dengan alat dan sumber daya untuk melakukan tugas interpretasi kode.
+    Dalam contoh ini, agen dibuat dengan model `gpt-5-mini`, nama `my-agent`, dan instruksi `You are helpful agent`. Agen dilengkapi dengan alat dan sumber daya untuk melakukan tugas interpretasi kode.
 
-- **Thread dan pesan**. Thread adalah konsep penting lainnya. Ini mewakili percakapan atau interaksi antara agen dan pengguna. Thread dapat digunakan untuk melacak kemajuan percakapan, menyimpan informasi konteks, dan mengelola status interaksi. Berikut contoh thread:
+- **Thread dan pesan**. Thread adalah konsep penting lainnya. Ini merepresentasikan percakapan atau interaksi antara agen dan pengguna. Thread dapat digunakan untuk melacak kemajuan percakapan, menyimpan informasi konteks, dan mengelola status interaksi. Berikut adalah contoh thread:
 
     ```python
     thread = project_client.agents.create_thread()
@@ -340,18 +340,18 @@ Microsoft Foundry Agent Service memiliki konsep inti berikut:
     print(f"Messages: {messages}")
     ```
 
-    Dalam kode sebelumnya, thread dibuat. Setelah itu, pesan dikirim ke thread. Dengan memanggil `create_and_process_run`, agen diminta untuk melakukan pekerjaan pada thread tersebut. Akhirnya, pesan diambil dan dicatat untuk melihat respons agen. Pesan menunjukkan kemajuan percakapan antara pengguna dan agen. Penting juga memahami bahwa pesan dapat berjenis berbeda seperti teks, gambar, atau file, yang merupakan hasil kerja agen seperti misalnya tanggapan berupa gambar atau teks. Sebagai pengembang, Anda dapat menggunakan informasi ini untuk lebih memproses respons atau menampilkannya ke pengguna.
+    Dalam kode sebelumnya, sebuah thread dibuat. Setelah itu, sebuah pesan dikirim ke thread tersebut. Dengan memanggil `create_and_process_run`, agen diminta untuk melakukan pekerjaan pada thread. Akhirnya, pesan diambil dan dicatat untuk melihat tanggapan agen. Pesan-pesan menunjukkan kemajuan percakapan antara pengguna dan agen. Penting juga untuk memahami bahwa pesan dapat berupa berbagai jenis seperti teks, gambar, atau file, yang merupakan hasil kerja agen misalnya gambar atau tanggapan teks. Sebagai pengembang, Anda kemudian dapat menggunakan informasi ini untuk memproses lebih lanjut tanggapan atau menyajikannya kepada pengguna.
 
-- **Integrasi dengan Microsoft Agent Framework**. Microsoft Foundry Agent Service bekerja mulus dengan Microsoft Agent Framework, yang berarti Anda dapat membangun agen menggunakan `FoundryChatClient` dan menyebarkannya melalui Agent Service untuk skenario produksi.
+- **Terintegrasi dengan Microsoft Agent Framework**. Microsoft Foundry Agent Service bekerja mulus dengan Microsoft Agent Framework, yang berarti Anda dapat membangun agen menggunakan `FoundryChatClient` dan menyebarkannya melalui Agent Service untuk skenario produksi.
 
 **Kasus Penggunaan**: Microsoft Foundry Agent Service dirancang untuk aplikasi perusahaan yang memerlukan penyebaran agen AI yang aman, skalabel, dan fleksibel.
 
 ## Apa perbedaan antara pendekatan ini?
  
-Sepertinya ada tumpang tindih, tetapi ada beberapa perbedaan utama dalam hal desain, kemampuan, dan kasus penggunaan target:
+Memang terdengar ada tumpang tindih, tetapi ada beberapa perbedaan utama dari segi desain, kemampuan, dan kasus penggunaan yang ditargetkan:
  
-- **Microsoft Agent Framework (MAF)**: SDK siap produksi untuk membangun agen AI. Menyediakan API yang sederhana untuk membuat agen dengan pemanggilan alat, manajemen percakapan, dan integrasi identitas Azure.
-- **Microsoft Foundry Agent Service**: Platform dan layanan penyebaran dalam Microsoft Foundry untuk agen. Menawarkan konektivitas bawaan ke layanan seperti Azure OpenAI, Azure AI Search, Bing Search dan eksekusi kode.
+- **Microsoft Agent Framework (MAF)**: Adalah SDK siap produksi untuk membangun agen AI. Menyediakan API yang ringkas untuk membuat agen dengan pemanggilan alat, manajemen percakapan, dan integrasi identitas Azure.
+- **Microsoft Foundry Agent Service**: Adalah platform dan layanan penyebaran di Microsoft Foundry untuk agen. Menawarkan konektivitas bawaan ke layanan seperti Azure OpenAI, Azure AI Search, Bing Search, dan eksekusi kode.
  
 Masih bingung memilih yang mana?
 
@@ -359,30 +359,30 @@ Masih bingung memilih yang mana?
  
 Mari kita lihat apakah kami bisa membantu Anda dengan membahas beberapa kasus penggunaan umum:
  
-> T: Saya membangun aplikasi agen AI produksi dan ingin mulai dengan cepat
+> T: Saya membangun aplikasi agen AI produksi dan ingin memulai dengan cepat
 >
 
->J: Microsoft Agent Framework adalah pilihan yang bagus. Ini menyediakan API Pythonik sederhana melalui `FoundryChatClient` yang memungkinkan Anda mendefinisikan agen dengan alat dan instruksi hanya dengan beberapa baris kode.
+>J: Microsoft Agent Framework adalah pilihan tepat. Menyediakan API Python yang sederhana melalui `FoundryChatClient` yang memungkinkan Anda mendefinisikan agen dengan alat dan instruksi hanya dengan beberapa baris kode.
 
->T: Saya membutuhkan penyebaran kelas perusahaan dengan integrasi Azure seperti Search dan eksekusi kode
+>T: Saya memerlukan penyebaran tingkat perusahaan dengan integrasi Azure seperti Search dan eksekusi kode
 >
-> J: Microsoft Foundry Agent Service adalah yang paling cocok. Ini adalah layanan platform yang menyediakan kemampuan bawaan untuk banyak model, Azure AI Search, Bing Search dan Azure Functions. Memudahkan membangun agen Anda di Portal Foundry dan menyebarkannya secara skala besar.
+> J: Microsoft Foundry Agent Service adalah yang paling cocok. Ini adalah layanan platform yang menyediakan kemampuan bawaan untuk beberapa model, Azure AI Search, Bing Search, dan Azure Functions. Memudahkan membangun agen Anda di Foundry Portal dan menyebarkannya secara skala.
  
 > T: Saya masih bingung, beri saya satu opsi saja
 >
-> J: Mulailah dengan Microsoft Agent Framework untuk membangun agen Anda, lalu gunakan Microsoft Foundry Agent Service ketika Anda perlu menyebarkan dan menskalakan mereka dalam produksi. Pendekatan ini memungkinkan Anda iterasi cepat pada logika agen sementara memiliki jalur jelas menuju penyebaran perusahaan.
+> J: Mulailah dengan Microsoft Agent Framework untuk membangun agen Anda, lalu gunakan Microsoft Foundry Agent Service saat Anda perlu menyebarkan dan menskalakan mereka di produksi. Pendekatan ini memungkinkan Anda iterasi cepat pada logika agen sambil memiliki jalur jelas ke penyebaran perusahaan.
  
-Mari kita rangkum perbedaan utama dalam sebuah tabel:
+Mari kita rangkum perbedaan kunci dalam sebuah tabel:
 
 | Kerangka Kerja | Fokus | Konsep Inti | Kasus Penggunaan |
 | --- | --- | --- | --- |
-| Microsoft Agent Framework | SDK agen yang disederhanakan dengan pemanggilan alat | Agen, Alat, Identitas Azure | Membangun agen AI, penggunaan alat, alur kerja multi-langkah |
-| Microsoft Foundry Agent Service | Model fleksibel, keamanan perusahaan, Pembuatan kode, Pemanggilan alat | Modularitas, Kolaborasi, Orkestrasi Proses | Penyebaran agen AI yang aman, skalabel, dan fleksibel |
+| Microsoft Agent Framework | SDK agen yang ringkas dengan pemanggilan alat | Agen, Alat, Identitas Azure | Membangun agen AI, penggunaan alat, alur kerja multi-langkah |
+| Microsoft Foundry Agent Service | Model fleksibel, keamanan perusahaan, Generasi kode, Pemanggilan alat | Modularitas, Kolaborasi, Orkestrasi Proses | Penyebaran agen AI yang aman, skalabel, dan fleksibel |
 
-## Bisakah saya mengintegrasikan alat ekosistem Azure yang sudah ada secara langsung, atau perlu solusi mandiri?
+## Bisakah saya mengintegrasikan alat ekosistem Azure saya yang sudah ada langsung, atau saya perlu solusi mandiri?
 
 
-Jawabannya adalah iya, Anda dapat mengintegrasikan alat ekosistem Azure yang sudah ada langsung dengan Microsoft Foundry Agent Service terutama, karena layanan ini telah dibuat untuk bekerja mulus dengan layanan Azure lainnya. Anda bisa, misalnya, mengintegrasikan Bing, Azure AI Search, dan Azure Functions. Ada juga integrasi mendalam dengan Microsoft Foundry.
+Jawabannya adalah ya, Anda dapat mengintegrasikan alat ekosistem Azure yang sudah ada langsung dengan Microsoft Foundry Agent Service terutama, karena layanan ini dibangun untuk bekerja mulus dengan layanan Azure lainnya. Anda bisa misalnya mengintegrasikan Bing, Azure AI Search, dan Azure Functions. Ada juga integrasi mendalam dengan Microsoft Foundry.
 
 Microsoft Agent Framework juga terintegrasi dengan layanan Azure melalui `FoundryChatClient` dan identitas Azure, memungkinkan Anda memanggil layanan Azure langsung dari alat agen Anda.
 
@@ -394,7 +394,7 @@ Microsoft Agent Framework juga terintegrasi dengan layanan Azure melalui `Foundr
 
 ## Punya Pertanyaan Lebih Lanjut tentang AI Agent Frameworks?
 
-Bergabunglah di [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) untuk bertemu dengan pelajar lain, mengikuti jam kantor, dan mendapatkan jawaban atas pertanyaan AI Agents Anda.
+Bergabunglah dengan [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) untuk bertemu dengan pembelajar lain, mengikuti jam kantor, dan mendapatkan jawaban untuk pertanyaan AI Agents Anda.
 
 ## Referensi
 
@@ -404,11 +404,11 @@ Bergabunglah di [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5
 
 ## Pelajaran Sebelumnya
 
-[Pengantar AI Agents dan Kasus Penggunaan Agen](../01-intro-to-ai-agents/README.md)
+[Pengenalan AI Agents dan Kasus Penggunaan Agen](../01-intro-to-ai-agents/README.md)
 
 ## Pelajaran Selanjutnya
 
-[Memahami Pola Desain Agentic](../03-agentic-design-patterns/README.md)
+[Memahami Pola Desain Agentik](../03-agentic-design-patterns/README.md)
 
 ---
 

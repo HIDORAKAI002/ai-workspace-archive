@@ -1,33 +1,33 @@
-# 🔍 Utforske Microsoft Agent Framework - Grunnleggende agent (.NET)
+# 🔍 Utforske Microsoft Agent Framework - Grunnleggende Agent (.NET)
 
 ## 📋 Læringsmål
 
-Dette eksempelet utforsker grunnleggende konsepter i Microsoft Agent Framework gjennom en enkel agentimplementering i .NET. Du vil lære kjernemønstre for agenter og forstå hvordan intelligente agenter fungerer under panseret ved hjelp av C# og .NET-økosystemet.
+Dette eksempelet utforsker de grunnleggende konseptene i Microsoft Agent Framework gjennom en enkel agentimplementering i .NET. Du vil lære kjerneagentmønstre og forstå hvordan intelligente agenter fungerer under panseret ved hjelp av C# og .NET-økosystemet.
 
 ### Hva du vil oppdage
 
-- 🏗️ **Agentarkitektur**: Forstå grunnstrukturen til AI-agenter i .NET
-- 🛠️ **Verktøyintegrasjon**: Hvordan agenter bruker eksterne funksjoner for å utvide kapabiliteter  
-- 💬 **Samtaleflyt**: Håndtere samtaler over flere runder og kontekst med trådbehandling
-- 🔧 **Konfigurasjonsmønstre**: Beste praksis for agentoppsett og administrasjon i .NET
+- 🏗️ **Agentarkitektur**: Forstå den grunnleggende strukturen til AI-agenter i .NET
+- 🛠️ **Verktøyintegrasjon**: Hvordan agenter bruker eksterne funksjoner for å utvide kapasiteter  
+- 💬 **Samtaleflyt**: Håndtering av flerturssamtaler og kontekst med trådhåndtering
+- 🔧 **Konfigurasjonsmønstre**: Beste praksis for oppsett og administrasjon av agenter i .NET
 
-## 🎯 Viktige konsepter dekket
+## 🎯 Nøkkelkonsepter dekket
 
-### Prinsipper for Agent Framework
+### Agentiske rammeverksprinsipper
 
-- **Autonomi**: Hvordan agenter tar uavhengige beslutninger ved hjelp av .NET AI-abstraksjoner
-- **Reaktivitet**: Reagere på miljøendringer og brukerinput
-- **Proaktivitet**: Iverksette initiativ basert på mål og kontekst
-- **Sosial evne**: Samhandle gjennom naturlig språk med samtaletråder
+- **Autonomi**: Hvordan agenter tar uavhengige beslutninger ved bruk av .NET AI-abstraksjoner
+- **Reaktivitet**: Svarer på miljøendringer og brukerinnspill
+- **Proaktivitet**: Tar initiativ basert på mål og kontekst
+- **Sosial evne**: Samhandler gjennom naturlig språk med samtaletråder
 
 ### Tekniske komponenter
 
-- **AIAgent**: Kjerneagentorkestrering og samtalehåndtering (.NET)
-- **Verktøyfunksjoner**: Utvide agentens kapabiliteter med C#-metoder og attributter
-- **Azure OpenAI-integrasjon**: Utnytte språkmodeller gjennom Azure OpenAI Responses API
+- **AIAgent**: Kjerneagentorkestrering og samtaleadministrasjon (.NET)
+- **Verktøyfunksjoner**: Utvide agentens kapasiteter med C#-metoder og -attributter
+- **Azure OpenAI-integrasjon**: Utnytter språkmodeller gjennom Azure OpenAI Responses API
 - **Sikker konfigurasjon**: Endepunktadministrasjon basert på miljø
 
-## 🔧 Teknologistabel
+## 🔧 Teknologisk stack
 
 ### Kjerne teknologier
 
@@ -36,30 +36,30 @@ Dette eksempelet utforsker grunnleggende konsepter i Microsoft Agent Framework g
 - Azure.AI.OpenAI klientmønstre
 - Miljøbasert konfigurasjon med DotNetEnv
 
-### Agentkapabiliteter
+### Agentens kapasiteter
 
-- Naturlig språkforståelse og generering
-- Funksjonskall og verktøybruk med C#-attributter
+- Forståelse og generering av naturlig språk
+- Funksjonsanrop og verktøybruk med C#-attributter
 - Kontekstbevisste svar med samtalesesjoner
 - Utvidbar arkitektur med avhengighetsinjeksjonsmønstre
 
-## 📚 Frameworksammenligning
+## 📚 Rammeverk sammenligning
 
-Dette eksempelet demonstrerer Microsoft Agent Framework-tilnærmingen sammenlignet med andre agentrammeverk:
+Dette eksempelet demonstrerer Microsoft Agent Framework-tilnærmingen sammenlignet med andre agentiske rammeverk:
 
-| Funksjon | Microsoft Agent Framework | Andre Frameworks |
+| Feature | Microsoft Agent Framework | Andre Rammeverk |
 |---------|-------------------------|------------------|
-| **Integrasjon** | Native Microsoft-økosystem | Varierende kompatibilitet |
+| **Integrasjon** | Innfødt Microsoft-økosystem | Varierende kompatibilitet |
 | **Enkelhet** | Ren, intuitiv API | Ofte kompleks oppsett |
 | **Utvidbarhet** | Enkel verktøyintegrasjon | Rammeverksavhengig |
-| **Klar for enterprise** | Bygget for produksjon | Varierer etter rammeverk |
+| **Klar for bedriftsbruk** | Bygget for produksjon | Varierer etter rammeverk |
 
 ## 🚀 Komme i gang
 
 ### Forutsetninger
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) eller nyere
-- Et [Azure-abonnement](https://azure.microsoft.com/free/) med en Azure OpenAI-ressurs og en modellutplassering
+- Et [Azure-abonnement](https://azure.microsoft.com/free/) med en Azure OpenAI-ressurs og en modellutrulling
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — logg inn med `az login`
 
 ### Nødvendige miljøvariabler
@@ -67,22 +67,22 @@ Dette eksempelet demonstrerer Microsoft Agent Framework-tilnærmingen sammenlign
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Logg inn slik at AzureCliCredential kan få et token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Logg deretter inn slik at AzureCliCredential kan hente et token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Logg deretter inn slik at AzureCliCredential kan hente et token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Logg inn slik at AzureCliCredential kan hente en token
 az login
 ```
 
 ### Eksempelkode
 
-For å kjøre kodeeksemplet,
+For å kjøre kodeeksempelet,
 
 ```bash
 # zsh/bash
@@ -90,7 +90,7 @@ chmod +x ./02-dotnet-agent-framework.cs
 ./02-dotnet-agent-framework.cs
 ```
 
-Eller bruke dotnet CLI:
+Eller ved bruk av dotnet CLI:
 
 ```bash
 dotnet run ./02-dotnet-agent-framework.cs
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,15 +215,15 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 Viktige læringspunkter
+## 🎓 Viktige punkter
 
-1. **Agentarkitektur**: Microsoft Agent Framework tilbyr en ren, typesikker tilnærming til å bygge AI-agenter i .NET
+1. **Agentarkitektur**: Microsoft Agent Framework gir en ren, typesikker tilnærming til å bygge AI-agenter i .NET
 2. **Verktøyintegrasjon**: Funksjoner dekorert med `[Description]`-attributter blir tilgjengelige verktøy for agenten
-3. **Samtalekontekst**: Sesjonshåndtering muliggjør flerrunde-samtaler med full kontekstbevissthet
-4. **Konfigurasjonsstyring**: Miljøvariabler og sikker håndtering av legitimasjon følger .NET beste praksis
-5. **Azure OpenAI Responses API**: Agenten bruker Azure OpenAI Responses API via Azure.AI.OpenAI SDK
+3. **Samtalekontekst**: Sesjonsadministrasjon muliggjør flerturssamtaler med full kontekstbevissthet
+4. **Konfigurasjonsadministrasjon**: Miljøvariabler og sikker håndtering av legitimasjon følger .NET beste praksis
+5. **Azure OpenAI Responses API**: Agenten bruker Azure OpenAI Responses API gjennom Azure.AI.OpenAI SDK
 
-## 🔗 Tilleggsressurser
+## 🔗 Ekstra ressurser
 
 - [Microsoft Agent Framework Dokumentasjon](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI i Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)

@@ -1,29 +1,29 @@
-# 🌍 Microsoft Agent Framework (.NET)를 활용한 AI 여행 에이전트
+# 🌍 Microsoft Agent Framework (.NET)을 활용한 AI 여행 에이전트
 
 ## 📋 시나리오 개요
 
-이 예제는 Microsoft Agent Framework for .NET을 사용하여 지능형 여행 계획 에이전트를 구축하는 방법을 보여줍니다. 이 에이전트는 전 세계의 무작위 목적지를 위해 맞춤형 당일치기 여행 일정을 자동으로 생성할 수 있습니다.
+이 예제는 .NET용 Microsoft Agent Framework를 사용하여 지능형 여행 계획 에이전트를 구축하는 방법을 보여줍니다. 이 에이전트는 전 세계의 랜덤 목적지에 대해 개인화된 당일 여행 일정을 자동으로 생성할 수 있습니다.
 
 ### 주요 기능:
 
-- 🎲 **무작위 목적지 선택**: 맞춤형 도구를 사용하여 휴가지 선택
-- 🗺️ **지능형 여행 계획**: 상세한 일별 일정 생성
-- 🔄 **실시간 스트리밍**: 즉각적 및 스트리밍 응답 모두 지원
-- 🛠️ **맞춤 도구 통합**: 에이전트 기능 확장 방법 시연
+- 🎲 **랜덤 목적지 선택**: 맞춤형 도구를 사용하여 휴가지 선택
+- 🗺️ **지능형 여행 계획**: 상세한 일별 여행 일정 생성
+- 🔄 **실시간 스트리밍**: 즉시 및 스트리밍 응답 모두 지원
+- 🛠️ **커스텀 도구 통합**: 에이전트 기능 확장 방법 시연
 
 ## 🔧 기술 아키텍처
 
 ### 핵심 기술
 
-- **Microsoft Agent Framework**: AI 에이전트 개발을 위한 최신 .NET 구현
+- **Microsoft Agent Framework**: AI 에이전트 개발을 위한 최신 .NET 구현체
 - **Azure OpenAI (Responses API)**: 모델 추론에 Azure OpenAI Responses API 사용
-- **Azure Identity**: `AzureCliCredential` (`az login`)를 통한 안전한 로그인
+- **Azure Identity**: `AzureCliCredential`(`az login`)를 통한 안전한 로그인
 - **보안 구성**: 환경 기반 엔드포인트 관리
 
 ### 주요 구성 요소
 
-1. **AIAgent**: 대화 흐름을 처리하는 주요 에이전트 오케스트레이터
-2. **맞춤 도구**: 에이전트가 사용할 수 있는 `GetRandomDestination()` 함수
+1. **AIAgent**: 대화 흐름을 관리하는 주요 에이전트 관리자
+2. **커스텀 도구**: 에이전트가 사용할 수 있는 `GetRandomDestination()` 함수
 3. **Responses 클라이언트**: Azure OpenAI Responses 기반 대화 인터페이스
 4. **스트리밍 지원**: 실시간 응답 생성 기능
 
@@ -33,34 +33,34 @@
 graph LR
     A[사용자 요청] --> B[AI 에이전트]
     B --> C[Azure OpenAI (응답 API)]
-    B --> D[랜덤 목적지 도구]
+    B --> D[무작위 목적지 얻기 도구]
     C --> E[여행 일정표]
     D --> E
 ```
 
 ## 🚀 시작하기
 
-### 전제 조건
+### 필요 조건
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 이상
 - Azure OpenAI 리소스와 모델 배포가 포함된 [Azure 구독](https://azure.microsoft.com/free/)
-- `az login`으로 로그인하는 [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login`으로 로그인
 
 ### 필수 환경 변수
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# 그런 다음 AzureCliCredential이 토큰을 얻을 수 있도록 로그인하십시오
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# 그런 다음 AzureCliCredential이 토큰을 얻을 수 있도록 로그인하세요
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# 그런 다음 AzureCliCredential가 토큰을 가져올 수 있도록 로그인하세요
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# 그런 다음 AzureCliCredential가 토큰을 가져올 수 있도록 로그인합니다
 az login
 ```
 
@@ -74,13 +74,13 @@ chmod +x ./01-dotnet-agent-framework.cs
 ./01-dotnet-agent-framework.cs
 ```
 
-혹은 dotnet CLI를 사용하여:
+또는 dotnet CLI를 사용하여:
 
 ```bash
 dotnet run ./01-dotnet-agent-framework.cs
 ```
 
-전체 코드는 [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs)를 참고하세요.
+전체 코드는 [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs)를 참조하세요.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -159,10 +159,10 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 
 ## 🎓 주요 시사점
 
-1. **에이전트 아키텍처**: Microsoft Agent Framework는 .NET에서 AI 에이전트를 구축하는 깔끔하고 유형 안전한 접근법을 제공
-2. **도구 통합**: `[Description]` 특성으로 꾸며진 함수를 에이전트가 사용할 수 있는 도구로 변환
-3. **구성 관리**: 환경 변수와 안전한 자격 증명 처리는 .NET 모범 사례를 따름
-4. **Azure OpenAI Responses API**: 에이전트는 Azure.AI.OpenAI SDK를 통해 Azure OpenAI Responses API를 사용
+1. **에이전트 아키텍처**: Microsoft Agent Framework는 .NET에서 AI 에이전트를 구축할 수 있는 깔끔하고 타입 안전한 접근법을 제공합니다.
+2. **도구 통합**: `[Description]` 특성이 지정된 함수는 에이전트가 사용할 수 있는 도구가 됩니다.
+3. **구성 관리**: 환경 변수와 안전한 자격 증명 처리는 .NET 최선 사례를 따릅니다.
+4. **Azure OpenAI Responses API**: 에이전트는 Azure.AI.OpenAI SDK를 통해 Azure OpenAI Responses API를 사용합니다.
 
 ## 🔗 추가 자료
 

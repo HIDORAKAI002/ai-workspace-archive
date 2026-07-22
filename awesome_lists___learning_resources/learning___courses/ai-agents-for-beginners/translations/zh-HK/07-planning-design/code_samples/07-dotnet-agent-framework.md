@@ -1,18 +1,18 @@
-# 🎯 使用 Azure OpenAI（回應 API）進行規劃與設計模式（.NET）
+# 🎯 使用 Azure OpenAI (Responses API) (.NET) 的規劃與設計模式
 
 ## 📋 學習目標
 
-此筆記本展示了使用 Microsoft Agent Framework 在 .NET 與 Azure OpenAI（回應 API）中構建智能代理的企業級規劃和設計模式。您將學習如何創建能夠分解複雜問題、規劃多步驟解決方案並利用 .NET 企業功能執行複雜工作流程的代理。
+本筆記本展示使用 Microsoft Agent Framework 及 Azure OpenAI (Responses API) 在 .NET 中建構企業級智能代理的規劃與設計模式。您將學會創建能分解複雜問題、規劃多步驟解決方案並利用 .NET 企業功能執行複雜工作流程的代理。
 
-## ⚙️ 預備條件與設定
+## ⚙️ 前置條件與設定
 
 **開發環境：**
 - .NET 9.0 SDK 或更高版本
-- Visual Studio 2022 或搭配 C# 擴充的 VS Code
-- 具備 Azure 訂閱且有 Azure OpenAI 資源與模型部署
+- Visual Studio 2022 或具備 C# 擴充功能的 VS Code
+- 具備 Azure OpenAI 資源與模型部署的 Azure 訂閱
 - Azure CLI — 使用 `az login` 登入
 
-**必要相依套件：**
+**必要依賴：**
 ```xml
 <PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
 <PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
@@ -22,10 +22,10 @@
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
-**環境設定（.env 檔案）：**
+**環境配置 (.env 檔案)：**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
 ## 執行程式碼
@@ -36,7 +36,7 @@ AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
 # 令檔案可執行（Linux/macOS）
 chmod +x 07-dotnet-agent-framework.cs
 
-# 執行應用程式
+# 運行應用程式
 ./07-dotnet-agent-framework.cs
 ```
 
@@ -48,19 +48,19 @@ dotnet run 07-dotnet-agent-framework.cs
 
 ## 程式碼實作
 
-完整實作位於 `07-dotnet-agent-framework.cs`，內容展示：
+完整實作見 `07-dotnet-agent-framework.cs`，內容示範：
 
-- 使用 DotNetEnv 載入環境設定
-- 配置 Azure OpenAI 用戶端並利用 `GetChatClient().AsAIAgent()` 創建 AI 代理
-- 定義結構化資料模型（Plan 和 TravelPlan），並使用 JSON 序列化
-- 創建具結構化輸出且利用 JSON schema 的 AI 代理
-- 使用型別安全響應執行規劃請求
+- 使用 DotNetEnv 載入環境配置
+- 設定 Azure OpenAI 用戶端並利用 `GetChatClient().AsAIAgent()` 建立 AI 代理
+- 定義帶 JSON 序列化的結構化資料模型（Plan 和 TravelPlan）
+- 使用 JSON schema 創建具結構化輸出的 AI 代理
+- 以類型安全的回應執行規劃請求
 
 ## 主要概念
 
-### 使用型別安全模型的結構化規劃
+### 使用類型安全模型的結構化規劃
 
-代理使用 C# 類別來定義規劃輸出的結構：
+代理使用 C# 類別定義規劃輸出的結構：
 
 ```csharp
 public class Plan
@@ -103,18 +103,18 @@ ChatClientAgentOptions agentOptions = new()
 
 ### 規劃代理指令
 
-代理充當協調者，將任務委派給專門的子代理：
+代理作為協調者，將任務委派給專門子代理：
 
-- FlightBooking：負責訂票及提供航班資訊
-- HotelBooking：負責訂房及提供飯店資訊
-- CarRental：負責租車及提供租車資訊
-- ActivitiesBooking：負責預訂活動及提供活動資訊
-- DestinationInfo：負責提供目的地資訊
-- DefaultAgent：負責處理一般請求
+- FlightBooking：負責訂機票與提供航班資訊
+- HotelBooking：負責訂飯店與提供飯店資訊
+- CarRental：負責訂車並提供租車資訊
+- ActivitiesBooking：負責訂活動並提供活動資訊
+- DestinationInfo：提供目的地資訊
+- DefaultAgent：處理一般請求
 
 ## 預期輸出
 
-當您執行代理並提出旅遊規劃請求時，它會分析請求並生成符合 TravelPlan schema、包含適當任務分配給專門代理的結構化規劃，並以 JSON 格式呈現。
+當您使用旅行規劃請求執行代理時，代理會分析請求並產生一個結構化計畫，適當分配任務給專門代理，輸出格式為符合 TravelPlan schema 的 JSON。
 
 ---
 

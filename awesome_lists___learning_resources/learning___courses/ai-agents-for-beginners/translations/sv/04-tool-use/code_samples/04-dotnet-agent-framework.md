@@ -1,29 +1,29 @@
 # 🛠️ Avancerad verktygsanvändning med Azure OpenAI (Responses API) (.NET)
 
-## 📋 Lärandemål
+## 📋 Inlärningsmål
 
-Den här anteckningsboken demonstrerar företagsklassade verktygsintegrationsmönster med Microsoft Agent Framework i .NET med Azure OpenAI (Responses API). Du kommer att lära dig att bygga sofistikerade agenter med flera specialiserade verktyg, och utnyttja C#s starka typning och .NETs företagsfunktioner.
+Denna anteckningsbok visar företagsklassade integrationsmönster för verktyg med Microsoft Agent Framework i .NET med Azure OpenAI (Responses API). Du lär dig att bygga sofistikerade agenter med flera specialiserade verktyg, med hjälp av C#'s starka typning och .NET:s företagsfunktioner.
 
-### Avancerade verktygskapabiliteter du kommer att behärska
+### Avancerade verktygskapaciteter du kommer att behärska
 
-- 🔧 **Arkitektur med flera verktyg**: Bygga agenter med flera specialiserade kapabiliteter
-- 🎯 **Typ-säker verktygsexekvering**: Utnyttja C#s kompileringstid validering
-- 📊 **Företagsverktygsmönster**: Produktionsredo verktygsdesign och felhantering
+- 🔧 **Multiverktygsarkitektur**: Bygga agenter med flera specialiserade kapaciteter
+- 🎯 **Typ-säker verktygsexekvering**: Utnyttja C#’s kompileringstidvalidering
+- 📊 **Företagsverktygsmönster**: Produktionsfärdig verktygsdesign och felhantering
 - 🔗 **Verktygssammansättning**: Kombinera verktyg för komplexa affärsarbetsflöden
 
 ## 🎯 Fördelar med .NET-verktygsarkitektur
 
 ### Företagsverktygsfunktioner
 
-- **Kompileringstid Validering**: Stark typning garanterar korrekta verktygsparametrar
-- **Dependency Injection**: IoC-behållarintegration för verktygshantering
+- **Kompileringstidsvalidering**: Stark typning säkerställer verktygsparametrars korrekthet
+- **Dependency Injection**: IoC-kontainerintegration för verktygshantering
 - **Async/Await-mönster**: Icke-blockerande verktygsexekvering med korrekt resursförvaltning
-- **Strukturerad loggning**: Inbyggd loggningsintegration för övervakning av verktygsexekvering
+- **Strukturerad loggning**: Inbyggd loggningsintegration för verktygsexekveringsövervakning
 
-### Produktionsredo mönster
+### Produktionsfärdiga mönster
 
 - **Undantagshantering**: Omfattande felhantering med typade undantag
-- **Resurshantering**: Korrekt avfallshanteringsmönster och minneshantering
+- **Resurshantering**: Korrekt avfallshantering och minneshantering
 - **Prestandaövervakning**: Inbyggda mätvärden och prestandaräknare
 - **Konfigurationshantering**: Typ-säker konfiguration med validering
 
@@ -31,8 +31,8 @@ Den här anteckningsboken demonstrerar företagsklassade verktygsintegrationsmö
 
 ### Kärnkomponenter för .NET-verktyg
 
-- **Microsoft.Extensions.AI**: Enhetligt lager för verktygsabstraktion
-- **Microsoft.Agents.AI**: Företagsklassad orkestrering av verktyg
+- **Microsoft.Extensions.AI**: Enhetligt abstraktionslager för verktyg
+- **Microsoft.Agents.AI**: Företagsklassad verktygsorkestrering
 - **Azure OpenAI (Responses API)**: Högpresterande API-klient med anslutningspoolning
 
 ### Verktygsexekveringspipeline
@@ -45,7 +45,7 @@ graph LR
     B --> E[Parameterbindning]
     E --> F[Verktygsutförande]
     C --> F
-    F --> G[Resultatbehandling]
+    F --> G[Resultatbearbetning]
     D --> G
     G --> H[Svar]
 ```
@@ -57,23 +57,23 @@ graph LR
 - **Inmatningsvalidering**: Stark typning med dataannotationer
 - **Transformationsoperationer**: Typ-säker datakonvertering och formatering
 - **Affärslogik**: Domänspecifika beräknings- och analysverktyg
-- **Utdataformatering**: Strukturerad generering av svar
+- **Utdataformatering**: Strukturerad svarsgenerering
 
 ### 2. **Integrationsverktyg**
 
-- **API-kopplingar**: RESTful-tjänsteintegration med HttpClient
+- **API-kopplingar**: RESTful tjänsteintegration med HttpClient
 - **Databasverktyg**: Entity Framework-integration för dataåtkomst
-- **Filoperationer**: Säkra filsystemoperationer med validering
-- **Extern tjänster**: Tredjeparts tjänsteintegrationsmönster
+- **Filoperationer**: Säker filsystemshantering med validering
+- **Externatjänster**: Tredjepartsserviceintegrationsmönster
 
-### 3. **Verktyg för verktyg**
+### 3. **Verktygsverktyg**
 
 - **Textbehandling**: Strängmanipulation och formateringsverktyg
-- **Datum-/Tidsoperationer**: Kulturspecifika datum/tidsberäkningar
+- **Datum/Tid-operationer**: Kulturmedvetna datum/tidsberäkningar
 - **Matematiska verktyg**: Precisionsberäkningar och statistiska operationer
 - **Valideringsverktyg**: Affärsregelvalidering och dataverifiering
 
-Redo att bygga företagsklassade agenter med kraftfulla, typ-säkra verktygskapabiliteter i .NET? Låt oss skapa några professionella lösningar! 🏢⚡
+Redo att bygga företagsklassade agenter med kraftfulla, typ-säkra verktygskapaciteter i .NET? Låt oss arkitektera några professionella lösningar! 🏢⚡
 
 ## 🚀 Komma igång
 
@@ -81,22 +81,22 @@ Redo att bygga företagsklassade agenter med kraftfulla, typ-säkra verktygskapa
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) eller högre
 - En [Azure-prenumeration](https://azure.microsoft.com/free/) med en Azure OpenAI-resurs och en modellutplacering
-- Azure CLI ([Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)) — logga in med `az login`
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — logga in med `az login`
 
-### Obligatoriska miljövariabler
+### Nödvändiga miljövariabler
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Logga in så att AzureCliCredential kan få en token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Logga in sedan så att AzureCliCredential kan få en token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # Logga in så att AzureCliCredential kan få en token
 az login
 ```
@@ -117,7 +117,7 @@ Eller med dotnet CLI:
 dotnet run ./04-dotnet-agent-framework.cs
 ```
 
-Se [`04-dotnet-agent-framework.cs`](../../../../04-tool-use/code_samples/04-dotnet-agent-framework.cs) för hela koden.
+Se [`04-dotnet-agent-framework.cs`](../../../../04-tool-use/code_samples/04-dotnet-agent-framework.cs) för komplett kod.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -168,7 +168,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

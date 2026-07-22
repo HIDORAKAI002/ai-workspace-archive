@@ -1,16 +1,16 @@
-# 🎯 Tervezés és tervezési minták Azure OpenAI-val (Responses API) (.NET)
+# 🎯 Tervezési és minták az Azure OpenAI-val (Responses API) (.NET)
 
 ## 📋 Tanulási célok
 
-Ez a jegyzetfüzet vállalati szintű tervezési és mintázati megoldásokat mutat be intelligens ügynökök létrehozásához a Microsoft Agent Framework és Azure OpenAI (Responses API) .NET környezetben történő használatával. Megtanulod, hogyan hozz létre olyan ügynököket, amelyek képesek összetett problémákat lebontani, többlépéses megoldásokat tervezni és bonyolult munkafolyamatokat végrehajtani .NET vállalati funkcionalitásokkal.
+Ez a jegyzetfüzet vállalati szintű tervezési és mintákat mutat be intelligens ügynökök építéséhez a Microsoft Agent Framework .NET-ben az Azure OpenAI-val (Responses API). Megtanulod, hogyan hozz létre olyan ügynököket, akik képesek összetett problémákat lebontani, többlépéses megoldásokat tervezni és kifinomult munkafolyamatokat végrehajtani a .NET vállalati funkcióival.
 
 ## ⚙️ Előfeltételek és beállítás
 
 **Fejlesztői környezet:**
 - .NET 9.0 SDK vagy újabb
 - Visual Studio 2022 vagy VS Code C# kiterjesztéssel
-- Egy Azure előfizetés Azure OpenAI erőforrással és modell telepítéssel
-- Az Azure CLI — jelentkezz be `az login` paranccsal
+- Egy Azure előfizetés Azure OpenAI erőforrással és egy modell telepítéssel
+- Az Azure CLI — bejelentkezés `az login` parancsal
 
 **Szükséges függőségek:**
 ```xml
@@ -22,18 +22,18 @@ Ez a jegyzetfüzet vállalati szintű tervezési és mintázati megoldásokat mu
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
-**Környezeti konfiguráció (.env fájl):**
+**Környezet konfiguráció (.env fájl):**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
 ## A kód futtatása
 
-Ez a lecke tartalmaz egy .NET Single File App megvalósítást. A futtatáshoz:
+Ez a lecke egy .NET Single File App megvalósítást tartalmaz. Futtatáshoz:
 
 ```bash
-# Tegye futtathatóvá a fájlt (Linux/macOS)
+# Tegyük futtathatóvá a fájlt (Linux/macOS)
 chmod +x 07-dotnet-agent-framework.cs
 
 # Futtassa az alkalmazást
@@ -46,21 +46,21 @@ Vagy használd a dotnet run parancsot:
 dotnet run 07-dotnet-agent-framework.cs
 ```
 
-## Kód megvalósítása
+## Kód megvalósítás
 
 A teljes megvalósítás megtalálható a `07-dotnet-agent-framework.cs` fájlban, amely bemutatja:
 
-- A környezeti konfiguráció betöltését DotNetEnv segítségével
-- Az Azure OpenAI kliens konfigurálását és egy AI ügynök létrehozását a `GetChatClient().AsAIAgent()` használatával
-- Strukturált adatmodellek definiálását (Plan és TravelPlan) JSON szerializációval
-- Egy AI ügynök létrehozását strukturált kimenettel JSON sémával
-- Tervezési lekérdezések végrehajtását típusbiztos válaszokkal
+- A környezet konfiguráció betöltése DotNetEnv-vel
+- Az Azure OpenAI kliens konfigurálása és AI ügynök létrehozása `GetChatClient().AsAIAgent()` segítségével
+- Strukturált adatmodellek definiálása (Plan és TravelPlan) JSON sorosítással
+- AI ügynök létrehozása strukturált kimenettel JSON sémával
+- Tervezési kérések végrehajtása típusbiztos válaszokkal
 
-## Főbb fogalmak
+## Kulcsfogalmak
 
 ### Strukturált tervezés típusbiztos modellekkel
 
-Az ügynök C# osztályokat használ a tervezési kimenetek szerkezetének meghatározására:
+Az ügynök C# osztályokat használ a tervezési kimenetek szerkezetének meghatározásához:
 
 ```csharp
 public class Plan
@@ -84,7 +84,7 @@ public class TravelPlan
 
 ### JSON séma a strukturált kimenetekhez
 
-Az ügynök úgy van konfigurálva, hogy olyan válaszokat adjon vissza, amelyek megfelelnek a TravelPlan sémának:
+Az ügynök úgy van konfigurálva, hogy a TravelPlan sémának megfelelő válaszokat adjon vissza:
 
 ```csharp
 ChatClientAgentOptions agentOptions = new()
@@ -101,20 +101,20 @@ ChatClientAgentOptions agentOptions = new()
 };
 ```
 
-### Tervezési ügynök utasításai
+### Tervezó ügynök utasításai
 
-Az ügynök koordinátorként működik, és feladatokat delegál szakosodott alügynököknek:
+Az ügynök koordinátorként működik, feladatokat delegálva specializált alügynököknek:
 
-- FlightBooking: repülőjegyek foglalásáért és repülőjárat-információk szolgáltatásáért felelős
-- HotelBooking: szállodafoglalásokért és szállodainformációkért felelős
-- CarRental: autóbérlésért és autókölcsönzési információkért felelős
-- ActivitiesBooking: programok foglalásáért és programinformációkért felelős
-- DestinationInfo: úti célokkal kapcsolatos információk szolgáltatásáért felelős
-- DefaultAgent: általános lekérdezések kezeléséért felelős
+- FlightBooking: Repülőjáratok foglalásáért és repülőjárat információk szolgáltatásáért
+- HotelBooking: Szállások foglalásáért és szállás információk szolgáltatásáért
+- CarRental: Autóbérlésért és autóbérlési információk szolgáltatásáért
+- ActivitiesBooking: Programok foglalásáért és program információk szolgáltatásáért
+- DestinationInfo: Úticélokról szóló információk szolgáltatásáért
+- DefaultAgent: Általános kérések kezeléséért
 
-## Várt kimenet
+## Várt eredmény
 
-Amikor a tervezési kéréssel futtatod az ügynököt, elemezni fogja a kérést, majd létrehoz egy strukturált tervet a megfelelő feladatkiosztással a szakosodott ügynökök számára, JSON formátumban a TravelPlan séma szerint.
+Amikor futtatod az ügynököt utazástervezési kéréssel, elemezni fogja a kérést és egy strukturált tervet generál, amely megfelelő feladatkiosztást tartalmaz a specializált ügynököknek, JSON formátumban, amely megfelel a TravelPlan sémának.
 
 ---
 

@@ -3,71 +3,78 @@ name: testing-course-samples
 ---
 # Testowanie przykładów kursu
 
-Sprawdź, czy notatniki lekcji i przykłady kodu działają z działającym
-środowiskiem Microsoft Foundry / Azure OpenAI. Repozytorium zawiera runnera pod
+Sprawdź, czy notatniki lekcji i przykładowy kod działają na żywo
+w konfiguracji Microsoft Foundry / Azure OpenAI. Repozytorium zawiera runner w
 [`scripts/validate-notebooks.ps1`](../../../../../scripts/validate-notebooks.ps1), który
-uruchamia wszystkie notatniki Pythona bez interfejsu i wypisuje macierz PASS/FAIL.
+uruchamia każdy notatnik Pythona bez interfejsu i wyświetla macierz PASS/FAIL.
 
 ## Kiedy używać
-- "Sprawdź wszystkie notatniki / przykłady w mojej subskrypcji Azure."
-- "Szybko przetestuj kurs po aktualizacji pakietów lub zmianie modeli."
-- "Które lekcje wciąż przechodzą / nie przechodzą testów na żywo?"
+- "Zweryfikować wszystkie notatniki / przykłady na moim subskrypcji Azure."
+- "Szybki test kursu po aktualizacji pakietów lub zmianie modeli."
+- "Które lekcje nadal przechodzą / nie przechodzą na żywo?"
 
-Nie używaj tego do GitHub Action AI Smoke Test (który weryfikuje *wdrożonych*
-hostowanych agentów — patrz [`tests/README.md`](../../../tests/README.md)). Ten skrypt
+Nie używaj tego do AI Smoke Test GitHub Action (który weryfikuje *wdrożonych*
+hostowanych agentów — patrz [`tests/README.md`](../../../tests/README.md)). To narzędzie
 uruchamia notatniki lokalnie.
 
 ## Wymagania wstępne (sprawdź najpierw)
 1. **Python 3.12+** z zależnościami kursu: `python -m pip install -r requirements.txt`
-   oraz executor: `python -m pip install nbconvert ipykernel`.
-2. **`.env` w katalogu głównym repozytorium** (skopiuj z [`.env.example`](../../../../../.env.example)) zawierający przynajmniej:
+   plus wykonawcą: `python -m pip install nbconvert ipykernel`.
+2. **`.env` w katalogu głównym repozytorium** (skopiuj z [`.env.example`](../../../../../.env.example)) zawierający co najmniej:
    - `AZURE_AI_PROJECT_ENDPOINT` — punkt końcowy projektu Foundry
      (`https://<account>.services.ai.azure.com/api/projects/<project>`)
-   - `AZURE_AI_MODEL_DEPLOYMENT_NAME` — nieprzestarzałe wdrożenie (np. `gpt-4.1-mini`)
-   - `AZURE_OPENAI_ENDPOINT` (`https://<account>.openai.azure.com`) oraz `AZURE_OPENAI_DEPLOYMENT`
-     dla lekcji, które wywołują Azure OpenAI bezpośrednio (Lekcja 06, 02-azure-openai, 14 handoff/human-loop).
-3. Zalogowanie się przy pomocy **`az login`** — próbki uwierzytelniają się z `AzureCliCredential` (Entra ID, bez klucza).
+   - `AZURE_AI_MODEL_DEPLOYMENT_NAME` — nieprzestarzałe wdrożenie (np. `gpt-5-mini`)
+   - `AZURE_OPENAI_ENDPOINT` (`https://<account>.openai.azure.com`) i `AZURE_OPENAI_DEPLOYMENT`
+     dla lekcji które bezpośrednio wywołują Azure OpenAI (Lekcja 06, 02-azure-openai, 14 handoff/human-loop).
+3. Ukończone **`az login`** — próbki uwierzytelniają się przez `AzureCliCredential` (Entra ID, bez klucza).
 4. Zweryfikuj, że wdrożenie modelu istnieje:
    `az cognitiveservices account deployment list -g <rg> -n <account> -o table`.
 
-## Uruchamianie walidacji
+## Uruchomienie walidacji
 ```powershell
 # Wszystkie notatniki Pythona (pomija .NET, .venv, site-packages, tłumaczenia, zasoby umiejętności)
 pwsh scripts/validate-notebooks.ps1
 
-# Pojedyncza lekcja, z dłuższym limitem czasu na komórkę
+# Pojedyncza lekcja, z dłuższym limitem czasu na pojedynczą komórkę
 pwsh scripts/validate-notebooks.ps1 -Filter '08-*' -Timeout 600
 
-# Tylko lista tego, co by się uruchomiło (bez wykonania)
+# Tylko lista tego, co by się uruchomiło (bez wykonywania)
 pwsh scripts/validate-notebooks.ps1 -List
 
 # Jawny interpreter (jeśli `python` nie jest w PATH, np. alias Windows Store)
 pwsh scripts/validate-notebooks.ps1 -Python "C:/path/to/python.exe"
 ```
-Skrypt zapisuje wykonywane kopie, logi dla każdego notatnika oraz `results.json` do
+Skrypt zapisuje wykonane kopie, logi per-notebook i `results.json` do
 `$env:TEMP\aiab-nbval` i kończy się liczbą błędów.
 
+Przemijające błędy (limity HTTP 429 współdzielonej subskrypcji, okazjonalne
+problemy z tokenem `AzureCliCredential`, lub timeout) są automatycznie powtarzane
+(`-Retries`, domyślnie 2, z opóźnieniem `-RetryDelaySeconds`, domyślnie 20). Jeśli
+wdrożenie modelu często powoduje 429, sprawdź globalny limit TPM subskrypcji standardowej
+(`az cognitiveservices usage list -l <region>`) — zwiększenie pojemności pojedynczego
+wdrożenia nic nie da gdy *limit subskrypcji* jest wyczerpany.
+
 ## Interpretacja wyników
-- `PASS` — notatnik został uruchomiony od początku do końca bez błędów komórki.
-- `FAIL` — pokazana jest pierwsza linia `*Error` / `*Exception`; otwórz odpowiadający
-  `log_*.txt` w katalogu wyjściowym, aby zobaczyć pełny ślad błędu.
-- Pojedyncza porażka notatnika jest ograniczona przez `-Timeout` (na komórkę), więc zawieszona
-  komórka z interakcją człowieka kończy się błędem `StdinNotImplementedError` zamiast zawieszania.
+- `PASS` — notatnik uruchomił się od początku do końca bez błędów w komórkach.
+- `FAIL` — pokazana jest pierwsza linia `*Error` / `*Exception`; otwórz pasujący
+  `log_*.txt` w katalogu wyjściowym, aby zobaczyć pełny traceback.
+- Pojedyncza nieudana próba notatnika objęta jest limitem `-Timeout` (na komórkę), więc zablokowana
+  komórka interaktywna powoduje `StdinNotImplementedError` zamiast zawieszenia.
 
 ## Lekcje wymagające dodatkowych zasobów (oczekiwane niepowodzenia bez nich)
-| Lekcja | Dodatkowe wymaganie |
+| Lekcja | Dodatkowy wymóg |
 |--------|-------------------|
-| 05 Agentic RAG | Azure AI Search (`AZURE_SEARCH_SERVICE_ENDPOINT`, klucz) — ma ścieżkę zapasową w pamięci |
-| 11 MCP / GitHub | Serwer MCP GitHub + PAT |
+| 05 Agentic RAG | Azure AI Search (`AZURE_SEARCH_SERVICE_ENDPOINT`, klucz) — posiada ścieżkę awaryjną w pamięci |
+| 11 MCP / GitHub | Serwer GitHub MCP + PAT |
 | 13 pamięć (cognee) | `cognee` skonfigurowany z dostawcą modelu |
-| 15 użycie przeglądarki | Przeglądarki Playwright zainstalowane (`playwright install`) + `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME` |
-| 17 agent lokalny | Środowisko uruchomieniowe Foundry Local + pobrany model Qwen (na urządzeniu, bez chmury) |
-| notatniki `*-dotnet-*` | Jądro .NET Interactive (domyślnie wyłączone; użyj `-IncludeDotnet`) |
+| 15 użycie przeglądarki | Zainstalowane przeglądarki Playwright (`playwright install`) + `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME` |
+| 17 lokalny agent | Lokalne środowisko Foundry + pobrany model Qwen (na urządzeniu, bez chmury) |
+| notatniki `*-dotnet-*` | Jądro .NET Interactive (domyślnie wykluczone; użyj `-IncludeDotnet`) |
 
 ## Raportowanie wyników
-Podsumuj jako tabelę PASS/FAIL pogrupowaną według lekcji. Oddziel prawdziwe regresje
-(błędy w kodzie/konfiguracji do naprawy) od braków środowiskowych (brak Search/Foundry Local/PAT),
-i podaj pliki `log_*.txt` dla każdej rzeczywistej awarii.
+Podsumuj w tabeli PASS/FAIL pogrupowanej według lekcji. Oddziel rzeczywiste regresje
+(błędy kodu/konfiguracji do naprawienia) od braków środowiskowych (brak Search/Foundry Local/PAT),
+i wskaż odpowiedni `log_*.txt` dla każdego rzeczywistego błędu.
 
 ---
 

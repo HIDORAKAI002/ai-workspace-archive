@@ -1,13 +1,13 @@
-# 🌍 使用 Microsoft Agent Framework (.NET) 的 AI 旅行代理
+# 🌍 使用 Microsoft Agent Framework (.NET) 的 AI 旅游代理
 
 ## 📋 场景概述
 
-本示例演示了如何使用 Microsoft Agent Framework for .NET 构建智能旅行规划代理。该代理可以自动为全球随机目的地生成个性化的一日游行程。
+本示例演示如何使用适用于 .NET 的 Microsoft Agent Framework 构建智能旅行规划代理。该代理可以自动生成面向全球随机目的地的个性化一日游行程。
 
-### 关键功能：
+### 主要功能：
 
-- 🎲 <strong>随机目的地选择</strong>：使用自定义工具挑选度假地点
-- 🗺️ <strong>智能行程规划</strong>：创建详细的逐日行程
+- 🎲 <strong>随机目的地选择</strong>：使用自定义工具选择度假地点
+- 🗺️ <strong>智能旅行规划</strong>：创建详细的每日行程安排
 - 🔄 <strong>实时流式传输</strong>：支持即时和流式响应
 - 🛠️ <strong>自定义工具集成</strong>：演示如何扩展代理功能
 
@@ -16,34 +16,34 @@
 ### 核心技术
 
 - **Microsoft Agent Framework**：用于 AI 代理开发的最新 .NET 实现
-- **Azure OpenAI (Responses API)**：使用 Azure OpenAI Responses API 进行模型推理
-- **Azure Identity**：通过 `AzureCliCredential` (`az login`) 实现安全登录
+- **Azure OpenAI（响应 API）**：使用 Azure OpenAI 响应 API 执行模型推理
+- **Azure 身份验证**：通过 `AzureCliCredential`（`az login`）实现安全登录
 - <strong>安全配置</strong>：基于环境的端点管理
 
 ### 关键组件
 
-1. **AIAgent**：负责对话流程的主代理协调器
-2. <strong>自定义工具</strong>：可供代理调用的 `GetRandomDestination()` 函数
-3. **Responses Client**：基于 Azure OpenAI Responses 的对话接口
-4. <strong>流式支持</strong>：实时生成响应的能力
+1. **AIAgent**：管理对话流程的主要代理协调器
+2. <strong>自定义工具</strong>：代理可调用的 `GetRandomDestination()` 函数
+3. <strong>响应客户端</strong>：基于 Azure OpenAI 响应的对话接口
+4. <strong>流式支持</strong>：实时响应生成能力
 
 ### 集成模式
 
 ```mermaid
 graph LR
-    A[用户请求] --> B[AI 代理]
+    A[用户请求] --> B[人工智能代理]
     B --> C[Azure OpenAI（响应 API）]
-    B --> D[GetRandomDestination 工具]
+    B --> D[获取随机目的地工具]
     C --> E[旅行行程]
     D --> E
 ```
 
 ## 🚀 快速开始
 
-### 前提条件
+### 前置条件
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更高版本
-- 拥有 Azure OpenAI 资源及模型部署的 [Azure 订阅](https://azure.microsoft.com/free/)
+- 拥有 Azure OpenAI 资源和模型部署的 [Azure 订阅](https://azure.microsoft.com/free/)
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — 使用 `az login` 登录
 
 ### 必需的环境变量
@@ -51,16 +51,16 @@ graph LR
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# 然后登录，以便 AzureCliCredential 可以获取令牌
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# 然后登录以便 AzureCliCredential 能获取令牌
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# 然后登录，以便 AzureCliCredential 可以获取令牌
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# 然后登录以便 AzureCliCredential 可以获取令牌
 az login
 ```
 
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -159,10 +159,10 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 
 ## 🎓 主要收获
 
-1. <strong>代理架构</strong>：Microsoft Agent Framework 提供了用于 .NET 构建 AI 代理的简洁且类型安全的方法
-2. <strong>工具集成</strong>：带有 `[Description]` 属性的函数成为代理可用的工具
+1. <strong>代理架构</strong>：Microsoft Agent Framework 提供了在 .NET 中构建 AI 代理的清晰且类型安全的方法
+2. <strong>工具集成</strong>：标有 `[Description]` 属性的函数成为代理可用的工具
 3. <strong>配置管理</strong>：环境变量和安全凭据处理遵循 .NET 最佳实践
-4. **Azure OpenAI Responses API**：代理通过 Azure.AI.OpenAI SDK 使用 Azure OpenAI Responses API
+4. **Azure OpenAI 响应 API**：代理通过 Azure.AI.OpenAI SDK 使用 Azure OpenAI 响应 API
 
 ## 🔗 其他资源
 

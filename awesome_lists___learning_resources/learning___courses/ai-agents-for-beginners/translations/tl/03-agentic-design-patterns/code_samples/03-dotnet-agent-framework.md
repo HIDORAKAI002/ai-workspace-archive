@@ -1,138 +1,138 @@
-# 🎨 Agentic Design Patterns gamit ang Azure OpenAI (Responses API) (.NET)
+# 🎨 Mga Agentic na Disenyo ng Pattern gamit ang Azure OpenAI (Responses API) (.NET)
 
-## 📋 Mga Layunin sa Pagkatuto
+## 📋 Mga Layunin sa Pag-aaral
 
-Ipinapakita ng halimbawa na ito ang mga enterprise-grade na design pattern para sa paggawa ng mga intelligent agent gamit ang Microsoft Agent Framework sa .NET kasama ang integrasyon ng Azure OpenAI (Responses API). Matututuhan mo ang mga propesyonal na pattern at mga arkitekturang paraan na nagpapagawa sa mga agent na handa para sa produksyon, madaling panatilihin, at madaling palakihin.
+Ipinapakita ng halimbawang ito ang mga enterprise-grade na disenyo ng pattern para sa paggawa ng matatalinong agent gamit ang Microsoft Agent Framework sa .NET na may integrasyon ng Azure OpenAI (Responses API). Matututuhan mo ang mga propesyonal na pattern at pang-arkitekturang pamamaraan na ginagawang handa para sa produksyon, madaling mapanatili, at scalable ang mga agent.
 
 ### Mga Enterprise Design Pattern
 
 - 🏭 **Factory Pattern**: Standardisadong paggawa ng agent gamit ang dependency injection
-- 🔧 **Builder Pattern**: Fluent na konfigurasyon at setup ng agent
-- 🧵 **Thread-Safe Patterns**: Paghawak sa sabay-sabay na pag-uusap
+- 🔧 **Builder Pattern**: Fluent na pag-configure at pag-setup ng agent
+- 🧵 **Thread-Safe Patterns**: Sabay-sabay na pamamahala ng usapan
 - 📋 **Repository Pattern**: Organisadong pamamahala ng tool at kakayahan
 
-## 🎯 Mga Benepisyo sa Arkitektura na Espesipiko sa .NET
+## 🎯 Mga Benepisyo ng Arkitektura na Tanging para sa .NET
 
-### Mga Enterprise Feature
+### Mga Tampok ng Enterprise
 
-- **Strong Typing**: Validation sa oras ng compile at suporta sa IntelliSense
-- **Dependency Injection**: Built-in na integrasyon sa DI container
-- **Configuration Management**: IConfiguration at mga pattern ng Options
-- **Async/Await**: Distinguidong suporta sa asynchronous programming
+- **Malakas na Pagta-type**: Pag-validate sa compile-time at suporta sa IntelliSense
+- **Dependency Injection**: Built-in na integrasyon ng DI container
+- **Pamamahala ng Konfigurasyon**: IConfiguration at Options patterns
+- **Async/Await**: Pangunahin na suporta para sa asynchronous programming
 
-### Mga Pattern na Handa Para sa Produksyon
+### Mga Pattern na Handa na para sa Produksyon
 
-- **Logging Integration**: ILogger at suporta sa structured logging
-- **Health Checks**: Built-in na monitoring at diagnostics
-- **Configuration Validation**: Strong typing gamit ang data annotations
-- **Error Handling**: Structuradong pamamahala ng exceptions
+- **Logging Integration**: ILogger at structured logging support
+- **Health Checks**: Built-in na pagmamanman at diagnostics
+- **Pag-validate ng Konfigurasyon**: Malakas na pagta-type gamit ang data annotations
+- **Pag-handle ng Error**: Structured exception management
 
 ## 🔧 Teknikal na Arkitektura
 
-### Pangunahing Komponent ng .NET
+### Mga Pangunahing Komponent ng .NET
 
-- **Microsoft.Extensions.AI**: Nagkakaisang AI service abstraction
+- **Microsoft.Extensions.AI**: Pinagsama-samang abstraksyon ng serbisyo ng AI
 - **Microsoft.Agents.AI**: Enterprise agent orchestration framework
-- **Azure OpenAI (Responses API)**: Mga pattern ng high-performance na API client
-- **Configuration System**: appsettings.json at integrasyon ng environment
+- **Azure OpenAI (Responses API)**: Mga pattern ng high-performance na kliyente ng API
+- **Sistemang Pangkonfigurasyon**: appsettings.json at integrasyon sa kapaligiran
 
-### Implementasyon ng Design Pattern
+### Implementasyon ng Disenyo ng Pattern
 
 ```mermaid
 graph LR
-    A[IServiceCollection] --> B[Tagabuo ng Ahente]
+    A[Koleksyon ng Serbisyo] --> B[Tagabuo ng Ahente]
     B --> C[Konfigurasyon]
     C --> D[Rehistro ng Kasangkapan]
-    D --> E[Ahenteng AI]
+    D --> E[AI Ahente]
 ```
 
-## 🏗️ Ipinakitang Mga Enterprise Pattern
+## 🏗️ Ipinakitang Mga Pattern ng Enterprise
 
-### 1. **Creational Patterns**
+### 1. **Mga Creational Pattern**
 
-- **Agent Factory**: Sentralisadong paggawa ng agent na may consistent na konfigurasyon
+- **Agent Factory**: Sentralisadong paggawa ng agent na may pare-parehong konfigurasyon
 - **Builder Pattern**: Fluent API para sa komplikadong konfigurasyon ng agent
-- **Singleton Pattern**: Pinagsasaluhang mga yaman at pamamahala ng konfigurasyon
-- **Dependency Injection**: Maluwag na coupling at madaling testing
+- **Singleton Pattern**: Pinaghahating mga mapagkukunan at pamamahala ng konfigurasyon
+- **Dependency Injection**: Maluwag na pagkakabit at madaling masubok
 
-### 2. **Behavioral Patterns**
+### 2. **Mga Behavior Pattern**
 
-- **Strategy Pattern**: Napapalitang mga strategy ng pagpapatakbo ng tool
-- **Command Pattern**: Nakakapsula na operasyon ng agent na may undo/redo
-- **Observer Pattern**: Event-driven na pamamahala ng lifecycle ng agent
-- **Template Method**: Standardisadong workflows ng pagpapatakbo ng agent
+- **Strategy Pattern**: Pamamaraan ng pagpapalit-palit ng pagpapatupad ng tool
+- **Command Pattern**: Nakapaloob na mga operasyon ng agent na may undo/redo
+- **Observer Pattern**: Pamamahala ng lifecycle ng agent na nakabase sa mga pangyayari
+- **Template Method**: Standardisadong workflow ng pagpapatupad ng agent
 
-### 3. **Structural Patterns**
+### 3. **Mga Structural Pattern**
 
-- **Adapter Pattern**: Azure OpenAI (Responses API) integrasyon na layer
-- **Decorator Pattern**: Pagpapahusay ng kakayahan ng agent
-- **Facade Pattern**: Pinadaling interface para sa interaksyon ng agent
+- **Adapter Pattern**: Integrasyon ng Azure OpenAI (Responses API) na layer
+- **Decorator Pattern**: Pagpapahusay sa kakayahan ng agent
+- **Facade Pattern**: Pinapasimpleng interface ng interaksyon ng agent
 - **Proxy Pattern**: Tamad na paglo-load at caching para sa performance
 
-## 📚 Mga Prinsipyo ng Disenyo ng .NET
+## 📚 Mga Prinsipyo ng Disenyo sa .NET
 
 ### Mga Prinsipyo ng SOLID
 
-- **Single Responsibility**: Bawat komponent ay may isang malinaw na layunin
-- **Open/Closed**: Mapapalawak nang hindi babaguhin
-- **Liskov Substitution**: Implementasyon ng tool batay sa interface
-- **Interface Segregation**: Nakatuon, magkakaugnay na interfaces
-- **Dependency Inversion**: Umasa sa abstractions, hindi sa konkreto
+- **Single Responsibility**: Bawat bahagi ay may isang malinaw na layunin
+- **Open/Closed**: Mapapalawig nang hindi binabago
+- **Liskov Substitution**: Implementasyon ng tool na batay sa interface
+- **Interface Segregation**: Nakatuon, magkakaugnay na mga interface
+- **Dependency Inversion**: Nakasalalay sa abstractions, hindi sa konkretong bagay
 
 ### Malinis na Arkitektura
 
-- **Domain Layer**: Pangunahing abstractions ng agent at tool
-- **Application Layer**: Orkestrasyon ng agent at workflows
-- **Infrastructure Layer**: Azure OpenAI (Responses API) integrasyon at mga external na serbisyo
-- **Presentation Layer**: Interaksyon ng user at pagformat ng sagot
+- **Domain Layer**: Pangunahing abstraksyon ng agent at tool
+- **Application Layer**: Orkestrasyon ng agent at workflow
+- **Infrastructure Layer**: Integrasyon ng Azure OpenAI (Responses API) at mga panlabas na serbisyo
+- **Presentation Layer**: Interaksyon ng gumagamit at pag-format ng tugon
 
-## 🔒 Mga Pagsasaalang-alang sa Enterprise
+## 🔒 Mga Isyung Enterprise
 
 ### Seguridad
 
 - **Pamamahala ng Credential**: Secure na paghawak ng API key gamit ang IConfiguration
-- **Input Validation**: Strong typing at validation gamit ang data annotation
-- **Output Sanitization**: Secure na pagproseso at pagsasala ng sagot
+- **Pag-validate ng Input**: Malakas na pagta-type at pag-validate ng data annotation
+- **Paglinis ng Output**: Secure na pagproseso at pagsala ng tugon
 - **Audit Logging**: Komprehensibong pagsubaybay ng operasyon
 
 ### Performance
 
-- **Async Patterns**: Non-blocking na mga I/O operation
-- **Connection Pooling**: Mahusay na pamamahala ng HTTP client
-- **Caching**: Caching ng sagot para sa pinahusay na performance
-- **Resource Management**: Tamang pagtatapon at paglilinis na mga pattern
+- **Async Patterns**: Mga non-blocking na operasyon ng I/O
+- **Connection Pooling**: Epektibong pamamahala ng HTTP client
+- **Caching**: Pag-cache ng tugon para sa pinahusay na performance
+- **Pamamahala ng Mapagkukunan**: Tamang pag-dispose at mga pattern ng paglilinis
 
 ### Scalability
 
-- **Thread Safety**: Suporta sa sabayang pagpapatakbo ng agent
-- **Resource Pooling**: Mahusay na paggamit ng yaman
-- **Load Management**: Paghigpit ng rate at pamamahala ng backpressure
-- **Monitoring**: Mga sukatan ng performance at health checks
+- **Thread Safety**: Suporta sa sabay-sabay na pagpapatupad ng agent
+- **Resource Pooling**: Epektibong paggamit ng mga mapagkukunan
+- **Pamamahala ng Load**: Paglimita ng rate at paghawak ng backpressure
+- **Pagmamanman**: Mga metriko ng performance at health checks
 
-## 🚀 Deployment sa Produksyon
+## 🚀 Deployment para sa Produksyon
 
-- **Configuration Management**: Mga setting na espesipiko sa environment
-- **Logging Strategy**: Structured logging na may correlation ID
-- **Error Handling**: Pangkalahatang pamamahala ng exception na may tamang recovery
-- **Monitoring**: Application insights at mga performance counter
-- **Testing**: Mga yunit ng pagsubok, integration test, at mga pattern sa load testing
+- **Pamamahala ng Konfigurasyon**: Mga setting na naangkop sa kapaligiran
+- **Estratehiya sa Logging**: Structured logging na may correlation IDs
+- **Pag-handle ng Error**: Global na pag-handle ng exception na may tamang recovery
+- **Pagmamanman**: Application insights at mga performance counters
+- **Pagsusuri**: Unit tests, integration tests, at mga pattern ng load testing
 
-Handa ka na bang bumuo ng mga intelligent agent na pang-enterprise gamit ang .NET? Tara, gumawa tayo ng matibay na arkitektura! 🏢✨
+Handa ka na bang bumuo ng enterprise-grade na matatalinong agent gamit ang .NET? Mag-arkitekto tayo ng matibay na sistema! 🏢✨
 
 ## 🚀 Pagsisimula
 
 ### Mga Kinakailangan
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) o mas mataas
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) o mas mataas pa
 - Isang [Azure subscription](https://azure.microsoft.com/free/) na may Azure OpenAI resource at deployment ng modelo
 - Ang [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — mag-sign in gamit ang `az login`
 
-### Kailangan na Mga Environment Variable
+### Mga Kinakailangang Environment Variable
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 # Mag-sign in muna para makakuha ng token ang AzureCliCredential
 az login
 ```
@@ -140,14 +140,14 @@ az login
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Pagkatapos ay mag-sign in upang makakuha ng token ang AzureCliCredential
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Pagkatapos mag-sign in upang makakuha ng token ang AzureCliCredential
 az login
 ```
 
-### Halimbawang Code
+### Halimbawang Kodigo
 
-Para patakbuhin ang halimbawa ng code,
+Para patakbuhin ang halimbawang kodigo,
 
 ```bash
 # zsh/bash
@@ -161,7 +161,7 @@ O gamit ang dotnet CLI:
 dotnet run ./03-dotnet-agent-framework.cs
 ```
 
-Tingnan ang [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) para sa kompletong code.
+Tingnan ang [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) para sa kumpletong kodigo.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

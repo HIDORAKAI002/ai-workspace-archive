@@ -2,28 +2,28 @@
 
 ## 📋 סקירת התרחיש
 
-דוגמה זו ממחישה כיצד לבנות סוכן תכנון נסיעות אינטליגנטי באמצעות Microsoft Agent Framework ל-.NET. הסוכן יכול לייצר באופן אוטומטי מסלולי טיול יומיים מותאמים אישית ליעדים אקראיים ברחבי העולם.
+דוגמה זו מדגימה כיצד לבנות סוכן לתכנון נסיעות חכם באמצעות Microsoft Agent Framework עבור .NET. הסוכן יכול ליצור באופן אוטומטי מסלולי טיול יומיים מותאמים אישית ליעדים אקראיים ברחבי העולם.
 
-### יכולות מפתח:
+### יכולות מרכזיות:
 
-- 🎲 **בחירת יעד אקראי**: משתמש בכלי מותאם לבחירת מוקדי חופשה
-- 🗺️ **תכנון טיול אינטיליגנטי**: יוצר מסלולים מפורטים יום-יום
-- 🔄 **זרימה בזמן אמת**: תומך בתגובות מיידיות וזרימות
-- 🛠️ **אינטגרציה עם כלים מותאמים**: מדגים כיצד להרחיב את יכולות הסוכן
+- 🎲 **בחירת יעד אקראי**: משתמש בכלי מותאם לבחירת מקומות חופשה
+- 🗺️ **תכנון טיול חכם**: יוצר מסלולים מפורטים יום-יום
+- 🔄 **זרימה בזמן אמת**: תומך בתגובות מיידיות וזרם תגובות
+- 🛠️ **אינטגרציה עם כלי מותאם**: מציג כיצד להרחיב את יכולות הסוכן
 
 ## 🔧 ארכיטקטורה טכנית
 
-### טכנולוגיות מרכזיות
+### טכנולוגיות ליבה
 
-- **Microsoft Agent Framework**: מימוש עדכני ב-.NET לפיתוח סוכני AI
-- **Azure OpenAI (Responses API)**: משתמש ב-API של תגובות Azure OpenAI להסקת מודל
+- **Microsoft Agent Framework**: המימוש העדכני ביותר ב-.NET לפיתוח סוכני בינה מלאכותית
+- **Azure OpenAI (Responses API)**: משתמש ב-API של Azure OpenAI Responses להסקת מודלים
 - **Azure Identity**: כניסה מאובטחת דרך `AzureCliCredential` (`az login`)
-- **ניהול מאובטח**: ניהול נקודת קצה מבוסס סביבה
+- **ניהול אבטחה**: ניהול נקודות קצה מבוסס סביבה
 
 ### רכיבים מרכזיים
 
-1. **AIAgent**: מנחה הזרימה הראשי שמנהל את שיחת השיח
-2. **כלים מותאמים**: פונקציית `GetRandomDestination()` זמינה לסוכן
+1. **AIAgent**: הסוכן הראשי שמנהל את זרימת השיחה
+2. **כלים מותאמים**: הפונקציה `GetRandomDestination()` זמינה לסוכן
 3. **לקוח תגובות**: ממשק שיחה מבוסס Azure OpenAI Responses
 4. **תמיכה בזרימה**: יכולות יצירת תגובות בזמן אמת
 
@@ -32,41 +32,41 @@
 ```mermaid
 graph LR
     A[בקשת משתמש] --> B[סוכן בינה מלאכותית]
-    B --> C[Azure OpenAI (ממשק API לתגובות)]
+    B --> C[Azure OpenAI (ממשק תגובות API)]
     B --> D[כלי GetRandomDestination]
     C --> E[מסלול טיול]
     D --> E
 ```
 
-## 🚀 התחלת עבודה
+## 🚀 התחלה מהירה
 
 ### דרישות מוקדמות
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) או גרסה גבוהה יותר
-- [מנוי Azure](https://azure.microsoft.com/free/) עם משאב Azure OpenAI ופריסת מודל
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — התחבר עם `az login`
+- [SDK .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) או גרסה גבוהה יותר
+- מנוי [Azure](https://azure.microsoft.com/free/) עם משאב Azure OpenAI ופריסת מודל
+- כלי שורת הפקודה של [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — התחבר עם `az login`
 
 ### משתני סביבה נדרשים
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# לאחר מכן היכנס כדי ש-AzureCliCredential יוכל לקבל אסימון
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# התחבר כדי ש-AzureCliCredential יוכל לקבל אסימון
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # לאחר מכן התחבר כדי ש-AzureCliCredential יוכל לקבל אסימון
 az login
 ```
 
-### קוד לדוגמה
+### דוגמת קוד
 
-להפעלת דוגמת הקוד,
+להריץ את דוגמת הקוד,
 
 ```bash
 # זש/באש
@@ -74,7 +74,7 @@ chmod +x ./01-dotnet-agent-framework.cs
 ./01-dotnet-agent-framework.cs
 ```
 
-או באמצעות ה-CLI של dotnet:
+או באמצעות dotnet CLI:
 
 ```bash
 dotnet run ./01-dotnet-agent-framework.cs
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,19 +157,19 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 מסקנות מרכזיות
+## 🎓 תובנות מרכזיות
 
-1. **ארכיטקטורת סוכן**: Microsoft Agent Framework מספק גישה נקייה ובטוחה מסוג לפיתוח סוכני AI ב-.NET
-2. **אינטגרציית כלים**: פונקציות המצוינות עם תכונות `[Description]` נהפכות לזמינות ככלים לסוכן
-3. **ניהול קונפיגורציה**: משתני סביבה וטיפול מאובטח באישורים בהתאם להנחיות הטובות ב-.NET
-4. **API תגובות Azure OpenAI**: הסוכן משתמש ב-API תגובות Azure OpenAI דרך Azure.AI.OpenAI SDK
+1. **ארכיטקטורת הסוכן**: Microsoft Agent Framework מספק גישה נקייה ובטוחה טיפוס לבניית סוכני בינה מלאכותית ב-.NET
+2. **אינטגרציה עם כלים**: פונקציות המעוטרות בתוויות `[Description]` הופכות לכלים זמינים לסוכן
+3. **ניהול תצורה**: משתני סביבה וטיפול מאובטח באישורים בהתאם לפרקטיקות הטובות ביותר של .NET
+4. **Azure OpenAI Responses API**: הסוכן משתמש ב-API של Azure OpenAI Responses דרך Azure.AI.OpenAI SDK
 
 ## 🔗 משאבים נוספים
 
 - [תיעוד Microsoft Agent Framework](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI ב-Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [.NET Single File Apps](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [יישומי .NET Single File](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

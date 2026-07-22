@@ -2,32 +2,32 @@
 
 ## 📋 Tujuan Pembelajaran
 
-Contoh ini mengeksplorasi konsep fundamental dari Microsoft Agent Framework melalui implementasi agen dasar di .NET. Anda akan mempelajari pola agentik inti dan memahami bagaimana agen cerdas bekerja secara mendalam menggunakan C# dan ekosistem .NET.
+Contoh ini mengeksplorasi konsep dasar Microsoft Agent Framework melalui implementasi agen dasar di .NET. Anda akan mempelajari pola agen inti dan memahami bagaimana agen cerdas bekerja secara mendalam menggunakan C# dan ekosistem .NET.
 
 ### Apa yang Akan Anda Temukan
 
 - 🏗️ **Arsitektur Agen**: Memahami struktur dasar agen AI di .NET
-- 🛠️ **Integrasi Alat**: Bagaimana agen menggunakan fungsi eksternal untuk memperluas kapabilitas  
-- 💬 **Alur Percakapan**: Mengelola percakapan multi-giliran dan konteks dengan manajemen thread
-- 🔧 **Pola Konfigurasi**: Praktik terbaik untuk pengaturan dan pengelolaan agen di .NET
+- 🛠️ **Integrasi Alat**: Bagaimana agen menggunakan fungsi eksternal untuk memperluas kemampuan  
+- 💬 **Alur Percakapan**: Mengelola percakapan multi-putar dan konteks dengan manajemen thread
+- 🔧 **Pola Konfigurasi**: Praktik terbaik untuk pengaturan dan manajemen agen di .NET
 
-## 🎯 Konsep Utama yang Dibahas
+## 🎯 Konsep Kunci yang Dibahas
 
-### Prinsip Framework Agentik
+### Prinsip Framework Agenik
 
 - **Otonomi**: Bagaimana agen membuat keputusan mandiri menggunakan abstraksi AI .NET
-- **Reaktivitas**: Merespon perubahan lingkungan dan masukan pengguna
+- **Reaktivitas**: Merespons perubahan lingkungan dan input pengguna
 - **Proaktivitas**: Mengambil inisiatif berdasarkan tujuan dan konteks
-- **Kemampuan Sosial**: Berinteraksi melalui bahasa alami dengan thread percakapan
+- **Kemampuan Sosial**: Berinteraksi melalui bahasa alami dengan utas percakapan
 
 ### Komponen Teknis
 
 - **AIAgent**: Orkestrasi inti agen dan manajemen percakapan (.NET)
-- **Fungsi Alat**: Memperluas kapabilitas agen dengan metode dan atribut C#
+- **Fungsi Alat**: Memperluas kemampuan agen dengan metode dan atribut C#
 - **Integrasi Azure OpenAI**: Memanfaatkan model bahasa melalui Azure OpenAI Responses API
 - **Konfigurasi Aman**: Manajemen endpoint berbasis lingkungan
 
-## 🔧 Tumpukan Teknis
+## 🔧 Tumpukan Teknologi
 
 ### Teknologi Inti
 
@@ -36,30 +36,30 @@ Contoh ini mengeksplorasi konsep fundamental dari Microsoft Agent Framework mela
 - Pola klien Azure.AI.OpenAI
 - Konfigurasi berbasis lingkungan dengan DotNetEnv
 
-### Kapabilitas Agen
+### Kemampuan Agen
 
 - Pemahaman dan generasi bahasa alami
 - Pemanggilan fungsi dan penggunaan alat dengan atribut C#
-- Respons kontekstual dengan sesi percakapan
+- Respons yang sadar konteks dengan sesi percakapan
 - Arsitektur yang dapat diperluas dengan pola dependency injection
 
 ## 📚 Perbandingan Framework
 
-Contoh ini menunjukkan pendekatan Microsoft Agent Framework dibandingkan dengan framework agentik lain:
+Contoh ini menunjukkan pendekatan Microsoft Agent Framework dibandingkan dengan framework agenik lainnya:
 
 | Fitur | Microsoft Agent Framework | Framework Lain |
 |---------|-------------------------|------------------|
-| **Integrasi** | Ekosistem Microsoft asli | Kompatibilitas beragam |
-| **Kesederhanaan** | API yang bersih dan intuitif | Pengaturan sering kompleks |
-| **Ekstensibilitas** | Integrasi alat mudah | Bergantung framework |
-| **Siap untuk Perusahaan** | Dibangun untuk produksi | Bervariasi per framework |
+| **Integrasi** | Ekosistem Microsoft asli | Kompatibilitas bervariasi |
+| **Kesederhanaan** | API yang bersih dan intuitif | Sering konfigurasi kompleks |
+| **Ekstensibilitas** | Integrasi alat mudah | Bergantung pada framework |
+| **Siap Enterprise** | Dibangun untuk produksi | Bervariasi menurut framework |
 
 ## 🚀 Memulai
 
 ### Prasyarat
 
-- [SDK .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) atau lebih tinggi
-- [Langganan Azure](https://azure.microsoft.com/free/) dengan sumber daya Azure OpenAI dan deployment model
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) atau lebih tinggi
+- [Langganan Azure](https://azure.microsoft.com/free/) dengan sumber daya Azure OpenAI dan penyebaran model
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — masuk dengan `az login`
 
 ### Variabel Lingkungan yang Diperlukan
@@ -67,7 +67,7 @@ Contoh ini menunjukkan pendekatan Microsoft Agent Framework dibandingkan dengan 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 # Kemudian masuk agar AzureCliCredential dapat memperoleh token
 az login
 ```
@@ -75,8 +75,8 @@ az login
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Kemudian masuk sehingga AzureCliCredential dapat memperoleh token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Kemudian masuk agar AzureCliCredential dapat mengambil token
 az login
 ```
 
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,20 +215,20 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 Poin Penting
+## 🎓 Kesimpulan Utama
 
 1. **Arsitektur Agen**: Microsoft Agent Framework menyediakan pendekatan yang bersih dan type-safe untuk membangun agen AI di .NET
-2. **Integrasi Alat**: Fungsi yang dihias dengan atribut `[Description]` menjadi alat yang tersedia untuk agen
-3. **Konteks Percakapan**: Manajemen sesi memungkinkan percakapan multi-giliran dengan kesadaran konteks penuh
+2. **Integrasi Alat**: Fungsi yang diberi atribut `[Description]` menjadi alat yang tersedia untuk agen
+3. **Konteks Percakapan**: Manajemen sesi memungkinkan percakapan multi-putar dengan kesadaran konteks penuh
 4. **Manajemen Konfigurasi**: Variabel lingkungan dan penanganan kredensial aman mengikuti praktik terbaik .NET
-5. **Azure OpenAI Responses API**: Agen menggunakan Azure OpenAI Responses API melalui SDK Azure.AI.OpenAI
+5. **Azure OpenAI Responses API**: Agen menggunakan Azure OpenAI Responses API melalui Azure.AI.OpenAI SDK
 
 ## 🔗 Sumber Daya Tambahan
 
 - [Dokumentasi Microsoft Agent Framework](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI di Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [Aplikasi File Tunggal .NET](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [Aplikasi Single File .NET](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

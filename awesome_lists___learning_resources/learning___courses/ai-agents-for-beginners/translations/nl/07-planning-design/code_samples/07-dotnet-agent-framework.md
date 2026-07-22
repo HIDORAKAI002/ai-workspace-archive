@@ -2,14 +2,14 @@
 
 ## 📋 Leerdoelen
 
-Deze notebook demonstreert enterprise-grade planning- en ontwerppatronen voor het bouwen van intelligente agenten met behulp van het Microsoft Agent Framework in .NET met Azure OpenAI (Responses API). Je leert agenten maken die complexe problemen kunnen ontleden, meerstapsoplossingen kunnen plannen en geavanceerde workflows kunnen uitvoeren met de enterprise-functies van .NET.
+Deze notebook toont ondernemingsniveau planning en ontwerppatronen voor het bouwen van intelligente agenten met het Microsoft Agent Framework in .NET met Azure OpenAI (Responses API). Je leert agenten maken die complexe problemen kunnen ontleden, meerstapsoplossingen plannen en geavanceerde workflows uitvoeren met de enterprise-functies van .NET.
 
-## ⚙️ Vereisten & Installatie
+## ⚙️ Vereisten & Setup
 
 **Ontwikkelomgeving:**
 - .NET 9.0 SDK of hoger
 - Visual Studio 2022 of VS Code met C# extensie
-- Een Azure-abonnement met een Azure OpenAI-resource en een modelimplementatie
+- Een Azure-abonnement met een Azure OpenAI-resource en een model-implementatie
 - De Azure CLI — inloggen met `az login`
 
 **Benodigde afhankelijkheden:**
@@ -22,13 +22,13 @@ Deze notebook demonstreert enterprise-grade planning- en ontwerppatronen voor he
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
-**Omgevingsconfiguratie (.env bestand):**
+**Omgevingsconfiguratie (.env-bestand):**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
-## Code uitvoeren
+## Code Uitvoeren
 
 Deze les bevat een .NET Single File App-implementatie. Om deze uit te voeren:
 
@@ -40,25 +40,25 @@ chmod +x 07-dotnet-agent-framework.cs
 ./07-dotnet-agent-framework.cs
 ```
 
-Of gebruik de dotnet run opdracht:
+Of gebruik het dotnet run-commando:
 
 ```bash
 dotnet run 07-dotnet-agent-framework.cs
 ```
 
-## Code-implementatie
+## Code Implementatie
 
-De volledige implementatie is beschikbaar in `07-dotnet-agent-framework.cs`, die demonstreert:
+De volledige implementatie is beschikbaar in `07-dotnet-agent-framework.cs`, welke demonstreert:
 
 - Laden van omgevingsconfiguratie met DotNetEnv
 - Configureren van de Azure OpenAI-client en het creëren van een AI-agent met `GetChatClient().AsAIAgent()`
 - Definiëren van gestructureerde datamodellen (Plan en TravelPlan) met JSON-serialisatie
-- Creëren van een AI-agent met gestructureerde output via JSON-schema
-- Uitvoeren van planningsverzoeken met type-veilige responses
+- Creëren van een AI-agent met gestructureerde output met JSON-schema
+- Uitvoeren van planningsaanvragen met type-veilige reacties
 
 ## Kernconcepten
 
-### Gestructureerde Planning met Type-Veilige Modellen
+### Gestructureerde Planning met Type-veilige Modellen
 
 De agent gebruikt C#-klassen om de structuur van planningsuitvoer te definiëren:
 
@@ -82,9 +82,9 @@ public class TravelPlan
 }
 ```
 
-### JSON-schema voor Gestructureerde Outputs
+### JSON-schema voor Gestructureerde Uitvoer
 
-De agent is geconfigureerd om responses terug te geven die overeenkomen met het TravelPlan-schema:
+De agent is geconfigureerd om reacties terug te geven die overeenkomen met het TravelPlan-schema:
 
 ```csharp
 ChatClientAgentOptions agentOptions = new()
@@ -103,18 +103,18 @@ ChatClientAgentOptions agentOptions = new()
 
 ### Instructies voor de Planning Agent
 
-De agent fungeert als coördinator en delegeert taken aan gespecialiseerde sub-agenten:
+De agent fungeert als coördinator en delegeert taken aan gespecialiseerde subagenten:
 
 - FlightBooking: Voor het boeken van vluchten en het verstrekken van vluchtinformatie
 - HotelBooking: Voor het boeken van hotels en het verstrekken van hotelinformatie
-- CarRental: Voor het huren van auto's en het verstrekken van autoverhuurinformatie
-- ActivitiesBooking: Voor het boeken van activiteiten en het verstrekken van informatie over activiteiten
+- CarRental: Voor het boeken van auto’s en het verstrekken van autoverhuur informatie
+- ActivitiesBooking: Voor het boeken van activiteiten en het verstrekken van activiteiteninformatie
 - DestinationInfo: Voor het verstrekken van informatie over bestemmingen
 - DefaultAgent: Voor het afhandelen van algemene verzoeken
 
-## Verwachte Output
+## Verwachte Uitvoer
 
-Wanneer je de agent uitvoert met een reislingsverzoek, zal hij het verzoek analyseren en een gestructureerd plan genereren met passende taaktoewijzingen aan gespecialiseerde agenten, geformatteerd als JSON conform het TravelPlan-schema.
+Wanneer je de agent uitvoert met een reisschema-planningsverzoek, zal deze het verzoek analyseren en een gestructureerd plan genereren met passende taaktoewijzingen aan gespecialiseerde agenten, geformatteerd als JSON conform het TravelPlan-schema.
 
 ---
 

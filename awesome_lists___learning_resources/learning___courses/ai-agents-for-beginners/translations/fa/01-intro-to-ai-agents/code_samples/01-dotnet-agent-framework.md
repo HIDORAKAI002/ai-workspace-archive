@@ -1,66 +1,66 @@
-# 🌍 عامل سفر هوش مصنوعی با چارچوب عامل مایکروسافت (.NET)
+# 🌍 نماینده سفر هوش مصنوعی با چهارچوب Microsoft Agent (.NET)
 
-## 📋 نمای کلی سناریو
+## 📋 مرور سناریو
 
-این مثال نشان می‌دهد چگونه می‌توان یک عامل برنامه‌ریزی سفر هوشمند با استفاده از چارچوب عامل مایکروسافت برای .NET ساخت. این عامل می‌تواند به‌طور خودکار برنامه‌های سفر روزانه شخصی‌سازی‌شده برای مقاصد تصادفی در سراسر جهان ایجاد کند.
+این مثال نشان می‌دهد چگونه یک نماینده هوشمند برنامه‌ریزی سفر با استفاده از چهارچوب Microsoft Agent برای .NET بسازید. نماینده می‌تواند به طور خودکار برنامه‌های روزانه سفر شخصی‌سازی شده برای مقاصد تصادفی در سراسر جهان تولید کند.
 
 ### قابلیت‌های کلیدی:
 
-- 🎲 **انتخاب تصادفی مقصد**: استفاده از ابزار سفارشی برای انتخاب مکان‌های تعطیلات
-- 🗺️ **برنامه‌ریزی سفر هوشمند**: ایجاد برنامه‌های روزانه تفصیلی
+- 🎲 **انتخاب مقصد تصادفی**: استفاده از ابزار سفارشی برای انتخاب نقاط تعطیلات
+- 🗺️ **برنامه‌ریزی هوشمند سفر**: ایجاد برنامه‌های روز به روز دقیق
 - 🔄 **پخش زنده در زمان واقعی**: پشتیبانی از پاسخ‌های فوری و پخش زنده
-- 🛠️ **ادغام ابزار سفارشی**: نشان دادن نحوه گسترش قابلیت‌های عامل
+- 🛠️ **یکپارچه‌سازی ابزار سفارشی**: نمایش نحوه گسترش قابلیت‌های نماینده
 
 ## 🔧 معماری فنی
 
 ### فناوری‌های اصلی
 
-- **چارچوب عامل مایکروسافت**: آخرین پیاده‌سازی .NET برای توسعه عامل‌های هوش مصنوعی
+- **چارچوب Microsoft Agent**: آخرین پیاده‌سازی .NET برای توسعه نماینده‌های هوش مصنوعی
 - **Azure OpenAI (API پاسخ‌ها)**: استفاده از API پاسخ‌های Azure OpenAI برای استنتاج مدل
-- **Azure Identity**: ورود امن با استفاده از `AzureCliCredential` (`az login`)
+- **Azure Identity**: ورود امن با `AzureCliCredential` (`az login`)
 - **پیکربندی امن**: مدیریت نقطه پایانی مبتنی بر محیط
 
-### اجزای کلیدی
+### مؤلفه‌های کلیدی
 
-1. **AIAgent**: هماهنگ‌کننده اصلی عامل که جریان مکالمه را مدیریت می‌کند
-2. **ابزارهای سفارشی**: تابع `GetRandomDestination()` در دسترس عامل قرار دارد
-3. **کلاینت پاسخ‌ها**: واسط مکالمه مبتنی بر پاسخ‌های Azure OpenAI
-4. **پشتیبانی پخش زنده**: قابلیت تولید پاسخ در زمان واقعی
+1. **AIAgent**: هماهنگ‌کننده اصلی نماینده که جریان مکالمه را اداره می‌کند
+2. **ابزارهای سفارشی**: تابع `GetRandomDestination()` که در دسترس نماینده است
+3. **کلاینت پاسخ‌ها**: رابط مکالمه مبتنی بر پاسخ‌های Azure OpenAI
+4. **پشتیبانی از پخش زنده**: قابلیت تولید پاسخ در زمان واقعی
 
 ### الگوی یکپارچه‌سازی
 
 ```mermaid
 graph LR
     A[درخواست کاربر] --> B[عامل هوش مصنوعی]
-    B --> C[آزور OpenAI (رابط برنامه‌نویسی پاسخ‌ها)]
+    B --> C[آزور اوپن‌ای‌آی (API پاسخ‌ها)]
     B --> D[ابزار مقصد تصادفی]
     C --> E[برنامه سفر]
     D --> E
 ```
 
-## 🚀 شروع کار
+## 🚀 شروع به کار
 
 ### پیش‌نیازها
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) یا بالاتر
-- یک [اشتراک Azure](https://azure.microsoft.com/free/) با منبع Azure OpenAI و استقرار مدل
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — ورود با `az login`
+- اشتراک [Azure](https://azure.microsoft.com/free/) با منبع Azure OpenAI و استقرار مدل
+- نصب [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — ورود با `az login`
 
 ### متغیرهای محیطی مورد نیاز
 
 ```bash
-# زدش/باش
+# زد شل/باش
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# سپس وارد شوید تا AzureCliCredential بتواند توکن دریافت کند
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# سپس وارد شوید تا AzureCliCredential بتواند یک توکن دریافت کند
 az login
 ```
 
 ```powershell
 # پاورشل
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# سپس وارد شوید تا AzureCliCredential بتواند توکن دریافت کند
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# سپس وارد شوید تا AzureCliCredential بتواند یک توکن دریافت کند
 az login
 ```
 
@@ -69,7 +69,7 @@ az login
 برای اجرای نمونه کد،
 
 ```bash
-# زد شل/بش
+# زد‌اِس‌اچ/بَش
 chmod +x ./01-dotnet-agent-framework.cs
 ./01-dotnet-agent-framework.cs
 ```
@@ -80,7 +80,7 @@ chmod +x ./01-dotnet-agent-framework.cs
 dotnet run ./01-dotnet-agent-framework.cs
 ```
 
-کد کامل را در [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) ببینید.
+برای کد کامل به [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) مراجعه کنید.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -159,17 +159,17 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 
 ## 🎓 نکات کلیدی
 
-1. **معماری عامل**: چارچوب عامل مایکروسافت رویکردی تمیز و ایمن از نظر نوع برای ساخت عامل‌های هوش مصنوعی در .NET فراهم می‌کند
-2. **ادغام ابزارها**: توابعی که با صفت `[Description]` تزئین شده‌اند به عنوان ابزارهای در دسترس برای عامل تبدیل می‌شوند
-3. **مدیریت پیکربندی**: متغیرهای محیطی و مدیریت اعتبارنامه امن طبق بهترین شیوه‌های .NET انجام می‌شود
-4. **API پاسخ‌های Azure OpenAI**: عامل از API پاسخ‌های Azure OpenAI از طریق SDK Azure.AI.OpenAI استفاده می‌کند
+1. **معماری نماینده**: چارچوب Microsoft Agent رویکردی پاک و ایمن از نظر نوع برای ساخت نماینده‌های هوش مصنوعی در .NET فراهم می‌کند
+2. **یکپارچه‌سازی ابزارها**: توابعی که با ویژگی `[Description]` تزئین شده‌اند، ابزارهای در دسترس برای نماینده می‌شوند
+3. **مدیریت پیکربندی**: متغیرهای محیطی و مدیریت ایمن اعتبارنامه‌ها بهترین شیوه‌های .NET را دنبال می‌کنند
+4. **API پاسخ‌های Azure OpenAI**: نماینده از API پاسخ‌های Azure OpenAI از طریق SDK Azure.AI.OpenAI استفاده می‌کند
 
 ## 🔗 منابع اضافی
 
-- [مستندات چارچوب عامل مایکروسافت](https://learn.microsoft.com/agent-framework)
+- [مستندات چارچوب Microsoft Agent](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI در Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [اپلیکیشن‌های تک‌فایل .NET](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [برنامه‌های تک‌فایل .NET](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

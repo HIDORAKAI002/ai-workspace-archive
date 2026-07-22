@@ -1,70 +1,70 @@
-[![Udforskning af AI Agent Frameworks](../../../translated_images/da/lesson-2-thumbnail.c65f44c93b8558df.webp)](https://youtu.be/ODwF-EZo_O8?si=1xoy_B9RNQfrYdF7)
+[![Udforskning af AI-agentrammer](../../../translated_images/da/lesson-2-thumbnail.c65f44c93b8558df.webp)](https://youtu.be/ODwF-EZo_O8?si=1xoy_B9RNQfrYdF7)
 
-> _(Klik på billedet ovenfor for at se videoen til denne lektion)_
+> _(Klik på billedet ovenfor for at se videoen af denne lektion)_
 
-# Udforsk AI Agent Frameworks
+# Udforsk AI Agent-rammer
 
-AI agent frameworks er softwareplatforme designet til at forenkle oprettelsen, implementeringen og styringen af AI-agenter. Disse frameworks tilbyder udviklere forudbyggede komponenter, abstraktioner og værktøjer, som strømliner udviklingen af komplekse AI-systemer.
+AI-agentrammer er softwareplatforme designet til at forenkle oprettelsen, udrulningen og styringen af AI-agenter. Disse rammer giver udviklere forudbyggede komponenter, abstraktioner og værktøjer, der effektiviserer udviklingen af komplekse AI-systemer.
 
-Disse frameworks hjælper udviklere med at fokusere på de unikke aspekter af deres applikationer ved at tilbyde standardiserede tilgange til almindelige udfordringer i AI-agentudvikling. De forbedrer skalerbarhed, tilgængelighed og effektivitet i opbygningen af AI-systemer.
+Disse rammer hjælper udviklere med at fokusere på de unikke aspekter af deres applikationer ved at tilbyde standardiserede tilgange til almindelige udfordringer i AI-agentudvikling. De forbedrer skalerbarhed, tilgængelighed og effektivitet i opbygningen af AI-systemer.
 
 ## Introduktion 
 
 Denne lektion vil dække:
 
-- Hvad er AI Agent Frameworks, og hvad gør de muligt for udviklere at opnå?
-- Hvordan kan teams bruge disse til hurtigt at prototype, iterere og forbedre deres agents kapabiliteter?
-- Hvad er forskellene mellem de frameworks og værktøjer, Microsoft har skabt (<a href="https://aka.ms/ai-agents-beginners/ai-agent-service" target="_blank">Microsoft Foundry Agent Service</a> og <a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/responses" target="_blank">Microsoft Agent Framework</a>)?
+- Hvad er AI Agent-rammer, og hvad kan de hjælpe udviklere med at opnå?
+- Hvordan kan teams bruge disse til hurtigt at prototype, iterere og forbedre deres agenters kapaciteter?
+- Hvad er forskellene mellem rammerne og værktøjerne skabt af Microsoft (<a href="https://aka.ms/ai-agents-beginners/ai-agent-service" target="_blank">Microsoft Foundry Agent Service</a> og <a href="https://learn.microsoft.com/azure/ai-services/openai/how-to/responses" target="_blank">Microsoft Agent Framework</a>)?
 - Kan jeg integrere mine eksisterende Azure-økosystemværktøjer direkte, eller har jeg brug for selvstændige løsninger?
 - Hvad er Microsoft Foundry Agent Service, og hvordan hjælper det mig?
 
 ## Læringsmål
 
-Formålet med denne lektion er at hjælpe dig med at forstå:
+Målet med denne lektion er at hjælpe dig med at forstå:
 
-- AI Agent Frameworks rolle i AI-udvikling.
-- Hvordan man udnytter AI Agent Frameworks til at bygge intelligente agenter.
-- Vigtige kapabiliteter, som AI Agent Frameworks gør mulige.
+- AI Agent-rammers rolle i AI-udvikling.
+- Hvordan man udnytter AI Agent-rammer til at bygge intelligente agenter.
+- Vigtige funktionaliteter, der muliggøres af AI Agent-rammer.
 - Forskellene mellem Microsoft Agent Framework og Microsoft Foundry Agent Service.
 
-## Hvad er AI Agent Frameworks, og hvad gør de muligt for udviklere?
+## Hvad er AI Agent-rammer, og hvad gør de muligt for udviklere?
 
-Traditionelle AI Frameworks kan hjælpe dig med at integrere AI i dine apps og forbedre disse apps på følgende måder:
+Traditionelle AI-rammer kan hjælpe dig med at integrere AI i dine apps og gøre disse apps bedre på følgende måder:
 
-- **Personalisering**: AI kan analysere brugeradfærd og præferencer for at give personlige anbefalinger, indhold og oplevelser.
-Eksempel: Streamingtjenester som Netflix bruger AI til at foreslå film og shows baseret på seerhistorik, hvilket forbedrer brugerengagement og tilfredshed.
-- **Automatisering og effektivitet**: AI kan automatisere gentagne opgaver, strømligne arbejdsgange og forbedre driftsmæssig effektivitet.
-Eksempel: Kundeserviceapps bruger AI-drevne chatbots til at håndtere almindelige forespørgsler, hvilket reducerer svartider og frigør menneskelige agenter til mere komplekse problemer.
-- **Forbedret brugeroplevelse**: AI kan forbedre den samlede brugeroplevelse ved at tilbyde intelligente funktioner som talegenkendelse, naturlig sprogbehandling og forudsigende tekst.
-Eksempel: Virtuelle assistenter som Siri og Google Assistant bruger AI til at forstå og reagere på stemmekommandoer, hvilket gør det nemmere for brugere at interagere med deres enheder.
+- **Personalisering**: AI kan analysere brugeradfærd og præferencer for at tilbyde personlige anbefalinger, indhold og oplevelser.
+Eksempel: Streamingtjenester som Netflix bruger AI til at foreslå film og shows baseret på seerhistorik, hvilket øger brugerengagement og tilfredshed.
+- **Automatisering og effektivitet**: AI kan automatisere gentagne opgaver, strømline arbejdsgange og forbedre driftseffektiviteten.
+Eksempel: Kundeserviceapps bruger AI-drevne chatbots til at håndtere almindelige forespørgsler, reducere svartider og frigøre menneskelige agenter til mere komplekse problemer.
+- **Forbedret brugeroplevelse**: AI kan forbedre den samlede brugeroplevelse ved at levere intelligente funktioner som stemmegenkendelse, naturlig sprogbehandling og forudsigende tekst.
+Eksempel: Virtuelle assistenter som Siri og Google Assistant bruger AI til at forstå og reagere på stemmekommandoer, hvilket gør det lettere for brugere at interagere med deres enheder.
 
-### Det lyder jo fantastisk, så hvorfor har vi brug for AI Agent Framework?
+### Det lyder jo fantastisk, men hvorfor har vi så brug for AI Agent-rammer?
 
-AI Agent frameworks repræsenterer mere end bare AI-frameworks. De er designet til at muliggøre oprettelsen af intelligente agenter, der kan interagere med brugere, andre agenter og miljøet for at nå specifikke mål. Disse agenter kan udvise autonom adfærd, træffe beslutninger og tilpasse sig ændrede forhold. Lad os kigge på nogle nøglekapabiliteter, som AI Agent Frameworks muliggør:
+AI Agent-rammer repræsenterer mere end blot AI-rammer. De er designet til at muliggøre skabelsen af intelligente agenter, der kan interagere med brugere, andre agenter og omgivelser for at nå specifikke mål. Disse agenter kan udvise autonom adfærd, træffe beslutninger og tilpasse sig skiftende betingelser. Lad os se på nogle nøglefunktioner, der muliggøres af AI Agent-rammer:
 
 - **Agent-samarbejde og koordinering**: Muliggør oprettelse af flere AI-agenter, der kan arbejde sammen, kommunikere og koordinere for at løse komplekse opgaver.
-- **Automatisering og styring af opgaver**: Tilbyder mekanismer til automatisering af flertrins arbejdsgange, opgavedelegering og dynamisk opgavestyring mellem agenter.
-- **Kontextforståelse og tilpasning**: Udruster agenter med evnen til at forstå kontekst, tilpasse sig skiftende miljøer og træffe beslutninger baseret på realtidsinformation.
+- **Automatisering og styring af opgaver**: Tilbyder mekanismer til automatisering af flertrinsarbejdsgange, opgavedelegering og dynamisk opgavestyring mellem agenter.
+- **Kontekstuel forståelse og tilpasning**: Udstyrer agenter med evnen til at forstå kontekst, tilpasse sig skiftende miljøer og træffe beslutninger baseret på realtidsinformation.
 
-Så samlet set gør agenter det muligt for dig at gøre mere, at tage automatisering til næste niveau, at skabe mere intelligente systemer, der kan tilpasse sig og lære af deres omgivelser.
+Sammenfattende tillader agenter dig at gøre mere, løfte automatisering til næste niveau og skabe mere intelligente systemer, der kan tilpasse og lære af deres omgivelser.
 
-## Hvordan kan man hurtigt prototype, iterere og forbedre agentens kapabiliteter?
+## Hvordan kan man hurtigt prototype, iterere og forbedre agentens kapaciteter?
 
-Dette er et hurtigt udviklende område, men der er nogle ting, som er fælles for de fleste AI Agent Frameworks, der kan hjælpe dig med at prototype og iterere hurtigt, nemlig modulære komponenter, samarbejdsværktøjer og realtidslæring. Lad os dykke ned i disse:
+Dette er et hurtigt bevægeligt område, men der er nogle fælles elementer i de fleste AI Agent-rammer, som kan hjælpe dig med hurtig prototyping og iteration, nemlig modulære komponenter, samarbejdsværktøjer og realtidslæring. Lad os dykke ned i disse:
 
-- **Brug modulære komponenter**: AI SDK'er tilbyder forudbyggede komponenter såsom AI- og hukommelsesforbindelser, funktionskald via naturligt sprog eller kode-plugins, promptskabeloner og mere.
-- **Udnyt samarbejdsværktøjer**: Design agenter med specifikke roller og opgaver, der gør det muligt at teste og forfine samarbejdende arbejdsgange.
-- **Lær i realtid**: Implementer feedback-loops, hvor agenter lærer af interaktioner og dynamisk justerer deres adfærd.
+- **Brug modulære komponenter**: AI SDK'er tilbyder forbyggede komponenter såsom AI- og Hukommelsesforbindelser, funktionskald via naturligt sprog eller kodeplugins, promptskabeloner og mere.
+- **Udnyt samarbejdsværktøjer**: Design agenter med specifikke roller og opgaver, som muliggør test og forbedring af samarbejdsgange.
+- **Lær i realtid**: Implementer feedbacksløjfer, hvor agenter lærer fra interaktioner og dynamisk tilpasser deres adfærd.
 
 ### Brug modulære komponenter
 
-SDK'er som Microsoft Agent Framework tilbyder forudbyggede komponenter såsom AI-forbindelser, værktøjsdefinitioner og agentstyring.
+SDK'er som Microsoft Agent Framework tilbyder forbyggede komponenter såsom AI-forbindelser, værktøjsdefinitioner og agentstyring.
 
-**Hvordan teams kan bruge disse**: Teams kan hurtigt samle disse komponenter for at skabe en funktionel prototype uden at starte fra bunden, hvilket muliggør hurtige eksperimenter og iterationer.
+**Hvordan teams kan bruge disse**: Teams kan hurtigt samle disse komponenter for at skabe en fungerende prototype uden at starte fra bunden, hvilket muliggør hurtig eksperimentering og iteration.
 
-**Hvordan det fungerer i praksis**: Du kan bruge en forudbygget parser til at udtrække information fra brugerinput, en hukommelsesmodul til at gemme og hente data, og en promptgenerator til at interagere med brugere, alt sammen uden at skulle bygge disse komponenter fra bunden.
+**Hvordan det fungerer i praksis**: Du kan bruge en forbygget parser til at udtrække information fra brugerinput, en hukommelsesmodul til at gemme og hente data, og en promptgenerator til at interagere med brugere – alt sammen uden at skulle bygge disse komponenter fra bunden.
 
-**Eksempelkode**. Lad os se på et eksempel på, hvordan du kan bruge Microsoft Agent Framework med `FoundryChatClient` til at få modellen til at svare på brugerinput med værktøjskald:
+**Eksempelkode**. Lad os se på et eksempel på, hvordan du kan bruge Microsoft Agent Framework med `FoundryChatClient` for at få modellen til at reagere på brugerinput med værktøjskald:
 
 ``` python
 # Microsoft Agent Framework Python Eksempel
@@ -77,7 +77,7 @@ from agent_framework.foundry import FoundryChatClient
 from azure.identity import AzureCliCredential
 
 
-# Definer en eksempel værktøjsfunktion til at booke rejse
+# Definer en eksempelværktøjsfunktion til at bestille rejser
 @tool(approval_mode="never_require")
 def book_flight(date: str, location: str) -> str:
     """Book travel given location and date."""
@@ -98,22 +98,22 @@ async def main():
 
     response = await agent.run("I'd like to go to New York on January 1, 2025")
     print(response)
-    # Eksempel output: Din flyvning til New York den 1. januar 2025 er blevet succesfuldt booket. God rejse! ✈️🗽
+    # Eksempeluddata: Din flyrejse til New York den 1. januar 2025 er blevet succesfuldt bestilt. God rejse! ✈️🗽
 
 
 if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-Hvad du kan se fra dette eksempel, er hvordan du kan udnytte en forudbygget parser til at udtrække centrale informationer fra brugerinput, såsom afgangssted, destination og dato for en flybookningsanmodning. Denne modulære tilgang giver dig mulighed for at fokusere på logikken på højt niveau.
+Hvad du kan se fra dette eksempel, er hvordan du kan udnytte en forbygget parser til at udtrække nøgleinformation fra brugerinput, såsom afgangssted, destination og dato for en flybookingsanmodning. Denne modulære tilgang gør det muligt at fokusere på den overordnede logik.
 
 ### Udnyt samarbejdsværktøjer
 
-Frameworks som Microsoft Agent Framework gør det nemt at skabe flere agenter, der kan arbejde sammen.
+Rammer som Microsoft Agent Framework faciliterer oprettelsen af flere agenter, som kan arbejde sammen.
 
-**Hvordan teams kan bruge disse**: Teams kan designe agenter med specifikke roller og opgaver, så de kan teste og forbedre samarbejdende arbejdsgange og øge den samlede systemeffektivitet.
+**Hvordan teams kan bruge disse**: Teams kan designe agenter med specifikke roller og opgaver, hvilket giver mulighed for at teste og forbedre samarbejdsgange og øge den samlede systemeffektivitet.
 
-**Hvordan det fungerer i praksis**: Du kan oprette et team af agenter, hvor hver agent har en specialiseret funktion, som eksempelvis datainhentning, analyse eller beslutningstagning. Disse agenter kan kommunikere og dele information for at nå et fælles mål, som at besvare en brugerspørgsmål eller udføre en opgave.
+**Hvordan det fungerer i praksis**: Du kan skabe et team af agenter, hvor hver agent har en specialiseret funktion, såsom dataindsamling, analyse eller beslutningstagning. Disse agenter kan kommunikere og dele information for at opnå et fælles mål, f.eks. at besvare en brugerhenvendelse eller udføre en opgave.
 
 **Eksempelkode (Microsoft Agent Framework)**:
 
@@ -130,7 +130,7 @@ provider = FoundryChatClient(
     credential=AzureCliCredential(),
 )
 
-# Dataindhentningsagent
+# Dataindsamlingsagent
 agent_retrieve = provider.as_agent(
     name="dataretrieval",
     instructions="Retrieve relevant data using available tools.",
@@ -150,34 +150,34 @@ analysis_result = await agent_analyze.run(f"Analyze this data: {retrieval_result
 print(analysis_result)
 ```
 
-Det du ser i den tidligere kode, er hvordan du kan skabe en opgave, der involverer flere agenter, som arbejder sammen om at analysere data. Hver agent udfører en specifik funktion, og opgaven udføres ved at koordinere agenterne for at nå det ønskede resultat. Ved at skabe dedikerede agenter med specialiserede roller kan du forbedre opgavens effektivitet og ydeevne.
+Hvad du ser i den foregående kode, er hvordan du kan oprette en opgave, der involverer flere agenter, som arbejder sammen om at analysere data. Hver agent udfører en specifik funktion, og opgaven eksekveres ved at koordinere agenterne for at opnå det ønskede resultat. Ved at skabe dedikerede agenter med specialiserede roller kan du forbedre opgaveeffektiviteten og ydeevnen.
 
 ### Lær i realtid
 
-Avancerede frameworks tilbyder kapabiliteter til kontekstforståelse og tilpasning i realtid.
+Avancerede rammer tilbyder kapaciteter til realtidsforståelse af kontekst og tilpasning.
 
-**Hvordan teams kan bruge disse**: Teams kan implementere feedback-loops, hvor agenter lærer af interaktioner og dynamisk justerer deres adfærd, hvilket fører til kontinuerlig forbedring og finjustering af kapabiliteter.
+**Hvordan teams kan bruge disse**: Teams kan implementere feedbacksløjfer, hvor agenter lærer af interaktioner og dynamisk tilpasser deres adfærd, hvilket fører til kontinuerlig forbedring og finjustering af kapaciteter.
 
-**Hvordan det fungerer i praksis**: Agenter kan analysere brugerfeedback, miljødata og resultatet af opgaver for at opdatere deres vidensbase, justere beslutningsalgoritmer og forbedre ydeevnen over tid. Denne iterative læringsproces gør, at agenter kan tilpasse sig ændrede forhold og brugernes præferencer, hvilket øger systemets samlede effektivitet.
+**Hvordan det fungerer i praksis**: Agenter kan analysere brugerfeedback, miljødata og opgaveudfald for at opdatere deres videnbase, justere beslutningsalgoritmer og forbedre ydeevne over tid. Denne iterative læringsproces gør det muligt for agenter at tilpasse sig skiftende betingelser og brugerpræferencer, hvilket forbedrer systemets generelle effektivitet.
 
 ## Hvad er forskellene mellem Microsoft Agent Framework og Microsoft Foundry Agent Service?
 
-Der findes mange måder at sammenligne disse tilgange på, men lad os kigge på nogle nøgleforskelle hvad angår design, kapabiliteter og målrettede brugsscenarier:
+Der findes mange måder at sammenligne disse tilgange på, men lad os se på nogle nøgleforskelle i design, funktionalitet og målrettede anvendelsestilfælde:
 
 ## Microsoft Agent Framework (MAF)
 
-Microsoft Agent Framework tilbyder et strømlinet SDK til at bygge AI-agenter ved hjælp af `FoundryChatClient`. Det gør udviklere i stand til at skabe agenter, som udnytter Azure OpenAI-modeller med indbygget værktøjskald, samtalehåndtering og sikkerhed på virksomhedsniveau gennem Azure-identitet.
+Microsoft Agent Framework tilbyder en strømlinet SDK til opbygning af AI-agenter ved hjælp af `FoundryChatClient`. Det giver udviklere mulighed for at skabe agenter, der udnytter Azure OpenAI-modeller med indbygget værktøjskald, samtalehåndtering og virksomhedssikkerhed via Azure-identitet.
 
-**Brugsscenarier**: Opbygning af produktionsklare AI-agenter med værktøjsbrug, flertrins-arbejdsgange og virksomhedsintegrationsscenarier.
+**Brugstilfælde**: Opbygning af produktionsklare AI-agenter med brug af værktøjer, flertrinsarbejdsgange og integration til erhvervsscenarier.
 
-Her er nogle vigtige kernetemaer i Microsoft Agent Framework:
+Her er nogle vigtige kernekoncepter for Microsoft Agent Framework:
 
-- **Agenter**. En agent oprettes via `FoundryChatClient` og konfigureres med navn, instruktioner og værktøjer. Agenten kan:
-  - **Behandle brugermeddelelser** og generere svar ved brug af Azure OpenAI-modeller.
-  - **Automatisk kalde værktøjer** baseret på samtalekonteksten.
+- **Agenter**. En agent oprettes via `FoundryChatClient` og konfigureres med et navn, instruktioner og værktøjer. Agenten kan:
+  - **Behandle brugermeddelelser** og generere svar ved hjælp af Azure OpenAI-modeller.
+  - **Kalde værktøjer** automatisk baseret på samtalekontekst.
   - **Vedligeholde samtalestatus** på tværs af flere interaktioner.
 
-  Her er et kodeudsnit, som viser, hvordan man opretter en agent:
+  Her er et kodeeksempel, der viser, hvordan man opretter en agent:
 
     ```python
     import os
@@ -198,7 +198,7 @@ Her er nogle vigtige kernetemaer i Microsoft Agent Framework:
     print(response)
     ```
 
-- **Værktøjer**. Frameworket understøtter definition af værktøjer som Python-funktioner, som agenten automatisk kan kalde. Værktøjerne registreres ved oprettelsen af agenten:
+- **Værktøjer**. Rammen understøtter definition af værktøjer som Python-funktioner, som agenten kan påkalde automatisk. Værktøjerne registreres, når agenten oprettes:
 
     ```python
     def get_weather(location: str) -> str:
@@ -212,7 +212,7 @@ Her er nogle vigtige kernetemaer i Microsoft Agent Framework:
     )
     ```
 
-- **Koordinering af flere agenter**. Du kan oprette flere agenter med forskellige specialiseringer og koordinere deres arbejde:
+- **Multi-agent koordinering**. Du kan oprette flere agenter med forskellige specialiseringer og koordinere deres arbejde:
 
     ```python
     planner = provider.as_agent(
@@ -230,19 +230,19 @@ Her er nogle vigtige kernetemaer i Microsoft Agent Framework:
     result = await executor.run(f"Execute this plan: {plan}")
     ```
 
-- **Azure-identitetsintegration**. Frameworket bruger `AzureCliCredential` (eller `DefaultAzureCredential`) til sikker, nøglefri autentifikation, hvilket eliminerer behovet for at administrere API-nøgler direkte.
+- **Integration med Azure-identitet**. Rammen bruger `AzureCliCredential` (eller `DefaultAzureCredential`) til sikker, nøglefri autentifikation, hvilket eliminerer behovet for direkte håndtering af API-nøgler.
 
 ## Microsoft Foundry Agent Service
 
-Microsoft Foundry Agent Service er et nyere tiltag, introduceret ved Microsoft Ignite 2024. Det muliggør udvikling og implementering af AI-agenter med mere fleksible modeller, såsom direkte kald til open source LLM'er som Llama 3, Mistral og Cohere.
+Microsoft Foundry Agent Service er en nyere tilføjelse, præsenteret ved Microsoft Ignite 2024. Det muliggør udvikling og udrulning af AI-agenter med mere fleksible modeller, såsom direkte opkald til open-source LLM'er som Llama 3, Mistral og Cohere.
 
-Microsoft Foundry Agent Service tilbyder stærkere sikkerhedsmekanismer til virksomheder og metoder til datalagring, hvilket gør det egnet til virksomhedsapplikationer.
+Microsoft Foundry Agent Service tilbyder stærkere virksomhedssikkerhedsmekanismer og datalagringsmetoder, hvilket gør det egnet til erhvervsapplikationer.
 
-Det fungerer problemfrit sammen med Microsoft Agent Framework til opbygning og implementering af agenter.
+Det fungerer out-of-the-box med Microsoft Agent Framework til opbygning og udrulning af agenter.
 
-Tjenesten er i øjeblikket i offentlig preview og understøtter Python og C# til agentudvikling.
+Denne tjeneste er aktuelt i offentlig preview og understøtter Python og C# til at bygge agenter.
 
-Med Microsoft Foundry Agent Service Python SDK kan vi skabe en agent med et brugerdefineret værktøj:
+Med Microsoft Foundry Agent Service Python SDK kan vi oprette en agent med et brugerdefineret værktøj:
 
 ```python
 import asyncio
@@ -271,7 +271,7 @@ async def main() -> None:
     )
 
     agent = project_client.agents.create_agent(
-        model="gpt-4.1-mini",
+        model="gpt-5-mini",
         name="Host",
         instructions="Answer questions about the menu.",
         tools=[get_specials, get_item_price],
@@ -304,15 +304,15 @@ if __name__ == "__main__":
     asyncio.run(main())
 ```
 
-### Kernetemaer
+### Kernekoncepter
 
-Microsoft Foundry Agent Service har følgende kernetemaer:
+Microsoft Foundry Agent Service har følgende kernekoncepter:
 
-- **Agent**. Microsoft Foundry Agent Service integreres med Microsoft Foundry. Inden for Microsoft Foundry fungerer en AI Agent som en "smart" mikrotjeneste, der kan bruges til at besvare spørgsmål (RAG), udføre handlinger eller fuldstændigt automatisere arbejdsgange. Det opnås ved at kombinere kraften i generative AI-modeller med værktøjer, der tillader adgang til og interaktion med datakilder fra den virkelige verden. Her er et eksempel på en agent:
+- **Agent**. Microsoft Foundry Agent Service integreres med Microsoft Foundry. Indenfor Microsoft Foundry agerer en AI Agent som en "smart" mikrotjeneste, der kan bruges til at besvare spørgsmål (RAG), udføre handlinger eller fuldstændigt automatisere arbejdsgange. Det opnås ved at kombinere kraften fra generative AI-modeller med værktøjer, der tillader adgang til og interaktion med virkelige datakilder. Her er et eksempel på en agent:
 
     ```python
     agent = project_client.agents.create_agent(
-        model="gpt-4.1-mini",
+        model="gpt-5-mini",
         name="my-agent",
         instructions="You are helpful agent",
         tools=code_interpreter.definitions,
@@ -320,9 +320,9 @@ Microsoft Foundry Agent Service har følgende kernetemaer:
     )
     ```
 
-    I dette eksempel oprettes en agent med modellen `gpt-4.1-mini`, navnet `my-agent` og instruktionen `You are helpful agent`. Agenten er udstyret med værktøjer og ressourcer til at udføre kodefortolkningsopgaver.
+    I dette eksempel oprettes en agent med modellen `gpt-5-mini`, navn `my-agent` og instruktionen `You are helpful agent`. Agenten er udstyret med værktøjer og ressourcer til at udføre kodefortolkningsopgaver.
 
-- **Tråd og meddelelser**. Tråden er et andet vigtigt koncept. Den repræsenterer en samtale eller interaktion mellem en agent og en bruger. Tråde kan bruges til at spore samtaleforløbet, gemme kontekstinformation og styre tilstanden af interaktionen. Her er et eksempel på en tråd:
+- **Tråd og beskeder**. Tråden er et andet vigtigt koncept. Den repræsenterer en samtale eller interaktion mellem en agent og en bruger. Tråde kan bruges til at spore samtalens forløb, gemme kontekstinformation og styre tilstanden i interaktionen. Her er et eksempel på en tråd:
 
     ```python
     thread = project_client.agents.create_thread()
@@ -340,51 +340,51 @@ Microsoft Foundry Agent Service har følgende kernetemaer:
     print(f"Messages: {messages}")
     ```
 
-    I den tidligere kode oprettes en tråd. Derefter sendes en besked til tråden. Ved at kalde `create_and_process_run` bliver agenten bedt om at arbejde på tråden. Til sidst hentes beskederne og logges for at se agentens svar. Beskederne angiver samtalens forløb mellem brugeren og agenten. Det er også vigtigt at forstå, at beskeder kan være af forskellige typer såsom tekst, billede eller fil, hvilket betyder, at agentens arbejde har resulteret i for eksempel et billede eller et tekstsvar. Som udvikler kan du så bruge denne information til yderligere behandling af svaret eller præsentere det for brugeren.
+    I den tidligere kode oprettes en tråd. Derefter sendes en besked til tråden. Ved at kalde `create_and_process_run` bliver agenten bedt om at arbejde på tråden. Til sidst hentes og logges beskederne for at se agentens respons. Beskederne indikerer samtalens fremdrift mellem bruger og agent. Det er også vigtigt at forstå, at beskeder kan være af forskellige typer som tekst, billede eller fil, hvilket betyder, at agentens arbejde f.eks. har resulteret i et billede eller en tekstbesked. Som udvikler kan du derefter bruge denne information til yderligere at behandle svaret eller præsentere det for brugeren.
 
-- **Integreres med Microsoft Agent Framework**. Microsoft Foundry Agent Service fungerer problemfrit sammen med Microsoft Agent Framework, hvilket betyder, at du kan bygge agenter ved brug af `FoundryChatClient` og implementere dem gennem Agent Service til produktionsscenarier.
+- **Integrerer med Microsoft Agent Framework**. Microsoft Foundry Agent Service arbejder ubesværet sammen med Microsoft Agent Framework, hvilket betyder, at du kan bygge agenter ved hjælp af `FoundryChatClient` og udrulle dem via Agent Service til produktionsscenarier.
 
-**Brugsscenarier**: Microsoft Foundry Agent Service er designet til virksomhedsapplikationer, der kræver sikker, skalerbar og fleksibel udrulning af AI-agenter.
+**Brugstilfælde**: Microsoft Foundry Agent Service er designet til virksomhedsapplikationer, der kræver sikker, skalerbar og fleksibel AI-agentudrulning.
 
 ## Hvad er forskellen mellem disse tilgange?
  
-Det lyder som om, der er overlap, men der er nogle nøgleforskelle i forhold til design, kapabiliteter og målrettede brugsscenarier:
+Det lyder som om, der er overlap, men der er nogle nøgleforskelle i design, funktionalitet og målrettede brugstilfælde:
  
-- **Microsoft Agent Framework (MAF)**: Er et produktionsklart SDK til at bygge AI-agenter. Det tilbyder et strømlinet API til at skabe agenter med værktøjskald, samtalehåndtering og Azure-identitetsintegration.
-- **Microsoft Foundry Agent Service**: Er en platform- og implementeringstjeneste i Microsoft Foundry til agenter. Det tilbyder indbygget forbindelse til tjenester som Azure OpenAI, Azure AI Search, Bing Search og kodeeksekvering.
+- **Microsoft Agent Framework (MAF)**: Er en produktionsklar SDK til opbygning af AI-agenter. Den tilbyder en strømlinet API til at skabe agenter med værktøjskald, samtalehåndtering og Azure-identitetsintegration.
+- **Microsoft Foundry Agent Service**: Er en platform og udrulningstjeneste i Microsoft Foundry for agenter. Den tilbyder indbygget forbindelse til tjenester som Azure OpenAI, Azure AI Search, Bing Search og kodeeksekvering.
  
-Er du stadig i tvivl om, hvilken du skal vælge?
+Er du stadig usikker på, hvilken du skal vælge?
 
-### Brugsscenarier
+### Brugstilfælde
  
-Lad os se, om vi kan hjælpe dig ved at gennemgå nogle almindelige brugsscenarier:
+Lad os se, om vi kan hjælpe dig ved at gennemgå nogle almindelige brugstilfælde:
  
-> Q: Jeg bygger produktionsklare AI-agent-applikationer og vil hurtigt i gang
+> Spørgsmål: Jeg bygger produktions-AI-agentapplikationer og vil hurtigt i gang
 >
 
->A: Microsoft Agent Framework er et godt valg. Det tilbyder et enkelt, Python-agtigt API via `FoundryChatClient`, som lader dig definere agenter med værktøjer og instruktioner på få linjer kode.
+>Svar: Microsoft Agent Framework er et godt valg. Det tilbyder en enkel, pythonisk API via `FoundryChatClient`, som lader dig definere agenter med værktøjer og instruktioner på blot få linjer kode.
 
->Q: Jeg har brug for implementering i virksomhedsklasse med Azure-integrationer som Search og kodeeksekvering
+>Spørgsmål: Jeg har brug for virksomhedsklar udrulning med Azure-integrationer som Search og kodeeksekvering
 >
-> A: Microsoft Foundry Agent Service er det bedste valg. Det er en platformtjeneste med indbyggede kapabiliteter for flere modeller, Azure AI Search, Bing Search og Azure Functions. Det gør det nemt at bygge dine agenter i Foundry Portal og udrulle dem i stor skala.
+>Svar: Microsoft Foundry Agent Service er det bedste valg. Det er en platformsservice, der tilbyder indbyggede kapaciteter til flere modeller, Azure AI Search, Bing Search og Azure Functions. Det gør det nemt at bygge dine agenter i Foundry-portalen og udrulle dem i stor skala.
  
-> Q: Jeg er stadig forvirret, giv mig bare én mulighed
+> Spørgsmål: Jeg er stadig forvirret, giv mig bare én mulighed
 >
-> A: Start med Microsoft Agent Framework til at bygge dine agenter, og brug så Microsoft Foundry Agent Service, når du skal udrulle og skalere dem i produktion. Denne tilgang lader dig iterere hurtigt på agentlogikken samtidig med, at du har en klar vej til implementering i virksomheden.
+> Svar: Start med Microsoft Agent Framework for at bygge dine agenter, og brug derefter Microsoft Foundry Agent Service, når du skal udrulle og skalere dem i produktion. Denne tilgang lader dig hurtigt iterere på agentlogikken samtidig med at du har en klar vej til udrulning i virksomheder.
  
 Lad os opsummere nøgleforskellene i en tabel:
 
-| Framework | Fokus | Kernetemaer | Brugsscenarier |
+| Ramme | Fokus | Kernekoncepter | Brugstilfælde |
 | --- | --- | --- | --- |
-| Microsoft Agent Framework | Strømlinet agent-SDK med værktøjskald | Agenter, Værktøjer, Azure Identitet | Opbygning af AI-agenter, værktøjsbrug, flertrins arbejdsgange |
-| Microsoft Foundry Agent Service | Fleksible modeller, virksomheds-sikkerhed, kodegenerering, værktøjskald | Modularitet, samarbejde, procesorkestrering | Sikker, skalerbar og fleksibel implementering af AI-agenter |
+| Microsoft Agent Framework | Strømlinet agent-SDK med værktøjskald | Agenter, Værktøjer, Azure-identitet | Opbygning af AI-agenter, brug af værktøjer, flertrinsarbejdsgange |
+| Microsoft Foundry Agent Service | Fleksible modeller, virksomhedssikkerhed, kodegenerering, værktøjskald | Modularitet, Samarbejde, Procesorkestrering | Sikker, skalerbar og fleksibel AI-agentudrulning |
 
 ## Kan jeg integrere mine eksisterende Azure-økosystemværktøjer direkte, eller har jeg brug for selvstændige løsninger?
 
 
-Svaret er ja, du kan integrere dine eksisterende Azure-økosystemværktøjer direkte med Microsoft Foundry Agent Service, især da det er bygget til at fungere problemfrit med andre Azure-tjenester. Du kan for eksempel integrere Bing, Azure AI Search og Azure Functions. Der er også dyb integration med Microsoft Foundry.
+Svaret er ja, du kan integrere dine eksisterende Azure-økosystemværktøjer direkte med Microsoft Foundry Agent Service, især fordi den er bygget til at arbejde problemfrit sammen med andre Azure-tjenester. Du kan for eksempel integrere Bing, Azure AI Search og Azure Functions. Der er også dyb integration med Microsoft Foundry.
 
-Microsoft Agent Framework integrerer også med Azure-tjenester gennem `FoundryChatClient` og Azure-identitet, hvilket gør det muligt at kalde Azure-tjenester direkte fra dine agentværktøjer.
+Microsoft Agent Framework integrerer også med Azure-tjenester gennem `FoundryChatClient` og Azure-identitet, hvilket giver dig mulighed for at kalde Azure-tjenester direkte fra dine agentværktøjer.
 
 ## Eksempelkoder
 
@@ -392,9 +392,9 @@ Microsoft Agent Framework integrerer også med Azure-tjenester gennem `FoundryCh
 - Python: [Agent Framework (Azure OpenAI Responses API)](./code_samples/02-python-agent-framework-azure-openai.ipynb)
 - .NET: [Agent Framework](./code_samples/02-dotnet-agent-framework.md)
 
-## Har du flere spørgsmål om AI-agent-rammeværker?
+## Har du flere spørgsmål om AI Agent Frameworks?
 
-Deltag i [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) for at møde andre elever, deltage i kontortimer og få svar på dine spørgsmål om AI-agenter.
+Deltag i [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) for at møde andre lærende, deltage i kontortimer og få svar på dine spørgsmål om AI-agenter.
 
 ## Referencer
 
@@ -404,11 +404,11 @@ Deltag i [Microsoft Foundry Discord](https://discord.com/invite/ATgtXmAS5D) for 
 
 ## Forrige lektion
 
-[Introduktion til AI-agenter og bruger-sager for agenter](../01-intro-to-ai-agents/README.md)
+[Introduktion til AI-agenter og agentbrugsscenarier](../01-intro-to-ai-agents/README.md)
 
 ## Næste lektion
 
-[Forståelse af Agentic Design Patterns](../03-agentic-design-patterns/README.md)
+[Forståelse af agentiske designmønstre](../03-agentic-design-patterns/README.md)
 
 ---
 

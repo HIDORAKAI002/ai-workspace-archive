@@ -1,14 +1,14 @@
-# 🌍 Microsoft Agent Framework ile AI Seyahat Acentesi (.NET)
+# 🌍 Microsoft Agent Framework (.NET) ile AI Seyahat Acentesi
 
-## 📋 Senaryo Özeti
+## 📋 Senaryo Genel Bakış
 
-Bu örnek, Microsoft Agent Framework for .NET kullanarak nasıl zeki bir seyahat planlama acentesi oluşturulacağını göstermektedir. Acenta, dünyadaki rastgele destinasyonlar için otomatik olarak kişiselleştirilmiş günlük gezi planları oluşturabilir.
+Bu örnek, Microsoft Agent Framework for .NET kullanarak akıllı bir seyahat planlama acentesi nasıl oluşturulur gösterir. Acenta, dünya genelinde rastgele destinasyonlar için otomatik olarak kişiselleştirilmiş günlük gezi planları oluşturabilir.
 
-### Temel Yetenekler:
+### Ana Özellikler:
 
 - 🎲 **Rastgele Destinasyon Seçimi**: Tatil yerlerini seçmek için özel bir araç kullanır
-- 🗺️ **Zeki Seyahat Planlama**: Gün gün detaylı gezi planları oluşturur
-- 🔄 **Gerçek Zamanlı Akış**: Hem anlık hem de akışlı yanıtları destekler
+- 🗺️ **Akıllı Gezi Planlama**: Günlük detaylı gezi planları oluşturur
+- 🔄 **Gerçek Zamanlı Akış**: Hem anlık hem de akış yanıtlarını destekler
 - 🛠️ **Özel Araç Entegrasyonu**: Acenta yeteneklerinin nasıl genişletileceğini gösterir
 
 ## 🔧 Teknik Mimari
@@ -16,57 +16,57 @@ Bu örnek, Microsoft Agent Framework for .NET kullanarak nasıl zeki bir seyahat
 ### Temel Teknolojiler
 
 - **Microsoft Agent Framework**: AI acente geliştirme için en son .NET uygulaması
-- **Azure OpenAI (Yanıtlar API'si)**: Model çıkarımı için Azure OpenAI Yanıtlar API'si kullanılır
-- **Azure Identity**: `AzureCliCredential` (`az login`) ile güvenli oturum açma
-- **Güvenli Yapılandırma**: Ortama dayalı uç nokta yönetimi
+- **Azure OpenAI (Yanıtlar API'si)**: Model tahmini için Azure OpenAI Yanıt API'sini kullanır
+- **Azure Identity**: `AzureCliCredential` ile güvenli giriş (`az login`)
+- **Güvenli Konfigürasyon**: Ortama dayalı uç nokta yönetimi
 
 ### Ana Bileşenler
 
-1. **AIAgent**: Konuşma akışını yöneten ana acente orkestratörü
-2. **Özel Araçlar**: Acentanın kullanımına açık `GetRandomDestination()` fonksiyonu
-3. **Yanıt İstemcisi**: Azure OpenAI Yanıtlar tabanlı konuşma arayüzü
+1. **AIAgent**: Konuşma akışını yöneten ana acente düzenleyici
+2. **Özel Araçlar**: Acentanın kullanabileceği `GetRandomDestination()` fonksiyonu
+3. **Yanıtlar İstemcisi**: Azure OpenAI Yanıtlarına dayalı konuşma arayüzü
 4. **Akış Desteği**: Gerçek zamanlı yanıt oluşturma yetenekleri
 
 ### Entegrasyon Deseni
 
 ```mermaid
 graph LR
-    A[Kullanıcı Talebi] --> B[AI Ajanı]
-    B --> C[Azure OpenAI (Yanıtlar API'si)]
+    A[Kullanıcı Talebi] --> B[Yapay Zeka Ajanı]
+    B --> C[Azure OpenAI (Cevaplar API'si)]
     B --> D[RastgeleHedefAl Aracı]
-    C --> E[Seyahat Programı]
+    C --> E[Seyahat Güzergahı]
     D --> E
 ```
 
 ## 🚀 Başlarken
 
-### Ön Koşullar
+### Ön Gereksinimler
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) veya üzeri
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) veya daha üstü
 - Azure OpenAI kaynağı ve model dağıtımı olan bir [Azure aboneliği](https://azure.microsoft.com/free/)
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` ile oturum açın
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` ile giriş yapınız
 
 ### Gerekli Ortam Değişkenleri
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# AzureCliCredential bir jeton alabilmesi için giriş yapın
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Ardından AzureCliCredential bir token alabilmesi için oturum açın
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Daha sonra AzureCliCredential bir belirteç alabilmesi için oturum açın
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Sonra AzureCliCredential bir token alabilmesi için giriş yapın
 az login
 ```
 
 ### Örnek Kod
 
-Örnek kodu çalıştırmak için,
+Kodu çalıştırmak için,
 
 ```bash
 # zsh/bash
@@ -74,13 +74,13 @@ chmod +x ./01-dotnet-agent-framework.cs
 ./01-dotnet-agent-framework.cs
 ```
 
-Ya da dotnet CLI kullanarak:
+Veya dotnet CLI kullanarak:
 
 ```bash
 dotnet run ./01-dotnet-agent-framework.cs
 ```
 
-Tam kod için [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) dosyasına bakın.
+Tam kod için [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) dosyasına bakınız.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,17 +157,17 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 Temel Çıkarımlar
+## 🎓 Önemli Çıkarımlar
 
-1. **Acenta Mimarisi**: Microsoft Agent Framework, .NET'te AI acenteleri oluşturmak için temiz ve tip güvenli bir yaklaşım sunar
-2. **Araç Entegrasyonu**: `[Description]` özniteliği ile süslenmiş fonksiyonlar acente için kullanılabilir araçlar haline gelir
-3. **Yapılandırma Yönetimi**: Ortam değişkenleri ve güvenli kimlik bilgisi yönetimi, .NET en iyi uygulamalarını takip eder
-4. **Azure OpenAI Yanıtlar API**: Acenta, Azure.AI.OpenAI SDK aracılığıyla Azure OpenAI Yanıtlar API'sini kullanır
+1. **Acenta Mimarisi**: Microsoft Agent Framework, .NET’te AI acenteleri oluşturmak için temiz, tip güvenli bir yaklaşım sağlar
+2. **Araç Entegrasyonu**: `[Description]` niteliği ile tanımlanan fonksiyonlar acenta için kullanılabilir araçlar haline gelir
+3. **Konfigürasyon Yönetimi**: Ortam değişkenleri ve güvenli kimlik bilgisi yönetimi .NET en iyi uygulamalarına uygundur
+4. **Azure OpenAI Yanıt API**: Acenta Azure.AI.OpenAI SDK aracılığıyla Azure OpenAI Yanıt API'sini kullanır
 
 ## 🔗 Ek Kaynaklar
 
 - [Microsoft Agent Framework Belgeleri](https://learn.microsoft.com/agent-framework)
-- [Microsoft Foundry'de Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
+- [Microsoft Foundry’de Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
 - [.NET Tek Dosya Uygulamaları](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 

@@ -2,81 +2,81 @@
 
 ## 📋 Objetivos de Aprendizagem
 
-Este exemplo explora os conceitos fundamentais do Microsoft Agent Framework através de uma implementação básica de agente em .NET. Irá aprender padrões essenciais de agentes e compreender como os agentes inteligentes funcionam internamente usando C# e o ecossistema .NET.
+Este exemplo explora os conceitos fundamentais do Microsoft Agent Framework através de uma implementação básica de agente em .NET. Vai aprender os padrões centrais dos agentes e entender como os agentes inteligentes funcionam internamente usando C# e o ecossistema .NET.
 
 ### O Que Vai Descobrir
 
-- 🏗️ **Arquitetura do Agente**: Compreender a estrutura básica de agentes de IA em .NET
+- 🏗️ **Arquitetura do Agente**: Compreender a estrutura básica dos agentes de IA em .NET
 - 🛠️ **Integração de Ferramentas**: Como os agentes usam funções externas para ampliar capacidades  
-- 💬 **Fluxo de Conversação**: Gestão de conversas multi-turno e contexto com gestão de threads
+- 💬 **Fluxo da Conversa**: Gerir conversas com múltiplas interações e contexto através da gestão de threads
 - 🔧 **Padrões de Configuração**: Melhores práticas para configuração e gestão de agentes em .NET
 
-## 🎯 Conceitos-Chave Abordados
+## 🎯 Conceitos Chave Abordados
 
-### Princípios do Framework Agentic
+### Princípios do Framework Agente
 
 - **Autonomia**: Como os agentes tomam decisões independentes usando abstrações de IA em .NET
-- **Reatividade**: Responder a mudanças ambientais e entradas do utilizador
-- **Proatividade**: Tomar iniciativa com base em objetivos e contexto
-- **Capacidade Social**: Interagir através de linguagem natural com threads de conversação
+- **Reatividade**: Responder a mudanças ambientais e inputs do utilizador
+- **Proatividade**: Tomar iniciativa baseada em objetivos e contexto
+- **Capacidade Social**: Interagir através da linguagem natural com threads de conversação
 
 ### Componentes Técnicos
 
-- **AIAgent**: Orquestração central do agente e gestão de conversação (.NET)
-- **Funções de Ferramentas**: Extensão das capacidades do agente com métodos e atributos C#
+- **AIAgent**: Orquestração central do agente e gestão de conversas (.NET)
+- **Funções de Ferramentas**: Extender capacidades do agente com métodos e atributos em C#
 - **Integração Azure OpenAI**: Aproveitar modelos de linguagem através da API Azure OpenAI Responses
-- **Configuração Segura**: Gestão de endpoints baseada no ambiente
+- **Configuração Segura**: Gestão de endpoints com base no ambiente
 
-## 🔧 Stack Técnico
+## 🔧 Stack Técnica
 
-### Tecnologias Nucleares
+### Tecnologias Principais
 
 - Microsoft Agent Framework (.NET)
 - Integração Azure OpenAI (API Responses)
-- Padrões do cliente Azure.AI.OpenAI
-- Configuração baseada no ambiente com DotNetEnv
+- Padrões cliente Azure.AI.OpenAI
+- Configuração baseada em ambiente com DotNetEnv
 
 ### Capacidades do Agente
 
 - Compreensão e geração de linguagem natural
-- Chamadas de função e uso de ferramentas com atributos C#
-- Respostas com consciência de contexto em sessões de conversação
-- Arquitetura extensível com padrões de injeção de dependência
+- Chamadas de funções e uso de ferramentas com atributos em C#
+- Respostas contextualmente conscientes com sessões de conversação
+- Arquitetura extensível com padrões de injeção de dependências
 
 ## 📚 Comparação de Frameworks
 
-Este exemplo demonstra a abordagem do Microsoft Agent Framework em comparação com outros frameworks agentic:
+Este exemplo demonstra a abordagem do Microsoft Agent Framework comparada com outros frameworks de agentes:
 
 | Característica | Microsoft Agent Framework | Outros Frameworks |
 |---------|-------------------------|------------------|
 | **Integração** | Ecossistema Microsoft nativo | Compatibilidade variada |
-| **Simplicidade** | API limpa e intuitiva | Configuração frequentemente complexa |
-| **Extensibilidade** | Integração fácil de ferramentas | Depende do framework |
-| **Pronto para Empresas** | Construído para produção | Varia conforme o framework |
+| **Simplicidade** | API limpa e intuitiva | Configuração muitas vezes complexa |
+| **Extensibilidade** | Integração fácil de ferramentas | Dependente do framework |
+| **Pronto para Empresas** | Construído para produção | Varia conforme framework |
 
 ## 🚀 Começar
 
 ### Pré-requisitos
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) ou superior
-- Uma [subscripção Azure](https://azure.microsoft.com/free/) com um recurso Azure OpenAI e um deployment de modelo
-- A [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — autentique-se com `az login`
+- Uma [subscrição Azure](https://azure.microsoft.com/free/) com um recurso Azure OpenAI e uma implantação de modelo
+- A [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — faça login com `az login`
 
 ### Variáveis de Ambiente Necessárias
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Em seguida, inicie sessão para que o AzureCliCredential possa obter um token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Depois, inicie sessão para que o AzureCliCredential possa obter um token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Depois inicie sessão para que o AzureCliCredential possa obter um token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Depois, inicie sessão para que o AzureCliCredential possa obter um token
 az login
 ```
 
@@ -90,13 +90,13 @@ chmod +x ./02-dotnet-agent-framework.cs
 ./02-dotnet-agent-framework.cs
 ```
 
-Ou utilizando o CLI dotnet:
+Ou usando a CLI dotnet:
 
 ```bash
 dotnet run ./02-dotnet-agent-framework.cs
 ```
 
-Consulte [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) para o código completo.
+Veja [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) para o código completo.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,12 +215,12 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 Principais Conclusões
+## 🎓 Principais Aprendizagens
 
-1. **Arquitetura do Agente**: O Microsoft Agent Framework oferece uma abordagem limpa e type-safe para construir agentes de IA em .NET
+1. **Arquitetura do Agente**: O Microsoft Agent Framework oferece uma abordagem limpa e segura em tipos para construir agentes de IA em .NET
 2. **Integração de Ferramentas**: Funções decoradas com atributos `[Description]` tornam-se ferramentas disponíveis para o agente
-3. **Contexto de Conversação**: A gestão de sessões permite conversas multi-turno com consciência total do contexto
-4. **Gestão de Configuração**: Variáveis de ambiente e manipulação segura de credenciais seguem as melhores práticas .NET
+3. **Contexto da Conversação**: A gestão de sessões permite conversas com múltiplas interações e consciência total do contexto
+4. **Gestão de Configuração**: Variáveis de ambiente e gestão segura de credenciais seguem as melhores práticas .NET
 5. **API Azure OpenAI Responses**: O agente usa a API Azure OpenAI Responses através do SDK Azure.AI.OpenAI
 
 ## 🔗 Recursos Adicionais

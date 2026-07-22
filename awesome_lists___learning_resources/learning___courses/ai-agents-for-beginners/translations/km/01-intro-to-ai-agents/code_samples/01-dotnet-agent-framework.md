@@ -1,72 +1,72 @@
-# 🌍 អ្នកប្រឹក្សាធ្វើដំណើរដោយ AI ជាមួយ Microsoft Agent Framework (.NET)
+# 🌍 អាជីវករ​ដំណើរកម្សាន្ត AI ជាមួយ Microsoft Agent Framework (.NET)
 
-## 📋 ជម្រើសទរុប
+## 📋 ទិដ្ឋភាពសេណារីយ៉ូ
 
-ឧទាហរណ៍នេះបង្ហាញពីវិធីបង្កើតអ្នកប្រឹក្សាធ្វើដំណើរយ៉ាងឆ្លាតវៃដោយប្រើ Microsoft Agent Framework សម្រាប់ .NET។ អ្នកប្រឹក្សាអាចបង្កើតផែនការដំណើរថ្ងៃតែមួយដែលផ្ទាល់ខ្លួនសម្រាប់គោលដៅចៃដន្យនៅជុំវិញពិភពលោកដោយស្វ័យប្រវត្តិ។
+ឧទាហរណ៍នេះបង្ហាញពីរបៀបបង្កើតភ្នាក់ងារគ្រប់គ្រងផែនការដំណើរកម្សាន្តឆ្លាតវៃដោយប្រើ Microsoft Agent Framework សម្រាប់ .NET។ ភ្នាក់ងារនេះអាចបង្កើតផែនការប្រកបដោយផ្ទាល់ខ្លួនសម្រាប់ដំណើរទស្សនកិច្ចមួយថ្ងៃចំពោះទីកន្លែងច្របូកច្របល់នៅជុំវិញពិភពលោកដោយស្វ័យប្រវត្តិ។
 
 ### សមត្ថភាពសំខាន់ៗ៖
 
-- 🎲 **ការជ្រើសរើសគោលដៅចៃដន្យ**: ប្រើឧបករណ៍ប្ដូររបស់ផ្ទាល់ខ្លួនដើម្បីជ្រើសទីកន្លែងនៃការឈប់សម្រាក
-- 🗺️ **គម្រោងដំណើរយ៉ាងឆ្លាតវៃ**: បង្កើតផែនការជារបាយការណ៍លម្អិតថ្នាក់ថ្ងៃមួយមួយ
-- 🔄 **ការផ្ទេរបន្តផ្ទាល់ពេលពិត**: គាំទ្រពីចម្លើយភ្លាមៗនិងការផ្ទេរផ្លាស់ប្តូរនៅពេលពិត
-- 🛠️ **ការចងក្រងឧបករណ៍ផ្ទាល់ខ្លួន**: បង្ហាញរបៀបពង្រីកសមត្ថភាពអ្នកប្រឹក្សា
+- 🎲 **ការជ្រើសរើសទីកន្លែងចៃដន្យ**៖ ប្រើឧបករណ៍ប្តូរប្ដូរដើម្បីជ្រើសទីកន្លែងចំណាកស្រុក
+- 🗺️ **ការរៀបចំផែនការដំណើរស្មារតី**៖ បង្កើតផែនការដំណើរជាប្រចាំមួយថ្ងៃម្ដង
+- 🔄 **ការផ្សាយបន្តផ្ទាល់ Real-time**៖ គាំទ្រពីចម្លើយផ្ទាល់ខ្លួននិងចម្លើយផ្សាយបន្តផ្ទាល់
+- 🛠️ **ការរួមបញ្ចូលឧបករណ៍ផ្ទាល់ខ្លួន**៖ បង្ហាញរបៀបពង្រីកសមត្ថភាពភ្នាក់ងារ
 
-## 🔧 ស្ថាបតិការជាតិបច្ចេកវិទ្យា
+## 🔧 ស្ថាបត្យកម្មបច្ចេកទេស
 
-### បច្ចេកវិទ្យាសំខាន់ៗ
+### បច្ចេកវិទ្យាមនុស្សមូល
 
-- **Microsoft Agent Framework**: ការអនុវត្ត .NET ថ្មីបំផុតសម្រាប់ការអភិវឌ្ឍអ្នកប្រឹក្សាធ្វើដោយ AI
-- **Azure OpenAI (Responses API)**: ប្រើ Azure OpenAI Responses API សម្រាប់ការព្យាករណ៍ម៉ូឌែល
-- **Azure Identity**: ចូលប្រព័ន្ធដោយសុវត្ថិភាពតាមរយៈ `AzureCliCredential` (`az login`)
-- **ការគ្រប់គ្រងជាសុវត្ថិភាព**: ការគ្រប់គ្រងចំណុចចូលតាមបរិស្ថាន
+- **Microsoft Agent Framework**៖ ការអនុវត្ត .NET ថ្មីសម្រាប់ការអភិវឌ្ឍភ្នាក់ងារ AI
+- **Azure OpenAI (Responses API)**៖ ប្រើ API Responses របស់ Azure OpenAI សម្រាប់ការរំពឹងទ្រព្យម៉ូដែល
+- **Azure Identity**៖ ចូលប្រើដោយមានសុវត្ថិភាពជាមួយ `AzureCliCredential` (`az login`)
+- **ការគ្រប់គ្រងការកំណត់ប្រព័ន្ធយ៉ាងសុវត្ថិភាព**៖ ការគ្រប់គ្រងចំណុចទីតាំងដោយផ្អែកលើបរិយាកាស
 
-### សមាសធាតុសំខាន់ៗ
+### គ្រឿងសង្ហារឹមសំខាន់ៗ
 
-1. **AIAgent**: អ្នកគ្រប់គ្រងចម្បងជាអ្នកប្រឹក្សាដែលដំណើរការសំឡេងជជែក
-2. **ឧបករណ៍ផ្ទាល់ខ្លួន**: មុខងារ `GetRandomDestination()` មានស្រាប់សម្រាប់អ្នកប្រឹក្សា
-3. **Responses Client**: ផ្ទាំងជជែកជាមួយ Responses របស់ Azure OpenAI
-4. **គាំទ្រការផ្ទេរបន្តផ្ទាល់**: សមត្ថភាពបង្កើតចម្លើយពេលពិត
+1. **AIAgent**៖ អ្នកបង្កើតភ្នាក់ងារសំខាន់ដែលគ្រប់គ្រងចរន្តការសន្ទនា
+2. **ឧបករណ៍ផ្ទាល់ខ្លួន**៖ មុខងារ `GetRandomDestination()` ដែលមានសម្រាប់ភ្នាក់ងារ
+3. **Responses Client**៖ ផ្ទាំងចរន្តសន្ទនារបស់ Azure OpenAI Responses
+4. **គាំទ្រការផ្សាយបន្តផ្ទាល់**៖ សមត្ថភាពបង្កើតចម្លើយពេលវេលាពិត
 
-### គំរូការចងក្រង
+### គំរូរួមបញ្ចូល
 
 ```mermaid
 graph LR
-    A[សំណើអ្នកប្រើ] --> B[អ្នកចៃដន្យ AI]
-    B --> C[Azure OpenAI (API ជម្លើយ)]
+    A[សំណើរអ្នកប្រើប្រាស់] --> B[អ្នកមិនដឹងអ្វីទេ AI]
+    B --> C[Azure OpenAI (API ចម្លើយ)]
     B --> D[ឧបករណ៍ GetRandomDestination]
-    C --> E[ផែនការធ្វើដំណើរ]
+    C --> E[វិធីដំណើរកំសាន្ត]
     D --> E
 ```
 
-## 🚀 ការចាប់ផ្តើម
+## 🚀 ចាប់ផ្ដើម
 
-### អ្វីដែលត្រូវមានជាមុន
+### វត្ថុដែលត្រូវមានមុន
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) ឬខ្ពស់ជាងនេះ
-- មាន [ការជាវអាសុីរ](https://azure.microsoft.com/free/) ដែលមានធនធាន Azure OpenAI និងការចេញផ្សាយម៉ូឌែល
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — ចូលប្រើដោយ `az login`
+- មួយ [Azure subscription](https://azure.microsoft.com/free/) មានធនធាន Azure OpenAI និងការដឹកជញ្ជូនម៉ូដែល
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — ចូលប្រើជាមួយ `az login`
 
-### អថេរក្នុងបរិស្ថានត្រូវការ
+### បរិយាកាសប្រេនជាដាច់ខាតដែលត្រូវការ
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# បន្ទាប់មកចូលកម្មវិធី ដើម្បីឲ្យ AzureCliCredential អាចទទួលបានtokenមួយ
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# បន្ទាប់មកចូលគណនី ដើម្បីអោយ AzureCliCredential អាចទទួលបានតូកិនបាន
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# បន្ទាប់​មក​ចូល​ដើម្បី​ឲ្យ AzureCliCredential អាច​ទទួលបាន رمز​សញ្ញា
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# បន្ទាប់មកចូលដំណើរការ ដើម្បីឲ្យ AzureCliCredential អាចទទួលបាន token
 az login
 ```
 
-### កូដគំរូ
+### ឧទាហរណ៍កូដ
 
-ដើម្បីបើកប្រាថ្នាគំរូកូដនេះ,
+ដើម្បីរត់ឧទាហរណ៍កូដនេះ,
 
 ```bash
 # zsh/bash
@@ -74,7 +74,7 @@ chmod +x ./01-dotnet-agent-framework.cs
 ./01-dotnet-agent-framework.cs
 ```
 
-ឬប្រើ dotnet CLI:
+ឬប្រើប្រាស់ dotnet CLI:
 
 ```bash
 dotnet run ./01-dotnet-agent-framework.cs
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,17 +157,17 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 ចំណុចសំខាន់ៗដែលទទួលបាន
+## 🎓 ចំណុចអ្វីដែលបានរៀន
 
-1. **ស្ថាបតិការអ្នកប្រឹក្សា**: Microsoft Agent Framework ផ្តល់ជម្រើសដែលស្អាតនិងមានសុវត្ថិភាពប្រភេទសម្រាប់ការបង្កើតអ្នកប្រឹក្សា AI នៅក្នុង .NET
-2. **ការចងក្រងឧបករណ៍**: មុខងារដែលត្រូវបានតុបតែងដោយ `[Description]` ក្លាយជាឧបករណ៍ដែលអាចប្រើបានសម្រាប់អ្នកប្រឹក្សា
-3. **ការគ្រប់គ្រងការកំណត់**: អថេរបរិស្ថាន និងការគ្រប់គ្រងសមត្ថភាពសុវត្ថិភាពអនុវត្តតាមអនុស្សាវរីយ៍ល្អបំផុតរបស់ .NET
-4. **Azure OpenAI Responses API**: អ្នកប្រឹក្សាប្រើ Azure OpenAI Responses API តាម SDK Azure.AI.OpenAI
+1. **ស្ថាបត្យកម្មភ្នាក់ងារ**៖ Microsoft Agent Framework ផ្ដល់មធ្យោបាយស្អាត និងប្រើប្រាស់ប្រភេទយ៉ាងសុវត្ថិភាពសម្រាប់កសាងភ្នាក់ងារ AI ក្នុង .NET
+2. **ការរួមបញ្ចូលឧបករណ៍**៖ មុខងារ​ដែល​ត្រូវ​បាន​តុបតែងដោយ attribute `[Description]` ជាឧបករណ៍ដែលអាចប្រើបានសម្រាប់ភ្នាក់ងារ
+3. **ការគ្រប់គ្រងការកំណត់**៖ អថេរ​បរិយាកាស និងការដោះស្រាយឯកសារយោងយ៉ាងសុវត្ថិភាពជាប់តាមជំនាញល្អបំផុតរបស់ .NET
+4. **Azure OpenAI Responses API**៖ ភ្នាក់ងារប្រើ API របស់ Azure OpenAI Responses តាមរយៈ Azure.AI.OpenAI SDK
 
 ## 🔗 ឯកសារបន្ថែម
 
-- [ឯកសារ Microsoft Agent Framework](https://learn.microsoft.com/agent-framework)
-- [Azure OpenAI នៅ Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
+- [ឯកសារលម្អិត Microsoft Agent Framework](https://learn.microsoft.com/agent-framework)
+- [Azure OpenAI ក្នុង Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
 - [.NET Single File Apps](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 

@@ -2,30 +2,30 @@
 
 ## 📋 Oppimistavoitteet
 
-Tämä muistikirja esittelee yritystason työkalujen integrointimalleja Microsoft Agent Frameworkin avulla .NET:ssä Azure OpenAI:n (Responses API) kanssa. Opit rakentamaan kehittyneitä agenteja, joilla on useita erikoistuneita työkaluja, hyödyntäen C#:n vahvaa tyyppitarkastusta ja .NET:n yritysominaisuuksia.
+Tämä muistikirja esittelee yritystason työkalujen integrointimalleja Microsoft Agent Frameworkin avulla .NET:ssä Azure OpenAI:n (Responses API) kanssa. Opit rakentamaan kehittyneitä agenteja, joissa on useita erikoistuneita työkaluja, hyödyntäen C#-kielen vahvaa tyyppitarkistusta ja .NET:n yritysominaisuuksia.
 
-### Edistyneet työkalukyvyt, jotka hallitset
+### Edistyneet työkalujen ominaisuudet, jotka hallitset
 
-- 🔧 **Monityökalurakenne**: Rakentamalla agenteja, joilla on useita erikoistuneita kykyjä
-- 🎯 **Tyypitetty työkalujen suoritus**: Hyödyntämällä C#:n käännösaikaisen tarkistuksen vahvuuksia
-- 📊 **Yritystason työkalumallit**: Tuotantovalmiiden työkalujen suunnittelu ja virheenkäsittely
-- 🔗 **Työkalujen koostaminen**: Työkalujen yhdistäminen monimutkaisiin liiketoimintatyönkulkuihin
+- 🔧 **Monityökalurakenne**: Agenttien rakentaminen, joissa on useita erikoistuneita kykyjä
+- 🎯 **Tyyppiturvallinen työkalujen suoritus**: Hyödynnetään C#-kielen käännösaikaista validointia
+- 📊 **Yritysten työkalumallit**: Tuotantovalmiit työkalusuunnittelut ja virheenkäsittely
+- 🔗 **Työkalujen yhdistäminen**: Työkalujen yhdistäminen monimutkaisiin liiketoimintaprosesseihin
 
-## 🎯 .NET-työkalurakenteen hyödyt
+## 🎯 .NET-työkalurakenteen edut
 
 ### Yritystason työkalujen ominaisuudet
 
-- **Käännösaikainen validointi**: Vahva tyyppitarkistus takaa työkalun parametrien oikeellisuuden
-- **Riippuvuuksien injektointi**: IoC-konttori integrointi työkalujen hallintaa varten
-- **Async/Await-mallit**: Ei-estävä työkalujen suoritus oikean resurssien hallinnan kanssa
-- **Rakenneellinen lokitus**: Sisäänrakennettu lokitus työkalujen suorituksen valvontaan
+- **Käännösaikainen validointi**: Vahva tyyppitys varmistaa työkalun parametrien oikeellisuuden
+- **Riippuvuuksien injektointi**: IoC-konttori integrointi työkalujen hallintaan
+- **Async/Await-mallit**: Estämätön työkalujen suoritus asianmukaisella resurssien hallinnalla
+- **Rakenteinen lokitus**: Sisäänrakennettu lokituksen integrointi työkalun suorituksen valvontaan
 
 ### Tuotantovalmiit mallit
 
-- **Poikkeusten käsittely**: Laaja virheenkäsittely tyypitettyjen poikkeusten avulla
-- **Resurssien hallinta**: Oikeat resurssien vapauttamisen mallit ja muistin hallinta
-- **Suorituskyvyn seuranta**: Sisäänrakennetut mittarit ja suorituskykylaskurit
-- **Konfiguraation hallinta**: Tyypitetty konfiguraation validointi
+- **Poikkeusten käsittely**: Kattava virheiden hallinta tyypitettyjen poikkeusten avulla
+- **Resurssien hallinta**: Oikeat vapautusmallit ja muistin hallinta
+- **Suorituskyvyn valvonta**: Sisäänrakennetut mittarit ja suorituskykymittarit
+- **Konfiguraation hallinta**: Tyyppiturvallinen konfiguraatio validoinnilla
 
 ## 🔧 Tekninen arkkitehtuuri
 
@@ -33,7 +33,7 @@ Tämä muistikirja esittelee yritystason työkalujen integrointimalleja Microsof
 
 - **Microsoft.Extensions.AI**: Yhtenäinen työkalujen abstraktiokerros
 - **Microsoft.Agents.AI**: Yritystason työkalujen orkestrointi
-- **Azure OpenAI (Responses API)**: Suorituskykyinen API-asiakas yhteyshallinnalla
+- **Azure OpenAI (Responses API)**: Korkean suorituskyvyn API-asiakas yhteysallastuksella
 
 ### Työkalujen suoritusputki
 
@@ -41,8 +41,8 @@ Tämä muistikirja esittelee yritystason työkalujen integrointimalleja Microsof
 graph LR
     A[Käyttäjän pyyntö] --> B[Agentin analyysi]
     B --> C[Työkalun valinta]
-    C --> D[Tyypin vahvistus]
-    B --> E[Parametrien sidonta]
+    C --> D[Tyypin validointi]
+    B --> E[Parametrin sitominen]
     E --> F[Työkalun suoritus]
     C --> F
     F --> G[Tulosten käsittely]
@@ -50,60 +50,60 @@ graph LR
     G --> H[Vastaus]
 ```
 
-## 🛠️ Työkaluluokat ja mallit
+## 🛠️ Työkaluluokat & mallit
 
-### 1. **Datan käsittelytyökalut**
+### 1. **Tietojenkäsittelytyökalut**
 
-- **Syötteen validointi**: Vahva tyyppitarkistus ja dataan liittyvät annotaatiot
-- **Muunnostoiminnot**: Tyypiturvallinen datan muuntaminen ja muotoilu
+- **Syötteen validointi**: Vahva tyyppitys ja datan annotaatiot
+- **Muunnostoiminnot**: Tyyppiturvallinen tiedon muunnos ja muotoilu
 - **Liiketoimintalogiikka**: Toimialakohtaiset laskenta- ja analyysityökalut
-- **Tulosteen muotoilu**: Rakenteellinen vastausten luominen
+- **Tulostuksen muotoilu**: Rakenteellisten vastausten generointi
 
 ### 2. **Integraatiotyökalut**
 
-- **API-liittimet**: REST-tyyppinen palveluintegraatio HttpClientin kanssa
-- **Tietokantatyökalut**: Entity Framework -integraatio datan käsittelyyn
-- **Tiedostotoiminnot**: Turvalliset tiedostojärjestelmän toiminnot validoinnilla
-- **Ulkoiset palvelut**: Kolmannen osapuolen palveluintegraatiomallit
+- **API-yhdyskäytävät**: REST-palvelujen integrointi HttpClientillä
+- **Tietokantatyökalut**: Entity Framework -integrointi tiedon käsittelyyn
+- **Tiedostotoiminnot**: Turvalliset tiedostojärjestelmän operaatiot validoinnilla
+- **Ulkoiset palvelut**: Kolmannen osapuolen palvelujen integrointimallit
 
-### 3. **Apukäyttöiset työkalut**
+### 3. **Aputyökalut**
 
-- **Tekstin käsittely**: Merkkijonojen muokkaus- ja muotoilutyökalut
-- **Päiväys/Aika-toiminnot**: Kulttuuritietoiset päiväys- ja aika-laskelmat
+- **Tekstinkäsittely**: Merkkijonojen käsittely- ja muotoilutyökalut
+- **Päiväys/Aikatiedot**: Kulttuuritietoiset aika- ja päivämäärälaskennat
 - **Matemaattiset työkalut**: Tarkkuuslaskelmat ja tilastolliset toiminnot
-- **Validointityökalut**: Liiketoimintasääntöjen validointi ja datan varmennus
+- **Validointityökalut**: Liiketoimintasääntöjen validointi ja tiedon tarkistus
 
-Valmiina rakentamaan yritystason agenteja, joissa on tehokkaat, tyypitetyt työkalut .NET:ssä? Rakennetaan ammattilaistasoisia ratkaisuja! 🏢⚡
+Valmis rakentamaan yritystason agentteja tehokkailla, tyyppiturvallisilla työkalujen ominaisuuksilla .NET:ssä? Suunnitellaan ammattilaisratkaisuja! 🏢⚡
 
 ## 🚀 Aloittaminen
 
-### Vaatimukset
+### Esivaatimukset
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) tai uudempi
-- [Azure-tilaus](https://azure.microsoft.com/free/), jossa Azure OpenAI -resurssi ja mallin käyttöönotto
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — kirjaudu sisään komennolla `az login`
+- [Azure-tilaus](https://azure.microsoft.com/free/), jossa on Azure OpenAI -resurssi ja mallin käyttöönotto
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — kirjaudu sisään `az login` -komennolla
 
 ### Vaaditut ympäristömuuttujat
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Kirjaudu sitten sisään, jotta AzureCliCredential voi hankkia tunnuksen
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Kirjaudu sitten sisään, jotta AzureCliCredential voi saada tokenin
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Kirjaudu sitten sisään, jotta AzureCliCredential voi saada tunnisteen
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Kirjaudu sitten sisään, jotta AzureCliCredential voi saada tokenin
 az login
 ```
 
 ### Esimerkkikoodi
 
-Koodiesimerkin suorittamiseksi,
+Suorittaaksesi koodiesimerkin,
 
 ```bash
 # zsh/bash
@@ -111,7 +111,7 @@ chmod +x ./04-dotnet-agent-framework.cs
 ./04-dotnet-agent-framework.cs
 ```
 
-Tai dotnet CLI:llä:
+Tai dotnet CLI:n avulla:
 
 ```bash
 dotnet run ./04-dotnet-agent-framework.cs
@@ -168,7 +168,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

@@ -1,18 +1,18 @@
-# 🎯 使用 Azure OpenAI（Responses API）進行規劃與設計模式（.NET）
+# 🎯 使用 Azure OpenAI（Responses API）與 .NET 的規劃與設計模式
 
 ## 📋 學習目標
 
-本筆記本示範了使用 .NET 中的 Microsoft Agent Framework 及 Azure OpenAI（Responses API）構建智能代理的企業級規劃與設計模式。您將學習如何創建能分解複雜問題、規劃多步解決方案並運用 .NET 企業功能執行複雜工作流程的代理。
+本筆記本示範了使用 .NET 中的 Microsoft Agent Framework 與 Azure OpenAI（Responses API）構建智能代理的企業級規劃與設計模式。您將學會創建能分解複雜問題、規劃多步解決方案並利用 .NET 的企業功能執行複雜工作流程的代理。
 
-## ⚙️ 前置條件與設定
+## ⚙️ 前置條件與環境設置
 
 **開發環境：**
 - .NET 9.0 SDK 或更高版本
-- Visual Studio 2022 或安裝 C# 擴充功能的 VS Code
-- 擁有 Azure 訂閱，並且建立了 Azure OpenAI 資源及模型部署
-- 作業 Azure CLI — 使用 `az login` 登入
+- Visual Studio 2022 或帶有 C# 擴充功能的 VS Code
+- 擁有 Azure 訂閱與 Azure OpenAI 資源及模型部署
+- Azure CLI — 使用 `az login` 登入
 
-**所需依賴項：**
+**必要依賴項：**
 ```xml
 <PackageReference Include="Microsoft.Extensions.AI" Version="10.*" />
 <PackageReference Include="Microsoft.Agents.AI" Version="1.*-*" />
@@ -22,15 +22,15 @@
 <PackageReference Include="DotNetEnv" Version="3.1.1" />
 ```
 
-**環境配置 (.env 檔案)：**
+**環境配置（.env 檔案）：**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
 ## 執行程式碼
 
-本課程包含 .NET 單一檔案應用程式實作。執行方式：
+本課程包含一個 .NET 單文件應用程式的實作。執行方法如下：
 
 ```bash
 # 令檔案可執行（Linux/macOS）
@@ -40,27 +40,27 @@ chmod +x 07-dotnet-agent-framework.cs
 ./07-dotnet-agent-framework.cs
 ```
 
-或使用 dotnet run 指令：
+或使用 dotnet run 命令：
 
 ```bash
 dotnet run 07-dotnet-agent-framework.cs
 ```
 
-## 程式碼實作
+## 程式碼實作說明
 
-完整實作位於 `07-dotnet-agent-framework.cs`，示範以下內容：
+完整實作位於 `07-dotnet-agent-framework.cs`，示範了：
 
 - 使用 DotNetEnv 載入環境配置
-- 設定 Azure OpenAI 用戶端並透過 `GetChatClient().AsAIAgent()` 建立 AI 代理
-- 定義結構化資料模型（Plan 和 TravelPlan）並序列化為 JSON
-- 利用 JSON schema 建立帶結構化輸出的 AI 代理
-- 執行具有類型安全回應的規劃請求
+- 配置 Azure OpenAI 用戶端並透過 `GetChatClient().AsAIAgent()` 創建 AI 代理
+- 使用 JSON 序列化定義結構化資料模型（Plan 與 TravelPlan）
+- 使用 JSON schema 創建具結構化輸出的 AI 代理
+- 以型別安全的回應執行規劃請求
 
-## 核心概念
+## 主要概念
 
-### 使用類型安全模型進行結構化規劃
+### 利用型別安全模型進行結構化規劃
 
-代理使用 C# 類別定義規劃輸出的結構：
+代理採用 C# 類別定義規劃輸出的結構：
 
 ```csharp
 public class Plan
@@ -82,9 +82,9 @@ public class TravelPlan
 }
 ```
 
-### 用於結構化輸出的 JSON 架構
+### 用於結構化輸出的 JSON Schema
 
-代理配置為返回符合 TravelPlan 架構的回應：
+代理配置為回傳符合 TravelPlan schema 的回應：
 
 ```csharp
 ChatClientAgentOptions agentOptions = new()
@@ -101,20 +101,20 @@ ChatClientAgentOptions agentOptions = new()
 };
 ```
 
-### 規劃代理指示
+### 規劃代理指令
 
-代理擔任協調者角色，委派任務給專門子代理：
+代理作為協調者，將任務委派給專門子代理：
 
-- FlightBooking：負責訂票及提供航班資訊
-- HotelBooking：負責訂房及提供酒店資訊
-- CarRental：負責租車及提供租車資訊
-- ActivitiesBooking：負責預訂活動及提供活動資訊
-- DestinationInfo：負責提供目的地資訊
+- FlightBooking：負責訂機票及提供航班資訊
+- HotelBooking：負責訂旅館及提供旅館資訊
+- CarRental：負責訂租車及提供租車資訊
+- ActivitiesBooking：負責訂活動及提供活動資訊
+- DestinationInfo：負責提供旅遊目的地資訊
 - DefaultAgent：負責處理一般請求
 
 ## 預期輸出
 
-執行帶有旅行規劃請求的代理時，代理會分析請求並產生結構化計劃，將適當任務分配給專門代理，並以符合 TravelPlan 架構的 JSON 格式回傳。
+當您執行代理處理旅遊規劃請求時，代理會分析請求並產生一份結構化計劃，將任務適當指派至專門代理，並以符合 TravelPlan schema 的 JSON 格式回傳。
 
 ---
 

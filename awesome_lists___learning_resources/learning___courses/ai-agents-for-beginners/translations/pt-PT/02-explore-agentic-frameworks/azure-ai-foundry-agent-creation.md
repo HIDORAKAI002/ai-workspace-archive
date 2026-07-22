@@ -4,39 +4,39 @@ Neste exercício, utiliza as ferramentas do Microsoft Foundry Agent Service no [
 
 ## Pré-requisitos
 
-Para completar este exercício, precisa do seguinte:
+Para completar este exercício, necessita do seguinte:
 1. Uma conta Azure com uma subscrição ativa. [Crie uma conta gratuitamente](https://azure.microsoft.com/free/?WT.mc_id=academic-105485-koreyst).
-2. Precisa de permissões para criar um hub Microsoft Foundry ou de ter um criado para si.
-    - Se a sua função for Contribuinte ou Proprietário, pode seguir os passos neste tutorial.
+2. Permissões para criar um hub Microsoft Foundry ou que um seja criado para si.
+    - Se o seu papel é Contribuidor ou Proprietário, pode seguir os passos neste tutorial.
 
 ## Criar um hub Microsoft Foundry
 
 > **Nota:** O Microsoft Foundry era anteriormente conhecido como Azure AI Studio.
 
-1. Siga estas diretrizes do post do blog do [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) para criar um hub Microsoft Foundry.
-2. Quando o seu projeto for criado, feche quaisquer dicas que sejam exibidas e reveja a página do projeto no portal Microsoft Foundry, que deverá parecer semelhante à imagem seguinte:
+1. Siga estas orientações do artigo do blog do [Microsoft Foundry](https://learn.microsoft.com/en-us/azure/ai-studio/?WT.mc_id=academic-105485-koreyst) para criar um hub Microsoft Foundry.
+2. Quando o seu projeto for criado, feche quaisquer dicas que sejam exibidas e reveja a página do projeto no portal Microsoft Foundry, que deverá ser semelhante à imagem seguinte:
 
     ![Microsoft Foundry Project](../../../translated_images/pt-PT/azure-ai-foundry.88d0c35298348c2f.webp)
 
-## Implantar um modelo
+## Implementar um modelo
 
-1. No painel à esquerda do seu projeto, na secção **Os meus recursos**, selecione a página **Modelos + endpoints**.
-2. Na página **Modelos + endpoints**, no separador **Implantações de modelo**, no menu **+ Implantar modelo**, selecione **Implantar modelo base**.
-3. Pesquise o modelo `gpt-4.1-mini` na lista, e depois selecione-o e confirme.
+1. No painel à esquerda do seu projeto, na secção **Os meus ativos**, selecione a página **Modelos + endpoints**.
+2. Na página **Modelos + endpoints**, na aba **Implementações de modelo**, no menu **+ Implementar modelo**, selecione **Implementar modelo base**.
+3. Procure pelo modelo `gpt-5-mini` na lista, em seguida selecione e confirme.
 
-    > **Nota**: Reduzir o TPM ajuda a evitar o uso excessivo do crédito disponível na subscrição que está a usar.
+    > **Nota**: Reduzir o TPM ajuda a evitar a utilização excessiva da quota disponível na subscrição que está a usar.
 
     ![Model Deployed](../../../translated_images/pt-PT/model-deployment.3749c53fb81e18fd.webp)
 
 ## Criar um agente
 
-Agora que implantou um modelo, pode criar um agente. Um agente é um modelo de IA conversacional que pode ser usado para interagir com os utilizadores.
+Agora que implementou um modelo, pode criar um agente. Um agente é um modelo de IA conversacional que pode ser usado para interagir com os utilizadores.
 
 1. No painel à esquerda do seu projeto, na secção **Construir & Personalizar**, selecione a página **Agentes**.
-2. Clique em **+ Criar agente** para criar um agente novo. Sob a caixa de diálogo **Configuração do Agente**:
-    - Introduza um nome para o agente, como `FlightAgent`.
-    - Certifique-se de que a implantação do modelo `gpt-4.1-mini` que criou anteriormente está selecionada.
-    - Defina as **Instruções** conforme o prompt que deseja que o agente siga. Aqui está um exemplo:
+2. Clique em **+ Criar agente** para criar um novo agente. Na caixa de diálogo **Configuração do Agente**:
+    - Introduza um nome para o agente, tal como `FlightAgent`.
+    - Certifique-se de que a implementação do modelo `gpt-5-mini` que criou anteriormente está selecionada
+    - Defina as **Instruções** conforme o prompt que pretende que o agente siga. Aqui está um exemplo:
     ```
     You are FlightAgent, a virtual assistant specialized in handling flight-related queries. Your role includes assisting users with searching for flights, retrieving flight details, checking seat availability, and providing real-time flight status. Follow the instructions below to ensure clarity and effectiveness in your responses:
 
@@ -66,32 +66,32 @@ Agora que implantou um modelo, pode criar um agente. Um agente é um modelo de I
 > [!NOTE]
 > Para um prompt detalhado, pode consultar [este repositório](https://github.com/ShivamGoyal03/RoamMind) para mais informações.
     
-> Além disso, pode adicionar **Base de Conhecimento** e **Ações** para melhorar as capacidades do agente para fornecer mais informações e executar tarefas automatizadas baseadas nos pedidos dos utilizadores. Para este exercício, pode saltar esses passos.
+> Além disso, pode adicionar **Base de Conhecimento** e **Ações** para melhorar as capacidades do agente para fornecer mais informação e executar tarefas automatizadas baseadas em pedidos dos utilizadores. Para este exercício, pode pular estes passos.
     
 ![Agent Setup](../../../translated_images/pt-PT/agent-setup.9bbb8755bf5df672.webp)
 
-3. Para criar um novo agente multi-IA, basta clicar em **Novo Agente**. O agente criado será exibido na página de Agentes.
+3. Para criar um novo agente multi-IA, basta clicar em **Novo Agente**. O agente recém-criado será então exibido na página dos Agentes.
 
 
 ## Testar o agente
 
-Depois de criar o agente, pode testá-lo para ver como responde às consultas dos utilizadores no ambiente de testes do portal Microsoft Foundry.
+Depois de criar o agente, pode testá-lo para ver como responde às perguntas dos utilizadores na área de testes do portal Microsoft Foundry.
 
 1. No topo do painel **Configuração** do seu agente, selecione **Testar no playground**.
-2. No painel **Playground**, pode interagir com o agente digitando perguntas na janela de chat. Por exemplo, pode pedir ao agente para pesquisar voos de Seattle para Nova Iorque no dia 28.
+2. No painel **Playground**, pode interagir com o agente digitando perguntas na janela de chat. Por exemplo, pode pedir ao agente para procurar voos de Seattle para Nova Iorque no dia 28.
 
-    > **Nota**: O agente pode não fornecer respostas precisas, pois neste exercício não são usados dados em tempo real. O objetivo é testar a capacidade do agente de compreender e responder às consultas dos utilizadores com base nas instruções fornecidas.
+    > **Nota**: O agente pode não fornecer respostas precisas, pois não está a ser usado dado em tempo real neste exercício. O objetivo é testar a capacidade do agente de entender e responder às perguntas dos utilizadores com base nas instruções fornecidas.
 
     ![Agent Playground](../../../translated_images/pt-PT/agent-playground.dc146586de715010.webp)
 
 3. Após testar o agente, pode personalizá-lo ainda mais adicionando mais intenções, dados de treino e ações para melhorar as suas capacidades.
 
-## Limpar recursos
+## Limpar os recursos
 
 Quando terminar de testar o agente, pode eliminá-lo para evitar custos adicionais.
-1. Abra o [portal Azure](https://portal.azure.com) e veja o conteúdo do grupo de recursos onde implantou os recursos do hub usados neste exercício.
+1. Abra o [portal Azure](https://portal.azure.com) e veja o conteúdo do grupo de recursos onde implementou os recursos do hub usados neste exercício.
 2. Na barra de ferramentas, selecione **Eliminar grupo de recursos**.
-3. Introduza o nome do grupo de recursos e confirme que deseja eliminá-lo.
+3. Introduza o nome do grupo de recursos e confirme que pretende eliminá-lo.
 
 ## Recursos
 
@@ -99,7 +99,7 @@ Quando terminar de testar o agente, pode eliminá-lo para evitar custos adiciona
 - [Portal Microsoft Foundry](https://ai.azure.com/?WT.mc_id=academic-105485-koreyst)
 - [Introdução ao Microsoft Foundry](https://techcommunity.microsoft.com/blog/educatordeveloperblog/getting-started-with-azure-ai-studio/4095602?WT.mc_id=academic-105485-koreyst)
 - [Fundamentos dos agentes de IA na Azure](https://learn.microsoft.com/en-us/training/modules/ai-agent-fundamentals/?WT.mc_id=academic-105485-koreyst)
-- [Azure AI Discord](https://aka.ms/AzureAI/Discord)
+- [Discord Azure AI](https://aka.ms/AzureAI/Discord)
 
 ---
 

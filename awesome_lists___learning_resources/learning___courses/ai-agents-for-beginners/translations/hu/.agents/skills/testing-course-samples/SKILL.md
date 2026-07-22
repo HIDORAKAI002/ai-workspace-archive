@@ -1,73 +1,80 @@
 ---
 name: testing-course-samples
 ---
-# A kurzusminták tesztelése
+# A tanfolyam mintáinak tesztelése
 
-Ellenőrizd, hogy a leckék jegyzetfüzetei és kódmintái futtathatók-e egy élő
-Microsoft Foundry / Azure OpenAI környezetben. A tároló tartalmaz egy futtatót a
-[`scripts/validate-notebooks.ps1`](../../../../../scripts/validate-notebooks.ps1) fájlban, amely
-fej nélküli módban lefuttatja az összes Python jegyzetfüzetet, és PASS/FAIL mátrixot nyomtat ki.
+Ellenőrizze, hogy a leckék jegyzetei és kódmintái működnek-e egy élő
+Microsoft Foundry / Azure OpenAI környezettel. A repo tartalmaz egy futtatót a
+[`scripts/validate-notebooks.ps1`](../../../../../scripts/validate-notebooks.ps1) útvonalon, amely
+fej nélküli futtatással végrehajt minden Python jegyzetfüzetet, és PASS/FAIL mátrixot nyomtat.
 
-## Mikor használd
-- "Ellenőrizd az összes jegyzetfüzetet/mintát az Azure előfizetésemhez képest."
-- "Gyors-teszteld a kurzust csomagfrissítés vagy modellváltás után."
-- "Mely leckék futnak le, illetve hibáznak élőben?"
+## Mikor használjuk
+- "Ellenőrizze az összes jegyzetfüzetet / mintát az Azure előfizetésemhez."
+- "Futtasson gyors ellenőrzést a tanfolyamon csomagfrissítés vagy modellváltoztatás után."
+- "Mely leckék futnak még át / kerülnek hibára élő környezetben?"
 
-Ne használd az AI Smoke Test GitHub Action-höz (ami a *telepített*
-hosztolt ügynököket validálja — lásd [`tests/README.md`](../../../tests/README.md))! Ez a skill
-helyi jegyzetfüzet-futtatást végez.
+Ne használja ezt az AI Smoke Test GitHub Actionhoz (amely a *telepített*
+hosztolt ügynököket validálja — lásd [`tests/README.md`](../../../tests/README.md)). Ez a skill
+a jegyzetfüzeteket helyben futtatja.
 
-## Előfeltételek (ellenőrizd először)
-1. **Python 3.12+** a kurzusfüggőségekkel: `python -m pip install -r requirements.txt`
-   plusz a futtató: `python -m pip install nbconvert ipykernel`.
-2. **`.env` a tároló gyökerében** (másold a [`.env.example`](../../../../../.env.example) fájlból) legalább az alábbiakkal:
-   - `AZURE_AI_PROJECT_ENDPOINT` — Foundry projektvégpont
+## Előfeltételek (ellenőrizze először)
+1. **Python 3.12+** a tanfolyami függőségekkel: `python -m pip install -r requirements.txt`
+   továbbá a futtató: `python -m pip install nbconvert ipykernel`.
+2. **`.env` a repo gyökérkönyvtárában** (másolja a [`.env.example`](../../../../../.env.example) fájlból) legalább:
+   - `AZURE_AI_PROJECT_ENDPOINT` — Foundry projekt végpontja
      (`https://<account>.services.ai.azure.com/api/projects/<project>`)
-   - `AZURE_AI_MODEL_DEPLOYMENT_NAME` — egy nem elavult üzembe helyezés (pl. `gpt-4.1-mini`)
+   - `AZURE_AI_MODEL_DEPLOYMENT_NAME` — egy nem elavult telepítés (pl. `gpt-5-mini`)
    - `AZURE_OPENAI_ENDPOINT` (`https://<account>.openai.azure.com`) és `AZURE_OPENAI_DEPLOYMENT`
-     azokhoz a leckékhez, amelyek közvetlenül hívják az Azure OpenAI-t (06. lecke, 02-azure-openai, 14 handoff/human-loop).
-3. **`az login`** befejezve — a minták `AzureCliCredential`-lel azonosítanak (Entra ID, kulcs nélkül).
-4. Ellenőrizd, hogy létezik a modelltelepítés:
+     azokhoz a leckékhez, melyek Azure OpenAI-t közvetlenül hívnak (06. lecke, 02-azure-openai, 14 handoff/human-loop).
+3. **`az login`** elvégezve — a minták az `AzureCliCredential`-lel hitelesítenek (Entra ID, kulcs nélküli).
+4. Ellenőrizze, hogy létezik a modell telepítés:
    `az cognitiveservices account deployment list -g <rg> -n <account> -o table`.
 
-## A validálás futtatása
+## Az ellenőrzés futtatása
 ```powershell
-# Minden Python jegyzetfüzet (kihagyja a .NET, .venv, site-packages, fordítások, készség erőforrások mappákat)
+# Minden Python jegyzetfüzet (kihagyva: .NET, .venv, site-packages, fordítások, készség erőforrások)
 pwsh scripts/validate-notebooks.ps1
 
 # Egyetlen lecke, hosszabb cellánkénti időkorláttal
 pwsh scripts/validate-notebooks.ps1 -Filter '08-*' -Timeout 600
 
-# Csak felsorolja, mi futna (nincs végrehajtás)
+# Csak felsorolja, hogy mi futna (nem hajt végre)
 pwsh scripts/validate-notebooks.ps1 -List
 
-# Explicit értelmező (ha a `python` nincs a PATH-ban, pl. Windows Store alias)
+# Explicit értelmező (ha a `python` nincs a PATH-on, pl. Windows Store alias)
 pwsh scripts/validate-notebooks.ps1 -Python "C:/path/to/python.exe"
 ```
-A szkript az elvégzett másolatokat, jegyzetfüzetenkénti naplókat és a `results.json` fájlt ír a
-`$env:TEMP\aiab-nbval` könyvtárba, és a hibák számával tér vissza.
+A szkript végrehajtott másolatokat, jegyzetfüzetenkénti naplókat és `results.json` fájlt ír a
+`$env:TEMP\aiab-nbval` könyvtárba és a sikertelenek számával lép ki.
 
-## Az eredmények értelmezése
-- `PASS` — a jegyzetfüzet hibamentesen, végig lefutott.
-- `FAIL` — az első megjelenő `*Error` / `*Exception` sor látható; a teljes nyomkövetésért nyisd meg a megfelelő
-  `log_*.txt` fájlt a kimeneti könyvtárban.
-- Egy jegyzetfüzet hibáját a `-Timeout` (cellánként) korlátozza, így egy lefagyott
-  emberi-interakciót igénylő cella nem akad meg, hanem `StdinNotImplementedError` hibát jelez.
+Átmeneti hibákat (közös előfizetésből eredő HTTP 429 korlátozások, alkalmi
+`AzureCliCredential` token-probléma vagy időtúllépés) automatikusan újrapróbálja
+(`-Retries`, alapértelmezett 2, `-RetryDelaySeconds` várakozással, alapértelmezett 20). Ha egy
+modell telepítés gyakran 429-et ad vissza, ellenőrizze az előfizetés GlobalStandard
+TPM kvótáját (`az cognitiveservices usage list -l <region>`) — egyetlen
+telepítés kapacitásának növelése nem segít, ha az *előfizetés* kvóta kimerült.
 
-## Többlet erőforrást igénylő leckék (hibával várhatók erőforrások nélkül)
+## Eredmények értelmezése
+- `PASS` — a jegyzetfüzet hiba nélkül lefutott végig.
+- `FAIL` — az első `*Error` / `*Exception` sor megjelenik; a teljes tracebackhez nyissa meg a
+  megfelelő `log_*.txt` fájlt a kimeneti könyvtárban.
+- Egyetlen jegyzetfüzet hibája a `-Timeout` idővel korlátozott (cellánként), így egy lefagyott
+  human-in-the-loop cella `StdinNotImplementedError` hibát ad vissza a lefagyás helyett.
+
+## Olyan leckék, amelyek extra erőforrásokat igényelnek (ezek hiányában hibára futnak)
 | Lecke | Extra követelmény |
 |--------|-------------------|
-| 05 Agentic RAG | Azure AI Search (`AZURE_SEARCH_SERVICE_ENDPOINT`, kulcs) — van memóriabeli pótló útvonal |
+| 05 Agentic RAG | Azure AI Search (`AZURE_SEARCH_SERVICE_ENDPOINT`, kulcs) — van memóriabeli tartalék útvonal |
 | 11 MCP / GitHub | GitHub MCP szerver + PAT |
-| 13 memory (cognee) | `cognee` modell-szolgáltatóval konfigurálva |
-| 15 browser-use | Telepített Playwright böngészők (`playwright install`) + `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME` |
-| 17 local agent | Foundry helyi futtatókörnyezet + letöltött Qwen modell (eszközön, felhő nélkül) |
-| `*-dotnet-*` jegyzetfüzetek | .NET Interactive kernel (alapból kizárva; használd a `-IncludeDotnet` opciót) |
+| 13 memória (cognee) | `cognee` konfigurálva modell szolgáltatóval |
+| 15 browser-használat | Playwright böngészők telepítve (`playwright install`) + `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME` |
+| 17 helyi ügynök | Foundry Local futtatókörnyezet + letöltött Qwen modell (helyi eszközön, nem felhőben) |
+| `*-dotnet-*` jegyzetfüzetek | .NET Interactive kernel (alapértelmezésben kizárva; használja a `-IncludeDotnet` opciót) |
 
 ## Visszajelzés
-Foglald össze PASS/FAIL táblázatban lecke szerint csoportosítva. Különítsd el a valódi regressziókat
-(javítandó kód-/konfig hibák) a környezeti hiányosságoktól (hiányzó Search/Foundry Local/PAT),
-és tüntesd fel minden jogos hiba esetén a hibás `log_*.txt` fájlt.
+Összegezze PASS/FAIL táblázatként leckénként csoportosítva. Válassza szét az valódi regressziókat
+(javítandó kód/beállítás hibák) a környezeti hiányosságoktól (hiányzó Search/Foundry Local/PAT),
+és hivatkozzon a hibás `log_*.txt` fájlokra minden valódi hiba esetén.
 
 ---
 

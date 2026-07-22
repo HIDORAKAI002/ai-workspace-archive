@@ -2,14 +2,14 @@
 
 ## 📋 Læringsmål
 
-Denne notatblokken demonstrerer bedriftsnivå planlegging og designmønstre for å bygge intelligente agenter ved bruk av Microsoft Agent Framework i .NET med Azure OpenAI (Responses API). Du vil lære å lage agenter som kan dele opp komplekse problemer, planlegge flerstegs løsninger, og utføre avanserte arbeidsflyter med .NETs bedriftsfunksjoner.
+Denne notatboken demonstrerer enterprise-klasse planleggings- og designmønstre for å bygge intelligente agenter ved bruk av Microsoft Agent Framework i .NET med Azure OpenAI (Responses API). Du vil lære å lage agenter som kan dekomponere komplekse problemer, planlegge flerstegs løsninger, og utføre sofistikerte arbeidsflyter med .NETs enterprise-funksjoner.
 
 ## ⚙️ Forutsetninger og oppsett
 
 **Utviklingsmiljø:**
-- .NET 9.0 SDK eller nyere
+- .NET 9.0 SDK eller høyere
 - Visual Studio 2022 eller VS Code med C#-utvidelse
-- Et Azure-abonnement med en Azure OpenAI-ressurs og en modellutrulling
+- En Azure-abonnement med en Azure OpenAI-ressurs og modellutrulling
 - Azure CLI — logg inn med `az login`
 
 **Nødvendige avhengigheter:**
@@ -25,7 +25,7 @@ Denne notatblokken demonstrerer bedriftsnivå planlegging og designmønstre for 
 **Miljøkonfigurasjon (.env-fil):**
 ```env
 AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 ```
 
 ## Kjøre koden
@@ -40,7 +40,7 @@ chmod +x 07-dotnet-agent-framework.cs
 ./07-dotnet-agent-framework.cs
 ```
 
-Eller bruk dotnet run-kommandoen:
+Eller bruk kommandoen dotnet run:
 
 ```bash
 dotnet run 07-dotnet-agent-framework.cs
@@ -51,16 +51,16 @@ dotnet run 07-dotnet-agent-framework.cs
 Den komplette implementeringen er tilgjengelig i `07-dotnet-agent-framework.cs`, som demonstrerer:
 
 - Laste miljøkonfigurasjon med DotNetEnv
-- Konfigurere Azure OpenAI-klienten og opprette en AI-agent ved bruk av `GetChatClient().AsAIAgent()`
+- Konfigurere Azure OpenAI-klienten og lage en AI-agent ved bruk av `GetChatClient().AsAIAgent()`
 - Definere strukturerte datamodeller (Plan og TravelPlan) med JSON-serialisering
-- Opprette en AI-agent med strukturert output ved bruk av JSON-skjema
+- Lage en AI-agent med strukturert utdata ved bruk av JSON-skjema
 - Utføre planleggingsforespørsler med typesikre responser
 
-## Nøkkelkonsepter
+## Nøkkelbegreper
 
 ### Strukturert planlegging med typesikre modeller
 
-Agenten bruker C#-klasser for å definere strukturen til planleggingsresultater:
+Agenten bruker C#-klasser for å definere strukturen til planleggingsutdataene:
 
 ```csharp
 public class Plan
@@ -82,9 +82,9 @@ public class TravelPlan
 }
 ```
 
-### JSON-skjema for strukturerte resultater
+### JSON-skjema for strukturerte utdata
 
-Agenten er konfigurert for å returnere svar som samsvarer med TravelPlan-skjemaet:
+Agenten er konfigurert til å returnere svar som samsvarer med TravelPlan-skjemaet:
 
 ```csharp
 ChatClientAgentOptions agentOptions = new()
@@ -103,12 +103,12 @@ ChatClientAgentOptions agentOptions = new()
 
 ### Instruksjoner for planleggingsagenten
 
-Agenten fungerer som en koordinator, og delegerer oppgaver til spesialiserte under-agenter:
+Agenten fungerer som koordinator og delegerer oppgaver til spesialiserte under-agenter:
 
-- FlightBooking: For å booke flyreiser og gi flyinformasjon
-- HotelBooking: For å booke hoteller og gi hotellinformasjon
-- CarRental: For å booke leiebiler og gi informasjon om bilutleie
-- ActivitiesBooking: For å booke aktiviteter og gi aktivitetsinformasjon
+- FlightBooking: For å bestille flyreiser og gi flyinformasjon
+- HotelBooking: For å bestille hoteller og gi hotellinformasjon
+- CarRental: For å bestille biler og gi informasjon om bilutleie
+- ActivitiesBooking: For å bestille aktiviteter og gi aktivitetsinformasjon
 - DestinationInfo: For å gi informasjon om destinasjoner
 - DefaultAgent: For å håndtere generelle forespørsler
 

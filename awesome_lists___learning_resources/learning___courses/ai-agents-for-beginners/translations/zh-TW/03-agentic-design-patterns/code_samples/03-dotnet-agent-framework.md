@@ -1,71 +1,71 @@
-# 🎨 使用 Azure OpenAI（Responses API）的代理設計模式（.NET）
+# 🎨 使用 Azure OpenAI (Responses API) 的 Agentic 設計模式 (.NET)
 
 ## 📋 學習目標
 
-本範例展示了使用 Microsoft Agent Framework 在 .NET 中結合 Azure OpenAI（Responses API）進行智慧代理構建的企業級設計模式。您將學習專業的模式和架構方法，使代理具備生產就緒、可維護且可擴展的特性。
+本示例展示了使用 Microsoft Agent Framework 與 Azure OpenAI (Responses API) 整合，在 .NET 中構建智能代理的企業級設計模式。您將學習專業的模式和架構方法，使代理具有生產就緒、可維護和可擴展性。
 
 ### 企業設計模式
 
-- 🏭 <strong>工廠模式</strong>：標準化代理創建並支援依賴注入
+- 🏭 <strong>工廠模式</strong>：標準化代理建立與依賴注入
 - 🔧 <strong>建造者模式</strong>：流暢的代理配置與設置
-- 🧵 <strong>線程安全模式</strong>：並行對話管理
-- 📋 <strong>倉儲模式</strong>：有組織的工具與能力管理
+- 🧵 <strong>執行緒安全模式</strong>：並發對話管理
+- 📋 <strong>資料存取模式</strong>：有組織的工具與能力管理
 
-## 🎯 .NET 專屬架構優勢
+## 🎯 .NET專屬架構優勢
 
-### 企業特性
+### 企業功能
 
 - <strong>強類型</strong>：編譯時驗證與 IntelliSense 支援
 - <strong>依賴注入</strong>：內建 DI 容器整合
 - <strong>配置管理</strong>：IConfiguration 與 Options 模式
-- **Async/Await**：一流非同步程式設計支援
+- **非同步/等待**：一級非同步程式設計支援
 
 ### 生產就緒模式
 
-- <strong>日誌整合</strong>：ILogger 與結構化日誌支援
+- <strong>日誌整合</strong>：ILogger 及結構化日誌支持
 - <strong>健康檢查</strong>：內建監控與診斷
-- <strong>配置驗證</strong>：強類型與資料註解
-- <strong>錯誤處理</strong>：結構化異常管理
+- <strong>配置驗證</strong>：具有資料註解的強類型
+- <strong>錯誤處理</strong>：結構化例外管理
 
 ## 🔧 技術架構
 
-### 主要 .NET 元件
+### 核心 .NET 元件
 
 - **Microsoft.Extensions.AI**：統一的 AI 服務抽象
-- **Microsoft.Agents.AI**：企業級代理協調框架
-- **Azure OpenAI（Responses API）**：高效能 API 客戶端模式
-- <strong>配置系統</strong>：appsettings.json 與環境集成
+- **Microsoft.Agents.AI**：企業級代理編排框架
+- **Azure OpenAI (Responses API)**：高效能 API 用戶端模式
+- <strong>配置系統</strong>：appsettings.json 與環境整合
 
 ### 設計模式實作
 
 ```mermaid
 graph LR
     A[IServiceCollection] --> B[代理建構器]
-    B --> C[配置]
+    B --> C[設定]
     C --> D[工具註冊表]
     D --> E[AI 代理]
 ```
 
-## 🏗️ 展示的企業模式
+## 🏗️ 展示的企業級模式
 
 ### 1. <strong>創建型模式</strong>
 
-- <strong>代理工廠</strong>：集中式代理創建，統一配置
-- <strong>建造者模式</strong>：複雜代理的流暢 API 配置
+- <strong>代理工廠</strong>：集中式代理建立與一致配置
+- <strong>建造者模式</strong>：複雜代理配置的流暢 API
 - <strong>單例模式</strong>：共享資源與配置管理
 - <strong>依賴注入</strong>：鬆耦合與可測試性
 
 ### 2. <strong>行為型模式</strong>
 
 - <strong>策略模式</strong>：可互換的工具執行策略
-- <strong>命令模式</strong>：封裝代理操作並支援復原/重做
+- <strong>命令模式</strong>：封裝的代理操作，支援撤銷/重做
 - <strong>觀察者模式</strong>：事件驅動的代理生命週期管理
-- <strong>模板方法</strong>：標準化代理執行流程
+- <strong>模板方法</strong>：標準化代理執行工作流程
 
 ### 3. <strong>結構型模式</strong>
 
-- <strong>適配器模式</strong>：Azure OpenAI（Responses API）整合層
-- <strong>裝飾者模式</strong>：代理功能增強
+- <strong>適配器模式</strong>：Azure OpenAI (Responses API) 整合層
+- <strong>裝飾模式</strong>：增強代理能力
 - <strong>外觀模式</strong>：簡化代理互動介面
 - <strong>代理模式</strong>：延遲加載與快取以提升效能
 
@@ -73,81 +73,81 @@ graph LR
 
 ### SOLID 原則
 
-- <strong>單一職責</strong>：每個元件有明確單一目的
-- <strong>開放封閉</strong>：可擴充不需修改
-- <strong>里氏替換</strong>：以介面為基礎的工具實作
-- <strong>介面隔離</strong>：專注且凝聚的介面設計
-- <strong>依賴反轉</strong>：依賴抽象不依賴具體
+- <strong>單一職責原則</strong>：每個元件有明確單一目的
+- <strong>開放封閉原則</strong>：可擴充而無需修改
+- <strong>里氏置換原則</strong>：基於介面的工具實作
+- <strong>介面隔離原則</strong>：專注且內聚的介面
+- <strong>依賴反轉原則</strong>：依賴抽象不依賴具體
 
-### Clean Architecture
+### 清晰架構
 
 - <strong>領域層</strong>：核心代理與工具抽象
-- <strong>應用層</strong>：代理協調與工作流程
-- <strong>基礎設施層</strong>：Azure OpenAI（Responses API）整合與外部服務
-- <strong>表示層</strong>：用戶互動與回應格式
+- <strong>應用層</strong>：代理編排與工作流程
+- <strong>基礎建設層</strong>：Azure OpenAI (Responses API) 整合與外部服務
+- <strong>展現層</strong>：使用者互動與回應格式化
 
 ## 🔒 企業考量
 
 ### 安全性
 
-- <strong>憑證管理</strong>：使用 IConfiguration 安全管理 API 金鑰
+- <strong>認證管理</strong>：透過 IConfiguration 安全處理 API 金鑰
 - <strong>輸入驗證</strong>：強類型與資料註解驗證
-- <strong>輸出消毒</strong>：安全的回應處理與過濾
-- <strong>審計日誌</strong>：全面操作追蹤
+- <strong>輸出淨化</strong>：安全的回應處理與篩選
+- <strong>稽核日誌</strong>：完整操作追蹤
 
 ### 效能
 
 - <strong>非同步模式</strong>：非阻塞 I/O 操作
-- <strong>連線池</strong>：高效 HTTP 客戶端管理
-- <strong>快取</strong>：回應快取提高效能
+- <strong>連線池</strong>：高效的 HTTP 用戶端管理
+- <strong>快取</strong>：回應快取以提升效能
 - <strong>資源管理</strong>：正確的釋放與清理模式
 
 ### 可擴展性
 
-- <strong>線程安全</strong>：支援並發代理執行
-- <strong>資源池</strong>：有效利用資源
-- <strong>負載管理</strong>：流量限制與背壓處理
+- <strong>執行緒安全</strong>：支援並發代理執行
+- <strong>資源池</strong>：高效資源使用
+- <strong>負載管理</strong>：速率限制與背壓處理
 - <strong>監控</strong>：效能指標與健康檢查
 
 ## 🚀 生產部署
 
-- <strong>配置管理</strong>：環境特定設定
+- <strong>配置管理</strong>：特定環境設定
 - <strong>日誌策略</strong>：結構化日誌與關聯 ID
-- <strong>錯誤處理</strong>：全局異常處理與適當復原
-- <strong>監控</strong>：應用見解與效能計數器
+- <strong>錯誤處理</strong>：全域例外管理與適當復原
+- <strong>監控</strong>：應用洞察與效能計數器
 - <strong>測試</strong>：單元測試、整合測試與負載測試模式
 
-準備好用 .NET 建構企業級智慧代理了嗎？讓我們打造堅固的架構吧！🏢✨
+準備好用 .NET 構建企業級智慧代理了嗎？讓我們一起架構堅固的系統！🏢✨
 
-## 🚀 起步指南
+## 🚀 快速開始
 
 ### 前置需求
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更新版本
-- 擁有含 Azure OpenAI 資源與模型部署的 [Azure 訂閱](https://azure.microsoft.com/free/)
-- 安裝並登入 [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — 使用 `az login`
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 或更高版本
+- 一個擁有 Azure OpenAI 資源與模型部署的 [Azure 訂閱](https://azure.microsoft.com/free/)
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — 使用 `az login` 登入
 
-### 必填環境變數
+### 必要的環境變數
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# 然後登入，以便 AzureCliCredential 可以取得存取權杖
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# 然後登入，使 AzureCliCredential 能取得權杖
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# 然後登入，讓 AzureCliCredential 能取得權杖
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# 然後登入，使 AzureCliCredential 能取得權杖
 az login
 ```
 
 ### 範例程式碼
 
-要執行此程式範例，
+執行範例程式碼，
 
 ```bash
 # zsh/bash
@@ -161,7 +161,7 @@ chmod +x ./03-dotnet-agent-framework.cs
 dotnet run ./03-dotnet-agent-framework.cs
 ```
 
-參考 [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs) 取得完整程式碼。
+完整程式請參考 [`03-dotnet-agent-framework.cs`](../../../../03-agentic-design-patterns/code_samples/03-dotnet-agent-framework.cs)。
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

@@ -1,38 +1,38 @@
 # הגדרת הקורס
 
-## הקדמה
+## מבוא
 
-בשיעור זה נלמד כיצד להריץ את דוגמאות הקוד של הקורס.
+בשיעור זה נלמד כיצד להריץ את דוגמאות הקוד מהקורס הזה.
 
-## הצטרפו ללומדים אחרים וקבלו עזרה
+## הצטרף ללומדים אחרים וקבל עזרה
 
-לפני שתתחילו לשכפל את הרפוזיטורי שלכם, הצטרפו ל-[ערוץ דיסקורד AI Agents For Beginners](https://aka.ms/ai-agents/discord) כדי לקבל עזרה בהגדרה, שאלות על הקורס או להתחבר ללומדים אחרים.
+לפני שתתחיל לשכפל את המאגר שלך, הצטרף ל-[ערוץ דיסקורד של AI Agents למתחילים](https://aka.ms/ai-agents/discord) כדי לקבל עזרה בהתקנה, שאלות על הקורס, או להתחבר ללומדים אחרים.
 
-## שכפול או פיצול של הרפוזיטורי
+## שכפל או פצל את המאגר הזה
 
-כדי להתחיל, אנא שכפלו או פצעו את רפוזיטורי הגיטהאב. כך תקבלו גרסה משלכם של חומר הקורס כדי שתוכלו להריץ, לבדוק ולשנות את הקוד!
+כדי להתחיל, אנא שכפל או פצל את מאגר GitHub. זה ייצור לך עותק משלך של חומרי הקורס כדי שתוכל להריץ, לבדוק ולשנות את הקוד!
 
-ניתן לעשות זאת על ידי לחיצה על הקישור ל- <a href="https://github.com/microsoft/ai-agents-for-beginners/fork" target="_blank">פיצול הרפוזיטורי</a>
+ניתן לעשות זאת על ידי לחיצה על הקישור ל־ <a href="https://github.com/microsoft/ai-agents-for-beginners/fork" target="_blank">פיצול המאגר</a>
 
-עכשיו אמורה להיות לכם גרסה מפוצלת משלכם של הקורס בקישור הבא:
+עכשיו יש לך עותק מפוצל משלך של הקורס בקישור הבא:
 
 ![Forked Repo](../../../translated_images/he/forked-repo.33f27ca1901baa6a.webp)
 
-### שכפול רדיד (מומלץ לסדנה / Codespaces)
+### שכפול שטחי (מומלץ לסדנאות / Codespaces)
 
-  >הרפוזיטורי המלא יכול להיות גדול (~3 ג"ב) כאשר אתם מורידים את כל ההיסטוריה וכל הקבצים. אם אתם משתתפים רק בסדנה או צריכים רק כמה תיקיות שיעור, שכפול רדיד (או שכפול דליל) מונע את רוב ההורדה הזאת על ידי קיצור ההיסטוריה ו/או דילוג על בלובים.
+  >מאגר מלא יכול להיות גדול (~3 GB) כאשר מורידים את ההיסטוריה המלאה ואת כל הקבצים. אם אתה משתתף רק בסדנה או צריך רק כמה תיקיות שיטבחו, שכפול שטחי (או שכפול דליל) מתעלם מהרוב של ההורדה על ידי קיצור ההיסטוריה ו/או דילוג על בלובים.
 
-#### שכפול רדיד מהיר — היסטוריה מינימלית, כל הקבצים
+#### שכפול שטחי מהיר — היסטוריה מינימלית, כל הקבצים
 
-החליפו את `<your-username>` בפקודות למטה עם כתובת ה-URL של הפיצול שלכם (או עם כתובת האפסטרים אם אתם מעדיפים).
+החלף את `<your-username>` בפקודות למטה עם כתובת ה-URL של הפיצול שלך (או כתובת ה-URL העליונה אם אתה מעדיף).
 
-כדי לשכפל רק את ההיסטוריה של הקומיטים האחרונים (הורדה קטנה):
+לשכפל רק את ההיסטוריה של הקומיט האחרון (הורדה קטנה):
 
 ```bash|powershell
 git clone --depth 1 https://github.com/<your-username>/ai-agents-for-beginners.git
 ```
 
-כדי לשכפל סניף ספציפי:
+לשכפל ענף ספציפי:
 
 ```bash|powershell
 git clone --depth 1 --branch <branch-name> https://github.com/<your-username>/ai-agents-for-beginners.git
@@ -40,74 +40,74 @@ git clone --depth 1 --branch <branch-name> https://github.com/<your-username>/ai
 
 #### שכפול חלקי (דליל) — בלובים מינימליים + רק תיקיות נבחרות
 
-זה משתמש בשכפול חלקי וביציאה דלילה (דורש Git 2.25+ ומומלץ להשתמש ב-Git מודרני עם תמיכה בשכפול חלקי):
+משתמש בשכפול חלקי ו-sparse-checkout (דורש Git 2.25+ ומומלץ Git מודרני עם תמיכה בשכפול חלקי):
 
 ```bash|powershell
 git clone --depth 1 --filter=blob:none --sparse https://github.com/<your-username>/ai-agents-for-beginners.git
 ```
 
-עברו לתיקיית הרפוזיטורי:
+עבור לתיקיית המאגר:
 
 ```bash|powershell
 cd ai-agents-for-beginners
 ```
 
-לאחר מכן ציינו אילו תיקיות אתם רוצים (בדוגמה למטה יש שתי תיקיות):
+לאחר מכן ציין אילו תיקיות אתה רוצה (דוגמה למטה מציגה שתי תיקיות):
 
 ```bash|powershell
 git sparse-checkout set 00-course-setup 01-intro-to-ai-agents
 ```
 
-לאחר השכפול ואימות הקבצים, אם אתם צריכים רק את הקבצים ורוצים לפנות מקום (בלי היסטוריית גיט), אנא מחקו את מטא-דאטת הרפוזיטורי (💀 בלתי הפיך — תאבדו את כל פונקציונליות הגיט: אין קומיטים, משיכות, דחיפות, או גישה להיסטוריה).
+לאחר השכפול ואימות הקבצים, אם אתה צריך רק את הקבצים ורוצה לפנות מקום (בלי היסטוריית git), אנא מחק את מטא-נתוני המאגר (💀בלתי הפיך — תאבד את כל פונקציונליות Git: לא יהיו קומיטים, משיכות, דחיפות או גישה להיסטוריה).
 
 ```bash
-# זש/בש
+# זש/באש
 rm -rf .git
 ```
 
 ```powershell
-# פאוורשל
+# פאוארשל
 Remove-Item -Recurse -Force .git
 ```
 
-#### שימוש ב-GitHub Codespaces (מומלץ להימנע מהורדות גדולות במחשב המקומי)
+#### שימוש ב-GitHub Codespaces (מומלץ כדי להימנע מהורדות גדולות מקומית)
 
-- צרו Codespace חדש לרפוזיטורי זה דרך [ממשק GitHub](https://github.com/codespaces).  
+- צור Codespace חדש עבור המאגר הזה דרך [ממשק GitHub](https://github.com/codespaces).  
 
-- בטרמינל של ה-Codespace החדש, הריצו אחת מהפקודות של השכפול הרדיד/הדליל שלמעלה כדי להביא רק את תיקיות השיעור שאתם צריכים לסביבת Codespace.
-- אופציונלי: לאחר השכפול בתוך Codespaces, הסירו את .git כדי לפנות מקום נוסף (ראו פקודות הסרה למעלה).
-- שימו לב: אם אתם מעדיפים לפתוח את הרפוזיטורי ישירות ב-Codespaces (בלי שכפול נוסף), שימו לב שה-Codespaces יבנה את סביבת המכולה ועלול לספק יותר ממה שאתם צריכים. שכפול רדיד בתוך Codespace חדש נותן לכם יותר שליטה על השימוש בדיסק.
+- במסוף של ה-Codespace החדש, הרץ אחת מפקודות השכפול השטחי/הדליל למעלה כדי להביא רק את תיקיות השיעורים שאתה צריך לסביבת Codespace.
+- אופציונלי: לאחר השכפול בתוך Codespaces, הסר את .git כדי לשחרר מקום נוסף (ראה פקודות ההסרה למעלה).
+- הערה: אם אתה מעדיף לפתוח את המאגר ישירות ב-Codespaces (בלי שכפול נוסף), שים לב ש-Codespaces יבנה את סביבת devcontainer ועדיין עשוי לספק יותר ממה שאתה צריך. שכפול שטחי בתוך Codespace חדש נותן לך יותר שליטה על שימוש בדיסק.
 
 #### טיפים
 
-- תמיד החליפו את כתובת השכפול עם הפיצול שלכם אם אתם רוצים לערוך/לעשות קומיט.
-- אם בעתיד תזדקקו ליותר היסטוריה או קבצים, תוכלו להביא אותם או להתאים את ההגדרות בדילול-היציאה לכלול תיקיות נוספות.
+- תמיד החלף את כתובת השכפול לכתובת הפיצול שלך אם ברצונך לערוך/לקומיט.
+- אם תצטרך מאוחר יותר היסטוריה או קבצים נוספים, תוכל לאחזר אותם או להתאים את sparse-checkout לכלול תיקיות נוספות.
 
 ## הרצת הקוד
 
-קורס זה מציע סדרת מחברות Jupyter שתוכלו להריץ כדי לקבל ניסיון מעשי בבניית סוכני AI.
+הקורס מציע סדרת מחברות Jupyter שתוכל להריץ כדי לקבל ניסיון מעשי בבניית סוכני AI.
 
-דוגמאות הקוד משתמשות ב**Microsoft Agent Framework (MAF)** עם `FoundryChatClient`, שמתחבר ל**Microsoft Foundry Agent Service V2** (ממשק תגובות) דרך **Microsoft Foundry**.
+דוגמאות הקוד משתמשות ב**Microsoft Agent Framework (MAF)** עם `FoundryChatClient`, שמתחבר ל-**Microsoft Foundry Agent Service V2** (ממשק Responses API) דרך **Microsoft Foundry**.
 
-כל מחברות הפייתון מתויגות כשם `*-python-agent-framework.ipynb`.
+כל מחברות הפייתון מסומנות כ־`*-python-agent-framework.ipynb`.
 
 ## דרישות
 
-- פייתון 3.12+
-  - **הערה**: אם אין לכם פייתון 3.12 מותקן, ודאו להתקין אותו. לאחר מכן צרו סביבה וירטואלית (venv) עם python3.12 כדי לוודא שהגרסאות הנכונות מותקנות מתוך קובץ requirements.txt.
+- Python 3.12+
+  - **הערה**: אם אין לך פייתון 3.12 מותקן, ודא שאתה מתקין אותו. לאחר מכן צור את סביבת ה-venv שלך באמצעות python3.12 כדי להבטיח שהגרסאות הנכונות מותקנות מקובץ requirements.txt.
   
     >דוגמה
 
-    צרו תיקיית venv לפייתון:
+    צור ספריית Python venv:
 
     ```bash|powershell
     python -m venv venv
     ```
 
-    ואז הפעילו את סביבת ה-venv עבור:
+    לאחר מכן הפעל את סביבת ה-venv ל:
 
     ```bash
-    # זש/באש
+    # זש/בש
     source venv/bin/activate
     ```
   
@@ -116,87 +116,87 @@ Remove-Item -Recurse -Force .git
     venv\Scripts\activate
     ```
 
-- .NET 10+: עבור דוגמאות הקוד שמשתמשות ב-.NET, ודאו להתקין את [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) או גרסה מאוחרת יותר. לאחר מכן בדקו את גרסת ה-SDK המותקנת:
+- .NET 10+: לקוד הדוגמה המשתמש ב-.NET, ודא שהתקנת [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) או גרסה מאוחרת יותר. לאחר מכן, בדוק את גרסת ה-SDK של .NET שהתקנת:
 
     ```bash|powershell
     dotnet --list-sdks
     ```
 
-- **Azure CLI** — דרוש לאימות. התקינו מ-[aka.ms/installazurecli](https://aka.ms/installazurecli).
-- **מנוי Azure** — לגישה ל-Microsoft Foundry ולשירות Microsoft Foundry Agent.
-- **פרויקט Microsoft Foundry** — פרויקט עם דגם פרוס (למשל, `gpt-4.1-mini`). ראו [שלב 1](#שלב-1-יצירת-פרויקט-microsoft-foundry) למטה.
+- **Azure CLI** — דרוש לאימות. התקן מ-[aka.ms/installazurecli](https://aka.ms/installazurecli).
+- **מנוי Azure** — לגישה ל-Microsoft Foundry ול-Microsoft Foundry Agent Service.
+- **פרויקט Microsoft Foundry** — פרויקט עם מודל מתפרש (למשל `gpt-5-mini`). ראה [שלב 1](#שלב-1-צור-פרויקט-ב-microsoft-foundry) למטה.
 
-כלול בקובץ השורש של הרפוזיטורי קובץ `requirements.txt` שמכיל את כל חבילות הפייתון הדרושות להרצת דוגמאות הקוד.
+כללנו קובץ `requirements.txt` בשורש המאגר שמכיל את כל חבילות הפייתון הנדרשות כדי להריץ את דוגמאות הקוד.
 
-ניתן להתקין אותן על ידי הרצת הפקודה הבאה בטרמינל, בתיקיית השורש של הרפוזיטורי:
+אתה יכול להתקין אותם על ידי הרצת הפקודה הבאה במסוף שלך בשורש המאגר:
 
 ```bash|powershell
 pip install -r requirements.txt
 ```
 
-מומלץ ליצור סביבת עבודה וירטואלית של פייתון כדי להימנע מתנגשות ובעיות.
+אנו ממליצים ליצור סביבת פייתון וירטואלית כדי למנוע התנגשויות ובעיות.
 
 ## הגדרת VSCode
 
-ודאו שאתם משתמשים בגרסה הנכונה של פייתון ב-VSCode.
+ודא שאתה משתמש בגרסת הפייתון הנכונה ב-VSCode.
 
 ![image](https://github.com/user-attachments/assets/a85e776c-2edb-4331-ae5b-6bfdfb98ee0e)
 
-## הגדרת Microsoft Foundry ושירות Microsoft Foundry Agent
+## הגדרת Microsoft Foundry ו-Microsoft Foundry Agent Service
 
-### שלב 1: יצירת פרויקט Microsoft Foundry
+### שלב 1: צור פרויקט ב-Microsoft Foundry
 
-אתם צריכים **hub** ו**project** ב-Microsoft Foundry עם דגם פרוס כדי להריץ את המחברות.
+אתה צריך **hub** ו**פרויקט** ב-Microsoft Foundry עם מודל מתפרש כדי להריץ את המחברות.
 
-1. כנסו ל-[ai.azure.com](https://ai.azure.com) והיכנסו עם חשבון Azure שלכם.
-2. צרו **hub** חדש (או השתמשו באחד קיים). ראו: [סקירת משאבי Hub](https://learn.microsoft.com/azure/ai-foundry/concepts/ai-resources).
-3. בתוך ה-hub, צרו **פרויקט**.
-4. פרסמו דגם (למשל, `gpt-4.1-mini`) מתוך **Models + Endpoints** → **Deploy model**.
+1. עבור ל-[ai.azure.com](https://ai.azure.com) והתחבר עם חשבון Azure שלך.
+2. צור **hub** (או השתמש ב-קיים). ראה: [סקירת משאבי Hub](https://learn.microsoft.com/azure/ai-foundry/concepts/ai-resources).
+3. בתוך ה-hub, צור **פרויקט**.
+4. פרוש מודל (למשל `gpt-5-mini`) מתוך **Models + Endpoints** → **Deploy model**.
 
-### שלב 2: השיגו את כתובת ה-endpoint ושם הפריסה של הדגם
+### שלב 2: קבל את נקודת הקצה של הפרויקט ושם פריסת המודל שלך
 
-מתוך הפרויקט שלכם בפורטל Microsoft Foundry:
+מתוך הפרויקט שלך בפורטל Microsoft Foundry:
 
-- **כתובת Endpoint של הפרויקט** — עברו לעמוד ה-**Overview** והעתיקו את כתובת ה-URL של ה-endpoint.
+- **נקודת הקצה של הפרויקט** — עבור לדף **סקירה כללית** והעתק את כתובת ה-URL של נקודת הקצה.
 
 ![Project Connection String](../../../translated_images/he/project-endpoint.8cf04c9975bbfbf1.webp)
 
-- **שם פריסת הדגם** — עברו ל- **Models + Endpoints**, בחרו את הדגם שהפרסתם, ורשמו את **שם הפריסה** (למשל, `gpt-4.1-mini`).
+- **שם פריסת המודל** — עבור ל-**Models + Endpoints**, בחר במודל המתפרש שלך, ורשום את **שם הפריסה** (למשל `gpt-5-mini`).
 
-### שלב 3: התחברו ל-Azure באמצעות `az login`
+### שלב 3: היכנס ל-Azure עם `az login`
 
-כל המחברות משתמשות ב-**`AzureCliCredential`** לאימות — אין צורך במפתחות API. זה דורש שתהיו מחוברים דרך ה-Azure CLI.
+כל המחברות משתמשות ב-**`AzureCliCredential`** לאימות — ללא מפתחות API לטפל בהם. זה דורש שאתה תחובר דרך Azure CLI.
 
-1. **התקינו את Azure CLI** אם עדיין לא עשיתם זאת: [aka.ms/installazurecli](https://aka.ms/installazurecli)
+1. **התקן את Azure CLI** אם עדיין לא עשית זאת: [aka.ms/installazurecli](https://aka.ms/installazurecli)
 
-2. **התחברו** על ידי הרצת:
+2. **התחבר** על ידי הרצת:
 
     ```bash|powershell
     az login
     ```
 
-    או אם אתם בסביבת ריחוק/Codespace בלי דפדפן:
+    או אם אתה בסביבת remote/Codespace ללא דפדפן:
 
     ```bash|powershell
     az login --use-device-code
     ```
 
-3. **בחרו את המנוי שלכם** אם יתבקש — בחרו את המנוי הכולל את פרויקט Foundry שלכם.
+3. **בחר את המנוי שלך** אם מתבקש — בחר את זה שמכיל את פרויקט Foundry שלך.
 
-4. **אמתו** שאתם מחוברים:
+4. **אמת** שאתה מחובר:
 
     ```bash|powershell
     az account show
     ```
 
-> **למה `az login`?** המחברות מאמתות באמצעות `AzureCliCredential` מחבילת `azure-identity`. המשמעות היא שפעילות ה-Azure CLI שלכם מספקת את האישורים — אין צורך במפתחות API או סודות בקובץ `.env`. זו [פרקטיקה מיטבית לאבטחה](https://learn.microsoft.com/azure/developer/ai/keyless-connections).
+> **למה `az login`?** המחברות מאמתות באמצעות `AzureCliCredential` מחבילת `azure-identity`. המשמעות היא ש-session ה-Azure CLI שלך מספק את האישורים — ללא מפתחות API או סודות בקובץ `.env`. זוהי [שיטת עבודה בטיחותית מומלצת](https://learn.microsoft.com/azure/developer/ai/keyless-connections).
 
-### שלב 4: צרו את קובץ `.env` שלכם
+### שלב 4: צור את קובץ `.env` שלך
 
-העתיקו את קובץ הדוגמא:
+העתיק את קובץ הדוגמה:
 
 ```bash
-# זש/באש
+# זש/בש
 cp .env.example .env
 ```
 
@@ -205,101 +205,101 @@ cp .env.example .env
 Copy-Item .env.example .env
 ```
 
-פתחו את הקובץ `.env` ומלאו את שני הערכים הבאים:
+פתח את `.env` ומלא את שני הערכים האלה:
 
 ```env
 AZURE_AI_PROJECT_ENDPOINT=https://<your-project>.services.ai.azure.com/api/projects/<your-project-id>
-AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-4.1-mini
+AZURE_AI_MODEL_DEPLOYMENT_NAME=gpt-5-mini
 ```
 
-| משתנה | היכן למצוא אותו |
+| משתנה | היכן למצוא |
 |----------|-----------------|
-| `AZURE_AI_PROJECT_ENDPOINT` | פורטל Foundry → הפרויקט שלכם → עמוד **Overview** |
-| `AZURE_AI_MODEL_DEPLOYMENT_NAME` | פורטל Foundry → **Models + Endpoints** → שם הדגם שהפרסתם |
+| `AZURE_AI_PROJECT_ENDPOINT` | פורטל Foundry → הפרויקט שלך → דף **סקירה כללית** |
+| `AZURE_AI_MODEL_DEPLOYMENT_NAME` | פורטל Foundry → **Models + Endpoints** → שם המודל המתפרש שלך |
 
-זהו עבור רוב השעורים! המחברות יאמתו אוטומטית דרך מושב ה-`az login` שלכם.
+זה כל מה שצריך עבור רוב השיעורים! המחברות יאמתו אוטומטית דרך session ה-`az login` שלך.
 
-### שלב 5: התקנת תלות בפייתון
+### שלב 5: התקן את התלויות של פייתון
 
 ```bash|powershell
 pip install -r requirements.txt
 ```
 
-מומלץ להריץ זאת בתוך סביבת הווירטואלית שיצרתם קודם.
+אנו ממליצים להריץ זאת בתוך סביבת הוירטואלית שיצרת קודם לכן.
 
-## הגדרה נוספת לשיעור 5 (Agentic RAG)
+## הגדרות נוספות לשיעור 5 (Agentic RAG)
 
-שיעור 5 משתמש ב**Azure AI Search** ליצירת תוכן מוגבר שליפה. אם אתם מתכננים להריץ את השיעור הזה, הוסיפו את המשתנים הבאים לקובץ `.env` שלכם:
+שיעור 5 משתמש ב**Azure AI Search** בשביל יצירת תוכן המוגבר על ידי חיפוש. אם אתה מתכוון להריץ את השיעור הזה, הוסף את המשתנים האלה לקובץ ה-`.env` שלך:
 
-| משתנה | היכן למצוא אותו |
+| משתנה | היכן למצוא |
 |----------|-----------------|
-| `AZURE_SEARCH_SERVICE_ENDPOINT` | פורטל Azure → מקור **Azure AI Search** שלכם → **Overview** → כתובת URL |
-| `AZURE_SEARCH_API_KEY` | פורטל Azure → מקור **Azure AI Search** שלכם → **Settings** → **Keys** → מפתח מנהל ראשי |
+| `AZURE_SEARCH_SERVICE_ENDPOINT` | פורטל Azure → משאב **Azure AI Search** שלך → **סקירה כללית** → כתובת URL |
+| `AZURE_SEARCH_API_KEY` | פורטל Azure → משאב **Azure AI Search** שלך → **הגדרות** → **מפתחות** → מפתח מנהל ראשי |
 
-## הגדרה נוספת לשיעורים שקוראים ל-Azure OpenAI ישירות (שיעורים 6 ו-8)
+## הגדרות נוספות לשיעורים שקוראים ל-Azure OpenAI ישירות (שיעורים 6 ו-8)
 
-בכמה מחברות בשיעורים 6 ו-8 קורים ל-**Azure OpenAI** ישירות (באמצעות **Responses API**) במקום דרך פרויקט Microsoft Foundry. דוגמאות אלה השתמשו קודם בדגמי GitHub, שזמנם עומד להסתיים (יולי 2026) ואין להם תמיכה ב-Responses API. אם אתם מתכננים להריץ את הדוגמאות האלה, הוסיפו את המשתנים הבאים ל-`.env` שלכם:
+כמה מחברות בשיעורים 6 ו-8 קוראות ל**Azure OpenAI** ישירות (באמצעות **Responses API**) במקום לעבור דרך פרויקט Microsoft Foundry. דוגמאות אלה השתמשו בעבר ב-GitHub Models, שכבר אינו פעיל (ייפסק ביולי 2026) ואינו תומך ב-Responses API. אם אתה מתכנן להריץ דוגמאות אלו, הוסף את המשתנים האלה לקובץ ה-`.env` שלך:
 
-| משתנה | היכן למצוא אותו |
+| משתנה | היכן למצוא |
 |----------|-----------------|
-| `AZURE_OPENAI_ENDPOINT` | פורטל Azure → מקור **Azure OpenAI** שלכם → **Keys and Endpoint** → Endpoint (למשל `https://<your-resource>.openai.azure.com`) |
-| `AZURE_OPENAI_DEPLOYMENT` | שם הדגם שהפרסתם (למשל `gpt-4.1-mini`) שתומך ב-Responses API |
-| `AZURE_OPENAI_API_KEY` | אופציונלי — רק אם אתם משתמשים באימות מבוסס מפתח במקום `az login` / Entra ID |
+| `AZURE_OPENAI_ENDPOINT` | פורטל Azure → משאב **Azure OpenAI** שלך → **מפתחות ונקודת קצה** → נקודת קצה (למשל `https://<your-resource>.openai.azure.com`) |
+| `AZURE_OPENAI_DEPLOYMENT` | שם המודל המתפרש שלך (למשל `gpt-5-mini`) שתומך ב-Responses API |
+| `AZURE_OPENAI_API_KEY` | אופציונלי — רק אם אתה משתמש באימות מבוסס מפתח במקום `az login` / Entra ID |
 
-> ממשק Responses API משתמש ב-endpoint יציב `/openai/v1/`, לכן אין צורך בגרסת API. התחברו עם `az login` כדי להשתמש באימות Entra ID ללא מפתחות.
+> Responses API משתמש בנקודת הקצה היציבה `/openai/v1/`, לכן אין צורך בפרמטר `api-version`. התחבר עם `az login` כדי להשתמש באימות Entra ID ללא מפתח.
 
 ## ספק חלופי: MiniMax (תואם OpenAI)
 
-[MiniMax](https://platform.minimaxi.com/) מספק דגמים עם הקשר גדול (עד 204K טוקנים) דרך API תואם OpenAI. מכיוון ש-Microsoft Agent Framework משתמש ב-`OpenAIChatClient` שיכול לעבוד עם כל endpoint תואם OpenAI, ניתן להשתמש ב-MiniMax כחלופה למערכת Azure OpenAI או OpenAI.
+[MiniMax](https://platform.minimaxi.com/) מספק מודלים עם הקשר גדול (עד 204K תווים) דרך API תואם OpenAI. מאחר ש-`OpenAIChatClient` במסגרת Microsoft Agent Framework פועל עם כל נקודת קצה תואמת OpenAI, ניתן להשתמש ב-MiniMax כחלופה עקיפה ל-Azure OpenAI או OpenAI.
 
-הוסיפו את המשתנים האלה לקובץ `.env` שלכם:
+הוסף את המשתנים האלה לקובץ ה-`.env` שלך:
 
-| משתנה | היכן למצוא אותו |
+| משתנה | היכן למצוא |
 |----------|-----------------|
-| `MINIMAX_API_KEY` | [MiniMax Platform](https://platform.minimaxi.com/) → מפתחות API |
-| `MINIMAX_BASE_URL` | השתמשו בכתובת `https://api.minimax.io/v1` (ברירת מחדל) |
-| `MINIMAX_MODEL_ID` | שם הדגם לשימוש (למשל, `MiniMax-M3`) |
+| `MINIMAX_API_KEY` | [פלטפורמת MiniMax](https://platform.minimaxi.com/) → מפתחות API |
+| `MINIMAX_BASE_URL` | השתמש ב- `https://api.minimax.io/v1` (ערך ברירת מחדל) |
+| `MINIMAX_MODEL_ID` | שם המודל לשימוש (למשל, `MiniMax-M3`) |
 
-**דגמים לדוגמה**: `MiniMax-M3` (מומלץ), `MiniMax-M2.7`, `MiniMax-M2.7-highspeed` (תגובות מהירות יותר). שמות וזמינות הדגמים יכולים להשתנות עם הזמן, וגישה לדגם מסוים תלויה בחשבון או באזור שלכם — בדקו את [MiniMax Platform](https://platform.minimaxi.com/) לקבלת הרשימה הנוכחית. אם `MiniMax-M3` אינו זמין בחשבונכם, הגדירו את `MINIMAX_MODEL_ID` לדגם שיש לכם גישה אליו (למשל `MiniMax-M2.7`).
+**דגמי דוגמה**: `MiniMax-M3` (מומלץ), `MiniMax-M2.7`, `MiniMax-M2.7-highspeed` (תגובות מהירות יותר). שמות הדגמים וזמינותם עשויים להשתנות עם הזמן, והגישה למודל מסוים עשויה להיות תלויה בחשבון או באיזור שלך — בדוק את [פלטפורמת MiniMax](https://platform.minimaxi.com/) לרשימה העדכנית. אם `MiniMax-M3` אינו זמין לחשבונך, הגדר את `MINIMAX_MODEL_ID` למודל שיש לך גישה אליו (למשל `MiniMax-M2.7`).
 
-דוגמאות הקוד שמשתמשות ב-`OpenAIChatClient` (למשל, תהליך הזמנת מלון בשיעור 14) יזהו אוטומטית וישתמשו בקונפיגורציית MiniMax שלכם כאשר `MINIMAX_API_KEY` מוגדר.
+דוגמאות הקוד שמשתמשות ב־`OpenAIChatClient` (למשל, תהליך הזמנת מלון בשיעור 14) יזהו ויישמו אוטומטית את תצורת MiniMax שלך כש־`MINIMAX_API_KEY` מוגדר.
 
-## ספק חלופי: Foundry Local (הרצת דגמים במכשיר)
+## ספק חלופי: Foundry Local (הרץ מודלים על המכשיר)
 
-[Foundry Local](https://foundrylocal.ai) הוא רנטיים קל משקל שמוריד, מנהל ומגיש דגמי שפה **במחשב שלכם בלבד** דרך API תואם OpenAI — ללא ענן, ללא מנוי Azure וללא מפתחות API. זו אפשרות מצוינת לפיתוח לא מקוון, ניסוי בלי עלויות ענן, או שמירת נתונים במכשיר.
+[Foundry Local](https://foundrylocal.ai) הוא סביבת ריצה קלת משקל שמורידה, מנהלת ומספקת מודלים לשפה **במכונה שלך בלבד** דרך API תואם OpenAI — ללא ענן, ללא מנוי Azure, וללא מפתחות API. זו אפשרות מעולה לפיתוח לא מקוון, להתנסויות ללא עלות ענן, או לשמירת נתונים על המכשיר.
 
-מאחר ש-Microsoft Agent Framework's `OpenAIChatClient` עובד עם כל endpoint תואם OpenAI, Foundry Local היא אלטרנטיבה מקומית ל-Azure OpenAI.
+מאחר ש-`OpenAIChatClient` במסגרת Microsoft Agent Framework פועל עם כל נקודת קצה תואמת OpenAI, Foundry Local היא חלופה מקומית ישירה לא Azure OpenAI.
 
-**1. התקנת Foundry Local**
+**1. התקן את Foundry Local**
 
 ```bash
 # חלונות
 winget install Microsoft.FoundryLocal
 
-# מק או אס
+# מקאו
 brew install foundrylocal
 ```
 
-**2. הורידו והריצו דגם** (זה גם מפעיל את השירות המקומי):
+**2. הורד והפעל מודל** (זה גם מפעיל את השירות המקומי):
 
 ```bash
 foundry model list          # ראה דגמים זמינים
 foundry model run phi-4-mini
 ```
 
-**3. התקינו את ערכת הפיתוח של פייתון** שמשמשת לגילוי ה-endpoint המקומי:
+**3. התקן את SDK של פייתון** המשמש לגילוי נקודת הקצה המקומית:
 
 ```bash
 pip install foundry-local-sdk
 ```
 
-**4. כוונו את Microsoft Agent Framework לדגם המקומי שלכם:**
+**4. הצבע את Microsoft Agent Framework למודל המקומי שלך:**
 
 ```python
 from foundry_local import FoundryLocalManager
 from agent_framework.openai import OpenAIChatClient
 
-# מוריד (אם נדרש) ומפעיל את המודל מקומית, ואז מגלה את נקודת הקצה/הפורט.
+# מוריד (אם נדרש) ומפעיל את המודל מקומית, ואז מוצא את נקודת הקצה/הפורט.
 manager = FoundryLocalManager("phi-4-mini")
 
 chat_client = OpenAIChatClient(
@@ -314,72 +314,72 @@ agent = chat_client.as_agent(
 )
 ```
 
-> **הערה:** Foundry Local חושף endpoint OpenAI-Compatible של **Chat Completions**. השתמשו בו לפיתוח מקומי ותסריטי עבודה לא מקוונים. עבור סט התכונות המלא של **Responses API** (שיחות מצביות, תזמור כלים עמוק ושיטת פיתוח סוכנים), מומלץ להשתמש ב-**Azure OpenAI** או בפרויקט **Microsoft Foundry** כפי שמודגם בשיעורים. ראו את [תיעוד Foundry Local](https://foundrylocal.ai) למידע עדכני על קטלוג דגמים ותמיכת פלטפורמה.
+> **הערה:** Foundry Local חושף נקודת קצה תואמת OpenAI עבור **שיחות השלמה**. השתמש בו לפיתוח מקומי ותסריטים לא מקוונים. עבור הסט המלא של תכונות **Responses API** (שיחות ממושכות, התנסחות עמוקה עם כלים, ופיתוח בסגנון סוכן), הפנה ל-**Azure OpenAI** או לפרויקט **Microsoft Foundry** כפי שמוצג בשיעורים. ראה את [התיעוד של Foundry Local](https://foundrylocal.ai) עבור קטלוג המודלים העדכני ותמיכה בפלטפורמה.
+
+## הגדרות נוספות לשיעור 8 (תהליך Bing Grounding)
 
 
-## התקנה נוספת לשיעור 8 (Bing Grounding Workflow)
+פנקס העבודה של תהליך הבקרה בשיעור 8 משתמש ב**בסיס Bing** דרך Microsoft Foundry. אם אתם מתכננים להריץ את הדוגמה הזו, הוסיפו משתנה זה לקובץ ה-`.env` שלכם:
 
-הפנקס עבודה המותנה בשיעור 8 משתמש ב-**Bing grounding** דרך Microsoft Foundry. אם אתה מתכנן להריץ את הדוגמה הזו, הוסף את המשתנה הזה לקובץ `.env` שלך:
-
-| משתנה | איפה למצוא |
+| משתנה | איפה למצוא אותו |
 |----------|-----------------|
-| `BING_CONNECTION_ID` | פורטל Microsoft Foundry → הפרויקט שלך → **Management** → **Connected resources** → חיבור ה-Bing שלך → העתק את מזהה החיבור |
+| `BING_CONNECTION_ID` | פורטל Microsoft Foundry → הפרויקט שלכם → **ניהול** → **משאבים מחוברים** → חיבור Bing שלכם → העתקת מזהה החיבור |
 
-## פתרון בעיות
+## פתרון תקלות
 
-### שגיאות אימות תעודת SSL במערכת macOS
+### שגיאות אימות תעודת SSL במק־אוס
 
-אם אתה עובד על macOS ומתקל בשגיאה כמו:
+אם אתם במק־אוס ונתקלים בשגיאה כמו:
 
 ```plaintext
 ssl.SSLCertVerificationError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self-signed certificate in certificate chain
 ```
 
-זו בעיה מוכרת עם Python במערכת macOS שבה תעודות SSL של המערכת אינן מהימנות אוטומטית. נסה את הפתרונות הבאים לפי הסדר:
+זו בעיה מוכרת ב-Python במק־אוס שבה תעודות ה-SSL של המערכת אינן מהימנות אוטומטית. נסו את הפתרונות הבאים לפי הסדר:
 
-**אפשרות 1: הרץ את סקריפט התקנת התעודות של Python (מומלץ)**
+**אפשרות 1: הרצת סקריפט התקנת התעודות של Python (מומלץ)**
 
 ```bash
-# החלף את 3.XX בגרסת הפייתון המותקנת שברשותך (למשל, 3.12 או 3.13):
+# החלף 3.XX בגרסת פייתון המותקנת שלך (למשל, 3.12 או 3.13):
 /Applications/Python\ 3.XX/Install\ Certificates.command
 ```
 
-**אפשרות 2: השתמש ב-`connection_verify=False` בפנקס ההערות שלך (רק עבור פנקסי מודלים של GitHub)**
+**אפשרות 2: השתמשו ב-`connection_verify=False` בפנקס העבודה שלכם (רק לפנקסי עבודה של GitHub Models)**
 
-בפנקס השיעור 6 (`06-building-trustworthy-agents/code_samples/06-system-message-framework.ipynb`), פתרון אלטרנטיבי עם הערה כלול כבר. הסר את ההערה מ-`connection_verify=False` בעת יצירת הלקוח:
+בפנקס העבודה של שיעור 6 (`06-building-trustworthy-agents/code_samples/06-system-message-framework.ipynb`), יש כבר פתרון עקיפין שמומלץ. הסירו את ההערה מ-`connection_verify=False` כאשר יוצרים את הלקוח:
 
 ```python
 client = ChatCompletionsClient(
     endpoint=endpoint,
     credential=AzureKeyCredential(token),
-    connection_verify=False,  # השבת אימות SSL אם אתה נתקל בשגיאות בתעודה
+    connection_verify=False,  # ביטול אימות SSL אם מופיעים שגיאות בתעודה
 )
 ```
 
-> **⚠️ אזהרה:** השבתת אימות SSL (`connection_verify=False`) מפחיתה את האבטחה על ידי דחיית אימות התעודה. השתמש בזה רק כפתרון זמני בסביבות פיתוח, לעולם לא בפרודקשן.
+> **⚠️ אזהרה:** השבתת אימות SSL (`connection_verify=False`) מפחיתה את האבטחה על ידי דילוג על אימות התעודה. השתמשו בזה רק כפתרון זמני בסביבות פיתוח, לעולם לא בייצור.
 
-**אפשרות 3: התקן והשתמש `truststore`**
+**אפשרות 3: התקנת ושימוש ב-`truststore`**
 
 ```bash
 pip install truststore
 ```
 
-לאחר מכן הוסף את הפקודה הבאה בתחילת פנקס ההערות או הסקריפט שלך לפני ביצוע קריאות רשת:
+לאחר מכן הוסיפו את הקוד הבא בראש פנקס העבודה או הסקריפט שלכם לפני כל קריאות רשת:
 
 ```python
 import truststore
 truststore.inject_into_ssl()
 ```
 
-## תקוע איפשהו?
+## תקועים איפשהו?
 
-אם יש לך בעיות בהרצת ההתקנה, הצטרף ל <a href="https://discord.gg/kzRShWzttr" target="_blank">קהילת Azure AI בדיסקורד</a> או <a href="https://github.com/microsoft/ai-agents-for-beginners/issues?WT.mc_id=academic-105485-koreyst" target="_blank">צור דיווח על בעיה</a>.
+אם יש לכם בעיות בהרצת ההתקנה הזו, הצטרפו לקהילה שלנו ב- <a href="https://discord.gg/kzRShWzttr" target="_blank">Azure AI Community Discord</a> או <a href="https://github.com/microsoft/ai-agents-for-beginners/issues?WT.mc_id=academic-105485-koreyst" target="_blank">צרו מדווחת בעיה</a>.
 
 ## השיעור הבא
 
-כעת אתה מוכן להריץ את קוד הקורס. לימוד מהנה על עולם סוכני ה-AI!
+כעת אתם מוכנים להריץ את הקוד של הקורס הזה. למידה מהנה על עולם הסוכנים של AI! 
 
-[הקדמה לסוכני AI ומקרי שימוש בסוכנים](../01-intro-to-ai-agents/README.md)
+[Introduction to AI Agents and Agent Use Cases](../01-intro-to-ai-agents/README.md)
 
 ---
 

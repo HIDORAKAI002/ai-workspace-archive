@@ -3,39 +3,39 @@ name: testing-course-samples
 ---
 # Testování ukázek kurzu
 
-Ověřte, že poznámkové bloky lekcí a ukázkové kódy fungují s reálným
-prostředím Microsoft Foundry / Azure OpenAI. Repo obsahuje skript
+Ověřte, že si sešitové lekce a ukázky kódu spustí proti živému 
+Microsoft Foundry / Azure OpenAI prostředí. Repozitář obsahuje spouštěč v 
 [`scripts/validate-notebooks.ps1`](../../../../../scripts/validate-notebooks.ps1), který
-bezhlavě spustí každý Python notebook a vytiskne tabulku PASS/FAIL.
+spustí všechny Python notebooky bez hlavičky a vytiskne matici PASS/FAIL.
 
-## Kdy používat
-- "Ověřit všechny poznámkové bloky / ukázky proti mé Azure předplatnému."
-- "Rychlý test kurzu po aktualizaci balíčků nebo změně modelů."
-- "Které lekce stále prochází / padají online?"
+## Kdy použít
+- "Ověřit všechny notebooky / ukázky proti mé Azure subskripci."
+- "Rychle otestovat kurz po upgradu balíčků nebo změně modelů."
+- "Které lekce stále procházejí / selhávají živě?"
 
-Ne **používejte** to pro AI Smoke Test GitHub Action (která ověřuje *nasazené*
-hostované agenty — viz [`tests/README.md`](../../../tests/README.md)). Tento nástroj
-spouští poznámkové bloky lokálně.
+**Nepoužívejte** toto pro AI Smoke Test GitHub Action (který ověřuje *nasazené* 
+hostované agenty — viz [`tests/README.md`](../../../tests/README.md)). Tato dovednost 
+spustí notebooky lokálně.
 
-## Předpoklady (nejdříve zkontrolujte)
-1. **Python 3.12+** s potřebnými balíčky kurzu: `python -m pip install -r requirements.txt`
-   plus spuštěcí závislosti: `python -m pip install nbconvert ipykernel`.
-2. **`.env` v kořenovém adresáři repozitáře** (zkopírovat ze souboru [`.env.example`](../../../../../.env.example)) s minimálně:
-   - `AZURE_AI_PROJECT_ENDPOINT` — endpoint projektu ve Foundry
+## Požadavky (nejprve zkontrolujte)
+1. **Python 3.12+** s požadavky kurzu: `python -m pip install -r requirements.txt`
+   plus exekutor: `python -m pip install nbconvert ipykernel`.
+2. **`.env` v kořeni repozitáře** (zkopírovat z [`.env.example`](../../../../../.env.example)) s minimálně:
+   - `AZURE_AI_PROJECT_ENDPOINT` — endpoint Foundry projektu
      (`https://<account>.services.ai.azure.com/api/projects/<project>`)
-   - `AZURE_AI_MODEL_DEPLOYMENT_NAME` — nasazení modelu, které není zastaralé (např. `gpt-4.1-mini`)
+   - `AZURE_AI_MODEL_DEPLOYMENT_NAME` — nepřestaný nasazený model (např. `gpt-5-mini`)
    - `AZURE_OPENAI_ENDPOINT` (`https://<account>.openai.azure.com`) a `AZURE_OPENAI_DEPLOYMENT`
-     pro lekce, které přímo volají Azure OpenAI (lekce 06, 02-azure-openai, 14 handoff/human-loop).
-3. Dokončeno **`az login`** — ukázky autentizují přes `AzureCliCredential` (Entra ID, bez klíče).
-4. Ověřit, že nasazení modelu existuje:
+     pro lekce volající Azure OpenAI přímo (Lekce 06, 02-azure-openai, 14 handoff/human-loop).
+3. **dokončené `az login`** — ukázky autentizují přes `AzureCliCredential` (Entra ID, bez klíče).
+4. Ověřit, že existuje modelové nasazení:
    `az cognitiveservices account deployment list -g <rg> -n <account> -o table`.
 
 ## Spuštění ověření
 ```powershell
-# Všechny Python notebooky (přeskakuje .NET, .venv, site-packages, překlady, dovednostní aktiva)
+# Všechny Python notebooky (vynechává .NET, .venv, site-packages, překlady, skill assets)
 pwsh scripts/validate-notebooks.ps1
 
-# Jedna lekce, s delším časovým limitem na buňku
+# Jedna lekce, s delším timeoutem na buňku
 pwsh scripts/validate-notebooks.ps1 -Filter '08-*' -Timeout 600
 
 # Pouze vypsat, co by se spustilo (bez spuštění)
@@ -44,30 +44,37 @@ pwsh scripts/validate-notebooks.ps1 -List
 # Explicitní interpret (pokud `python` není v PATH, např. alias Windows Store)
 pwsh scripts/validate-notebooks.ps1 -Python "C:/path/to/python.exe"
 ```
-Skript zapisuje spuštěné kopie, logy pro jednotlivé poznámkové bloky
-do `$env:TEMP\aiab-nbval` a na výstup vrací počet selhání.
+Skript zapisuje spouštěné kopie, logy ke každému notebooku a `results.json` do
+`$env:TEMP\aiab-nbval` a končí s počtem neúspěchů.
 
-## Výklad výsledků
-- `PASS` — poznámkový blok proběhl celý bez chyby v žádné buňce.
-- `FAIL` — zobrazuje se první řádek s `*Error` / `*Exception`; otevřete odpovídající
-  `log_*.txt` ve výstupním adresáři pro celý stack trace.
-- Selhání jednoho poznámkového bloku je omezeno časovým limitem `-Timeout` (na buňku), takže vězněná
-  buňka s čekáním na člověka se projeví jako `StdinNotImplementedError`, místo aby visela.
+Přechodné chyby (sdílené HTTP 429 limity rychlosti na subskripci, občasné
+výpadky tokenu `AzureCliCredential`, nebo časový limit) se automaticky
+opakují (`-Retries`, výchozí 2, s `-RetryDelaySeconds` pauzou, výchozí 20). Pokud je
+modelové nasazení často 429-ováno, zkontrolujte limit GlobalStandard
+TPM subskripce (`az cognitiveservices usage list -l <region>`) — zvýšení kapacity
+jednoho nasazení nepomůže, pokud je *subskripční* limit vyčerpán.
 
-## Lekce vyžadující další zdroje (bez nich se očekává selhání)
-| Lekce | Další požadavek |
+## Interpretace výsledků
+- `PASS` — notebook proběhl kompletně bez chyby v buňce.
+- `FAIL` — zobrazuje se první řádek `*Error` / `*Exception`; otevřete odpovídající
+  `log_*.txt` v adresáři výstupu pro celý traceback.
+- Selhání jednoho notebooku je omezeno `-Timeout` (na buňku), takže zablokovaná
+  buňka s člověkem v procesu se projeví jako `StdinNotImplementedError`, nevisí.
+
+## Lekce vyžadující dodatečné zdroje (bez nich očekávaně selžou)
+| Lekce | Dodatečná požadavka |
 |--------|-------------------|
-| 05 Agentic RAG | Azure AI Search (`AZURE_SEARCH_SERVICE_ENDPOINT`, klíč) — má záložní cestu v paměti |
+| 05 Agentic RAG | Azure AI Search (`AZURE_SEARCH_SERVICE_ENDPOINT`, klíč) — má zálohu v paměti |
 | 11 MCP / GitHub | GitHub MCP server + PAT |
-| 13 paměť (cognee) | `cognee` nakonfigurován s poskytovatelem modelu |
-| 15 využití prohlížeče | Nainstalované Playwright prohlížeče (`playwright install`) + `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME` |
-| 17 lokální agent | Foundry Local runtime + stažený model Qwen (na zařízení, bez cloudu) |
-| Poznámkové bloky `*-dotnet-*` | .NET Interactive kernel (výchozí vyloučeno; použijte `-IncludeDotnet`) |
+| 13 paměť (cognee) | `cognee` nakonfigurovaný s poskytovatelem modelu |
+| 15 browser-use | Nainstalované prohlížeče Playwright (`playwright install`) + `AZURE_OPENAI_CHAT_DEPLOYMENT_NAME` |
+| 17 lokální agent | Foundry lokální runtime + stažený Qwen model (na zařízení, bez cloudu) |
+| `*-dotnet-*` notebooky | .NET Interactive kernel (výchozí vyloučeno; použít `-IncludeDotnet`) |
 
-## Zpětná zpráva
-Shrňte jako tabulku PASS/FAIL seskupenou podle lekcí. Oddělte skutečné regrese
-(chyby v kódu/konfiguraci k opravě) od mezery v prostředí (chybějící Search/Foundry Local/PAT),
-a uveďte selhávající `log_*.txt` u každého skutečného selhání.
+## Zpětné hlášení
+Shrňte do tabulky PASS/FAIL seskupené podle lekce. Oddělte opravdové regresy
+(chyby v kódu/konfiguraci k opravě) od nedostatků prostředí (chybějící Search/Foundry Local/PAT), 
+a uveďte padlé `log_*.txt` u každého reálného neúspěchu.
 
 ---
 

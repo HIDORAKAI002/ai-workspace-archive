@@ -1,40 +1,40 @@
-# 🎨 Pola Desain Agenik dengan Azure OpenAI (Responses API) (.NET)
+# 🎨 Pola Desain Agentic dengan Azure OpenAI (Responses API) (.NET)
 
 ## 📋 Tujuan Pembelajaran
 
-Contoh ini menunjukkan pola desain kelas perusahaan untuk membangun agen cerdas menggunakan Microsoft Agent Framework di .NET dengan integrasi Azure OpenAI (Responses API). Anda akan mempelajari pola profesional dan pendekatan arsitektur yang membuat agen siap produksi, mudah dipelihara, dan skalabel.
+Contoh ini menunjukkan pola desain kelas perusahaan untuk membangun agen cerdas menggunakan Microsoft Agent Framework di .NET dengan integrasi Azure OpenAI (Responses API). Anda akan mempelajari pola profesional dan pendekatan arsitektur yang membuat agen siap produksi, mudah dipelihara, dan dapat diskalakan.
 
 ### Pola Desain Perusahaan
 
 - 🏭 **Factory Pattern**: Pembuatan agen yang distandarisasi dengan dependency injection
 - 🔧 **Builder Pattern**: Konfigurasi dan pengaturan agen secara fluent
-- 🧵 **Thread-Safe Patterns**: Manajemen percakapan konkuren
-- 📋 **Repository Pattern**: Manajemen alat dan kapabilitas yang tersusun
+- 🧵 **Pola Aman-Thread**: Manajemen percakapan secara konkuren
+- 📋 **Repository Pattern**: Pengelolaan alat dan kemampuan yang terorganisir
 
 ## 🎯 Manfaat Arsitektur Khusus .NET
 
 ### Fitur Perusahaan
 
-- **Strong Typing**: Validasi saat kompilasi dan dukungan IntelliSense
-- **Dependency Injection**: Integrasi kontainer DI bawaan
-- **Configuration Management**: Pola IConfiguration dan Options
-- **Async/Await**: Dukungan pemrograman asinkron kelas utama
+- **Strong Typing**: Validasi waktu kompilasi dan dukungan IntelliSense
+- **Dependency Injection**: Integrasi container DI bawaan
+- **Manajemen Konfigurasi**: Pola IConfiguration dan Options
+- **Async/Await**: Dukungan pemrograman asinkron kelas pertama
 
 ### Pola Siap Produksi
 
-- **Logging Integration**: Dukungan ILogger dan logging terstruktur
-- **Health Checks**: Monitoring dan diagnostik bawaan
-- **Configuration Validation**: Strong typing dengan anotasi data
-- **Error Handling**: Manajemen eksepsi terstruktur
+- **Integrasi Logging**: Dukungan ILogger dan logging terstruktur
+- **Health Checks**: Monitoring dan diagnosa bawaan
+- **Validasi Konfigurasi**: Strong typing dengan anotasi data
+- **Penanganan Error**: Manajemen pengecualian terstruktur
 
 ## 🔧 Arsitektur Teknis
 
 ### Komponen Inti .NET
 
 - **Microsoft.Extensions.AI**: Abstraksi layanan AI terpadu
-- **Microsoft.Agents.AI**: Kerangka orkestrasi agen perusahaan
+- **Microsoft.Agents.AI**: Kerangka kerja orkestrasi agen perusahaan
 - **Azure OpenAI (Responses API)**: Pola klien API berperforma tinggi
-- **Configuration System**: appsettings.json dan integrasi lingkungan
+- **Sistem Konfigurasi**: appsettings.json dan integrasi lingkungan
 
 ### Implementasi Pola Desain
 
@@ -52,20 +52,20 @@ graph LR
 
 - **Agent Factory**: Pembuatan agen terpusat dengan konfigurasi konsisten
 - **Builder Pattern**: API fluent untuk konfigurasi agen kompleks
-- **Singleton Pattern**: Manajemen sumber daya dan konfigurasi bersama
-- **Dependency Injection**: Keterkaitan longgar dan keterujian
+- **Singleton Pattern**: Pengelolaan sumber daya dan konfigurasi bersama
+- **Dependency Injection**: Loose coupling dan kemudahan pengujian
 
 ### 2. **Pola Perilaku**
 
 - **Strategy Pattern**: Strategi eksekusi alat yang dapat dipertukarkan
-- **Command Pattern**: Operasi agen yang dikapsulasi dengan undo/redo
-- **Observer Pattern**: Manajemen siklus hidup agen berbasis event
+- **Command Pattern**: Operasi agen yang dikapsulkan dengan undo/redo
+- **Observer Pattern**: Manajemen siklus hidup agen berbasis peristiwa
 - **Template Method**: Alur kerja eksekusi agen yang distandarisasi
 
 ### 3. **Pola Struktural**
 
 - **Adapter Pattern**: Lapisan integrasi Azure OpenAI (Responses API)
-- **Decorator Pattern**: Peningkatan kapabilitas agen
+- **Decorator Pattern**: Peningkatan kemampuan agen
 - **Facade Pattern**: Antarmuka interaksi agen yang disederhanakan
 - **Proxy Pattern**: Lazy loading dan caching untuk performa
 
@@ -73,13 +73,13 @@ graph LR
 
 ### Prinsip SOLID
 
-- **Single Responsibility**: Setiap komponen memiliki satu tujuan jelas
+- **Single Responsibility**: Masing-masing komponen memiliki satu tujuan jelas
 - **Open/Closed**: Ekstensibel tanpa modifikasi
 - **Liskov Substitution**: Implementasi alat berbasis antarmuka
-- **Interface Segregation**: Antarmuka terfokus dan kohesif
+- **Interface Segregation**: Antarmuka yang fokus dan kohesif
 - **Dependency Inversion**: Bergantung pada abstraksi, bukan konkret
 
-### Clean Architecture
+### Arsitetur Bersih
 
 - **Domain Layer**: Abstraksi inti agen dan alat
 - **Application Layer**: Orkestrasi agen dan alur kerja
@@ -90,62 +90,62 @@ graph LR
 
 ### Keamanan
 
-- **Credential Management**: Penanganan kunci API yang aman dengan IConfiguration
-- **Input Validation**: Strong typing dan validasi anotasi data
-- **Output Sanitization**: Pemrosesan dan penyaringan respons yang aman
-- **Audit Logging**: Pelacakan operasi menyeluruh
+- **Manajemen Kredensial**: Penanganan kunci API yang aman dengan IConfiguration
+- **Validasi Input**: Strong typing dan validasi anotasi data
+- **Sanitasi Output**: Pemrosesan dan penyaringan respons yang aman
+- **Audit Logging**: Pelacakan operasi yang komprehensif
 
 ### Performa
 
-- **Async Patterns**: Operasi I/O tanpa blokir
+- **Pola Async**: Operasi I/O tanpa blocking
 - **Connection Pooling**: Manajemen klien HTTP yang efisien
 - **Caching**: Caching respons untuk peningkatan performa
-- **Resource Management**: Pola pembuangan dan pembersihan yang tepat
+- **Manajemen Sumber Daya**: Pola disposal dan pembersihan yang tepat
 
 ### Skalabilitas
 
 - **Thread Safety**: Dukungan eksekusi agen konkuren
 - **Resource Pooling**: Pemanfaatan sumber daya yang efisien
-- **Load Management**: Pembatasan tingkat dan penanganan tekanan balik
-- **Monitoring**: Metrik performa dan pengecekan kesehatan
+- **Manajemen Beban**: Pembatasan laju dan penanganan tekanan balik
+- **Monitoring**: Metrik performa dan pemeriksaan kesehatan
 
-## 🚀 Deployment Produksi
+## 🚀 Deploy Produksi
 
-- **Configuration Management**: Pengaturan spesifik lingkungan
-- **Logging Strategy**: Logging terstruktur dengan ID korelasi
-- **Error Handling**: Penanganan eksepsi global dengan pemulihan yang tepat
+- **Manajemen Konfigurasi**: Pengaturan spesifik lingkungan
+- **Strategi Logging**: Logging terstruktur dengan correlation ID
+- **Penanganan Error**: Penanganan pengecualian global dengan pemulihan tepat
 - **Monitoring**: Insights aplikasi dan penghitung performa
-- **Testing**: Pola uji unit, uji integrasi, dan uji beban
+- **Pengujian**: Pola unit test, integration test, dan load test
 
-Siap membangun agen cerdas kelas perusahaan dengan .NET? Mari arsitek sesuatu yang kuat! 🏢✨
+Siap membangun agen cerdas kelas perusahaan dengan .NET? Mari kita arsitek sesuatu yang kokoh! 🏢✨
 
 ## 🚀 Memulai
 
 ### Prasyarat
 
 - [SDK .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) atau lebih tinggi
-- [Langganan Azure](https://azure.microsoft.com/free/) dengan sumber daya Azure OpenAI dan penyebaran model
+- Sebuah [langganan Azure](https://azure.microsoft.com/free/) dengan sumber daya Azure OpenAI dan penerapan model
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — masuk dengan `az login`
 
-### Variabel Lingkungan yang Diperlukan
+### Variabel Lingkungan yang Dibutuhkan
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Kemudian masuk agar AzureCliCredential dapat memperoleh token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Kemudian masuk agar AzureCliCredential dapat mendapatkan token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Kemudian masuk agar AzureCliCredential dapat memperoleh token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Kemudian masuk sehingga AzureCliCredential dapat memperoleh token
 az login
 ```
 
-### Contoh Kode
+### Kode Contoh
 
 Untuk menjalankan contoh kode,
 
@@ -155,7 +155,7 @@ chmod +x ./03-dotnet-agent-framework.cs
 ./03-dotnet-agent-framework.cs
 ```
 
-Atau menggunakan CLI dotnet:
+Atau menggunakan dotnet CLI:
 
 ```bash
 dotnet run ./03-dotnet-agent-framework.cs
@@ -212,7 +212,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

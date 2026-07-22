@@ -17,10 +17,8 @@ fn test_tool_list_result() {
 /// Regression tests for `#[serde(untagged)]` deserialization of `ServerResult`.
 ///
 /// `ServerResult` is an untagged enum, so serde tries each variant in declaration
-/// order. `GetTaskPayloadResult` has a custom `Deserialize` impl that always fails
-/// so it is skipped, and `CustomResult(Value)` acts as the catch-all. If variant
-/// ordering changes or the custom impl is removed, these tests will catch the
-/// regression.
+/// order, with `CustomResult(Value)` acting as the catch-all. If variant ordering
+/// changes, these tests will catch the regression.
 mod untagged_server_result {
     use rmcp::model::{CallToolResult, JsonRpcResponse, ServerJsonRpcMessage, ServerResult};
     use serde_json::json;
@@ -84,7 +82,7 @@ mod untagged_server_result {
     #[test]
     fn unknown_shape_falls_through_to_custom_result() {
         // A value that doesn't match any known result type should land in
-        // CustomResult, NOT GetTaskPayloadResult.
+        // CustomResult.
         let result = parse_result(wrap_response(json!({
             "some_unknown_field": "some_value",
             "number": 42
@@ -96,10 +94,40 @@ mod untagged_server_result {
     }
 
     #[test]
-    fn arbitrary_json_value_does_not_deserialize_as_get_task_payload_result() {
-        // GetTaskPayloadResult wraps a bare Value, but its custom Deserialize
-        // always fails so serde skips it during untagged resolution.
-        // Any JSON value must fall through to CustomResult instead.
+    fn result_type_bearing_objects_do_not_match_task_ack() {
+        // TaskAckResult carries only `resultType` (+ optional `_meta`), so it
+        // must not greedily swallow arbitrary results that happen to include
+        // a `resultType` key inside the untagged ServerResult union.
+        let result = parse_result(wrap_response(json!({
+            "resultType": "weird-custom",
+            "payload": { "a": 1 }
+        })));
+        assert!(
+            matches!(result, ServerResult::CustomResult(_)),
+            "expected CustomResult, got {result:?}"
+        );
+
+        let result = parse_result(wrap_response(json!({
+            "resultType": "complete",
+            "customField": 42
+        })));
+        assert!(
+            matches!(result, ServerResult::CustomResult(_)),
+            "expected CustomResult, got {result:?}"
+        );
+
+        // A bare complete ack (the actual tasks/update / tasks/cancel ack
+        // shape) still parses as TaskAckResult.
+        let result = parse_result(wrap_response(json!({ "resultType": "complete" })));
+        assert!(
+            matches!(result, ServerResult::TaskAckResult(_)),
+            "expected TaskAckResult, got {result:?}"
+        );
+    }
+
+    #[test]
+    fn arbitrary_json_value_falls_through_to_custom_result() {
+        // Any bare JSON value must fall through to CustomResult.
         for value in [json!(42), json!("hello"), json!(null), json!([1, 2, 3])] {
             let result = parse_result(wrap_response(value.clone()));
             assert!(

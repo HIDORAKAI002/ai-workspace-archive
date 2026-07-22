@@ -1,38 +1,38 @@
 # 🌍 AI Rejseagent med Microsoft Agent Framework (.NET)
 
-## 📋 Scenarieoversigt
+## 📋 Scenarie Oversigt
 
-Dette eksempel viser, hvordan man bygger en intelligent rejseplanlægningsagent ved hjælp af Microsoft Agent Framework for .NET. Agenten kan automatisk generere personlige dagsrejseplaner til tilfældige destinationer rundt om i verden.
+Dette eksempel demonstrerer, hvordan man bygger en intelligent rejseplanlægningsagent ved hjælp af Microsoft Agent Framework for .NET. Agenten kan automatisk generere personlige endagsrejseplaner til tilfældige destinationer rundt om i verden.
 
 ### Nøglefunktioner:
 
-- 🎲 **Tilfældig destinationsvalg**: Brug af et tilpasset værktøj til at vælge feriesteder
-- 🗺️ **Intelligent rejseplanlægning**: Opretter detaljerede dags-for-dags rejseplaner
-- 🔄 **Streaming i realtid**: Understøtter både øjeblikkelige og streamede svar
-- 🛠️ **Integration af tilpassede værktøjer**: Demonstrerer hvordan man udvider agentens kapaciteter
+- 🎲 **Tilfældig Destination Udvælgelse**: Bruger et brugerdefineret værktøj til at vælge feriesteder
+- 🗺️ **Intelligent Rejseplanlægning**: Opretter detaljerede dags-for-dags rejseplaner
+- 🔄 **Streaming i Real-tid**: Understøtter både umiddelbare og streamede svar
+- 🛠️ **Integration af Brugerdefinerede Værktøjer**: Viser, hvordan agentfunktionalitet kan udvides
 
-## 🔧 Teknisk arkitektur
+## 🔧 Teknisk Arkitektur
 
-### Kerne teknologier
+### Kerne Teknologier
 
 - **Microsoft Agent Framework**: Seneste .NET-implementering til AI agentudvikling
 - **Azure OpenAI (Responses API)**: Bruger Azure OpenAI Responses API til modelinferens
 - **Azure Identity**: Sikker login via `AzureCliCredential` (`az login`)
-- **Sikker konfiguration**: Miljøbaseret endpointstyring
+- **Sikker Konfiguration**: Miljøbaseret endpoint-administration
 
 ### Nøglekomponenter
 
-1. **AIAgent**: Hovedagenten der orkestrerer samtaleflowet
-2. **Tilpassede værktøjer**: `GetRandomDestination()` funktion tilgængelig for agenten
+1. **AIAgent**: Hovedagenten, der orkestrerer samtaleflowet
+2. **Brugerdefinerede Værktøjer**: `GetRandomDestination()` funktion tilgængelig for agenten
 3. **Responses Client**: Azure OpenAI Responses-baseret samtaleinterface
-4. **Streaming understøttelse**: Realtids responsgenerering
+4. **Streaming Understøttelse**: Realtidsgenerering af svar
 
 ### Integrationsmønster
 
 ```mermaid
 graph LR
     A[Brugerforespørgsel] --> B[AI Agent]
-    B --> C[Azure OpenAI (Responses API)]
+    B --> C[Azure OpenAI (Svar API)]
     B --> D[GetRandomDestination Værktøj]
     C --> E[Rejseplan]
     D --> E
@@ -43,28 +43,28 @@ graph LR
 ### Forudsætninger
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) eller nyere
-- Et [Azure abonnement](https://azure.microsoft.com/free/) med en Azure OpenAI-ressource og en modeludrulning
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — log ind med `az login`
+- Et [Azure-abonnement](https://azure.microsoft.com/free/) med en Azure OpenAI-ressource og en modeludrulning
+- Azure CLI ([Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)) — log ind med `az login`
 
-### Krævede miljøvariabler
+### Nødvendige Miljøvariabler
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Log derefter ind, så AzureCliCredential kan hente et token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Log ind, så AzureCliCredential kan få en token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # Log ind, så AzureCliCredential kan få et token
 az login
 ```
 
-### Eksempelkode
+### Eksempel på kode
 
 For at køre kodeeksemplet,
 
@@ -74,7 +74,7 @@ chmod +x ./01-dotnet-agent-framework.cs
 ./01-dotnet-agent-framework.cs
 ```
 
-Eller via dotnet CLI:
+Eller ved brug af dotnet CLI:
 
 ```bash
 dotnet run ./01-dotnet-agent-framework.cs
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,14 +157,14 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 Vigtige pointer
+## 🎓 Vigtige Læringspunkter
 
-1. **Agentarkitektur**: Microsoft Agent Framework tilbyder en ren, typesikker tilgang til at bygge AI-agenter i .NET
+1. **Agentarkitektur**: Microsoft Agent Framework giver en ren, type-sikker tilgang til at bygge AI-agenter i .NET
 2. **Værktøjsintegration**: Funktioner dekoreret med `[Description]` attributter bliver tilgængelige værktøjer for agenten
-3. **Konfigurationshåndtering**: Miljøvariabler og sikker legitimationshåndtering følger .NET bedste praksis
-4. **Azure OpenAI Responses API**: Agenten bruger Azure OpenAI Responses API gennem Azure.AI.OpenAI SDK'en
+3. **Konfigurationsstyring**: Miljøvariabler og sikker håndtering af legitimations-oplysninger følger .NET bedste praksisser
+4. **Azure OpenAI Responses API**: Agenten bruger Azure OpenAI Responses API gennem Azure.AI.OpenAI SDK
 
-## 🔗 Yderligere ressourcer
+## 🔗 Yderligere Ressourcer
 
 - [Microsoft Agent Framework Dokumentation](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI i Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)

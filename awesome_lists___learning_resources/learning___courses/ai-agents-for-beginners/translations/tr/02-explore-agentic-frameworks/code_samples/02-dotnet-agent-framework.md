@@ -2,87 +2,87 @@
 
 ## 📋 Öğrenme Hedefleri
 
-Bu örnek, Microsoft Agent Framework'un temel kavramlarını .NET üzerinde basit bir ajan uygulaması ile keşfeder. Temel ajan desenlerini öğrenecek ve C# ile .NET ekosistemini kullanarak zeki ajanların iç işleyişini anlayacaksınız.
+Bu örnek, Microsoft Agent Framework'ün temel kavramlarını .NET'te basit bir ajan uygulamasıyla inceler. Temel ajan desenlerini öğrenecek ve C# ile .NET ekosistemi kullanarak akıllı ajanların nasıl çalıştığını anlayacaksınız.
 
-### Neler Öğreneceksiniz
+### Neler Keşfedeceksiniz
 
-- 🏗️ **Ajan Mimarisi**: .NET'te AI ajanlarının temel yapısını anlamak  
-- 🛠️ **Araç Entegrasyonu**: Ajanların yeteneklerini genişletmek için harici fonksiyonları nasıl kullandığı  
-- 💬 **Konuşma Akışı**: Çok turlu konuşmaları ve bağlamı iş parçacığı yönetimi ile yönetmek  
-- 🔧 **Konfigürasyon Desenleri**: .NET'te ajan kurulum ve yönetimi için en iyi uygulamalar  
+- 🏗️ **Ajan Mimarisi**: .NET'teki yapay zeka ajanlarının temel yapısını anlamak
+- 🛠️ **Araç Entegrasyonu**: Ajanların yeteneklerini genişletmek için harici işlevleri nasıl kullandıkları
+- 💬 **Konuşma Akışı**: Çok turlu konuşmaların ve bağlamın iş parçacığı yönetimi ile kontrolü
+- 🔧 **Yapılandırma Desenleri**: .NET'te ajan kurulumu ve yönetimi için en iyi uygulamalar
 
-## 🎯 Öne Çıkan Kavramlar
+## 🎯 Ele Alınan Temel Kavramlar
 
-### Agentic Framework İlkeleri
+### Ajanik Çerçeve İlkeleri
 
-- **Otonomi**: Ajanların .NET AI soyutlamalarıyla bağımsız kararlar alması  
-- **Reaktivite**: Çevresel değişikliklere ve kullanıcı girdilerine tepki verme  
-- **Proaktivite**: Hedefler ve bağlama dayalı inisiyatif alma  
-- **Sosyal Yetkinlik**: Konuşma iş parçacıkları aracılığıyla doğal dil ile etkileşim  
+- **Otonomi**: Ajanların .NET AI soyutlamaları kullanarak bağımsız kararlar alması
+- **Tepkisellik**: Çevresel değişikliklere ve kullanıcı girdilerine yanıt verme
+- **Girişkenlik**: Hedeflere ve bağlama dayalı inisiyatif alma
+- **Sosyal Yetenek**: Konuşma iplikleri ile doğal dil aracılığıyla etkileşim kurma
 
 ### Teknik Bileşenler
 
-- **AIAgent**: Temel ajan orkestrasyonu ve konuşma yönetimi (.NET)  
-- **Araç Fonksiyonları**: C# metotları ve öznitelikleriyle ajan yeteneklerini genişletme  
-- **Azure OpenAI Entegrasyonu**: Azure OpenAI Responses API üzerinden dil modellerinden faydalanma  
-- **Güvenli Konfigürasyon**: Ortama bağlı uç nokta yönetimi  
+- **AIAgent**: Temel ajan orkestrasyonu ve konuşma yönetimi (.NET)
+- **Araç Fonksiyonları**: C# yöntemleri ve öznitelikleri ile ajan yeteneklerinin genişletilmesi
+- **Azure OpenAI Entegrasyonu**: Azure OpenAI Yanıtları API'si aracılığıyla dil modellerinden yararlanma
+- **Güvenli Yapılandırma**: Ortama dayalı uç nokta yönetimi
 
 ## 🔧 Teknik Yığın
 
 ### Temel Teknolojiler
 
-- Microsoft Agent Framework (.NET)  
-- Azure OpenAI (Responses API) entegrasyonu  
-- Azure.AI.OpenAI istemci desenleri  
-- DotNetEnv ile ortama bağlı konfigürasyon  
+- Microsoft Agent Framework (.NET)
+- Azure OpenAI (Yanıtlar API) entegrasyonu
+- Azure.AI.OpenAI istemci desenleri
+- DotNetEnv ile ortama dayalı yapılandırma
 
-### Ajan Yetenekleri
+### Ajan Yetkinlikleri
 
-- Doğal dil anlama ve üretme  
-- C# öznitelikleri ile fonksiyon çağrısı ve araç kullanımı  
-- Konuşma oturumlarıyla bağlam farkındalıklı yanıtlar  
-- Bağımlılık enjeksiyonu desenleriyle genişletilebilir mimari  
+- Doğal dil anlama ve üretimi
+- C# öznitelikleriyle fonksiyon çağrısı ve araç kullanımı
+- Konuşma oturumları ile bağlam farkındalığına dayalı yanıtlar
+- Bağımlılık enjeksiyonu desenleri ile genişletilebilir mimari
 
-## 📚 Framework Karşılaştırması
+## 📚 Çerçeve Karşılaştırması
 
-Bu örnek, Microsoft Agent Framework yaklaşımını diğer ajan çerçeveleriyle karşılaştırır:
+Bu örnek, Microsoft Agent Framework yaklaşımını diğer ajanik çerçevelerle karşılaştırır:
 
-| Özellik | Microsoft Agent Framework | Diğer Frameworkler |
+| Özellik | Microsoft Agent Framework | Diğer Çerçeveler |
 |---------|-------------------------|------------------|
-| **Entegrasyon** | Yerel Microsoft ekosistemi | Farklı uyumluluklar |
+| **Entegrasyon** | Yerel Microsoft ekosistemi | Değişken uyumluluk |
 | **Basitlik** | Temiz, sezgisel API | Genellikle karmaşık kurulum |
-| **Genişletilebilirlik** | Kolay araç entegrasyonu | Framework’e bağlı |
-| **Kurumsal Hazır** | Üretime uygun olarak tasarlanmıştır | Framework’e göre değişir |
+| **Genişletilebilirlik** | Kolay araç entegrasyonu | Çerçeveye bağlı |
+| **Kurumsal Hazır** | Prodüksiyon için inşa edilmiş | Çerçeveye göre değişir |
 
 ## 🚀 Başlarken
 
 ### Önkoşullar
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) veya üstü  
-- Azure OpenAI kaynağı ve model dağıtımı içeren bir [Azure aboneliği](https://azure.microsoft.com/free/)  
-- `az login` ile giriş yaparak kullanacağınız [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)  
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) veya üstü
+- Azure OpenAI kaynağı ve model dağıtımı içeren bir [Azure aboneliği](https://azure.microsoft.com/free/)
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` ile giriş yapın
 
 ### Gerekli Ortam Değişkenleri
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Ardından AzureCliCredential bir jeton alabilmesi için oturum açın
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# AzureCliCredential bir token alabilmesi için giriş yapın
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Ardından AzureCliCredential bir jeton alabilmesi için giriş yapın
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Ardından AzureCliCredential bir token alabilmesi için oturum açın
 az login
 ```
 
 ### Örnek Kod
 
-Örnek kodu çalıştırmak için,
+Kod örneğini çalıştırmak için,
 
 ```bash
 # zsh/bash
@@ -90,13 +90,13 @@ chmod +x ./02-dotnet-agent-framework.cs
 ./02-dotnet-agent-framework.cs
 ```
 
-Veya dotnet CLI kullanarak:
+Ya da dotnet CLI kullanarak:
 
 ```bash
 dotnet run ./02-dotnet-agent-framework.cs
 ```
 
-Tam kod için [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) dosyasına bakın.
+Tam kod için [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) dosyasına bakınız.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -217,18 +217,18 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 
 ## 🎓 Temel Çıkarımlar
 
-1. **Ajan Mimarisi**: Microsoft Agent Framework, .NET'te AI ajanları oluşturmak için temiz, tür-güvenli bir yaklaşım sunar  
-2. **Araç Entegrasyonu**: `[Description]` özniteliği ile süslenmiş fonksiyonlar ajan için kullanılabilir araçlar haline gelir  
-3. **Konuşma Bağlamı**: Oturum yönetimi, tam bağlam farkındalığıyla çok turlu konuşmalara olanak tanır  
-4. **Konfigürasyon Yönetimi**: Ortam değişkenleri ve güvenli kimlik bilgisi işleme .NET en iyi uygulamalarına uygundur  
-5. **Azure OpenAI Responses API**: Ajan, Azure.AI.OpenAI SDK aracılığıyla Azure OpenAI Responses API'yi kullanır  
+1. **Ajan Mimarisi**: Microsoft Agent Framework, .NET'te AI ajanları oluşturmak için temiz, tür güvenli bir yaklaşım sağlar
+2. **Araç Entegrasyonu**: `[Description]` özniteliğiyle süslenmiş fonksiyonlar ajanın kullanılabilir araçları olur
+3. **Konuşma Bağlamı**: Oturum yönetimi çok turlu konuşmaları tam bağlam farkındalığı ile sağlar
+4. **Yapılandırma Yönetimi**: Ortam değişkenleri ve güvenli kimlik bilgisi yönetimi .NET en iyi uygulamalarını takip eder
+5. **Azure OpenAI Yanıtları API**: Ajan, Azure.AI.OpenAI SDK'sı üzerinden Azure OpenAI Yanıtları API'sini kullanır
 
 ## 🔗 Ek Kaynaklar
 
-- [Microsoft Agent Framework Belgeleri](https://learn.microsoft.com/agent-framework)  
-- [Microsoft Foundry'de Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)  
-- [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)  
-- [.NET Tek Dosya Uygulamaları](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)  
+- [Microsoft Agent Framework Dokümantasyonu](https://learn.microsoft.com/agent-framework)
+- [Microsoft Foundry'de Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
+- [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
+- [.NET Tek Dosya Uygulamaları](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

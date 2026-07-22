@@ -1,48 +1,48 @@
 # 🛠️ Utilização Avançada de Ferramentas com Azure OpenAI (Responses API) (.NET)
 
-## 📋 Objectivos de Aprendizagem
+## 📋 Objetivos de Aprendizagem
 
-Este notebook demonstra padrões de integração de ferramentas de nível empresarial utilizando o Microsoft Agent Framework em .NET com Azure OpenAI (Responses API). Vai aprender a construir agentes sofisticados com múltiplas ferramentas especializadas, aproveitando a tipagem forte do C# e as funcionalidades empresariais do .NET.
+Este notebook demonstra padrões de integração de ferramentas a nível empresarial utilizando o Microsoft Agent Framework em .NET com Azure OpenAI (Responses API). Vai aprender a construir agentes sofisticados com múltiplas ferramentas especializadas, aproveitando a forte tipagem de C# e as funcionalidades empresariais do .NET.
 
 ### Capacidades Avançadas de Ferramentas que Vai Dominar
 
 - 🔧 **Arquitetura Multi-Ferramenta**: Construção de agentes com múltiplas capacidades especializadas
-- 🎯 **Execução Tipada das Ferramentas**: Aproveitando a validação em tempo de compilação do C#
-- 📊 **Padrões Empresariais para Ferramentas**: Design de ferramentas prontas para produção e gestão de erros
-- 🔗 **Composição de Ferramentas**: Combinação de ferramentas para fluxos de trabalho empresariais complexos
+- 🎯 **Execução de Ferramentas com Segurança de Tipo**: Aproveitar a validação em tempo de compilação do C#
+- 📊 **Padrões de Ferramentas Empresariais**: Design e gestão de erros para ferramentas prontas para produção
+- 🔗 **Composição de Ferramentas**: Combinar ferramentas para fluxos de trabalho empresariais complexos
 
-## 🎯 Benefícios da Arquitetura .NET para Ferramentas
+## 🎯 Benefícios da Arquitetura de Ferramentas em .NET
 
-### Funcionalidades Empresariais para Ferramentas
+### Funcionalidades Empresariais de Ferramentas
 
-- **Validação em Tempo de Compilação**: Tipagem forte assegura a correção dos parâmetros da ferramenta
-- **Injeção de Dependências**: Integração com contentor IoC para gestão das ferramentas
-- **Padrões Async/Await**: Execução não bloqueante das ferramentas com gestão adequada de recursos
-- **Registo Estruturado**: Integração nativa de logging para monitorização da execução da ferramenta
+- **Validação em Tempo de Compilação**: Tipagem forte assegura a correção dos parâmetros das ferramentas
+- **Injeção de Dependências**: Integração do contentor IoC para gestão das ferramentas
+- **Padrões Async/Await**: Execução de ferramentas sem bloqueios com gestão adequada de recursos
+- **Registo Estruturado**: Integração de logging incorporada para monitorização da execução das ferramentas
 
 ### Padrões Prontos para Produção
 
 - **Gestão de Exceções**: Gestão abrangente de erros com exceções tipadas
-- **Gestão de Recursos**: Padrões corretos de descarte e gestão de memória
-- **Monitorização de Performance**: Métricas incorporadas e contadores de desempenho
-- **Gestão de Configuração**: Configuração tipada com validação
+- **Gestão de Recursos**: Padrões adequados de disposição e gestão de memória
+- **Monitorização de Performance**: Métricas e contadores de performance incorporados
+- **Gestão de Configuração**: Configuração com segurança de tipo e validação
 
 ## 🔧 Arquitetura Técnica
 
-### Componentes Centrais das Ferramentas .NET
+### Componentes Principais de Ferramentas .NET
 
-- **Microsoft.Extensions.AI**: Camada unificada de abstração das ferramentas
-- **Microsoft.Agents.AI**: Orquestração de ferramentas de nível empresarial
-- **Azure OpenAI (Responses API)**: Cliente API de alta performance com pool de ligações
+- **Microsoft.Extensions.AI**: Camada de abstração unificada de ferramentas
+- **Microsoft.Agents.AI**: Orquestração de ferramentas a nível empresarial
+- **Azure OpenAI (Responses API)**: Cliente API de alta performance com connection pooling
 
-### Pipeline de Execução das Ferramentas
+### Pipeline de Execução de Ferramentas
 
 ```mermaid
 graph LR
     A[Pedido do Utilizador] --> B[Análise do Agente]
     B --> C[Seleção da Ferramenta]
     C --> D[Validação do Tipo]
-    B --> E[Ligação de Parâmetros]
+    B --> E[Ligação dos Parâmetros]
     E --> F[Execução da Ferramenta]
     C --> F
     F --> G[Processamento do Resultado]
@@ -50,53 +50,53 @@ graph LR
     G --> H[Resposta]
 ```
 
-## 🛠️ Categorias e Padrões de Ferramentas
+## 🛠️ Categorias & Padrões de Ferramentas
 
 ### 1. **Ferramentas de Processamento de Dados**
 
 - **Validação de Entrada**: Tipagem forte com anotações de dados
-- **Operações de Transformação**: Conversão e formatação de dados tipada
-- **Lógica de Negócio**: Ferramentas de cálculo e análise específicas do domínio
+- **Operações de Transformação**: Conversão e formatação de dados com segurança de tipo
+- **Lógica Empresarial**: Ferramentas específicas de domínio para cálculo e análise
 - **Formatação de Saída**: Geração estruturada de respostas
 
-### 2. **Ferramentas de Integração**
+### 2. **Ferramentas de Integração** 
 
 - **Conectores API**: Integração de serviços RESTful com HttpClient
 - **Ferramentas de Base de Dados**: Integração Entity Framework para acesso a dados
-- **Operações com Ficheiros**: Operações seguras no sistema de ficheiros com validação
-- **Serviços Externos**: Padrões de integração de serviços de terceiros
+- **Operações de Ficheiros**: Operações seguras no sistema de ficheiros com validação
+- **Serviços Externos**: Padrões de integração de serviços terceiros
 
 ### 3. **Ferramentas Utilitárias**
 
-- **Processamento de Texto**: Utilitários de manipulação e formatação de strings
-- **Operações de Data/Hora**: Cálculos de data/hora conscientes da cultura
+- **Processamento de Texto**: Utilitários para manipulação e formatação de strings
+- **Operações de Data/Hora**: Cálculos de data/hora sensíveis à cultura
 - **Ferramentas Matemáticas**: Cálculos de precisão e operações estatísticas
 - **Ferramentas de Validação**: Validação de regras de negócio e verificação de dados
 
-Pronto para construir agentes de nível empresarial com capacidades poderosas e tipadas de ferramentas em .NET? Vamos arquitetar algumas soluções profissionais! 🏢⚡
+Pronto para construir agentes a nível empresarial com poderosas capacidades de ferramentas com segurança de tipo em .NET? Vamos arquitetar soluções profissionais! 🏢⚡
 
 ## 🚀 Começar
 
 ### Pré-requisitos
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) ou superior
-- Uma [subscripção Azure](https://azure.microsoft.com/free/) com um recurso Azure OpenAI e um deployment de modelo
-- O [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — iniciar sessão com `az login`
+- Uma [subscrição Azure](https://azure.microsoft.com/free/) com um recurso Azure OpenAI e um deployment de modelo
+- O [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — inicie sessão com `az login`
 
 ### Variáveis de Ambiente Necessárias
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Depois, inicie sessão para que o AzureCliCredential possa obter um token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Depois inicie sessão para que o AzureCliCredential possa obter um token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # Depois inicie sessão para que o AzureCliCredential possa obter um token
 az login
 ```
@@ -111,13 +111,13 @@ chmod +x ./04-dotnet-agent-framework.cs
 ./04-dotnet-agent-framework.cs
 ```
 
-Ou usando o dotnet CLI:
+Ou usando a CLI dotnet:
 
 ```bash
 dotnet run ./04-dotnet-agent-framework.cs
 ```
 
-Consulte [`04-dotnet-agent-framework.cs`](../../../../04-tool-use/code_samples/04-dotnet-agent-framework.cs) para o código completo.
+Veja [`04-dotnet-agent-framework.cs`](../../../../04-tool-use/code_samples/04-dotnet-agent-framework.cs) para o código completo.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -168,7 +168,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

@@ -1,102 +1,102 @@
-# 🔍 ਮਾਈਕ੍ਰੋਸੌਫਟ ਏਜੰਟ ਫਰੇਮਵਰਕ ਦੀ ਖੋਜ - ਬੇਸਿਕ ਏਜੰਟ (.NET)
+# 🔍 ਮਾਈਕਰੋਸਾਫਟ ਏਜੰਟ ਫਰੇਮਵਰਕ ਦੀ ਖੋਜ - ਬੇਸਿਕ ਏਜੰਟ (.NET)
 
-## 📋 ਸਿੱਖਣ ਦੇ ਉਦੇਸ਼
+## 📋 ਸਿੱਖਣ ਦੇ ਲਕੜੇ
 
-ਇਹ ਉਦਾਹਰਨ .NET ਵਿੱਚ ਇੱਕ ਬੇਸਿਕ ਏਜੰਟ ਲਾਗੂ ਕਰ ਕੇ ਮਾਈਕ੍ਰੋਸੌਫਟ ਏਜੰਟ ਫਰੇਮਵਰਕ ਦੇ ਮੂਲ ਸੰਕਲਪਾਂ ਦੀ ਖੋਜ ਕਰਦੀ ਹੈ। ਤੁਸੀਂ ਮੁੱਖ ਏਜੰਟਿਕ ਪੈਟਰਨ ਸਿੱਖੋਗੇ ਅਤੇ ਸਮਝੋਗੇ ਕਿ C# ਅਤੇ .NET ਇਕੋਸਿਸਟਮ ਦ੍ਵਾਰਾ ਬੁੱਧੀਮਾਨ ਏਜੰਟ ਕਿਵੇਂ ਕੰਮ ਕਰਦੇ ਹਨ।
+ਇਹ ਉਦਾਹਰਣ .NET ਵਿੱਚ ਇੱਕ ਬੇਸਿਕ ਏਜੰਟ ਦੀ ਅਮਲਦਾਰੀ ਰਾਹੀਂ ਮਾਈਕਰੋਸਾਫਟ ਏਜੰਟ ਫਰੇਮਵਰਕ ਦੇ ਮੂਲ ਤੱਤਾਂ ਨੂੰ ਖੰਗਾਲਦੀ ਹੈ। ਤੁਸੀਂ ਆਧਾਰਿਕ ਏਜੰਟਿਕ ਪੈਟਰਨ ਸਿੱਖੋਗੇ ਅਤੇ ਸਮਝੋਗੇ ਕਿ ਕਿਵੇਂ ਬੁੱਧਿਮਾਨ ਏਜੰਟ C# ਅਤੇ .NET ਪਰਿਸਰੀ ਦਾ ਉਪਯੋਗ ਕਰਦਿਆਂ ਹੇਠਾਂ ਕੰਮ ਕਰਦੇ ਹਨ।
 
-### ਤੁਹਾਨੂੰ ਕੀ ਮਿਲੇਗਾ
+### ਤੁਹਾਡੇ ਲਈ ਕੀ ਖੋਜਣ ਲਈ ਹੈ
 
-- 🏗️ **ਏਜੰਟ ਆਰਕੀਟੈਕਚਰ**: .NET ਵਿੱਚ AI ਏਜੰਟਾਂ ਦੀ ਬੁਨਿਆਦੀ ਸੰਰਚਨਾ ਦੀ ਸਮਝ
-- 🛠️ **ਟੂਲ ਇੰਟਿਗ੍ਰੇਸ਼ਨ**: ਏਜੰਟ ਆਪਣੀਆਂ ਯੋਗਤਾਵਾਂ ਵਧਾਉਣ ਲਈ ਬਾਹਰੀ ਫੰਕਸ਼ਨਾਂ ਦੀ ਵਰਤੋਂ ਕਰਦੇ ਹਨ  
-- 💬 **ਗੱਲਬਾਤ ਦਾ ਪੈਟਰਨ**: ਮਲਟੀ-ਟਰਨ ਗੱਲਬਾਤਾਂ ਅਤੇ ਕਾਂਟੈਕਸਟ ਦੀ ਥ੍ਰੈਡ ਪ੍ਰਬੰਧਨ ਨਾਲ ਸੰਭਾਲ
-- 🔧 **ਕੰਫਿਗਰੇਸ਼ਨ ਪੈਟਰਨ**: .NET ਵਿੱਚ ਏਜੰਟ ਸੈਟਅਪ ਅਤੇ ਪ੍ਰਬੰਧਨ ਲਈ ਸਰੋਤਾਵਾਂ ਦੀਆਂ ਸਰਵੋਤਮ ਪ੍ਰਥਾਵਾਂ
+- 🏗️ **ਏਜੰਟ ਆਰਕੀਟੈਕਚਰ**: .NET ਵਿੱਚ AI ਏਜੰਟਾਂ ਦੀ ਬੁਨਿਆਦੀ ਬਣਤਰ ਨੂੰ ਸਮਝਣਾ
+- 🛠️ **ਟੂਲ ਇੰਟੀਗ੍ਰੇਸ਼ਨ**: ਏਜੰਟ ਕਿਵੇਂ ਬਾਹਰੀ ਫੰਕਸ਼ਨਾਂ ਨਾਲ ਆਪਣੀਆਂ ਸਮਰੱਥਾਵਾਂ ਨੂੰ ਵਧਾਉਂਦੇ ਹਨ  
+- 💬 **ਗੱਲਬਾਤ ਦਾ ਪ੍ਰਵਾਹ**: ਮਲਟੀ-ਟਰਨ ਗੱਲਬਾਤਾਂ ਅਤੇ ਧਾਗਾ ਪ੍ਰਬੰਧਨ ਨਾਲ ਸੰਦਰਭ ਪ੍ਰਬੰਧਨ
+- 🔧 **ਸੰਰਚਨਾ ਪੈਟਰਨ**: .NET ਵਿੱਚ ਏਜੰਟ ਸੈੱਟਅੱਪ ਅਤੇ ਪ੍ਰਬੰਧਨ ਲਈ ਸਭ ਤੋਂ ਵਧੀਆ ਅਭਿਆਸ
 
-## 🎯 ਮੁੱਖ ਸੰਕਲਪ ਜੋ ਕਵਰ ਕੀਤੇ ਗਏ
+## 🎯 ਮੁੱਖ ਵਿਚਾਰਾਂ ਦੀ ਵਰਣਨਾ
 
-### ਏਜੰਟਿਕ ਫਰੇਮਵਰਕ ਸਿਧਾਂਤ
+### ਏਜੰਟਿਕ ਫਰੇਮਵਰਕ ਨੀਤੀਆਂ
 
-- **ਸਵਤੰਤਰਤਾ**: ਕਿੱਵੇਂ .NET AI ਐਬਸਟ੍ਰੈਕਸ਼ਨਾਂ ਨਾਲ ਏਜੰਟ ਸਵਤੰਤਰ ਫੈਸਲੇ ਕਰਨ
-- **ਪਰਤੀਕਿਰਿਆ**: ਪਰਿਵਾਰਤਨ ਅਤੇ ਯੂਜ਼ਰ ਇਨਪੁਟਾਂ 'ਤੇ ਪ੍ਰਤੀਕਿਰਿਆ ਕਰਨ
-- **ਪ੍ਰੋਐਕਟਿਵਿਟੀ**: ਮਕਸਦਾਂ ਅਤੇ ਸੰਦਰਭ ਦੇ ਅਧਾਰ ਤੇ ਪਹਿਲ ਜਮਾਉਣਾ
-- **ਸਮਾਜਿਕ ਯੋਗਤਾ**: ਗੱਲਬਾਤ ਥ੍ਰੈਡਾਂ ਨਾਲ ਕੁਦਰਤੀ ਭਾਸ਼ਾ ਰਾਹੀਂ ਮੂਲ-ਚਰਚਾ
+- **ਸਵੈਤੰਤਰਤਾ**: .NET AI ਸਾਰਾਂਸ਼ ਉਪਯੋਗ ਕਰਕੇ ਏਜੰਟਾਂ ਵਲੋਂ ਸੁਤੰਤਰ ਫੈਸਲੇ ਲੈਣਾ
+- **ਪ੍ਰਤੀਕ੍ਰਿਆਸ਼ੀਲਤਾ**: ਵਾਤਾਵਰਣਿਕ ਬਦਲਾਵਾਂ ਅਤੇ ਉਪਭੋਗਤਾ ਦੀਆਂ ਪ੍ਰਵੇਸ਼ਾਂ ਦਾ ਜਵਾਬ ਦੇਣਾ
+- **ਪੂਰਵਕਰਤਾ**: ਲਕੜਾਂ ਅਤੇ ਸੰਦਰਭ ਦੇ ਆਧਾਰ 'ਤੇ ਪਹਲ ਕਰਨਾ
+- **ਸਮਾਜਿਕ ਯੋਗਤਾ**: ਗੱਲਬਾਤ ਧਾਗਿਆਂ ਰਾਹੀਂ ਕੁਦਰਤੀ ਭਾਸ਼ਾ ਨਾਲ ਸੰਵਾਦ
 
 ### ਤਕਨੀਕੀ ਭਾਗ
 
-- **AIAgent**: ਮੁੱਖ ਏਜੰਟ ਨਿਆਂਤੇਤਰਣ ਅਤੇ ਗੱਲਬਾਤ ਪ੍ਰਬੰਧਨ (.NET)
-- **ਟੂਲ ਫੰਕਸ਼ਨਸ**: C# ਮੈਥਡਸ ਅਤੇ ਐਟ੍ਰੀਬਿਊਟਸ ਨਾਲ ਏਜੰਟ ਯੋਗਤਾਵਾਂ ਵਧਾਉਣਾ
-- **Azure OpenAI ਇੰਟਿਗ੍ਰੇਸ਼ਨ**: Azure OpenAI Responses API ਰਾਹੀਂ ਭਾਸ਼ਾ ਮਾਡਲਾਂ ਦੀ ਵਰਤੋਂ
-- **ਸੁਰੱਖਿਅਤ ਕੰਫਿਗਰੇਸ਼ਨ**: ਵਾਤਾਵਰਣ ਅਧਾਰਿਤ ਐਂਡਪੌਇੰਟ ਪ੍ਰਬੰਧਨ
+- **AIAgent**: ਮੁੱਖ ਏਜੰਟ ਆਰਕੀਸਟ੍ਰੇਸ਼ਨ ਅਤੇ ਗੱਲਬਾਤ ਪ੍ਰਬੰਧਨ (.NET)
+- **ਟੂਲ ਫੰਕਸ਼ਨ**: C# ਮੈਥਡਾਂ ਅਤੇ ਲੱਛਣਾਂ ਨਾਲ ਏਜੰਟ ਦੀ ਸਮਰੱਥਾ ਵਧਾਉਣਾ
+- **Azure OpenAI ਇੰਟੀਗ੍ਰੇਸ਼ਨ**: Azure OpenAI Responses API ਰਾਹੀਂ ਭਾਸ਼ਾ ਮਾਡਲਾਂ ਦਾ ਲਾਭ ਲੈਣਾ
+- **ਸੁਰੱਖਿਅਤ ਸੰਰਚਨਾ**: ਵਾਤਾਵਰਣ ਅਧਾਰਿਤ ਐਂਡਪוਇੰਟ ਪ੍ਰਬੰਧਨ
 
-## 🔧 ਤਕਨੀਕੀ ਸਟੈਕ
+## 🔧 ਤਕਨੀਕੀ ਸਟੈੱਕ
 
 ### ਮੁੱਖ ਤਕਨੀਕਾਂ
 
 - Microsoft Agent Framework (.NET)
-- Azure OpenAI (Responses API) ਇੰਟਿਗ੍ਰੇਸ਼ਨ
+- Azure OpenAI (Responses API) ਇੰਟੀਗ੍ਰੇਸ਼ਨ
 - Azure.AI.OpenAI ਕਲਾਇੰਟ ਪੈਟਰਨ
-- DotNetEnv ਨਾਲ ਵਾਤਾਵਰਣ-ਅਧਾਰਿਤ ਕੰਫਿਗਰੇਸ਼ਨ
+- DotNetEnv ਨਾਲ ਵਾਤਾਵਰਣ-ਅਧਾਰਿਤ ਸੰਰਚਨਾ
 
-### ਏਜੰਟ ਯੋਗਤਾਵਾਂ
+### ਏਜੰਟ ਸਮਰੱਥਾਵਾਂ
 
-- ਕੁਦਰਤੀ ਭਾਸ਼ਾ ਦੀ ਸਮਝ ਅਤੇ ਉਤਪਾਦਨ
-- C# ਐਟ੍ਰੀਬਿਊਟਸ ਨਾਲ ਫੰਕਸ਼ਨ ਕਾਲ ਅਤੇ ਟੂਲ ਦੀ ਵਰਤੋਂ
-- ਗੱਲਬਾਤ ਸੈਸ਼ਨਾਂ ਨਾਲ ਸੰਦਰਭ-ਜਾਣੂ ਜਵਾਬ
-- ਡਿਪੈਂਡੇਨਸੀ ਇੰਜੈਕਸ਼ਨ ਪੈਟਰਨ ਨਾਲ ਵਿਰੰਧਯੋਗ ਆਰਕੀਟੈਕਚਰ
+- ਕੁਦਰਤੀ ਭਾਸ਼ਾ ਦੀ ਸਮਝ ਅਤੇ ਉਤਪੱਤੀ
+- C# ਲੱਛਣਾਂ ਨਾਲ ਫੰਕਸ਼ਨ ਕਾਲਿੰਗ ਅਤੇ ਟੂਲ ਦੀ ਵਰਤੋਂ
+- ਗੱਲਬਾਤ ਸੈਸ਼ਨਾਂ ਨਾਲ ਸੰਦਰਭ-ਜਾਗਰੂਕ ਜਵਾਬ
+- ਡੀਪੈਂਡੈਂਸੀ ਇੰਜੈਕਸ਼ਨ ਪੈਟਰਨ ਨਾਲ ਵਿਸਤਾਰਯੋਗ ਆਰਕੀਟੈਕਚਰ
 
 ## 📚 ਫਰੇਮਵਰਕ ਤੁਲਨਾ
 
-ਇਹ ਉਦਾਹਰਨ ਦੂਜੇ ਏਜੰਟਿਕ ਫਰੇਮਵਰਕਸ ਨਾਲੋਂ Microsoft Agent Framework ਦੇ ਸਰੋਤ ਬਾਰੇ ਵਿਸਥਾਰ ਦਿੰਦੀ ਹੈ:
+ਇਹ ਉਦਾਹਰਣ Microsoft Agent Framework ਦੀ ਪਹੁੰਚ ਦੂਜੇ ਏਜੰਟਿਕ ਫਰੇਮਵਰਕਾਂ ਨਾਲ ਤੁਲਨਾ ਕਰਦੀ ਹੈ:
 
-| ਵਿਸ਼ੇਸ਼ਤਾ | Microsoft Agent Framework | ਹੋਰ ਫਰੇਮਵਰਕਸ |
+| ਵਿਸ਼ੇਸ਼ਤਾ | Microsoft Agent Framework | ਹੋਰ ਫਰੇਮਵਰਕ |
 |---------|-------------------------|------------------|
-| **ਇੰਟਿਗ੍ਰੇਸ਼ਨ** | ਮੂਲ Microsoft ਇਕੋਸਿਸਟਮ | ਵੱਖ-ਵੱਖ ਸੰਗਤਤਾ |
-| **ਸਰਲਤਾ** | ਸਾਫ਼, ਬੁਝਵਾਨ API | ਅਕਸਰ ਜਟਿਲ ਸੈਟਅਪ |
-| **ਵਿਰੰਧਯੋਗਤਾ** | ਅਸਾਨ ਟੂਲ ਇੰਟਿਗ੍ਰੇਸ਼ਨ | ਫਰੇਮਵਰਕ 'ਤੇ ਨਿਰਭਰ |
-| **ਐਂਟਰਪਰਾਈਜ਼ ਤਯਾਰ** | ਉਤਪਾਦਨ ਲਈ ਬਣਾਇਆ | ਫਰੇਮਵਰਕ ਦੇ ਅਨੁਸਾਰ ਵੱਖ-ਵੱਖ |
+| **ਇੰਟੀਗ੍ਰੇਸ਼ਨ** | ਮੂਲ Microsoft ਪਰਿਸਰੀ | ਵੱਖ-ਵੱਖ ਸੰਗਤਤਾ |
+| **ਸਧਾਰਣਤਾ** | ਸਾਫ਼, ਸੁਗਮ API | ਅਕਸਰ ਜਟਿਲ ਸੈੱਟਅੱਪ |
+| **ਵਿਸਤਾਰਯੋਗਤਾ** | ਆਸਾਨ ਟੂਲ ਇੰਟੀਗ੍ਰੇਸ਼ਨ | ਫਰੇਮਵਰਕ-ਨਿਰਭਰ |
+| **ਐਂਟਰਪ੍ਰਾਈਜ਼ ਰੇਡੀ** | ਉਤਪਾਦਨ ਲਈ ਬਣਾਇਆ ਗਿਆ | ਫਰੇਮਵਰਕ ਮੁਤਾਬਕ ਫ਼ਰਕ |
 
-## 🚀 ਸ਼ੁਰੂਆਤ ਕਿਵੇਂ ਕਰੀਏ
+## 🚀 ਸ਼ੁਰੂਆਤ ਕਰਨ ਲਈ
 
-### ਜ਼ਰੂਰੀ ਚੀਜ਼ਾਂ
+### ਲੋੜੀਂਦੇ ਸਾਧਨ
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) ਜਾਂ ਵੱਧ
-- ਇੱਕ [Azure ਸਬਸਕ੍ਰਿਪਸ਼ਨ](https://azure.microsoft.com/free/) ਜਿਸ ਵਿੱਚ Azure OpenAI ਸਰੋਤ ਅਤੇ ਮਾਡਲ ਡਿਪਲੋਇਮੈਂਟ ਹੈ
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` ਨਾਲ ਸਾਈਨ ਇਨ
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) ਜਾਂ ਉੱਚਾ
+- [Azure ਸਬਸਕ੍ਰਿਪਸ਼ਨ](https://azure.microsoft.com/free/) ਜਿਸ ਵਿੱਚ Azure OpenAI ਸਰੋਤ ਅਤੇ ਮਾਡਲ ਡਿਪਲੋਇਮੈਂਟ ਹੋਵੇ
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` ਨਾਲ ਲੌਗਇਨ ਕਰੋ
 
-### ਜ਼ਰੂਰੀ ਵਾਤਾਵਰਣ ਵੈਰੀਏਬਲ
+### ਲੋੜੀਂਦੇ ਵਾਤਾਵਰਣ ਚਲਣ ਯੋਗ
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# ਫਿਰ ਸਾਈਨ ਇਨ ਕਰੋ ਤਾਂ ਜੋ AzureCliCredential ਟੋਕਨ ਪ੍ਰਾਪਤ ਕਰ ਸਕੇ
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# ਫਿਰ ਸਾਇਨ ਇਨ ਕਰੋ ਤਾਂ ਜੋ AzureCliCredential ਟੋਕਨ ਲੈ ਸਕੇ
 az login
 ```
 
 ```powershell
-# پاور شیل
+# ਪਾਵਰਸ਼ੈੱਲ
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# ਫਿਰ ਸਾਇਨ ਇਨ ਕਰੋ ਤਾਂ ਜੋ AzureCliCredential ਟੋਕਨ ਪ੍ਰਾਪਤ ਕਰ ਸਕੇ
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# ਫਿਰ ਸਾਈਨ ਇਨ ਕਰੋ ਤਾਂ ਜੋ AzureCliCredential ਟੋਕਨ ਪ੍ਰਾਪਤ ਕਰ ਸਕੇ
 az login
 ```
 
 ### ਨਮੂਨਾ ਕੋਡ
 
-ਕੋਡ ਉਦਾਹਰਨ ਚਲਾਉਣ ਲਈ,
+ਕੋਡ ਉਦਾਹਰਣ ਚਲਾਉਣ ਲਈ,
 
 ```bash
-# ਜ਼ਸ਼/ਬੈਸ਼
+# zsh/bash
 chmod +x ./02-dotnet-agent-framework.cs
 ./02-dotnet-agent-framework.cs
 ```
 
-ਜਾਂ dotnet CLI ਦੀ ਵਰਤੋਂ ਨਾਲ:
+ਜਾਂ dotnet CLI ਦੀ ਵਰਤੋਂ ਕਰ ਕੇ:
 
 ```bash
 dotnet run ./02-dotnet-agent-framework.cs
 ```
 
-ਪੂਰਾ ਕੋਡ ਦੇਖਣ ਲਈ [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) ਵੇਖੋ।
+ਪੂਰਾ ਕੋਡ ਵੇਖਣ ਲਈ [`02-dotnet-agent-framework.cs`](../../../../02-explore-agentic-frameworks/code_samples/02-dotnet-agent-framework.cs) ਨੂੰ ਦੇਖੋ।
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,20 +215,20 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 ਮੁੱਖ ਸਿੱਖੀਆਂ
+## 🎓 ਮੁੱਖ ਨਤੀਜੇ
 
-1. **ਏਜੰਟ ਆਰਕੀਟੈਕਚਰ**: Microsoft Agent Framework .NET ਵਿੱਚ AI ਏਜੰਟ ਬਣਾਉਣ ਲਈ ਸਾਫ, ਟਾਈਪ-ਸੇਫ਼ ਢੰਗ ਦਿੰਦਾ ਹੈ
-2. **ਟੂਲ ਇੰਟਿਗ੍ਰੇਸ਼ਨ**: `[Description]` ਐਟ੍ਰੀਬਿਊਟ ਨਾਲ ਸਜਾਏ ਗਏ ਫੰਕਸ਼ਨ ਏਜੰਟ ਲਈ ਉਪਲਬਧ ਟੂਲ ਬਣ ਜਾਂਦੇ ਹਨ
-3. **ਗੱਲਬਾਤ ਸੰਦਰਭ**: ਸੈਸ਼ਨ ਪ੍ਰਬੰਧਨ ਪੂਰੇ ਸੰਦਰਭ ਸਮੇਤ ਕਈ ਮੁੜ ਗੱਲਬਾਤਾਂ ਨੂੰ ਸਮਭਾਲਦਾ ਹੈ
-4. **ਕੰਫਿਗਰੇਸ਼ਨ ਪ੍ਰਬੰਧਨ**: ਵਾਤਾਵਰਣ ਵੈਰੀਏਬਲ ਅਤੇ ਸੁਰੱਖਿਅਤ ਪ੍ਰਮਾਣਪੱਤਰ ਸੰਭਾਲ .NET ਦੀਆਂ ਸਰਵੋਤਮ ਪ੍ਰਥਾਵਾਂ ਦੀ ਪਾਲਣਾ ਕਰਦੇ ਹਨ
-5. **Azure OpenAI Responses API**: ਏਜੰਟ Azure.AI.OpenAI SDK ਰਾਹੀਂ Azure OpenAI Responses API ਦੀ ਵਰਤੋਂ ਕਰਦਾ ਹੈ
+1. **ਏਜੰਟ ਆਰਕੀਟੈਕਚਰ**: Microsoft Agent Framework .NET ਵਿੱਚ AI ਏਜੰਟ ਬਣਾਉਣ ਲਈ ਸਾਫ਼, ਟਾਈਪ-ਸੇਫ਼ ਪਹੁੰਚ ਪ੍ਰਦਾਨ ਕਰਦਾ ਹੈ
+2. **ਟੂਲ ਇੰਟੀਗ੍ਰੇਸ਼ਨ**: `[Description]` ਲੱਛਣਾਂ ਨਾਲ ਸਜਾਏ ਗਏ ਫੰਕਸ਼ਨ ਏਜੰਟ ਲਈ ਉਪਲਬਧ ਟੂਲ ਬਣ ਜਾਂਦੇ ਹਨ
+3. **ਗੱਲਬਾਤ ਸੰਦਰਭ**: ਸੈਸ਼ਨ ਪ੍ਰਬੰਧਨ ਮੁਲਟੀ-ਟਰਨ ਗੱਲਬਾਤਾਂ ਨੂੰ ਪੂਰੇ ਸੰਦਰਭ ਸੂਚਨਾ ਨਾਲ ਸੰਭਾਲਦਾ ਹੈ
+4. **ਸੰਰਚਨਾ ਪ੍ਰਬੰਧਨ**: ਵਾਤਾਵਰਣ ਚਲਣ ਯੋਗ ਅਤੇ ਸੁਰੱਖਿਅਤ ਪ੍ਰਮਾਣਿਕਤਾ ਸੰਭਾਲ .NET ਦੇ ਸਭ ਤੋਂ ਵਧੀਆ ਅਭਿਆਸਾਂ ਨੂੰ ਫੋਲੋ ਕਰਦੇ ਹਨ
+5. **Azure OpenAI Responses API**: ਏਜੰਟ Azure.AI.OpenAI SDK ਰਾਹੀਂ Azure OpenAI Responses API ਦਾ ਉਪਯੋਗ ਕਰਦਾ ਹੈ
 
-## 🔗 ਹੋਰ ਸਾਧਨ
+## 🔗 ਵਾਧੂ ਸਾਧਨ
 
 - [Microsoft Agent Framework ਦਸਤਾਵੇਜ਼](https://learn.microsoft.com/agent-framework)
 - [Microsoft Foundry ਵਿੱਚ Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [.NET ਸਿੰਗਲ ਫਾਈਲ ਐਪਸ](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [.NET ਸਿੰਗਲ ਫਾਇਲ ਐਪਸ](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 

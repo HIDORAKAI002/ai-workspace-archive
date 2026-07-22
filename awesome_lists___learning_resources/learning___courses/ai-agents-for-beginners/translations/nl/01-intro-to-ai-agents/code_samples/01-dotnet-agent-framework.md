@@ -2,30 +2,30 @@
 
 ## 📋 Scenario Overzicht
 
-Dit voorbeeld laat zien hoe je een intelligente reisplanningsagent bouwt met het Microsoft Agent Framework voor .NET. De agent kan automatisch gepersonaliseerde daguitstapjes samenstellen voor willekeurige bestemmingen over de hele wereld.
+Dit voorbeeld laat zien hoe je een intelligente reisplanningsagent kunt bouwen met het Microsoft Agent Framework voor .NET. De agent kan automatisch gepersonaliseerde dagtripschema's genereren voor willekeurige bestemmingen over de hele wereld.
 
-### Belangrijkste mogelijkheden:
+### Belangrijkste Mogelijkheden:
 
-- 🎲 **Willekeurige bestemmingsselectie**: Gebruikt een aangepast hulpmiddel om vakantiebestemmingen te kiezen
-- 🗺️ **Intelligente reisplanning**: Maakt gedetailleerde dag-tot-dag reisroutes
-- 🔄 **Realtime streaming**: Ondersteunt zowel directe als streaming reacties
-- 🛠️ **Integratie van aangepaste hulpmiddelen**: Laat zien hoe je agentmogelijkheden uitbreidt
+- 🎲 **Willekeurige Bestemming Selectie**: Gebruikt een aangepaste tool om vakantiebestemmingen te kiezen
+- 🗺️ **Intelligente Reisplanning**: Maakt gedetailleerde dag-tot-dag reisschema's
+- 🔄 **Realtime Streaming**: Ondersteunt zowel onmiddellijke als gestreamde reacties
+- 🛠️ **Aangepaste Tool Integratie**: Laat zien hoe je agentmogelijkheden kunt uitbreiden
 
-## 🔧 Technische architectuur
+## 🔧 Technische Architectuur
 
 ### Kerntechnologieën
 
 - **Microsoft Agent Framework**: Laatste .NET-implementatie voor AI-agentontwikkeling
-- **Azure OpenAI (Responses API)**: Gebruikt de Azure OpenAI Responses API voor modelinferencia
-- **Azure Identity**: Veilig aanmelden via `AzureCliCredential` (`az login`)
-- **Beveiligde configuratie**: Endpointbeheer op basis van omgeving
+- **Azure OpenAI (Responses API)**: Gebruikt de Azure OpenAI Responses API voor modelinferentie
+- **Azure Identity**: Veilige aanmelding via `AzureCliCredential` (`az login`)
+- **Veilige Configuratie**: Endpointbeheer op basis van de omgeving
 
-### Belangrijke componenten
+### Belangrijke Componenten
 
-1. **AIAgent**: De hoofdagent die het gesprek regelt
-2. **Aangepaste hulpmiddelen**: `GetRandomDestination()` functie beschikbaar voor de agent
-3. **Responses Client**: Gespreksinterface gebaseerd op Azure OpenAI Responses
-4. **Streaming ondersteuning**: Mogelijkheden voor realtime reactie generatie
+1. **AIAgent**: De hoofdagent die het gesprek beheert
+2. **Aangepaste Tools**: `GetRandomDestination()`-functie beschikbaar voor de agent
+3. **Responses Client**: Conversatie-interface gebaseerd op Azure OpenAI Responses
+4. **Streaming Ondersteuning**: Mogelijkheden voor het genereren van realtime reacties
 
 ### Integratiepatroon
 
@@ -33,34 +33,34 @@ Dit voorbeeld laat zien hoe je een intelligente reisplanningsagent bouwt met het
 graph LR
     A[Gebruikersverzoek] --> B[AI Agent]
     B --> C[Azure OpenAI (Responses API)]
-    B --> D[GetRandomDestination Tool]
+    B --> D[GetRandomDestination Hulpmiddel]
     C --> E[Reisroute]
     D --> E
 ```
 
-## 🚀 Aan de slag
+## 🚀 Aan de Slag
 
 ### Vereisten
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) of hoger
-- Een [Azure-abonnement](https://azure.microsoft.com/free/) met een Azure OpenAI-resource en een model-implementatie
-- De [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — meld je aan met `az login`
+- Een [Azure-abonnement](https://azure.microsoft.com/free/) met een Azure OpenAI-resource en een modelimplementatie
+- De [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — aanmelden met `az login`
 
-### Vereiste omgevingsvariabelen
+### Vereiste Omgevingsvariabelen
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Meld u vervolgens aan zodat AzureCliCredential een token kan verkrijgen
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Meld u vervolgens aan zodat AzureCliCredential een token kan krijgen
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Meld u vervolgens aan zodat AzureCliCredential een token kan verkrijgen
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Log dan in zodat AzureCliCredential een token kan verkrijgen
 az login
 ```
 
@@ -74,13 +74,13 @@ chmod +x ./01-dotnet-agent-framework.cs
 ./01-dotnet-agent-framework.cs
 ```
 
-Of via de dotnet CLI:
+Of met de dotnet CLI:
 
 ```bash
 dotnet run ./01-dotnet-agent-framework.cs
 ```
 
-Zie [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) voor de complete code.
+Zie [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) voor de volledige code.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,14 +157,14 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 Belangrijkste inzichten
+## 🎓 Belangrijkste Leerpunten
 
-1. **Agent Architectuur**: Het Microsoft Agent Framework biedt een schone, type-veilige aanpak om AI-agents in .NET te bouwen
-2. **Hulpmiddelen Integratie**: Functies met `[Description]` attributen worden beschikbare hulpmiddelen voor de agent
-3. **Configuratiebeheer**: Omgevingsvariabelen en veilige credentialverwerking volgen .NET best practices
+1. **Agent Architectuur**: Het Microsoft Agent Framework biedt een nette, type-veilige aanpak voor het bouwen van AI-agents in .NET
+2. **Tool Integratie**: Functies met `[Description]` attributen worden beschikbare tools voor de agent
+3. **Configuratiebeheer**: Omgevingsvariabelen en veilige credentialafhandeling volgen de beste .NET-praktijken
 4. **Azure OpenAI Responses API**: De agent gebruikt de Azure OpenAI Responses API via de Azure.AI.OpenAI SDK
 
-## 🔗 Aanvullende bronnen
+## 🔗 Aanvullende Bronnen
 
 - [Microsoft Agent Framework Documentatie](https://learn.microsoft.com/agent-framework)
 - [Azure OpenAI in Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)

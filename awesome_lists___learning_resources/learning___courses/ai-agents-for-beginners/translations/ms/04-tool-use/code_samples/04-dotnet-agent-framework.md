@@ -2,38 +2,38 @@
 
 ## 📋 Objektif Pembelajaran
 
-Nota ini menunjukkan corak integrasi alat tahap perniagaan menggunakan Microsoft Agent Framework dalam .NET dengan Azure OpenAI (Responses API). Anda akan belajar membina agen canggih dengan pelbagai alat khusus, memanfaatkan penguatkuasaan jenis kuat C# dan ciri perusahaan .NET.
+Buku nota ini menunjukkan corak integrasi alat tahap perusahaan menggunakan Microsoft Agent Framework dalam .NET dengan Azure OpenAI (Responses API). Anda akan belajar membina ejen canggih dengan pelbagai alat khusus, memanfaatkan jenis yang kuat C# dan ciri perusahaan .NET.
 
-### Kebolehan Alat Lanjutan yang Akan Anda Kuasai
+### Keupayaan Alat Lanjutan yang Akan Anda Kuasai
 
-- 🔧 **Seni Bina Berbilang Alat**: Membina agen dengan pelbagai keupayaan khusus
+- 🔧 **Senibina Multi-Alat**: Membina ejen dengan pelbagai keupayaan khusus
 - 🎯 **Pelaksanaan Alat Selamat Jenis**: Memanfaatkan pengesahan masa kompilasi C#
-- 📊 **Corak Alat Perusahaan**: Reka bentuk alat sedia produksi dan pengendalian ralat
+- 📊 **Corak Alat Perusahaan**: Reka bentuk alat siap produksi dan pengurusan ralat
 - 🔗 **Komposisi Alat**: Menggabungkan alat untuk aliran kerja perniagaan kompleks
 
-## 🎯 Manfaat Seni Bina Alat .NET
+## 🎯 Kelebihan Senibina Alat .NET
 
-### Ciri-Ciri Alat Perusahaan
+### Ciri Alat Perusahaan
 
-- **Pengesahan Masa Kompilasi**: Penguatkuasaan jenis kuat memastikan ketepatan parameter alat
-- **Penyuntikan Kebergantungan**: Integrasi bekas IoC untuk pengurusan alat
-- **Corak Async/Await**: Pelaksanaan alat tanpa blok dengan pengurusan sumber yang betul
-- **Peregistrasian Berstruktur**: Integrasi peregistrasian terbenam untuk pemantauan pelaksanaan alat
+- **Pengesahan Masa Kompilasi**: Jenis kuat memastikan ketepatan parameter alat
+- **Suntikan Kebergantungan**: Integrasi bekas IoC untuk pengurusan alat
+- **Corak Async/Await**: Pelaksanaan alat tanpa blokir dengan pengurusan sumber yang betul
+- **Log Berstruktur**: Integrasi log terbina dalam untuk pemantauan pelaksanaan alat
 
 ### Corak Sedia Produksi
 
-- **Pengendalian Pengecualian**: Pengurusan ralat menyeluruh dengan pengecualian berjenis
-- **Pengurusan Sumber**: Corak pelupusan dan pengurusan memori yang betul
-- **Pemantauan Prestasi**: Metrik terbenam dan penunjuk prestasi
+- **Pengurusan Pengecualian**: Pengurusan ralat menyeluruh dengan pengecualian berjenis
+- **Pengurusan Sumber**: Corak pelupusan yang betul dan pengurusan memori
+- **Pemantauan Prestasi**: Metrik terbina dalam dan penunjuk prestasi
 - **Pengurusan Konfigurasi**: Konfigurasi selamat jenis dengan pengesahan
 
-## 🔧 Seni Bina Teknikal
+## 🔧 Senibina Teknikal
 
-### Komponen Teras Alat .NET
+### Komponen Alat Teras .NET
 
-- **Microsoft.Extensions.AI**: Lapisan abstraksi alat yang bersatu
+- **Microsoft.Extensions.AI**: Lapisan abstraksi alat bersatu
 - **Microsoft.Agents.AI**: Orkestrasi alat tahap perusahaan
-- **Azure OpenAI (Responses API)**: Klien API berprestasi tinggi dengan pengumpulan sambungan
+- **Azure OpenAI (Responses API)**: Klien API berprestasi tinggi dengan penyaluran sambungan
 
 ### Saluran Pelaksanaan Alat
 
@@ -54,50 +54,50 @@ graph LR
 
 ### 1. **Alat Pemprosesan Data**
 
-- **Pengesahan Input**: Penguatkuasaan jenis kuat dengan anotasi data
+- **Pengesahan Input**: Jenis kuat dengan anotasi data
 - **Operasi Transformasi**: Penukaran dan pemformatan data selamat jenis
-- **Logik Perniagaan**: Alat pengiraan dan analisis domain khusus
-- **Pemformatan Output**: Penjanaan tindak balas berstruktur
+- **Logik Perniagaan**: Alat pengiraan dan analisis khusus domain
+- **Pemformatan Output**: Penjanaan respons berstruktur
 
-### 2. **Alat Integrasi** 
+### 2. **Alat Integrasi**
 
 - **Penyambung API**: Integrasi perkhidmatan RESTful dengan HttpClient
-- **Alat Pangkalan Data**: Integrasi Entity Framework untuk capaian data
+- **Alat Pangkalan Data**: Integrasi Entity Framework untuk akses data
 - **Operasi Fail**: Operasi sistem fail selamat dengan pengesahan
 - **Perkhidmatan Luaran**: Corak integrasi perkhidmatan pihak ketiga
 
 ### 3. **Alat Utiliti**
 
-- **Pemprosesan Teks**: Utiliti manipulasi rentetan dan pemformatan
-- **Operasi Tarikh/Masa**: Pengiraan tarikh/masa sedar budaya
+- **Pemprosesan Teks**: Utiliti manipulasi dan pemformatan rentetan
+- **Operasi Tarikh/Masa**: Pengiraan tarikh/masa peka budaya
 - **Alat Matematik**: Pengiraan ketepatan dan operasi statistik
-- **Alat Pengesahan**: Pengesahan peraturan perniagaan dan verifikasi data
+- **Alat Pengesahan**: Pengesahan peraturan perniagaan dan pengesahan data
 
-Sedia untuk membina agen tahap perusahaan dengan kebolehan alat kuat dan selamat jenis dalam .NET? Mari kita bina penyelesaian tahap profesional! 🏢⚡
+Sedia untuk membina ejen tahap perusahaan dengan keupayaan alat selamat jenis yang berkuasa dalam .NET? Mari kita rancang beberapa penyelesaian tahap profesional! 🏢⚡
 
-## 🚀 Memulakan
+## 🚀 Bermula
 
 ### Prasyarat
 
-- [SDK .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) atau yang lebih tinggi
-- [Langganan Azure](https://azure.microsoft.com/free/) dengan sumber Azure OpenAI dan penempatan model
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — masuk dengan `az login`
+- [SDK .NET 10](https://dotnet.microsoft.com/download/dotnet/10.0) atau lebih tinggi
+- [Langganan Azure](https://azure.microsoft.com/free/) dengan sumber Azure OpenAI dan penyebaran model
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — log masuk dengan `az login`
 
 ### Pembolehubah Persekitaran Diperlukan
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# Kemudian log masuk supaya AzureCliCredential boleh dapatkan token
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# Kemudian daftar masuk supaya AzureCliCredential boleh mendapatkan token
 az login
 ```
 
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# Kemudian log masuk supaya AzureCliCredential boleh mendapatkan token
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# Kemudian log masuk supaya AzureCliCredential dapat memperoleh token
 az login
 ```
 
@@ -168,7 +168,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 

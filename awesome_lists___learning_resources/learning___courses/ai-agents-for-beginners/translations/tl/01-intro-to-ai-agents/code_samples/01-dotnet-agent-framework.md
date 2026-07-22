@@ -1,40 +1,40 @@
-# 🌍 Ahente sa Paglalakbay ng AI gamit ang Microsoft Agent Framework (.NET)
+# 🌍 AI Travel Agent gamit ang Microsoft Agent Framework (.NET)
 
-## 📋 Pangkalahatang Tanaw ng Senaryo
+## 📋 Pangkalahatang Tanawin ng Scenario
 
-Ipinapakita ng halimbawang ito kung paano bumuo ng isang matalinong ahente sa pagpaplano ng paglalakbay gamit ang Microsoft Agent Framework para sa .NET. Ang ahente ay maaaring awtomatikong bumuo ng mga personalisadong itineraryo para sa mga random na destinasyon sa buong mundo.
+Ipinapakita ng halimbawang ito kung paano bumuo ng isang intelihenteng ahente sa pagpaplano ng paglalakbay gamit ang Microsoft Agent Framework para sa .NET. Maaari ng awtomatikong bumuo ang ahente ng mga personalisadong day-trip itinerary para sa mga random na destinasyon sa buong mundo.
 
-### Pangunahing Kakayahan:
+### Pangunahing Mga Kakayahan:
 
-- 🎲 **Random na Pagpili ng Destinasyon**: Gumagamit ng custom na kasangkapan para pumili ng mga lugar na bakasyunan
-- 🗺️ **Matalinong Pagpaplano ng Paglalakbay**: Lumilikha ng detalyadong araw-araw na itineraryo
-- 🔄 **Real-time na Streaming**: Sumusuporta sa agarang tugon at streaming na tugon
-- 🛠️ **Integrasyon ng Custom na Kasangkapan**: Ipinapakita kung paano palawakin ang mga kakayahan ng ahente
+- 🎲 **Random na Pagpili ng Destinasyon**: Gumagamit ng pasadyang kasangkapan para pumili ng mga lugar-pasyalan
+- 🗺️ **Intelihenteng Pagpaplano ng Biyahe**: Lumilikha ng detalyadong araw-araw na mga itinerary
+- 🔄 **Real-time Streaming**: Sinusuportahan ang parehong agarang at streaming na mga tugon
+- 🛠️ **Integrasyon ng Pasadyang Kasangkapan**: Ipinapakita kung paano palawakin ang mga kakayahan ng ahente
 
 ## 🔧 Teknikal na Arkitektura
 
 ### Pangunahing Teknolohiya
 
-- **Microsoft Agent Framework**: Pinakabagong implementasyon sa .NET para sa pagbuo ng AI agent
-- **Azure OpenAI (Responses API)**: Gumagamit ng Azure OpenAI Responses API para sa model inference
+- **Microsoft Agent Framework**: Pinakabagong .NET na implementasyon para sa pagbuo ng AI agent
+- **Azure OpenAI (Responses API)**: Gumagamit ng Azure OpenAI Responses API para sa inference ng modelo
 - **Azure Identity**: Ligtas na pag-sign in gamit ang `AzureCliCredential` (`az login`)
 - **Secure Configuration**: Pamamahala ng endpoint base sa kapaligiran
 
-### Pangunahing Mga Bahagi
+### Pangunahing Mga Sangkap
 
 1. **AIAgent**: Pangunahing tagapag-ayos ng ahente na humahawak sa daloy ng pag-uusap
-2. **Custom Tools**: Function na `GetRandomDestination()` na available sa ahente
+2. **Pasadyang Kasangkapan**: `GetRandomDestination()` na function na magagamit ng ahente
 3. **Responses Client**: Azure OpenAI Responses-based na interface para sa pag-uusap
-4. **Streaming Support**: Mga kakayahan para sa real-time na pagbuo ng tugon
+4. **Streaming Support**: Kakayahan sa real-time na paggawa ng tugon
 
 ### Pattern ng Integrasyon
 
 ```mermaid
 graph LR
     A[Kahilingan ng User] --> B[Ahente ng AI]
-    B --> C[Azure OpenAI (Mga Tugon API)]
-    B --> D[Tool na GetRandomDestination]
-    C --> E[Itinerary ng Paglalakbay]
+    B --> C[Azure OpenAI (Responses API)]
+    B --> D[Tool para sa Pagkuha ng Random na Destinasyon]
+    C --> E[Itineraryo ng Paglalakbay]
     D --> E
 ```
 
@@ -42,8 +42,8 @@ graph LR
 
 ### Mga Kinakailangan
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) o mas bago
-- Isang [Azure subscription](https://azure.microsoft.com/free/) na may Azure OpenAI resource at deployment ng modelo
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) o mas mataas pa
+- Isang [Azure subscription](https://azure.microsoft.com/free/) na may Azure OpenAI resource at model deployment
 - Ang [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — mag-sign in gamit ang `az login`
 
 ### Mga Kinakailangang Environment Variables
@@ -51,7 +51,7 @@ graph LR
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
 # Mag-sign in muna para makakuha ng token ang AzureCliCredential
 az login
 ```
@@ -59,14 +59,14 @@ az login
 ```powershell
 # PowerShell
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
 # Mag-sign in muna para makakuha ng token ang AzureCliCredential
 az login
 ```
 
 ### Halimbawang Code
 
-Upang patakbuhin ang halimbawang code,
+Para patakbuhin ang halimbawang code,
 
 ```bash
 # zsh/bash
@@ -80,7 +80,7 @@ O gamit ang dotnet CLI:
 dotnet run ./01-dotnet-agent-framework.cs
 ```
 
-Tingnan ang [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) para sa buong code.
+Tingnan ang [`01-dotnet-agent-framework.cs`](../../../../01-intro-to-ai-agents/code_samples/01-dotnet-agent-framework.cs) para sa kumpletong code.
 
 ```csharp
 #!/usr/bin/dotnet run
@@ -131,7 +131,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -157,17 +157,17 @@ await foreach (var update in agent.RunStreamingAsync("Plan me a day trip"))
 }
 ```
 
-## 🎓 Mga Pangunahing Natutunan
+## 🎓 Pangunahing Mga Natutunan
 
-1. **Arkitektura ng Ahente**: Nagbibigay ang Microsoft Agent Framework ng malinis at type-safe na paraan sa pagbuo ng mga AI agent sa .NET
-2. **Integrasyon ng Kasangkapan**: Ang mga function na may `[Description]` attributes ay nagiging available na mga kasangkapan para sa ahente
-3. **Pamamahala ng Konfigurasyon**: Sinusunod ang mga environment variable at ligtas na paghawak ng kredensyal ayon sa pinakamahusay na gawi sa .NET
+1. **Arkitektura ng Ahente**: Nagbibigay ang Microsoft Agent Framework ng malinis, type-safe na paraan sa pagbuo ng AI agents sa .NET
+2. **Integrasyon ng Kasangkapan**: Ang mga function na may `[Description]` attributes ay nagiging magagamit na mga kasangkapan para sa ahente
+3. **Pamamahala ng Konfigurasyon**: Ang mga environment variable at ligtas na paghawak ng kredensyal ay sumusunod sa mga pinakamahusay na praktis ng .NET
 4. **Azure OpenAI Responses API**: Ginagamit ng ahente ang Azure OpenAI Responses API sa pamamagitan ng Azure.AI.OpenAI SDK
 
-## 🔗 Karagdagang mga Mapagkukunan
+## 🔗 Karagdagang Mga Mapagkukunan
 
 - [Microsoft Agent Framework Documentation](https://learn.microsoft.com/agent-framework)
-- [Azure OpenAI in Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
+- [Azure OpenAI sa Microsoft Foundry](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
 - [.NET Single File Apps](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 

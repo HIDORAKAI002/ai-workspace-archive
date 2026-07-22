@@ -1,30 +1,30 @@
-# 🔍 मायक्रोसॉफ्ट एजंट फ्रेमवर्कचा अभ्यास - बेसिक एजंट (.NET)
+# 🔍 Microsoft Agent Framework चा शोध - बेसिक एजंट (.NET)
 
-## 📋 शिकण्याची उद्दिष्टे
+## 📋 शिकण्याचे उद्दिष्टे
 
-हा उदाहरण .NET मध्ये बेसिक एजंट अंमलबजावणीद्वारे मायक्रोसॉफ्ट एजंट फ्रेमवर्कच्या मूलभूत संकल्पनांचा अभ्यास करतो. तुम्ही मुख्य एजंटिक पॅटर्न शिकाल आणि C# आणि .NET पर्यावरणाचा वापर करून बुद्धिमान एजंट कसे काम करतात याचा पायाभूत अंदाज घेऊ.
+हा उदाहरण Microsoft Agent Framework चे मूलभूत संकल्पना .NET मधील एक बेसिक एजंट अंमलबजावणीद्वारे तपासतो. तुम्ही मुख्य एजंटिक पद्धती शिकाल आणि C# आणि .NET इकोसिस्टम वापरून बुद्धिमान एजंट कसे काम करतात हे समजून घेणार आहात.
 
-### तुम्ही काय शोधणार आहात
+### तुम्हाला काय सापडेल
 
-- 🏗️ **एजंट आर्किटेक्चर**: .NET मधील AI एजंट्सची मूलभूत रचना समजून घेणे
-- 🛠️ **टूल इंटिग्रेशन**: एजंट्स कसे बाह्य फंक्शन्स वापरून क्षमता वाढवतात  
-- 💬 **संवाद प्रवाह**: मल्टी-टर्न संभाषणे आणि थ्रेड व्यवस्थापनाद्वारे संदर्भ व्यवस्थापन
-- 🔧 **कॉन्फिगरेशन पॅटर्न्स**: .NET मध्ये एजंट सेटअप आणि व्यवस्थापनासाठी सर्वोत्तम पद्धती
+- 🏗️ **एजंट आर्किटेक्चर**: .NET मधील AI एजंटच्या मूलभूत रचनेचा समज
+- 🛠️ **टूल इंटिग्रेशन**: एजंट कसे क्षमतांसाठी बाह्य फंक्शन्स वापरतात  
+- 💬 **संवाद प्रवाह**: मल्टि-टर्न संभाषणे आणि थ्रेड व्यवस्थापनासह संदर्भ व्यवस्थापन
+- 🔧 **कॉन्फिगरेशन पद्धती**: .NET मध्ये एजंट सेटअप आणि व्यवस्थापनासाठी सर्वोत्तम पद्धती
 
-## 🎯 कव्हर केलेल्या प्रमुख संकल्पना
+## 🎯 महत्त्वाचे संकल्पना आच्छादित
 
 ### एजंटिक फ्रेमवर्क तत्त्वे
 
-- **स्वायत्तता**: .NET AI अवधारणांचा वापर करून एजंट्स स्वतंत्र निर्णय कसे घेतात
-- **प्रतिक्रियाशीलता**: पर्यावरणातील बदल आणि वापरकर्त्यांच्या इनपुटवर प्रतिसाद देणे
-- **पूर्वकल्पना**: उद्दिष्टे आणि संदर्भानुसार पुढाकार घेणे
-- **सामाजिक क्षमता**: संभाषण थ्रेड्सद्वारे नैसर्गिक भाषेत संवाद साधणे
+- **स्वायत्तता**: एजंट .NET AI अब्स्ट्रॅक्शन्स वापरून स्वतंत्र निर्णय कसे घेतात
+- **प्रतिक्रियाशीलता**: पर्यावरणीय बदल आणि वापरकर्ता इनपुटसाठी प्रतिसाद देणे
+- **प्रोऍक्टिव्हिटी**: ध्येय आणि संदर्भावर आधारित पुढाकार घेणे
+- **सामाजिक क्षमता**: नैसर्गिक भाषेत संभाषण थ्रेड्सद्वारे संवाद साधणे
 
 ### तांत्रिक घटक
 
 - **AIAgent**: मुख्य एजंट समन्वय आणि संभाषण व्यवस्थापन (.NET)
-- **टूल फंक्शन्स**: C# पद्धती आणि अ‍ॅट्रीब्युट्स वापरून एजंट क्षमता वाढविणे
-- **Azure OpenAI इंटिग्रेशन**: Azure OpenAI Responses API द्वारे भाषा मॉडेल्सचा वापर
+- **टूल फंक्शन्स**: C# पद्धती आणि अॅट्रिब्युट्ससह एजंट क्षमतांचा विस्तार
+- **Azure OpenAI इंटिग्रेशन**: Azure OpenAI Responses API द्वारे भाषा मॉडेल्सचा लाभ घेणे
 - **सुरक्षित कॉन्फिगरेशन**: पर्यावरण-आधारित एंडपॉइंट व्यवस्थापन
 
 ## 🔧 तांत्रिक स्टॅक
@@ -33,64 +33,64 @@
 
 - Microsoft Agent Framework (.NET)
 - Azure OpenAI (Responses API) इंटिग्रेशन
-- Azure.AI.OpenAI क्लाएंट पॅटर्न्स
+- Azure.AI.OpenAI क्लायंट पद्धती
 - DotNetEnv सह पर्यावरण-आधारित कॉन्फिगरेशन
 
 ### एजंट क्षमता
 
 - नैसर्गिक भाषा समज आणि निर्मिती
-- फंक्शन कॉलिंग आणि टूल वापरून C# अ‍ॅट्रीब्युट्स
-- संभाषण सत्रांद्वारे संदर्भ-जाणिवीय प्रतिसाद
-- डिपेंडेंसी इंजेक्शन पॅटर्न्ससह विस्तारयोग्य आर्किटेक्चर
+- C# अॅट्रिब्युट्ससह फंक्शन कॉलिंग आणि टूल वापर
+- संभाषण सत्रांसह संदर्भ-सजग प्रतिसाद
+- अवलंबित्व इंजेक्शन पद्धतींसह विस्तारयोग्य आर्किटेक्चर
 
 ## 📚 फ्रेमवर्क तुलना
 
-हा उदाहरण मायक्रोसॉफ्ट एजंट फ्रेमवर्क पद्धतीची तुलना इतर एजंटिक फ्रेमवर्कशी करतो:
+हा उदाहरण Microsoft Agent Framework चा इतर एजंटिक फ्रेमवर्क्सशी तुलना कशी होते हे दर्शवतो:
 
 | वैशिष्ट्य | Microsoft Agent Framework | इतर फ्रेमवर्क्स |
 |---------|-------------------------|------------------|
-| **इंटिग्रेशन** | मूळ मायक्रोसॉफ्ट पर्यावरण | विविध सुसंगतता |
-| **सोपेपणा** | स्वच्छ, अंतर्ज्ञानी API | अनेकदा क्लिष्ट सेटअप |
-| **विस्तार क्षमता** | साधे टूल इंटिग्रेशन | फ्रेमवर्क-आधारित |
-| **एंटरप्राइज तयार** | उत्पादनासाठी बांधलेले | फ्रेमवर्कनुसार वेगळे |
+| **इंटिग्रेशन** | स्थानिक Microsoft इकोसिस्टम | विविध सुसंगतता |
+| **सोपेपणा** | स्वच्छ, सहज समजणारा API | नेहमी गुंतागुंतीचा सेटअप |
+| **विस्तारयोग्यता** | सहज टूल इंटिग्रेशन | फ्रेमवर्क-आधारित |
+| **एंटरप्राइज रेडी** | उत्पादनासाठी तयार | फ्रेमवर्क नुसार बदलते |
 
 ## 🚀 सुरुवात कशी करावी
 
-### पूर्व-आवश्यकता
+### पूर्वअटी
 
-- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) किंवा अधिक
-- Azure OpenAI संसाधन आणि मॉडेल तैनातीसह [Azure सबस्क्रिप्शन](https://azure.microsoft.com/free/)
-- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` सह साइन इन करा
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) किंवा त्याहून अधिक
+- Azure OpenAI रिसोर्स आणि मॉडेल डिप्लॉयमेंटसह [Azure सबस्क्रिप्शन](https://azure.microsoft.com/free/)
+- [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) — `az login` वापरून साइन इन करा
 
-### आवश्यक पर्यावरण चल
+### आवश्यक पर्यावरण व्हेरिएबल्स
 
 ```bash
 # zsh/bash
 export AZURE_OPENAI_ENDPOINT=https://<your-resource>.openai.azure.com
-export AZURE_OPENAI_DEPLOYMENT=gpt-4.1-mini
-# मग साइन इन करा जेणेकरून AzureCliCredential हे टोकन प्राप्त करू शकेल
+export AZURE_OPENAI_DEPLOYMENT=gpt-5-mini
+# मग साइन इन करा जेणेकरून AzureCliCredential टोकन मिळवू शकेल
 az login
 ```
 
 ```powershell
 # पॉवरशेल
 $env:AZURE_OPENAI_ENDPOINT = "https://<your-resource>.openai.azure.com"
-$env:AZURE_OPENAI_DEPLOYMENT = "gpt-4.1-mini"
-# नंतर साइन इन करा जेणेकरून AzureCliCredential टोकन प्राप्त करू शकेल
+$env:AZURE_OPENAI_DEPLOYMENT = "gpt-5-mini"
+# मग साइन इन करा जेणेकरून AzureCliCredential टोकन मिळवू शकेल
 az login
 ```
 
 ### नमुना कोड
 
-कोड उदाहरण चालविण्यासाठी,
+कोड उदाहरण चालवण्यासाठी,
 
 ```bash
-# झश/बॅश
+# zsh/bash
 chmod +x ./02-dotnet-agent-framework.cs
 ./02-dotnet-agent-framework.cs
 ```
 
-किंवा dotnet CLI वापरून:
+अथवा dotnet CLI वापरून:
 
 ```bash
 dotnet run ./02-dotnet-agent-framework.cs
@@ -147,7 +147,7 @@ static string GetRandomDestination()
 // Azure OpenAI with the Responses API (stable v1 endpoint). Sign in with `az login`.
 var azureEndpoint = Environment.GetEnvironmentVariable("AZURE_OPENAI_ENDPOINT")
     ?? throw new InvalidOperationException("AZURE_OPENAI_ENDPOINT is not set.");
-var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-4.1-mini";
+var deployment = Environment.GetEnvironmentVariable("AZURE_OPENAI_DEPLOYMENT") ?? "gpt-5-mini";
 
 var azureClient = new AzureOpenAIClient(new Uri(azureEndpoint), new AzureCliCredential());
 
@@ -215,20 +215,20 @@ await foreach (var update in agent.RunStreamingAsync("I don't like that destinat
 }
 ```
 
-## 🎓 मुख्य निष्कर्ष
+## 🎓 मुख्य गोष्टी
 
-1. **एजंट आर्किटेक्चर**: मायक्रोसॉफ्ट एजंट फ्रेमवर्क .NET मध्ये AI एजंट तयार करण्यासाठी स्वच्छ, टाइप-सुरक्षित पद्धत पुरवतो
-2. **टूल इंटिग्रेशन**: `[Description]` अ‍ॅट्रीब्युट्सने सुसज्ज फंक्शन्स एजंटसाठी टूल्स म्हणून उपलब्ध होतात
-3. **संवाद संदर्भ**: सत्र व्यवस्थापन मल्टी-टर्न संभाषणांना पूर्ण संदर्भ जाणिवासह सक्षम करते
-4. **कॉन्फिगरेशन व्यवस्थापन**: पर्यावरण चल आणि सुरक्षित क्रेडेन्शियल हाताळणी .NET च्या सर्वोत्तम मार्गदर्शक तत्त्वांचे पालन करते
+1. **एजंट आर्किटेक्चर**: Microsoft Agent Framework .NET मध्ये AI एजंट बांधणीसाठी स्वच्छ, टाईप-सेफ दृष्टिकोन प्रदान करतो
+2. **टूल इंटिग्रेशन**: `[Description]` अॅट्रिब्युट्ससह सज्ज फंक्शन्स एजंटसाठी उपलब्ध टूल्स होतात
+3. **संवाद संदर्भ**: सत्र व्यवस्थापन मल्टि-टर्न संभाषणे संपूर्ण संदर्भज्ञानासह सक्षम करते
+4. **कॉन्फिगरेशन व्यवस्थापन**: पर्यावरण व्हेरिएबल्स आणि सुरक्षित क्रेडेन्शियल हाताळणी .NET सर्वोत्तम पद्धतींना अनुसरते
 5. **Azure OpenAI Responses API**: एजंट Azure.AI.OpenAI SDK द्वारे Azure OpenAI Responses API वापरतो
 
-## 🔗 अतिरिक्त संसाधने
+## 🔗 अतिरिक्त साधने
 
-- [Microsoft Agent Framework Documentation](https://learn.microsoft.com/agent-framework)
+- [Microsoft Agent Framework दस्तऐवज](https://learn.microsoft.com/agent-framework)
 - [Microsoft Foundry मधील Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/)
 - [Microsoft.Extensions.AI](https://learn.microsoft.com/dotnet/ai/microsoft-extensions-ai)
-- [.NET सिंगल फाइल अ‍ॅप्स](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
+- [.NET सिंगल फाइल अॅप्स](https://devblogs.microsoft.com/dotnet/announcing-dotnet-run-app)
 
 ---
 
