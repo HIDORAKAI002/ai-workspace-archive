@@ -1113,3 +1113,34 @@ ingest-report <dir> --subject topic:<id> …` — and verify attachment in the D
   then SUCCEEDS with a brand-new CC session and no error — context loss with no visible symptom. To
   detect it, compare the CC session id before/after a turn (or diff `~/.claude/projects/*/*.jsonl`):
   a new file per turn, each containing only its own user message, means resume never happened.
+
+## Seeded workspace agents: RBAC roles + real API creation are both required
+
+- **Situation:** verifying workspace UI with a hand-seeded workspace (raw SQL
+  inserts into `workspaces` / `workspace_members` / `agents`).
+- **Doesn't work:** topics load but `agent.getAgentConfigById` fails FORBIDDEN —
+  the cloud RBAC middleware reads `rbac_user_roles → roles → role_permissions →
+  permissions`, which raw member rows never create. And even after RBAC, a raw
+  SQL `agents` row renders "助理不可用" (missing real config).
+- **Works:** ① provision RBAC with the official util —
+  `seedWorkspaceRoles(db, wsId)` + `assignWorkspaceRoleToUser(...)` from
+  `packages/database/src/utils/seedWorkspaceRoles.ts` (run with bun from inside
+  `packages/database`); ② create agents through the real API from the authed
+  page (`POST /trpc/lambda/agent.createAgent` with the `X-Workspace-Id` header,
+  `visibility: 'public' | 'private'`), then repoint seeded topics' `agent_id`.
+
+## Duplicate @lobehub/ui instances crash the conversation route in dev
+
+- **Situation:** after a floating-range `pnpm install` (this repo has no
+  lockfile), `node_modules/.pnpm` can hold two `@lobehub/ui@X` peer-hash
+  instances. The workspace agent conversation route then dies in the error
+  boundary with `Please wrap your app with <ConfigProvider> (or
+  <MotionProvider>)` thrown from `TypewriterEffect` — the two instances carry
+  two React contexts. The sidebar-only routes may still work, which disguises
+  the cause; clearing `node_modules/.vite` does NOT fix it.
+- **Doesn't work:** clearing the Vite deps cache, restarting the dev server,
+  `pnpm dedupe @lobehub/ui` (peer sets differ, instances survive).
+- **Works:** temporarily add `resolve: { dedupe: ['@lobehub/ui', 'antd-style',
+  'motion', 'react', 'react-dom'] }` to the cloud root `vite.config.ts` +
+  `rm -rf node_modules/.vite`, and REVERT the config after capturing evidence
+  (snapshot the file first — it may carry uncommitted edits).

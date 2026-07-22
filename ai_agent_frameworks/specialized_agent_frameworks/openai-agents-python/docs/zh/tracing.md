@@ -168,7 +168,7 @@ async def main():
 
 ```python
 import os
-from agents import set_tracing_export_api_key, Agent, Runner
+from agents import set_tracing_export_api_key, Agent
 from agents.extensions.models.any_llm_model import AnyLLMModel
 
 tracing_api_key = os.environ["OPENAI_API_KEY"]

@@ -1199,7 +1199,11 @@ class BaseSandboxSession(abc.ABC):
             provision_accounts=provision_accounts,
         )
 
+    async def _validate_manifest_application(self, *, only_ephemeral: bool = False) -> None:
+        _ = only_ephemeral
+
     async def apply_manifest(self, *, only_ephemeral: bool = False) -> MaterializationResult:
+        await self._validate_manifest_application(only_ephemeral=only_ephemeral)
         return await self._apply_manifest(
             only_ephemeral=only_ephemeral,
             provision_accounts=not only_ephemeral,
@@ -1245,6 +1249,11 @@ class BaseSandboxSession(abc.ABC):
         """Return workspace paths that should be omitted from snapshot fingerprinting."""
 
         return snapshot_lifecycle.workspace_fingerprint_skip_relpaths(self)
+
+    def _should_compute_snapshot_fingerprint_on_persist(self) -> bool:
+        """Return whether persistence should fingerprint the workspace before archiving it."""
+
+        return True
 
     async def _compute_and_cache_snapshot_fingerprint(self) -> dict[str, str]:
         """Compute the current workspace fingerprint in-container and atomically cache it."""
