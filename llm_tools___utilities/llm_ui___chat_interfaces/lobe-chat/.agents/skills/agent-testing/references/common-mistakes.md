@@ -200,10 +200,13 @@ end. "Log in once in the app" is addressed to the **agent**, not the user.
 **What it breaks**: burns a round on a question the user doesn't want, and stalls a
 UI-touching change one click short of its screenshot.
 
-**Correct approach**: drive the sign-in yourself — click the app's own "Sign in"
-entry, follow the OAuth flow in the browser it opens, and get back into the app. Only
-escalate when a step genuinely needs something you cannot supply (a 2FA push on their
-phone), and then name the exact blocking step instead of offering to drop the
+**Correct approach**: obtain the login state by **direct injection** — restore the
+project's persisted login snapshot, or mint a session via CLI/API seeding — and
+never by driving an interactive login/OAuth flow: clicking "Sign in" makes the app
+open an authorize page in the **user's own default browser** (visibly hijacking
+their session, and in dev pointing at a per-instance localhost origin that often
+cannot complete). If no injectable state exists, report auth as blocked and ask for
+one manual sign-in, naming the exact blocking step instead of offering to drop the
 evidence. Corollary: never assume a profile is signed in because it exists — probe
 for a real signed-in state (a cheap authed call) before building a fixture on top of
 it; a rendered shell is not proof (a signed-out onboarding screen has text too).

@@ -18,6 +18,8 @@ from pydantic_ai.models import KnownModelName, Model, ModelRequestContext, Model
 from pydantic_ai.models.wrapper import WrapperModel
 from pydantic_ai.tools import AgentDepsT, RunContext
 from pydantic_ai.toolsets import AbstractToolset, WrapperToolset
+from pydantic_ai.toolsets._capability_owned import CapabilityOwnedToolset
+from pydantic_ai.toolsets._dynamic import DynamicToolset
 
 from ._runtime_toolsets import RuntimeToolsetKind, reject_unsupported_runtime_toolsets
 from ._utils import unwrap_model
@@ -125,8 +127,16 @@ class BaseDurabilityCapability(AbstractCapability[AgentDepsT]):
         runtime_leaves: list[AbstractToolset[AgentDepsT]] = []
 
         def collect(leaf: AbstractToolset[AgentDepsT]) -> None:
-            if id(leaf) not in construction_leaves:
-                runtime_leaves.append(leaf)
+            if id(leaf) in construction_leaves:
+                return
+            if isinstance(leaf, CapabilityOwnedToolset):
+                # The run re-collects capability contributions in a fresh `CapabilityOwnedToolset`
+                # whenever `for_run` changed the capability tree (e.g. a `DynamicCapability`
+                # resolved, or a per-run capability was added). The wrapper itself is
+                # non-executing packaging; the toolset it wraps is visited separately by this
+                # same walk and judged on its own identity.
+                return
+            runtime_leaves.append(leaf)
 
         toolset.apply(collect)
         reject_unsupported_runtime_toolsets(
@@ -136,9 +146,19 @@ class BaseDurabilityCapability(AbstractCapability[AgentDepsT]):
             tool_config_key=self._tool_config_key,
         )
 
+    def _effective_event_stream_handler(self) -> EventStreamHandler[AgentDepsT] | None:
+        """The handler in-boundary event delivery targets for the current run.
+
+        Engines may override to consult per-run state — e.g. DBOS honors the
+        `event_stream_handler` recorded in a wrapper-era workflow's inputs, delivering
+        it exactly the way the wrapper did so recovery replays the recorded step
+        sequence.
+        """
+        return self._event_stream_handler
+
     @property
     def has_wrap_run_event_stream(self) -> bool:
-        return self._event_stream_handler is not None
+        return self._effective_event_stream_handler() is not None
 
     async def wrap_run_event_stream(
         self,
@@ -146,7 +166,7 @@ class BaseDurabilityCapability(AbstractCapability[AgentDepsT]):
         *,
         stream: AsyncIterable[AgentStreamEvent],
     ) -> AsyncIterable[AgentStreamEvent]:
-        if self._event_stream_handler is None:
+        if self._effective_event_stream_handler() is None:
             async for event in stream:
                 yield event
             return
@@ -176,6 +196,17 @@ class BaseDurabilityCapability(AbstractCapability[AgentDepsT]):
 
     def _wrap_and_register_leaf(self, ts: AbstractToolset[AgentDepsT]) -> AbstractToolset[AgentDepsT]:
         ts_id = ts.id
+        if ts_id is None and isinstance(ts, DynamicToolset):
+            raise UserError(
+                f"Toolsets that are 'leaves' (i.e. those that implement their own tool listing and calling) "
+                f'need to have a unique `id` in order to be used with {self.engine_name}. '
+                f"The ID will be used to identify the toolset's {self._durable_unit_noun}s within the "
+                f'{self._durable_container_noun}. Set the dynamic toolset ID with `DynamicToolset(id=...)`, '
+                "or, when it is contributed by a capability, set the capability's `id` (for example, "
+                "`DynamicCapability(..., id='user-tools')`). A capability function passed directly to "
+                '`capabilities=` cannot carry an `id`; wrap it explicitly: '
+                "`DynamicCapability(my_func, id='...')`."
+            )
         if ts_id is not None and (existing := self._toolsets_by_id.get(ts_id)) is not None:
             if existing.wrapped is ts:
                 # The same toolset instance can appear in more than one place in the tree;

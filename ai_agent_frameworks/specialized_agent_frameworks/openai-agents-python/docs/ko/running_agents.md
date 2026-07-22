@@ -305,6 +305,8 @@ SDK가 이전 출력에서 후속 입력을 구성하는 다중 턴 에이전트
 [`RunResultBase.to_input_list()`][agents.result.RunResultBase.to_input_list] 메서드를 사용해 다음 턴의 입력을 가져오는 방식으로 대화 기록을 수동으로 관리할 수 있습니다.
 
 ```python
+from agents import Agent, Runner, trace
+
 async def main():
     agent = Agent(name="Assistant", instructions="Reply very concisely.")
 
@@ -327,7 +329,7 @@ async def main():
 더 간단한 방법으로 [Sessions](sessions/index.md)를 사용하면 `.to_input_list()`를 직접 호출하지 않고도 대화 기록을 자동으로 처리할 수 있습니다.
 
 ```python
-from agents import Agent, Runner, SQLiteSession
+from agents import Agent, Runner, SQLiteSession, trace
 
 async def main():
     agent = Agent(name="Assistant", instructions="Reply very concisely.")
