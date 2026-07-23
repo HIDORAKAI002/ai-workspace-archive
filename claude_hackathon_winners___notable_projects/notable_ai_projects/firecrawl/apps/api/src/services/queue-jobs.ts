@@ -5,6 +5,7 @@ import {
   getConcurrencyLimitActiveJobs,
   getConcurrencyQueueJobsCount,
   getCrawlConcurrencyLimitActiveJobs,
+  getEffectiveConcurrencyLimit,
   getTeamQueueLimit,
   MAX_BACKLOG_TIMEOUT_MS,
   pushConcurrencyLimitActiveJob,
@@ -398,15 +399,19 @@ async function addScrapeJobRaw(
       }
     }
 
-    maxConcurrency =
-      (
-        await getACUCTeam(
-          webScraperOptions.team_id,
-          false,
-          true,
-          RateLimiterMode.Crawl,
-        )
-      )?.concurrency ?? 2;
+    {
+      const acuc = await getACUCTeam(
+        webScraperOptions.team_id,
+        false,
+        true,
+        RateLimiterMode.Crawl,
+      );
+      maxConcurrency = await getEffectiveConcurrencyLimit(
+        webScraperOptions.team_id,
+        acuc?.concurrency,
+        acuc?.org_id,
+      );
+    }
 
     if (concurrencyLimited === null) {
       const now = Date.now();
@@ -699,9 +704,17 @@ export async function addScrapeJobs(
       addToCQ = jobsForcedToCQ;
     } else {
       const now = Date.now();
-      maxConcurrency =
-        (await getACUCTeam(teamId, false, true, RateLimiterMode.Scrape))
-          ?.concurrency ?? 2;
+      const acuc = await getACUCTeam(
+        teamId,
+        false,
+        true,
+        RateLimiterMode.Scrape,
+      );
+      maxConcurrency = await getEffectiveConcurrencyLimit(
+        teamId,
+        acuc?.concurrency,
+        acuc?.org_id,
+      );
       await cleanOldConcurrencyLimitEntries(teamId, now);
 
       currentActiveConcurrency = (

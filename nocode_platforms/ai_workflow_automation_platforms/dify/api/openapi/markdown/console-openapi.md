@@ -260,7 +260,12 @@ Get account avatar url
 | 200 | Success | **application/json**: [AccountResponse](#accountresponse)<br> |
 
 ### [POST] /activate
+**Accept an invitation without letting an existing session act for another account**
+
 Activate account with invitation token
+Token-only activation remains available for legacy clients. When the request already
+carries a console session, that session must belong to the account encoded in the
+invitation before the token is consumed or tenant membership is changed.
 
 #### Request Body
 
@@ -22330,7 +22335,7 @@ Tool label
 
 #### ToolParameter
 
-Overrides type
+Tool-specific parameter declaration and invocation-value normalization.
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
@@ -22343,6 +22348,7 @@ Overrides type
 | llm_description | string |  | No |
 | max | number<br>integer |  | No |
 | min | number<br>integer |  | No |
+| multiple | boolean | Whether the parameter is multiple select, only valid for select or dynamic-select type | No |
 | name | string | The name of the parameter | Yes |
 | options | [ [PluginParameterOption](#pluginparameteroption) ] |  | No |
 | placeholder | [I18nObject](#i18nobject) | The placeholder presented to the user | No |

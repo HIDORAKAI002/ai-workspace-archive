@@ -56,6 +56,13 @@ const clientSchema = {
    */
   NEXT_PUBLIC_COOKIE_DOMAIN: z.string().optional(),
   /**
+   * CookieYes site key for the Dify Cloud consent banner.
+   */
+  NEXT_PUBLIC_COOKIEYES_SITE_KEY: z
+    .string()
+    .regex(/^[\w-]+$/)
+    .optional(),
+  /**
    * CSP https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP
    */
   NEXT_PUBLIC_CSP_WHITELIST: z.string().optional(),
@@ -75,6 +82,10 @@ const clientSchema = {
    * "Go to Anything" command palette (Cmd/Ctrl+K).
    */
   NEXT_PUBLIC_ENABLE_FEATURE_PREVIEW: coercedBoolean.default(true),
+  /**
+   * Whether a self-hosted deployment runs Enterprise Edition.
+   */
+  NEXT_PUBLIC_ENTERPRISE_ENABLED: coercedBoolean.default(false),
 
   /**
    * Cloud-only system-features defaults.
@@ -226,6 +237,9 @@ export const env = createEnv({
     NEXT_PUBLIC_COOKIE_DOMAIN: isServer
       ? process.env.NEXT_PUBLIC_COOKIE_DOMAIN
       : getRuntimeEnvFromBody('cookieDomain'),
+    NEXT_PUBLIC_COOKIEYES_SITE_KEY: isServer
+      ? process.env.NEXT_PUBLIC_COOKIEYES_SITE_KEY
+      : getRuntimeEnvFromBody('cookieyesSiteKey'),
     NEXT_PUBLIC_CSP_WHITELIST: isServer
       ? process.env.NEXT_PUBLIC_CSP_WHITELIST
       : getRuntimeEnvFromBody('cspWhitelist'),
@@ -244,6 +258,9 @@ export const env = createEnv({
     NEXT_PUBLIC_ENABLE_FEATURE_PREVIEW: isServer
       ? process.env.NEXT_PUBLIC_ENABLE_FEATURE_PREVIEW
       : getRuntimeEnvFromBody('enableFeaturePreview'),
+    NEXT_PUBLIC_ENTERPRISE_ENABLED: isServer
+      ? process.env.NEXT_PUBLIC_ENTERPRISE_ENABLED
+      : getRuntimeEnvFromBody('enterpriseEnabled'),
 
     /**
      * Cloud-only system-features defaults.
