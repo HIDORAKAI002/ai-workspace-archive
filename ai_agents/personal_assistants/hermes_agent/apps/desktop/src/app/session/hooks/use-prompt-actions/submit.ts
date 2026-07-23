@@ -7,6 +7,12 @@ import { optimisticAttachmentRef } from '@/lib/chat-runtime'
 import { sanitizeComposerInput } from '@/lib/composer-input-sanitize'
 import { setMutableRef } from '@/lib/mutable-ref'
 import {
+  isVoicePlaybackActive,
+  markVoicePlaybackInterrupted,
+  stopVoicePlayback,
+  takeVoicePlaybackInterrupted
+} from '@/lib/voice-playback'
+import {
   $composerAttachments,
   clearComposerAttachments,
   type ComposerAttachment,
@@ -18,6 +24,7 @@ import { setAwaitingResponse, setBusy, setMessages } from '@/store/session'
 
 import type { ClientSessionState } from '../../../types'
 import { sessionContextDrift } from '../session-context-drift'
+import { resolveSessionProfile } from '../use-session-actions/utils'
 
 import {
   _submitInFlight,
@@ -141,6 +148,16 @@ export function useSubmitPrompt(deps: SubmitPromptDeps) {
       if (!hasSendable || (!options?.fromQueue && busyRef.current)) {
         return false
       }
+
+      // Typing barge-in: a new send silences any in-flight spoken reply.
+      if (isVoicePlaybackActive()) {
+        markVoicePlaybackInterrupted()
+        stopVoicePlayback()
+      }
+
+      // Barged mid-speech (here or via the voice loop's VAD)? Flag the submit
+      // so the backend notes the interruption to the model.
+      const interrupted = takeVoicePlaybackInterrupted()
 
       // Queue drains carry their source session explicitly. A background drain
       // must never inherit the currently selected session after the user moves
@@ -368,9 +385,14 @@ export function useSubmitPrompt(deps: SubmitPromptDeps) {
         // background queue drain only has the durable id). Continue that target
         // conversation; only a genuine new-chat draft may create a new session.
         try {
+          // Re-register on the session's OWNING profile — resuming on whichever
+          // profile is live would fork the conversation into the wrong DB (#67603).
+          const resumeProfile = await resolveSessionProfile(targetStoredSessionId)
+
           const resumed = await requestGateway<{ session_id: string }>('session.resume', {
             session_id: targetStoredSessionId,
-            source: 'desktop'
+            source: 'desktop',
+            ...(resumeProfile ? { profile: resumeProfile } : {})
           })
 
           const resumeDrift = sessionDriftReason()
@@ -488,6 +510,12 @@ export function useSubmitPrompt(deps: SubmitPromptDeps) {
         rewriteOptimistic(sessionId)
         const text = buildContextText(syncedAttachments)
 
+        const submitParams = (targetId: string) => ({
+          session_id: targetId,
+          text,
+          ...(interrupted && { interrupted })
+        })
+
         // On sleep/wake the gateway's in-memory session may have been cleared
         // while the desktop app still holds the old session ID. Detect this,
         // resume the stored session to re-register it, and retry once.
@@ -495,7 +523,7 @@ export function useSubmitPrompt(deps: SubmitPromptDeps) {
 
         try {
           await withSessionBusyRetry(() =>
-            requestGateway('prompt.submit', { session_id: sessionId, text }, PROMPT_SUBMIT_REQUEST_TIMEOUT_MS)
+            requestGateway('prompt.submit', submitParams(sessionId), PROMPT_SUBMIT_REQUEST_TIMEOUT_MS)
           )
         } catch (firstErr) {
           const recoverStoredSessionId = targetStoredSessionId ?? selectedStoredSessionIdRef.current
@@ -506,9 +534,12 @@ export function useSubmitPrompt(deps: SubmitPromptDeps) {
             // backend loop (#55578 symptom d) rejects the submit even though
             // the stored session is fine — resume + retry instead of erroring
             // out and losing the session binding.
+            const resumeProfile = await resolveSessionProfile(recoverStoredSessionId)
+
             const resumed = await requestGateway<{ session_id: string }>('session.resume', {
               session_id: recoverStoredSessionId,
-              source: 'desktop'
+              source: 'desktop',
+              ...(resumeProfile ? { profile: resumeProfile } : {})
             })
 
             const resumeRetryDrift = sessionDriftReason()
@@ -527,7 +558,7 @@ export function useSubmitPrompt(deps: SubmitPromptDeps) {
               }
 
               await withSessionBusyRetry(() =>
-                requestGateway('prompt.submit', { session_id: recoveredId, text }, PROMPT_SUBMIT_REQUEST_TIMEOUT_MS)
+                requestGateway('prompt.submit', submitParams(recoveredId), PROMPT_SUBMIT_REQUEST_TIMEOUT_MS)
               )
             } else {
               submitErr = firstErr

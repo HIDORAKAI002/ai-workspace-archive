@@ -6,6 +6,7 @@ import { scrapeQueue, type NuQJob } from "../services/worker/nuq";
 import { RateLimiterMode, type ScrapeJobData } from "../types";
 import {
   getConcurrencyLimitActiveJobs,
+  getEffectiveConcurrencyLimit,
   getNextConcurrentJob,
   MAX_BACKLOG_TIMEOUT_MS,
   pushConcurrencyLimitActiveJob,
@@ -106,12 +107,27 @@ async function reconcileTeam(
     return null;
   }
 
-  const maxCrawlConcurrency =
-    (await getACUCTeam(ownerId, false, true, RateLimiterMode.Crawl))
-      ?.concurrency ?? 2;
-  const maxExtractConcurrency =
-    (await getACUCTeam(ownerId, false, true, RateLimiterMode.Extract))
-      ?.concurrency ?? 2;
+  // Concurrency comes from getEffectiveConcurrencyLimit, which honors the
+  // Autumn-limits ramp per org and otherwise uses ACUC. Fetch the crawl and
+  // extract ACUC values so the ramp-off path keeps its separate per-type
+  // limits; when the ramp is on, both resolve to the single Autumn pool.
+  // TODO: once fully on Autumn, gate crawl + extract against one combined pool
+  // (sum of both active counts vs the single limit) instead of applying the
+  // same limit to each type independently.
+  const [crawlAcuc, extractAcuc] = await Promise.all([
+    getACUCTeam(ownerId, false, true, RateLimiterMode.Crawl),
+    getACUCTeam(ownerId, false, true, RateLimiterMode.Extract),
+  ]);
+  const maxCrawlConcurrency = await getEffectiveConcurrencyLimit(
+    ownerId,
+    crawlAcuc?.concurrency,
+    crawlAcuc?.org_id,
+  );
+  const maxExtractConcurrency = await getEffectiveConcurrencyLimit(
+    ownerId,
+    extractAcuc?.concurrency,
+    extractAcuc?.org_id,
+  );
 
   // Split active count by type so one type's active jobs don't gate the other
   const activeJobIds = await getConcurrencyLimitActiveJobs(ownerId);
@@ -201,12 +217,27 @@ async function drainQueue(
   ownerId: string,
   teamLogger: Logger,
 ): Promise<{ jobsPromoted: number; staleSkipped: number }> {
-  const maxCrawlConcurrency =
-    (await getACUCTeam(ownerId, false, true, RateLimiterMode.Crawl))
-      ?.concurrency ?? 2;
-  const maxExtractConcurrency =
-    (await getACUCTeam(ownerId, false, true, RateLimiterMode.Extract))
-      ?.concurrency ?? 2;
+  // Concurrency comes from getEffectiveConcurrencyLimit, which honors the
+  // Autumn-limits ramp per org and otherwise uses ACUC. Fetch the crawl and
+  // extract ACUC values so the ramp-off path keeps its separate per-type
+  // limits; when the ramp is on, both resolve to the single Autumn pool.
+  // TODO: once fully on Autumn, gate crawl + extract against one combined pool
+  // (sum of both active counts vs the single limit) instead of applying the
+  // same limit to each type independently.
+  const [crawlAcuc, extractAcuc] = await Promise.all([
+    getACUCTeam(ownerId, false, true, RateLimiterMode.Crawl),
+    getACUCTeam(ownerId, false, true, RateLimiterMode.Extract),
+  ]);
+  const maxCrawlConcurrency = await getEffectiveConcurrencyLimit(
+    ownerId,
+    crawlAcuc?.concurrency,
+    crawlAcuc?.org_id,
+  );
+  const maxExtractConcurrency = await getEffectiveConcurrencyLimit(
+    ownerId,
+    extractAcuc?.concurrency,
+    extractAcuc?.org_id,
+  );
 
   const activeIds = await getConcurrencyLimitActiveJobs(ownerId);
   const activeJobs = await scrapeQueue.getJobs(activeIds, teamLogger);

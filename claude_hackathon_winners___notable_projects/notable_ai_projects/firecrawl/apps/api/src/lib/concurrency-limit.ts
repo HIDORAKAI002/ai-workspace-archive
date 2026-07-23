@@ -20,6 +20,32 @@ import {
   pushConcurrencyLimitActiveJob,
   removeConcurrencyLimitActiveJob,
 } from "./concurrency-redis";
+import {
+  autumnService,
+  isAutumnLimitsEnabled,
+} from "../services/autumn/autumn.service";
+
+// Legacy fallback when neither ACUC nor Autumn gives us a concurrency value.
+const DEFAULT_CONCURRENCY_LIMIT = 2;
+
+/**
+ * Returns the team's effective concurrency limit. When the Autumn-limits ramp
+ * is enabled for the org, this comes from Autumn's CONCURRENCY balance (falling
+ * back to the ACUC value, then the default, if Autumn can't answer). Otherwise
+ * it's the ACUC value — the old, default behavior.
+ */
+export async function getEffectiveConcurrencyLimit(
+  teamId: string,
+  acucConcurrency: number | null | undefined,
+  orgId?: string | null,
+): Promise<number> {
+  const acucValue = acucConcurrency ?? DEFAULT_CONCURRENCY_LIMIT;
+  if (!isAutumnLimitsEnabled(orgId)) {
+    return acucValue;
+  }
+  const autumnValue = await autumnService.getConcurrencyLimit(teamId, orgId);
+  return autumnValue ?? acucValue;
+}
 
 const constructKey = constructConcurrencyLimitKey;
 const constructQueueKey = (team_id: string) =>
@@ -304,15 +330,17 @@ export async function concurrentJobDone(job: NuQJob<any>) {
       await cleanOldCrawlConcurrencyLimitEntries(job.data.crawl_id);
     }
 
-    const maxTeamConcurrency =
-      (
-        await getACUCTeam(
-          job.data.team_id,
-          false,
-          true,
-          job.data.is_extract ? RateLimiterMode.Extract : RateLimiterMode.Crawl,
-        )
-      )?.concurrency ?? 2;
+    const acuc = await getACUCTeam(
+      job.data.team_id,
+      false,
+      true,
+      job.data.is_extract ? RateLimiterMode.Extract : RateLimiterMode.Crawl,
+    );
+    const maxTeamConcurrency = await getEffectiveConcurrencyLimit(
+      job.data.team_id,
+      acuc?.concurrency,
+      acuc?.org_id,
+    );
 
     let staleSkipped = 0;
     while (staleSkipped < 100) {
