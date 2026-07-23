@@ -3831,9 +3831,15 @@ class TestSanitizeTitle:
 
 class TestSchemaInit:
     def test_wal_mode(self, db):
+        """Prefer WAL on fixed SQLite; DELETE on WAL-reset-vulnerable builds (#69784)."""
+        from hermes_state import is_sqlite_wal_reset_vulnerable
+
         cursor = db._conn.execute("PRAGMA journal_mode")
-        mode = cursor.fetchone()[0]
-        assert mode == "wal"
+        mode = cursor.fetchone()[0].lower()
+        if is_sqlite_wal_reset_vulnerable():
+            assert mode == "delete"
+        else:
+            assert mode == "wal"
 
     def test_foreign_keys_enabled(self, db):
         cursor = db._conn.execute("PRAGMA foreign_keys")
@@ -6023,6 +6029,15 @@ class TestFTSExternalContentMigration:
 class TestApplyWalProbe:
     """Unit tests for the journal_mode probe in apply_wal_with_fallback."""
 
+    @pytest.fixture(autouse=True)
+    def _assume_fixed_sqlite(self, monkeypatch):
+        """These cases cover the fixed-SQLite WAL path (not the #69784 gate)."""
+        import hermes_state
+
+        monkeypatch.setattr(
+            hermes_state, "is_sqlite_wal_reset_vulnerable", lambda version_info=None: False
+        )
+
     def test_skips_set_pragma_when_already_wal(self, tmp_path):
         """Already-WAL connection must not trigger the set-pragma."""
         import sqlite3
@@ -6886,6 +6901,22 @@ def test_compression_fallback_streak_round_trips(db):
     assert db.get_compression_fallback_streak("s1") == 0
     db.set_compression_fallback_streak("s1", 2)
     assert db.get_compression_fallback_streak("s1") == 2
+
+
+def test_compression_ineffective_count_round_trips(db):
+    db.create_session("s1", "cli")
+
+    assert db.get_compression_ineffective_count("s1") == 0
+    db.set_compression_ineffective_count("s1", 2)
+    assert db.get_compression_ineffective_count("s1") == 2
+    # Clearing (real usage dipped below the threshold) round-trips too.
+    db.set_compression_ineffective_count("s1", 0)
+    assert db.get_compression_ineffective_count("s1") == 0
+    # Negative and missing-session inputs are normalized/ignored.
+    db.set_compression_ineffective_count("s1", -3)
+    assert db.get_compression_ineffective_count("s1") == 0
+    assert db.get_compression_ineffective_count("nope") == 0
+    assert db.get_compression_ineffective_count("") == 0
 
 
 def test_refresh_compression_lock_requires_holder_and_preserves_reclaimability(db, monkeypatch):
