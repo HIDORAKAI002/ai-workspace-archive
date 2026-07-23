@@ -2,7 +2,7 @@
 title: Monitor endpoints
 slug: /api-monitor
 ---
-import CodeSnippet from '@site/src/components/CodeSnippet';
+import CodeBlock from '@theme/CodeBlock';
 import exampleApiMonitorGetVertexBuilds from '!!raw-loader!@site/docs/API-Reference/curl-examples/api-monitor/get-vertex-builds.sh';
 import resultApiMonitorResultGetVertexBuilds from '!!raw-loader!@site/docs/API-Reference/curl-examples/api-monitor/result-get-vertex-builds.json';
 import exampleApiMonitorDeleteVertexBuilds from '!!raw-loader!@site/docs/API-Reference/curl-examples/api-monitor/delete-vertex-builds.sh';
@@ -73,17 +73,17 @@ Retrieve Vertex builds for a specific flow.
 <Tabs>
 <TabItem value="Python" label="Python" default>
 
-<CodeSnippet source={examplePythonApiMonitorGetVertexBuilds} language="python" />
+<CodeBlock language="python">{examplePythonApiMonitorGetVertexBuilds}</CodeBlock>
 
 </TabItem>
 <TabItem value="JavaScript" label="JavaScript">
 
-<CodeSnippet source={exampleJavascriptApiMonitorGetVertexBuilds} language="javascript" />
+<CodeBlock language="javascript">{exampleJavascriptApiMonitorGetVertexBuilds}</CodeBlock>
 
 </TabItem>
 <TabItem value="curl" label="curl">
 
-<CodeSnippet source={exampleApiMonitorGetVertexBuilds} language="bash" />
+<CodeBlock language="bash">{exampleApiMonitorGetVertexBuilds}</CodeBlock>
 
 </TabItem>
 </Tabs>
@@ -91,7 +91,7 @@ Retrieve Vertex builds for a specific flow.
 <details>
 <summary>Result</summary>
 
-<CodeSnippet source={resultApiMonitorResultGetVertexBuilds} language="json" />
+<CodeBlock language="json">{resultApiMonitorResultGetVertexBuilds}</CodeBlock>
 
 </details>
 
@@ -102,17 +102,17 @@ Delete Vertex builds for a specific flow.
 <Tabs>
 <TabItem value="Python" label="Python" default>
 
-<CodeSnippet source={examplePythonApiMonitorDeleteVertexBuilds} language="python" />
+<CodeBlock language="python">{examplePythonApiMonitorDeleteVertexBuilds}</CodeBlock>
 
 </TabItem>
 <TabItem value="JavaScript" label="JavaScript">
 
-<CodeSnippet source={exampleJavascriptApiMonitorDeleteVertexBuilds} language="javascript" />
+<CodeBlock language="javascript">{exampleJavascriptApiMonitorDeleteVertexBuilds}</CodeBlock>
 
 </TabItem>
 <TabItem value="curl" label="curl">
 
-<CodeSnippet source={exampleApiMonitorDeleteVertexBuilds} language="bash" />
+<CodeBlock language="bash">{exampleApiMonitorDeleteVertexBuilds}</CodeBlock>
 
 </TabItem>
 </Tabs>
@@ -120,7 +120,7 @@ Delete Vertex builds for a specific flow.
 <details>
 <summary>Result</summary>
 
-<CodeSnippet source={resultApiMonitorResultDeleteVertexBuilds} language="text" />
+<CodeBlock language="text">{resultApiMonitorResultDeleteVertexBuilds}</CodeBlock>
 
 </details>
 
@@ -136,41 +136,45 @@ Retrieve a list of all messages:
 <Tabs>
 <TabItem value="Python" label="Python" default>
 
-<CodeSnippet source={examplePythonApiMonitorGetMessages} language="python" />
+<CodeBlock language="python">{examplePythonApiMonitorGetMessages}</CodeBlock>
 
 </TabItem>
 <TabItem value="JavaScript" label="JavaScript">
 
-<CodeSnippet source={exampleJavascriptApiMonitorGetMessages} language="javascript" />
+<CodeBlock language="javascript">{exampleJavascriptApiMonitorGetMessages}</CodeBlock>
 
 </TabItem>
 <TabItem value="curl" label="curl">
 
-<CodeSnippet source={exampleApiMonitorGetMessages} language="bash" />
+<CodeBlock language="bash">{exampleApiMonitorGetMessages}</CodeBlock>
 
 </TabItem>
 </Tabs>
 
 To filter messages, use the `flow_id`, `session_id`, `sender`, and `sender_name` query parameters.
 
-To sort the results, use the `order_by` query parameter.
+To sort the results, use `order_by` to select the field and `order` to select the direction.
+The `order_by` parameter defaults to `timestamp`, and `order` accepts `ASC` or `DESC` and defaults to `ASC`.
+With both defaults, the endpoint returns the oldest messages first.
 
-This example retrieves messages sent by `Machine` and `AI` in a given chat session (`session_id`) and orders the messages by timestamp.
+To paginate the results, use `limit` to set the maximum number of messages returned and `offset` to skip messages from the beginning of the ordered result set.
+
+This example retrieves up to 100 messages sent by `Machine` and `AI` in a given chat session (`session_id`), ordered from oldest to newest by timestamp.
 
 <Tabs>
 <TabItem value="Python" label="Python" default>
 
-<CodeSnippet source={examplePythonApiMonitorGetMessages2} language="python" />
+<CodeBlock language="python">{examplePythonApiMonitorGetMessages2}</CodeBlock>
 
 </TabItem>
 <TabItem value="JavaScript" label="JavaScript">
 
-<CodeSnippet source={exampleJavascriptApiMonitorGetMessages2} language="javascript" />
+<CodeBlock language="javascript">{exampleJavascriptApiMonitorGetMessages2}</CodeBlock>
 
 </TabItem>
 <TabItem value="curl" label="curl">
 
-<CodeSnippet source={exampleApiMonitorGetMessages2} language="bash" />
+<CodeBlock language="bash">{exampleApiMonitorGetMessages2}</CodeBlock>
 
 </TabItem>
 </Tabs>
@@ -178,7 +182,7 @@ This example retrieves messages sent by `Machine` and `AI` in a given chat sessi
 <details>
 <summary>Result</summary>
 
-<CodeSnippet source={resultApiMonitorResultGetMessages2} language="json" />
+<CodeBlock language="json">{resultApiMonitorResultGetMessages2}</CodeBlock>
 
 </details>
 
@@ -191,17 +195,17 @@ This example deletes the message retrieved in the previous `GET /messages` examp
 <Tabs>
 <TabItem value="Python" label="Python" default>
 
-<CodeSnippet source={examplePythonApiMonitorDeleteMessages} language="python" />
+<CodeBlock language="python">{examplePythonApiMonitorDeleteMessages}</CodeBlock>
 
 </TabItem>
 <TabItem value="JavaScript" label="JavaScript">
 
-<CodeSnippet source={exampleJavascriptApiMonitorDeleteMessages} language="javascript" />
+<CodeBlock language="javascript">{exampleJavascriptApiMonitorDeleteMessages}</CodeBlock>
 
 </TabItem>
 <TabItem value="curl" label="curl">
 
-<CodeSnippet source={exampleApiMonitorDeleteMessages} language="bash" />
+<CodeBlock language="bash">{exampleApiMonitorDeleteMessages}</CodeBlock>
 
 </TabItem>
 </Tabs>
@@ -209,7 +213,7 @@ This example deletes the message retrieved in the previous `GET /messages` examp
 <details>
 <summary>Result</summary>
 
-<CodeSnippet source={resultApiMonitorResultDeleteMessages} language="text" />
+<CodeBlock language="text">{resultApiMonitorResultDeleteMessages}</CodeBlock>
 
 </details>
 
@@ -222,17 +226,17 @@ This example updates the `text` value of message `3ab66cc6-c048-48f8-ab07-570f5a
 <Tabs>
 <TabItem value="Python" label="Python" default>
 
-<CodeSnippet source={examplePythonApiMonitorUpdateMessage} language="python" />
+<CodeBlock language="python">{examplePythonApiMonitorUpdateMessage}</CodeBlock>
 
 </TabItem>
 <TabItem value="JavaScript" label="JavaScript">
 
-<CodeSnippet source={exampleJavascriptApiMonitorUpdateMessage} language="javascript" />
+<CodeBlock language="javascript">{exampleJavascriptApiMonitorUpdateMessage}</CodeBlock>
 
 </TabItem>
 <TabItem value="curl" label="curl">
 
-<CodeSnippet source={exampleApiMonitorUpdateMessage} language="bash" />
+<CodeBlock language="bash">{exampleApiMonitorUpdateMessage}</CodeBlock>
 
 </TabItem>
 </Tabs>
@@ -240,7 +244,7 @@ This example updates the `text` value of message `3ab66cc6-c048-48f8-ab07-570f5a
 <details>
 <summary>Result</summary>
 
-<CodeSnippet source={resultApiMonitorResultUpdateMessage} language="json" />
+<CodeBlock language="json">{resultApiMonitorResultUpdateMessage}</CodeBlock>
 
 </details>
 
@@ -253,17 +257,17 @@ This example updates the `session_ID` value `01ce083d-748b-4b8d-97b6-33adbb6a528
 <Tabs>
 <TabItem value="Python" label="Python" default>
 
-<CodeSnippet source={examplePythonApiMonitorUpdateSessionId} language="python" />
+<CodeBlock language="python">{examplePythonApiMonitorUpdateSessionId}</CodeBlock>
 
 </TabItem>
 <TabItem value="JavaScript" label="JavaScript">
 
-<CodeSnippet source={exampleJavascriptApiMonitorUpdateSessionId} language="javascript" />
+<CodeBlock language="javascript">{exampleJavascriptApiMonitorUpdateSessionId}</CodeBlock>
 
 </TabItem>
 <TabItem value="curl" label="curl">
 
-<CodeSnippet source={exampleApiMonitorUpdateSessionId} language="bash" />
+<CodeBlock language="bash">{exampleApiMonitorUpdateSessionId}</CodeBlock>
 
 </TabItem>
 </Tabs>
@@ -271,7 +275,7 @@ This example updates the `session_ID` value `01ce083d-748b-4b8d-97b6-33adbb6a528
 <details>
 <summary>Result</summary>
 
-<CodeSnippet source={resultApiMonitorResultUpdateSessionId} language="json" />
+<CodeBlock language="json">{resultApiMonitorResultUpdateSessionId}</CodeBlock>
 
 </details>
 
@@ -282,17 +286,17 @@ Delete all messages for a specific session.
 <Tabs>
 <TabItem value="Python" label="Python" default>
 
-<CodeSnippet source={examplePythonApiMonitorDeleteMessagesBySession} language="python" />
+<CodeBlock language="python">{examplePythonApiMonitorDeleteMessagesBySession}</CodeBlock>
 
 </TabItem>
 <TabItem value="JavaScript" label="JavaScript">
 
-<CodeSnippet source={exampleJavascriptApiMonitorDeleteMessagesBySession} language="javascript" />
+<CodeBlock language="javascript">{exampleJavascriptApiMonitorDeleteMessagesBySession}</CodeBlock>
 
 </TabItem>
 <TabItem value="curl" label="curl">
 
-<CodeSnippet source={exampleApiMonitorDeleteMessagesBySession} language="bash" />
+<CodeBlock language="bash">{exampleApiMonitorDeleteMessagesBySession}</CodeBlock>
 
 </TabItem>
 </Tabs>
@@ -300,7 +304,7 @@ Delete all messages for a specific session.
 <details>
 <summary>Result</summary>
 
-<CodeSnippet source={resultApiMonitorResultDeleteMessagesBySession} language="text" />
+<CodeBlock language="text">{resultApiMonitorResultDeleteMessagesBySession}</CodeBlock>
 
 </details>
 
@@ -315,7 +319,7 @@ Use `GET /monitor/traces` and filter by `flow_id`:
 <Tabs>
 <TabItem value="python" label="Python">
 
-<CodeSnippet source={examplePythonApiMonitorExampleRequest} language="python" />
+<CodeBlock language="python">{examplePythonApiMonitorExampleRequest}</CodeBlock>
 
 </TabItem>
 <TabItem value="typescript" label="TypeScript">
@@ -352,7 +356,7 @@ listTraces().catch(console.error);
 </TabItem>
 <TabItem value="curl" label="curl">
 
-<CodeSnippet source={exampleApiMonitorExampleRequest} language="bash" />
+<CodeBlock language="bash">{exampleApiMonitorExampleRequest}</CodeBlock>
 
 </TabItem>
 </Tabs>
@@ -401,17 +405,17 @@ This information is also available in [flow logs](/logging).
 <Tabs>
 <TabItem value="Python" label="Python" default>
 
-<CodeSnippet source={examplePythonApiMonitorGetTransactions} language="python" />
+<CodeBlock language="python">{examplePythonApiMonitorGetTransactions}</CodeBlock>
 
 </TabItem>
 <TabItem value="JavaScript" label="JavaScript">
 
-<CodeSnippet source={exampleJavascriptApiMonitorGetTransactions} language="javascript" />
+<CodeBlock language="javascript">{exampleJavascriptApiMonitorGetTransactions}</CodeBlock>
 
 </TabItem>
 <TabItem value="curl" label="curl">
 
-<CodeSnippet source={exampleApiMonitorGetTransactions} language="bash" />
+<CodeBlock language="bash">{exampleApiMonitorGetTransactions}</CodeBlock>
 
 </TabItem>
 </Tabs>
@@ -419,7 +423,7 @@ This information is also available in [flow logs](/logging).
 <details>
 <summary>Result</summary>
 
-<CodeSnippet source={resultApiMonitorResultGetTransactions} language="json" />
+<CodeBlock language="json">{resultApiMonitorResultGetTransactions}</CodeBlock>
 
 </details>
 

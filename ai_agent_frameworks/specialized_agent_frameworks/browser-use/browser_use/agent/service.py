@@ -362,10 +362,12 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 		if self.output_model_schema is not None:
 			self.tools.use_structured_output_action(self.output_model_schema)
 
-		# Extraction schema: explicit param takes priority, otherwise auto-bridge from output_model_schema
+		# Per-page extract uses a schema only when the caller explicitly asks for one.
+		# It must NOT inherit output_model_schema: that describes the final task result
+		# (e.g. {summary, step_results}), which is the wrong shape for a single-page
+		# extraction and, on the browser-use gateway, routes extract into the agent
+		# action protocol and breaks it.
 		self.extraction_schema = extraction_schema
-		if self.extraction_schema is None and self.output_model_schema is not None:
-			self.extraction_schema = self.output_model_schema.model_json_schema()
 
 		# Core components - task enhancement now has access to output_model_schema from tools
 		self.task = self._enhance_task_with_schema(task, output_model_schema)
@@ -2288,7 +2290,7 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 
 		# Look for common URL patterns
 		patterns = [
-			r'https?://[^\s<>"\']+',  # Full URLs with http/https
+			r'(?:https?|file)://[^\s<>"\']+',  # Full URLs
 			r'(?:www\.)?[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}(?:/[^\s<>"\']*)?',  # Domain names with subdomains and optional paths
 		]
 
@@ -2373,11 +2375,17 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 		}
 
 		found_urls = []
+		matched_spans: list[tuple[int, int]] = []
 		for pattern in patterns:
 			matches = re.finditer(pattern, task_without_emails)
 			for match in matches:
 				url = match.group(0)
 				original_position = match.start()  # Store original position before URL modification
+
+				# Skip fragments of URLs already matched by earlier pattern
+				if any(match.start() < end and match.end() > start for start, end in matched_spans):
+					continue
+				matched_spans.append((match.start(), match.end()))
 
 				# Remove trailing punctuation that's not part of URLs
 				url = sanitize_url_candidate(url)
@@ -2386,13 +2394,18 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 					self.logger.debug(f'Excluding placeholder URL from auto-navigation: {url}')
 					continue
 
-				# Check if URL ends with a file extension that should be excluded
 				url_lower = url.lower()
+				has_scheme = url_lower.startswith(('http://', 'https://', 'file://'))
+
+				# Check if URL ends with file extension
 				should_exclude = False
-				for ext in excluded_extensions:
-					if f'.{ext}' in url_lower:
+				if not url_lower.startswith('file://'):
+					for ext in excluded_extensions:
+						if f'.{ext}' in url_lower:
+							should_exclude = True
+							break
+					if not has_scheme and '.htm' in url_lower:
 						should_exclude = True
-						break
 
 				if should_exclude:
 					self.logger.debug(f'Excluding URL with file extension from auto-navigation: {url}')
@@ -2408,7 +2421,7 @@ class Agent(Generic[Context, AgentStructuredOutput]):
 					continue
 
 				# Add https:// if missing (after excluded words check to avoid position calculation issues)
-				if not url.startswith(('http://', 'https://')):
+				if not has_scheme:
 					url = 'https://' + url
 
 				found_urls.append(url)

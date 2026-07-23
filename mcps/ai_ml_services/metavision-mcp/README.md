@@ -45,7 +45,7 @@ Add to your MCP config:
 ## Payment
 
 Tools marked with USDC cost use x402 micropayments on Base network. Send payment to:
-`0x4CC6689560F22Dd74CFA07CAB72eB41B0Ca7169b`
+`0xF94a2d1751300b44c8fdA99972Cc24386829dA1a`
 
 ## Links
 

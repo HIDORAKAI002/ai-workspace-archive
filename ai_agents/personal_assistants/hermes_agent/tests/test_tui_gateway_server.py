@@ -865,6 +865,46 @@ def test_tui_tool_output_risk_event_exposes_metadata_without_raw_output(monkeypa
     assert "result" not in events[0][2]
 
 
+def test_tui_clarify_lifecycle_events_emit_when_tool_progress_off(monkeypatch):
+    events: list[tuple[str, str, dict]] = []
+    monkeypatch.setattr(
+        server, "_emit", lambda event_type, sid, payload: events.append((event_type, sid, payload))
+    )
+    monkeypatch.setitem(
+        server._sessions,
+        "clarify-off-test",
+        {"tool_progress_mode": "off", "tool_started_at": {}},
+    )
+
+    args = {"question": "Pick one", "choices": ["A", "B"]}
+    result = '{"question":"Pick one","choices_offered":["A","B"],"user_response":"A"}'
+
+    server._on_tool_start("clarify-off-test", "tool-clarify", "clarify", args)
+    server._on_tool_complete("clarify-off-test", "tool-clarify", "clarify", args, result)
+
+    assert [event[0] for event in events] == ["tool.start", "tool.complete"]
+    assert events[0][2]["name"] == "clarify"
+    assert events[0][2]["tool_id"] == "tool-clarify"
+    assert events[1][2]["result"]["user_response"] == "A"
+
+
+def test_tui_non_interactive_tool_lifecycle_stays_hidden_when_tool_progress_off(monkeypatch):
+    events: list[tuple[str, str, dict]] = []
+    monkeypatch.setattr(
+        server, "_emit", lambda event_type, sid, payload: events.append((event_type, sid, payload))
+    )
+    monkeypatch.setitem(
+        server._sessions,
+        "terminal-off-test",
+        {"tool_progress_mode": "off", "tool_started_at": {}},
+    )
+
+    server._on_tool_start("terminal-off-test", "tool-1", "terminal", {"command": "pwd"})
+    server._on_tool_complete("terminal-off-test", "tool-1", "terminal", {"command": "pwd"}, "done")
+
+    assert events == []
+
+
 def test_dispatch_rejects_non_object_request():
     resp = server.dispatch([])
 
@@ -1209,7 +1249,10 @@ def test_voice_toggle_tts_branch_also_carries_record_key(monkeypatch):
         ),
     )
     monkeypatch.setenv("HERMES_VOICE", "1")
-    monkeypatch.delenv("HERMES_VOICE_TTS", raising=False)
+    # setenv (not delenv) — the handler writes HERMES_VOICE_TTS directly, and
+    # delenv on an absent var registers no teardown, leaking TTS=1 into every
+    # later test in the file (which now spins up the streaming TTS pipeline).
+    monkeypatch.setenv("HERMES_VOICE_TTS", "0")
 
     tts_resp = server.dispatch(
         {"id": "voice-tts", "method": "voice.toggle", "params": {"action": "tts"}}
@@ -1471,6 +1514,54 @@ def test_history_to_messages_renders_multimodal_content():
     assert server._history_to_messages(history) == [
         {"role": "user", "text": "look here\ndata:image/png;base64,abc"},
         {"role": "assistant", "text": "saw it"},
+    ]
+
+
+def test_history_to_messages_hides_gateway_system_markers():
+    # Model-switch / personality notices are persisted as role=user [System: …]
+    # rows so strict providers accept them mid-history, but they are model-facing
+    # metadata -- never a user turn. They must not render as a user bubble on any
+    # surface, and dropping them from the display projection also stops the
+    # stored marker from shifting the desktop's user-message ordinals and
+    # duplicating the optimistic prompt (#67603).
+    history = [
+        {"role": "user", "content": "first question"},
+        {"role": "assistant", "content": "first answer"},
+        {
+            "role": "user",
+            "content": "[System: The active model for this chat has changed to k3.]",
+        },
+        {"role": "user", "content": "second question"},
+        {"role": "assistant", "content": "second answer"},
+        {
+            "role": "user",
+            "content": (
+                "[System: The user has changed the assistant's personality. "
+                "Adopt the new persona going forward.]"
+            ),
+        },
+    ]
+
+    assert server._history_to_messages(history) == [
+        {"role": "user", "text": "first question"},
+        {"role": "assistant", "text": "first answer"},
+        {"role": "user", "text": "second question"},
+        {"role": "assistant", "text": "second answer"},
+    ]
+
+
+def test_history_to_messages_keeps_real_user_bracket_text():
+    # Only role=user rows whose text OPENS with the [System: marker sentinel are
+    # bookkeeping notices. A genuine user turn that merely mentions the token is
+    # a real message and stays visible.
+    history = [
+        {"role": "user", "content": "why does [System: ...] show up in my chat?"},
+        {"role": "assistant", "content": "it should not"},
+    ]
+
+    assert server._history_to_messages(history) == [
+        {"role": "user", "text": "why does [System: ...] show up in my chat?"},
+        {"role": "assistant", "text": "it should not"},
     ]
 
 
@@ -4810,6 +4901,20 @@ def test_setup_status_reports_provider_config(monkeypatch):
     assert resp["result"]["provider_configured"] is False
 
 
+def test_probe_credentials_emits_exact_empty_key_warning():
+    agent = types.SimpleNamespace(api_key="", provider="openrouter")
+
+    assert server._probe_credentials(agent) == (
+        "No API key configured for provider 'openrouter'. First message will fail."
+    )
+
+
+def test_probe_credentials_allows_keyless_custom_runtime():
+    agent = types.SimpleNamespace(api_key="no-key-required", provider="custom")
+
+    assert server._probe_credentials(agent) == ""
+
+
 def test_setup_runtime_check_rejects_empty_runtime_key(monkeypatch):
     monkeypatch.setattr("hermes_cli.main._has_any_provider_configured", lambda: True)
     monkeypatch.setattr(
@@ -4823,8 +4928,13 @@ def test_setup_runtime_check_rejects_empty_runtime_key(monkeypatch):
 
     resp = server.handle_request({"id": "1", "method": "setup.runtime_check", "params": {}})
 
-    assert resp["result"]["ok"] is False
-    assert resp["result"]["provider"] == "openrouter"
+    assert resp["result"] == {
+        "ok": False,
+        "provider": "openrouter",
+        "model": None,
+        "source": "env/config",
+        "error": "No usable credentials found for openrouter.",
+    }
 
 
 def test_setup_runtime_check_allows_no_key_custom_runtime(monkeypatch):
@@ -5859,6 +5969,65 @@ def test_config_set_personality_preserves_history_and_returns_info(monkeypatch):
     assert agent.ephemeral_system_prompt == "You are helpful."
     assert agent._cached_system_prompt == "old"
     assert ("session.info", "sid", {"model": "?"}) in emits
+
+
+def test_compress_session_history_passes_force():
+    """_compress_session_history is manual-only (session.compress RPC, slash
+    compress/compact, slash-worker mirror) — it must bypass the
+    summary-failure cooldown via force=True, matching the CLI and gateway
+    manual-compress handlers."""
+    from unittest.mock import MagicMock
+
+    agent = MagicMock()
+    agent.context_compressor = None  # keep _get_usage on the simple path
+    compressed = [{"role": "user", "content": "summary"}]
+    agent._compress_context.return_value = (compressed, "")
+    session = _session(
+        agent=agent,
+        history=[
+            {"role": "user", "content": "one"},
+            {"role": "assistant", "content": "two"},
+            {"role": "user", "content": "three"},
+            {"role": "assistant", "content": "four"},
+        ],
+    )
+
+    removed, _usage = server._compress_session_history(session)
+
+    assert removed == 3
+    assert session["history"] == compressed
+    assert agent._compress_context.call_args.kwargs.get("force") is True
+
+
+def test_compress_session_history_works_when_auto_compaction_disabled():
+    """compression.enabled: false disables *automatic* compaction only —
+    manual /compress must still work on every TUI route (session.compress
+    RPC, slash compress/compact, slash-worker mirror), all of which converge
+    on _compress_session_history. Pin that the helper never gates on
+    agent.compression_enabled (#64438)."""
+    from unittest.mock import MagicMock
+
+    agent = MagicMock()
+    agent.compression_enabled = False
+    agent.context_compressor = None  # keep _get_usage on the simple path
+    compressed = [{"role": "user", "content": "summary"}]
+    agent._compress_context.return_value = (compressed, "")
+    session = _session(
+        agent=agent,
+        history=[
+            {"role": "user", "content": "one"},
+            {"role": "assistant", "content": "two"},
+            {"role": "user", "content": "three"},
+            {"role": "assistant", "content": "four"},
+        ],
+    )
+
+    removed, _usage = server._compress_session_history(session)
+
+    assert removed == 3
+    assert session["history"] == compressed
+    agent._compress_context.assert_called_once()
+    assert agent._compress_context.call_args.kwargs.get("force") is True
 
 
 def test_session_compress_uses_compress_helper(monkeypatch):
@@ -6989,6 +7158,7 @@ def test_session_redirect_calls_capable_core_agent(monkeypatch):
         redirect=lambda text: calls.append(text) or True,
     )
     session = _session(agent=agent)
+    session["inflight_turn"] = {"user": "original request", "assistant": "partial reply"}
     server._sessions["sid"] = session
     try:
         before = session.get("last_active")
@@ -7007,6 +7177,7 @@ def test_session_redirect_calls_capable_core_agent(monkeypatch):
         "text": "use Postgres",
     }
     assert calls == ["use Postgres"]
+    assert session["inflight_turn"]["user"] == "use Postgres"
     assert session.get("last_active") is not None
     assert before is None or session["last_active"] >= before
 
@@ -11882,3 +12053,200 @@ def test_get_usage_clamps_post_compression_sentinel():
     usage = server._get_usage(agent)
     assert "context_used" not in usage
     assert "context_percent" not in usage
+
+
+# ---------------------------------------------------------------------------
+# Streaming TTS — per-turn pipeline + barge-in
+# ---------------------------------------------------------------------------
+
+def _fake_tts_modules(monkeypatch, *, requirements=True, playback_stops=None, listen=None, transcribe=None):
+    """Install lightweight tools.tts_tool / tools.voice_mode fakes."""
+    started = {}
+
+    def fake_stream(text_queue, stop, done, **_kw):
+        started["queue"] = text_queue
+        stop.wait(5)
+        done.set()
+
+    def default_listen(should_stop, capture=False, on_trigger=None, **_kw):
+        return None if capture else False
+
+    monkeypatch.setitem(
+        sys.modules,
+        "tools.tts_tool",
+        types.SimpleNamespace(
+            check_tts_requirements=lambda: requirements,
+            stream_tts_to_speaker=fake_stream,
+        ),
+    )
+    monkeypatch.setitem(
+        sys.modules,
+        "tools.voice_mode",
+        types.SimpleNamespace(
+            stop_playback=lambda: (playback_stops.append(True) if playback_stops is not None else None),
+            listen_for_speech=listen or default_listen,
+            transcribe_recording=transcribe or (lambda path, model=None: {"success": True, "transcript": ""}),
+        ),
+    )
+    return started
+
+
+def test_tts_stream_begin_requires_voice_tts(monkeypatch):
+    monkeypatch.setenv("HERMES_VOICE_TTS", "0")
+    assert server._tts_stream_begin() is None
+
+
+def test_tts_stream_begin_requires_working_provider(monkeypatch):
+    monkeypatch.setenv("HERMES_VOICE_TTS", "1")
+    _fake_tts_modules(monkeypatch, requirements=False)
+    assert server._tts_stream_begin() is None
+
+
+def test_tts_stream_begin_and_stop_lifecycle(monkeypatch):
+    """begin() spawns the consumer; stop() cuts it and clears the slot."""
+    monkeypatch.setenv("HERMES_VOICE_TTS", "1")
+    monkeypatch.setenv("HERMES_VOICE", "0")  # no barge-in monitor (no mic)
+    playback_stops: list = []
+    started = _fake_tts_modules(monkeypatch, playback_stops=playback_stops)
+
+    text_queue = server._tts_stream_begin()
+    assert text_queue is not None
+    assert started["queue"] is text_queue
+
+    with server._tts_stream_lock:
+        state = server._tts_stream_state
+    assert state is not None and not state["stop"].is_set()
+
+    server._tts_stream_stop()
+    assert state["stop"].is_set()
+    assert playback_stops == [True]
+    with server._tts_stream_lock:
+        assert server._tts_stream_state is None
+
+
+def test_tts_stream_begin_barges_in_on_previous_pipeline(monkeypatch):
+    """A new turn's pipeline stops the previous turn's speech (one speaker)."""
+    monkeypatch.setenv("HERMES_VOICE_TTS", "1")
+    monkeypatch.setenv("HERMES_VOICE", "0")
+    _fake_tts_modules(monkeypatch)
+
+    server._tts_stream_begin()
+    with server._tts_stream_lock:
+        first = server._tts_stream_state
+    server._tts_stream_begin()
+    assert first is not None and first["stop"].is_set()
+    server._tts_stream_stop()
+
+
+def test_tts_stream_stop_latches_interruption_for_next_turn(monkeypatch):
+    """Cutting live speech (interrupt / typing barge) marks the latch the next
+    turn's model note consumes; a mode change (user_barge=False) does not."""
+    import tools.tts_streaming as ts
+
+    ts._interrupted_at = None
+    monkeypatch.setenv("HERMES_VOICE_TTS", "1")
+    monkeypatch.setenv("HERMES_VOICE", "0")
+    _fake_tts_modules(monkeypatch)
+
+    server._tts_stream_begin()
+    server._tts_stream_stop()  # default: user barge
+    assert ts.take_speech_interrupted() is True
+
+    server._tts_stream_begin()
+    server._tts_stream_stop(user_barge=False)  # /voice off
+    assert ts.take_speech_interrupted() is False
+
+
+def test_tts_stream_stop_after_natural_finish_does_not_latch(monkeypatch):
+    """Speech that already finished (done set) isn't an interruption."""
+    import tools.tts_streaming as ts
+
+    ts._interrupted_at = None
+    monkeypatch.setenv("HERMES_VOICE_TTS", "1")
+    monkeypatch.setenv("HERMES_VOICE", "0")
+    _fake_tts_modules(monkeypatch)
+
+    server._tts_stream_begin()
+    with server._tts_stream_lock:
+        server._tts_stream_state["done"].set()
+    server._tts_stream_stop()
+    assert ts.take_speech_interrupted() is False
+
+
+def test_tts_stream_vad_barge_in_cuts_pipeline_and_submits_capture(monkeypatch, tmp_path):
+    """User speech during playback cuts TTS at the moment of detection
+    (voice.interrupted), then the captured interruption is transcribed and
+    emitted as voice.transcript so the TUI submits it — complete from its
+    first syllable, no re-record round trip. The cut also latches the
+    speech-interrupted note for the next turn."""
+    import tools.tts_streaming as ts
+
+    ts._interrupted_at = None
+    monkeypatch.setenv("HERMES_VOICE_TTS", "1")
+    monkeypatch.setenv("HERMES_VOICE", "1")
+    monkeypatch.setattr(server, "_load_cfg", lambda: {"voice": {"barge_in": True}})
+    events: list = []
+    monkeypatch.setattr(
+        server, "_voice_emit", lambda event, payload=None: events.append((event, payload))
+    )
+
+    wav = tmp_path / "barge.wav"
+    wav.write_bytes(b"RIFF")
+
+    def fake_listen(should_stop, capture=False, on_trigger=None, **_kw):
+        assert capture is True
+        on_trigger()  # playback cut happens at detection, not after endpointing
+        return str(wav)
+
+    _fake_tts_modules(
+        monkeypatch,
+        listen=fake_listen,
+        transcribe=lambda path, model=None: {"success": True, "transcript": "stop, actually—"},
+    )
+
+    server._tts_stream_begin()
+    with server._tts_stream_lock:
+        state = server._tts_stream_state
+    assert state is not None
+    assert state["stop"].wait(2.0)
+    deadline = time.monotonic() + 2.0
+    while time.monotonic() < deadline and wav.exists():
+        time.sleep(0.01)  # unlink (finally) runs after the transcript emit
+    assert ("voice.interrupted", None) in events
+    assert ("voice.transcript", {"text": "stop, actually—"}) in events
+    assert not wav.exists()  # capture temp file cleaned up
+    assert ts.take_speech_interrupted() is True  # VAD cut latches the model note
+    server._tts_stream_stop()
+
+
+def test_clarify_callback_uses_configured_timeout(monkeypatch):
+    """The TUI/desktop clarify bridge honors the canonical clarify timeout
+    (via _clarify_timeout_seconds) instead of the hardcoded _block default."""
+    captured = {}
+
+    monkeypatch.setattr(server, "_clarify_timeout_seconds", lambda: 42)
+
+    def fake_block(event, sid, payload, timeout=300):
+        captured.update(event=event, sid=sid, payload=payload, timeout=timeout)
+        return "answer"
+
+    monkeypatch.setattr(server, "_block", fake_block)
+
+    result = server._agent_cbs("sid-1")["clarify_callback"]("Pick one", ["a", "b"])
+
+    assert result == "answer"
+    assert captured["event"] == "clarify.request"
+    assert captured["timeout"] == 42
+    assert captured["payload"] == {"question": "Pick one", "choices": ["a", "b"]}
+
+
+@pytest.mark.parametrize(
+    ("configured", "expected"),
+    [(0, None), (-1, None), (42, 42)],
+)
+def test_clarify_timeout_seconds_maps_non_positive_to_unlimited(monkeypatch, configured, expected):
+    """A ``<= 0`` clarify timeout means unlimited and reaches _block as None
+    (ev.wait(None) waits forever) rather than an immediate ev.wait(0) skip."""
+    monkeypatch.setattr("tools.clarify_gateway.get_clarify_timeout", lambda: configured)
+
+    assert server._clarify_timeout_seconds() == expected
