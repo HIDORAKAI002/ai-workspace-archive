@@ -207,6 +207,7 @@
   "acceptance.workspace.filters.all": "Todas as aceitações",
   "acceptance.workspace.filters.completed": "Concluídas",
   "acceptance.workspace.filters.empty.active": "Nenhuma aceitação em andamento.",
+  "acceptance.workspace.filters.empty.all": "Ainda não há aceites.",
   "acceptance.workspace.filters.empty.completed": "Nenhuma aceitação concluída.",
   "acceptance.workspace.filters.noSearchResults": "Nenhuma aceitação corresponde a “{{query}}”.",
   "acceptance.workspace.filters.showAll": "Mostrar todas as aceitações",

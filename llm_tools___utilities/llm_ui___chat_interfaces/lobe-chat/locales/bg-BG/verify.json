@@ -207,6 +207,7 @@
   "acceptance.workspace.filters.all": "Всички приемания",
   "acceptance.workspace.filters.completed": "Завършени",
   "acceptance.workspace.filters.empty.active": "Няма приемания в процес на изпълнение.",
+  "acceptance.workspace.filters.empty.all": "Все още няма приемания.",
   "acceptance.workspace.filters.empty.completed": "Няма завършени приемания.",
   "acceptance.workspace.filters.noSearchResults": "Няма приемания, които съответстват на „{{query}}“.",
   "acceptance.workspace.filters.showAll": "Покажи всички приемания",

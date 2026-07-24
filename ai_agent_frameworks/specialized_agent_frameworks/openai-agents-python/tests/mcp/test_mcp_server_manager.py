@@ -173,15 +173,23 @@ class CleanupAwareServer(MCPServer):
 
 
 class CancelledServer(MCPServer):
+    def __init__(self) -> None:
+        super().__init__()
+        self.resource_open = False
+        self.cleanup_calls = 0
+
     @property
     def name(self) -> str:
         return "cancelled"
 
     async def connect(self) -> None:
+        # Simulate a transport that opened resources before cancellation.
+        self.resource_open = True
         raise asyncio.CancelledError()
 
     async def cleanup(self) -> None:
-        return None
+        self.cleanup_calls += 1
+        self.resource_open = False
 
     async def list_tools(
         self, run_context: RunContextWrapper[Any] | None = None, agent: Any | None = None
@@ -548,5 +556,28 @@ async def test_manager_cleanup_runs_on_cancelled_error_during_connect() -> None:
         with pytest.raises(asyncio.CancelledError):
             await manager.connect_all()
         assert server.cleanup_calls == 1
+        # The cancelled server must be recorded and cleaned by connect_all()'s
+        # failure path — callers cannot rely on a later cleanup_all() because
+        # `async with` never reaches __aexit__ when __aenter__ raises.
+        assert cancelled_server in manager.failed_servers
+        assert cancelled_server.cleanup_calls == 1
+        assert cancelled_server.resource_open is False
     finally:
         await manager.cleanup_all()
+
+
+@pytest.mark.asyncio
+async def test_manager_async_with_cleans_cancelled_server_when_unsuppressed() -> None:
+    server = CleanupAwareServer()
+    cancelled_server = CancelledServer()
+
+    with pytest.raises(asyncio.CancelledError):
+        async with MCPServerManager(
+            [server, cancelled_server],
+            suppress_cancelled_error=False,
+        ):
+            raise AssertionError("context body should not run when connect raises")
+
+    assert server.cleanup_calls == 1
+    assert cancelled_server.cleanup_calls == 1
+    assert cancelled_server.resource_open is False

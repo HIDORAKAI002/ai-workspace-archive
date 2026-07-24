@@ -59,13 +59,13 @@ export class WorkspaceUserSettingsActionImpl {
     // response (no server row) clears the bucket for the same reason.
     const data = swr.data;
     useEffect(() => {
-      if (data === undefined) return;
+      if (data === undefined || !workspaceId) return;
       this.#set(
-        { workspaceUserPreference: data ?? {} },
+        { workspaceUserPreference: data ?? {}, workspaceUserPreferenceWorkspaceId: workspaceId },
         false,
         n('useFetchWorkspaceUserPreference/sync'),
       );
-    }, [data]);
+    }, [data, workspaceId]);
 
     return swr;
   };
@@ -103,6 +103,14 @@ export class WorkspaceUserSettingsActionImpl {
             agentModeOverrides: {
               ...previous.agentModeOverrides,
               ...patch.agentModeOverrides,
+            },
+          }
+        : {}),
+      ...(patch.sidebarGroupAssignments
+        ? {
+            sidebarGroupAssignments: {
+              ...previous.sidebarGroupAssignments,
+              ...patch.sidebarGroupAssignments,
             },
           }
         : {}),

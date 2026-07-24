@@ -100,6 +100,14 @@ export class WorkspaceUserSettingsModel {
             },
           }
         : {}),
+      ...(patch.sidebarGroupAssignments
+        ? {
+            sidebarGroupAssignments: {
+              ...current.sidebarGroupAssignments,
+              ...patch.sidebarGroupAssignments,
+            },
+          }
+        : {}),
     };
     const [row] = await this.db
       .insert(workspaceUserSettings)
