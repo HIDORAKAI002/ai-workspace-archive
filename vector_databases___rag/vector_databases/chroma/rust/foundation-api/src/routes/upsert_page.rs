@@ -40,9 +40,11 @@ const DENSE_EMBED_BATCH_SIZE: usize = 100;
 /// upsert records; stale chunks are delete records.
 const MAX_TRANSACTION_WRITES: usize = 300;
 
-/// Read one past the write cap so an oversized existing page is detected
-/// without reading arbitrarily many ids.
-const PAGE_CHUNK_READ_LIMIT: u32 = MAX_TRANSACTION_WRITES as u32 + 1;
+/// Chroma Cloud caps `Get` limit at 300, matching the transaction write cap.
+/// Oversized existing pages are detected with a follow-up one-row read at this
+/// offset instead of asking Chroma for `limit=301`.
+const PAGE_CHUNK_READ_LIMIT: u32 = MAX_TRANSACTION_WRITES as u32;
+const PAGE_CHUNK_OVERFLOW_OFFSET: u32 = MAX_TRANSACTION_WRITES as u32;
 
 /// `^(?:[a-z0-9][a-z0-9-]*|category:[a-z0-9][a-z0-9-]*|)$` — the wiki slug
 /// shape (empty root, lowercase alnum/hyphen, or a `category:<slug>`). The
@@ -78,10 +80,17 @@ pub struct UpsertPageRequest {
     pub categories: Vec<String>,
     /// Optional caller-supplied reason for this change. Deliberately not
     /// persisted on the page: the text can be large and may carry sensitive
-    /// context, so we only log that a reason was supplied (not its content) as
-    /// an audit signal.
+    /// context.
     #[validate(length(max = 350, message = "reason must be at most 350 characters"))]
     pub reason: Option<String>,
+    /// Identifier of the trajectory that produced this page write. Stamped on
+    /// every chunk as `last_written_by` and copied into revision history.
+    #[validate(length(
+        min = 1,
+        max = 128,
+        message = "last_written_by must be 1 to 128 characters"
+    ))]
+    pub last_written_by: String,
     /// The version the caller expects to be replacing: the page's current
     /// `version` on an update, or `0` when the caller expects to create a new
     /// page.
@@ -178,12 +187,21 @@ pub async fn foundation_upsert_page(
     request.validate().map_err(ChromaValidationError::from)?;
     let categories = normalize_categories(&request.categories);
 
-    let response = upsert_page(&server, &headers, &tenant, &request, &categories).await?;
-    Ok(Json(response))
+    match run_upsert_page(&server, &headers, &tenant, &request, &categories).await {
+        Ok(response) => Ok(Json(response)),
+        Err(err) => Err(err.into()),
+    }
 }
 
 /// Runs the replace flow against the proxied wiki collection.
-async fn upsert_page(
+#[tracing::instrument(
+    name = "foundation_run_upsert_page",
+    level = "debug",
+    skip_all,
+    fields(tenant = %tenant, slug = %request.slug, expected_version = request.expected_version),
+    err(Display)
+)]
+pub(crate) async fn run_upsert_page(
     server: &FoundationApiServer,
     headers: &HeaderMap,
     tenant: &str,
@@ -229,7 +247,26 @@ async fn upsert_page(
         ),
     )
     .await?;
-    if existing.ids.len() > MAX_TRANSACTION_WRITES {
+    if existing.ids.len() == MAX_TRANSACTION_WRITES {
+        let overflow = record_op(
+            wiki_client,
+            tenant,
+            txn.get(
+                None,
+                Some(where_slug(slug)),
+                Some(1),
+                Some(PAGE_CHUNK_OVERFLOW_OFFSET),
+                Some(IncludeList(vec![Include::Metadata])),
+            ),
+        )
+        .await?;
+        if !overflow.ids.is_empty() {
+            return Err(UpsertPageError::TooManyTransactionWrites {
+                writes: MAX_TRANSACTION_WRITES + 1,
+                limit: MAX_TRANSACTION_WRITES,
+            });
+        }
+    } else if existing.ids.len() > MAX_TRANSACTION_WRITES {
         return Err(UpsertPageError::TooManyTransactionWrites {
             writes: existing.ids.len(),
             limit: MAX_TRANSACTION_WRITES,
@@ -329,6 +366,7 @@ async fn upsert_page(
         i64::from(version),
         categories,
         &request.source_ids,
+        &request.last_written_by,
     );
 
     let doc_batch: Vec<Option<String>> = chunks
@@ -358,18 +396,6 @@ async fn upsert_page(
     }
 
     record_op(wiki_client, tenant, txn.commit()).await?;
-
-    // `reason` is logged as a presence flag only — never its content, which can
-    // be large and may leak sensitive context.
-    tracing::info!(
-        slug = %slug,
-        op,
-        version,
-        num_chunks,
-        expected_version = request.expected_version,
-        reason_provided = request.reason.is_some(),
-        "wiki upsert-page complete"
-    );
 
     Ok(UpsertPageResponse {
         slug: slug.to_string(),
@@ -496,7 +522,7 @@ fn is_conditional_conflict(err: &ChromaHttpClientError) -> bool {
 }
 
 /// Validates the slug against [`SLUG_RE`].
-fn validate_slug(slug: &str) -> Result<(), ValidationError> {
+pub(crate) fn validate_slug(slug: &str) -> Result<(), ValidationError> {
     if SLUG_RE.is_match(slug) {
         Ok(())
     } else {
@@ -510,7 +536,7 @@ fn validate_slug(slug: &str) -> Result<(), ValidationError> {
 /// Validates each source id is `<collection>:<record_id>` with a non-empty
 /// collection. The record id (after the first `:`) may be empty (the wiki
 /// root's citation id).
-fn validate_source_ids(source_ids: &[String]) -> Result<(), ValidationError> {
+pub(crate) fn validate_source_ids(source_ids: &[String]) -> Result<(), ValidationError> {
     for source_id in source_ids {
         match source_id.split_once(':') {
             Some((collection, _record_id)) if !collection.is_empty() => {}
@@ -528,7 +554,7 @@ fn validate_source_ids(source_ids: &[String]) -> Result<(), ValidationError> {
 }
 
 /// Validates each category against [`CATEGORY_RE`].
-fn validate_categories(categories: &[String]) -> Result<(), ValidationError> {
+pub(crate) fn validate_categories(categories: &[String]) -> Result<(), ValidationError> {
     for category in categories {
         if !CATEGORY_RE.is_match(category) {
             return Err(ValidationError::new("categories").with_message(
@@ -542,7 +568,7 @@ fn validate_categories(categories: &[String]) -> Result<(), ValidationError> {
 
 /// Deduplicates and lexicographically sorts the (already-validated) category
 /// list.
-fn normalize_categories(categories: &[String]) -> Vec<String> {
+pub(crate) fn normalize_categories(categories: &[String]) -> Vec<String> {
     categories
         .iter()
         .map(String::as_str)
@@ -555,6 +581,15 @@ fn normalize_categories(categories: &[String]) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::config::FoundationApiConfig;
+    use crate::routes::CHROMA_TOKEN_HEADER;
+    use axum::http::HeaderValue;
+    use chroma_sysdb::{SysDb, TestSysDb};
+    use chroma_system::System;
+    use chroma_types::{Collection, CollectionUuid};
+    use httpmock::MockServer;
+    use serde_json::{json, Value};
+    use std::sync::Arc;
 
     fn request(
         slug: &str,
@@ -568,8 +603,57 @@ mod tests {
             source_ids: source_ids.iter().map(|s| s.to_string()).collect(),
             categories: categories.iter().map(|s| s.to_string()).collect(),
             reason: None,
+            last_written_by: "00000000-0000-0000-0000-000000000001".to_string(),
             expected_version: 0,
         }
+    }
+
+    fn test_server(frontend_ingress_url: String) -> FoundationApiServer {
+        let mut config = FoundationApiConfig::default();
+        config.foundation.frontend_ingress_url = Some(frontend_ingress_url);
+
+        FoundationApiServer::new(
+            config,
+            Arc::new(()),
+            SysDb::Test(TestSysDb::new()),
+            vec![],
+            System::new(),
+        )
+    }
+
+    fn wiki_collection() -> Collection {
+        Collection {
+            collection_id: CollectionUuid::default(),
+            name: "wiki".to_string(),
+            tenant: "tenant".to_string(),
+            database: "FOUNDATION".to_string(),
+            ..Default::default()
+        }
+    }
+
+    fn collection_path(collection: &Collection, suffix: &str) -> String {
+        format!(
+            "/api/v2/tenants/{}/databases/{}/collections/{}/{}",
+            collection.tenant, collection.database, collection.collection_id, suffix
+        )
+    }
+
+    fn conditional_get_response(ids: Vec<String>) -> Value {
+        json!({
+            "ids": ids,
+            "embeddings": null,
+            "documents": null,
+            "uris": null,
+            "metadatas": null,
+            "include": ["metadatas"],
+            "read_token": 42,
+        })
+    }
+
+    fn chunk_ids(slug: &str, count: usize) -> Vec<String> {
+        (0..count)
+            .map(|chunk_id| ChunkRecordId::new(slug, chunk_id).to_string())
+            .collect()
     }
 
     fn chunk_meta(chunk_id: i64, version: Option<i64>) -> Metadata {
@@ -648,6 +732,12 @@ mod tests {
     }
 
     #[test]
+    fn page_chunk_read_limit_stays_within_chroma_get_limit() {
+        assert_eq!(PAGE_CHUNK_READ_LIMIT as usize, MAX_TRANSACTION_WRITES);
+        assert_eq!(PAGE_CHUNK_OVERFLOW_OFFSET as usize, MAX_TRANSACTION_WRITES);
+    }
+
+    #[test]
     fn transaction_write_limit_counts_upserts_and_deletes() {
         enforce_transaction_write_limit(300, 0).unwrap();
         enforce_transaction_write_limit(1, 299).unwrap();
@@ -661,6 +751,118 @@ mod tests {
             }
         ));
         assert_eq!(err.code(), ErrorCodes::ResourceExhausted);
+    }
+
+    #[tokio::test]
+    async fn run_upsert_page_rejects_non_empty_overflow_read() {
+        let mock_server = MockServer::start_async().await;
+        let server = test_server(mock_server.base_url());
+        let collection = wiki_collection();
+        let slug = "foo";
+        let chunk0 = ChunkRecordId::new(slug, 0).to_string();
+        let where_slug_json = serde_json::to_value(where_slug(slug)).expect("serialize where");
+        let mut headers = HeaderMap::new();
+        headers.insert(CHROMA_TOKEN_HEADER, HeaderValue::from_static("user-token"));
+
+        let get_collection_path = format!(
+            "/api/v2/tenants/{}/databases/{}/collections/{}",
+            collection.tenant, collection.database, collection.name
+        );
+        let get_collection_body =
+            serde_json::to_value(collection.clone()).expect("serialize collection");
+        let get_collection_mock = mock_server
+            .mock_async(move |when, then| {
+                when.method("GET").path(get_collection_path);
+                then.status(200).json_body(get_collection_body.clone());
+            })
+            .await;
+
+        let conditional_get_path = collection_path(&collection, "conditional/get");
+        let chunk0_get_path = conditional_get_path.clone();
+        let chunk0_get = chunk0.clone();
+        let chunk0_get_mock = mock_server
+            .mock_async(move |when, then| {
+                when.method("POST").path(chunk0_get_path).json_body(json!({
+                    "ids": [chunk0_get],
+                    "where": null,
+                    "where_document": null,
+                    "limit": null,
+                    "offset": 0,
+                    "include": ["metadatas"],
+                    "read_token": null,
+                }));
+                then.status(200)
+                    .json_body(conditional_get_response(vec![chunk0.clone()]));
+            })
+            .await;
+
+        let existing_get_path = conditional_get_path.clone();
+        let existing_where = where_slug_json.clone();
+        let existing_get_mock = mock_server
+            .mock_async(move |when, then| {
+                when.method("POST")
+                    .path(existing_get_path)
+                    .json_body(json!({
+                        "ids": null,
+                        "where": existing_where,
+                        "where_document": null,
+                        "limit": PAGE_CHUNK_READ_LIMIT,
+                        "offset": 0,
+                        "include": ["metadatas"],
+                        "read_token": 42,
+                    }));
+                then.status(200)
+                    .json_body(conditional_get_response(chunk_ids(
+                        slug,
+                        MAX_TRANSACTION_WRITES,
+                    )));
+            })
+            .await;
+
+        let overflow_get_mock = mock_server
+            .mock_async(move |when, then| {
+                when.method("POST")
+                    .path(conditional_get_path)
+                    .json_body(json!({
+                        "ids": null,
+                        "where": where_slug_json,
+                        "where_document": null,
+                        "limit": 1,
+                        "offset": PAGE_CHUNK_OVERFLOW_OFFSET,
+                        "include": ["metadatas"],
+                        "read_token": 42,
+                    }));
+                then.status(200)
+                    .json_body(conditional_get_response(vec![ChunkRecordId::new(
+                        slug,
+                        MAX_TRANSACTION_WRITES,
+                    )
+                    .to_string()]));
+            })
+            .await;
+
+        let err = run_upsert_page(
+            &server,
+            &headers,
+            "tenant",
+            &request(slug, "# Title\n\nBody", &[], &[]),
+            &[],
+        )
+        .await
+        .expect_err("overflow read should reject the upsert");
+
+        assert!(matches!(
+            err,
+            UpsertPageError::TooManyTransactionWrites {
+                writes: 301,
+                limit: MAX_TRANSACTION_WRITES,
+            }
+        ));
+        assert_eq!(err.code(), ErrorCodes::ResourceExhausted);
+        assert_eq!(get_collection_mock.calls(), 1);
+        assert_eq!(chunk0_get_mock.calls(), 1);
+        assert_eq!(existing_get_mock.calls(), 1);
+        assert_eq!(overflow_get_mock.calls(), 1);
     }
 
     #[test]
@@ -758,6 +960,13 @@ mod tests {
         req.validate().unwrap();
 
         req.reason = Some("a".repeat(351));
+        assert!(req.validate().is_err());
+    }
+
+    #[test]
+    fn request_validate_requires_last_written_by() {
+        let mut req = request("foo", "body", &[], &[]);
+        req.last_written_by.clear();
         assert!(req.validate().is_err());
     }
 }

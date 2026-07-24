@@ -28,8 +28,7 @@ use validator::Validate;
 /// Request body for `POST /api/read-page`.
 #[derive(Debug, Deserialize, Validate)]
 pub struct ReadPageRequest {
-    /// Slug of the wiki page to reconstruct in full.
-    #[validate(length(min = 1, message = "slug must not be empty"))]
+    /// Slug of the wiki page to reconstruct in full. Empty string is the wiki root.
     pub slug: String,
 }
 
@@ -47,6 +46,8 @@ pub(crate) struct FoundationPage {
     pub source_ids: Vec<String>,
     pub version: u32,
     pub updated_at: Option<i64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub last_written_by: Option<String>,
     pub content: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub url: Option<String>,
@@ -231,6 +232,7 @@ fn assemble_page(slug: &str, mut chunks: Vec<(String, Metadata)>) -> Option<Foun
             .and_then(|version| u32::try_from(version).ok())
             .unwrap_or(0),
         updated_at: meta_int(head, "updated_at"),
+        last_written_by: meta_str(head, "last_written_by"),
         content,
         url: None,
     })
@@ -248,6 +250,10 @@ mod tests {
             MetadataValue::Str("My Page".to_string()),
         );
         meta.insert("updated_at".to_string(), MetadataValue::Int(1700));
+        meta.insert(
+            "last_written_by".to_string(),
+            MetadataValue::Str("00000000-0000-0000-0000-000000000001".to_string()),
+        );
         meta.insert(
             "categories".to_string(),
             MetadataValue::StringArray(vec!["eng".to_string()]),
@@ -276,6 +282,10 @@ mod tests {
         assert_eq!(page.source_ids, vec!["slack_master:abc".to_string()]);
         assert_eq!(page.version, 7);
         assert_eq!(page.updated_at, Some(1700));
+        assert_eq!(
+            page.last_written_by,
+            Some("00000000-0000-0000-0000-000000000001".to_string())
+        );
         // Chunks are joined with no separator.
         assert_eq!(page.content, "hello world");
     }
@@ -291,6 +301,7 @@ mod tests {
         assert!(page.source_ids.is_empty());
         assert_eq!(page.version, 0);
         assert_eq!(page.updated_at, None);
+        assert_eq!(page.last_written_by, None);
     }
 
     #[test]
@@ -332,14 +343,14 @@ mod tests {
     }
 
     #[test]
-    fn read_page_request_rejects_empty_slug() {
+    fn read_page_request_allows_root_slug() {
         let valid: ReadPageRequest =
             serde_json::from_value(serde_json::json!({ "slug": "my-page" })).expect("deserialize");
         assert!(valid.validate().is_ok());
 
-        let empty: ReadPageRequest =
+        let root: ReadPageRequest =
             serde_json::from_value(serde_json::json!({ "slug": "" })).expect("deserialize");
-        assert!(empty.validate().is_err());
+        assert!(root.validate().is_ok());
     }
 
     #[test]

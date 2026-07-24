@@ -479,11 +479,11 @@ impl LocalSessionWorker {
         &mut self,
         notification: &JsonRpcNotification<ClientNotification>,
     ) {
-        if let ClientNotification::CancelledNotification(n) = &notification.notification {
-            if let Some(request_id) = n.params.request_id.clone() {
-                let resource = ResourceKey::McpRequestId(request_id);
-                self.unregister_resource(&resource);
-            }
+        if let ClientNotification::CancelledNotification(n) = &notification.notification
+            && let Some(request_id) = n.params.request_id.clone()
+        {
+            let resource = ResourceKey::McpRequestId(request_id);
+            self.unregister_resource(&resource);
         }
     }
     fn evict_expired_channels(&mut self) {
@@ -527,7 +527,36 @@ impl LocalSessionWorker {
     }
     fn resolve_outbound_channel(&self, message: &ServerJsonRpcMessage) -> OutboundChannel {
         match &message {
-            ServerJsonRpcMessage::Request(_) => OutboundChannel::Common,
+            // SEP-2260: requests carrying an OriginatingRequestId marker ride the
+            // originating request's SSE stream, never the standalone GET stream.
+            ServerJsonRpcMessage::Request(json_rpc_request) => {
+                use crate::model::GetExtensions;
+                let originating = json_rpc_request
+                    .request
+                    .extensions()
+                    .get::<crate::service::OriginatingRequestId>();
+                match originating {
+                    Some(originating) => match self
+                        .resource_router
+                        .get(&ResourceKey::McpRequestId(originating.0.clone()))
+                    {
+                        Some(id) => OutboundChannel::RequestWise {
+                            id: *id,
+                            close: false,
+                        },
+                        None => {
+                            tracing::warn!(
+                                originating_request_id = %originating.0,
+                                "associated server request could not be routed to its \
+                                 originating stream (request completed or association \
+                                 lost); falling back to standalone stream"
+                            );
+                            OutboundChannel::Common
+                        }
+                    },
+                    None => OutboundChannel::Common,
+                }
+            }
             ServerJsonRpcMessage::Notification(JsonRpcNotification {
                 notification:
                     ServerNotification::ProgressNotification(Notification {
@@ -609,11 +638,9 @@ impl LocalSessionWorker {
             OutboundChannel::RequestWise { id, close } => {
                 if let Some(request_wise) = self.tx_router.get_mut(&id) {
                     request_wise.tx.send(message).await?;
-                    if close {
-                        if let Some(channel) = self.tx_router.remove(&id) {
-                            for resource in channel.resources {
-                                self.resource_router.remove(&resource);
-                            }
+                    if close && let Some(channel) = self.tx_router.remove(&id) {
+                        for resource in channel.resources {
+                            self.resource_router.remove(&resource);
                         }
                     }
                 } else {
@@ -1280,4 +1307,71 @@ fn create_local_session_with_event_store(
         event_store,
     };
     (handle, session_worker)
+}
+
+#[cfg(test)]
+mod sep2260_routing_tests {
+    use super::*;
+    use crate::service::OriginatingRequestId;
+
+    fn roots_request(originating: Option<RequestId>) -> ServerJsonRpcMessage {
+        #[expect(
+            deprecated,
+            reason = "roots is SEP-2577-deprecated; any restricted request works here"
+        )]
+        let mut request = crate::model::ListRootsRequest {
+            method: Default::default(),
+            extensions: Default::default(),
+        };
+        if let Some(id) = originating {
+            request.extensions.insert(OriginatingRequestId(id));
+        }
+        ServerJsonRpcMessage::request(
+            crate::model::ServerRequest::ListRootsRequest(request),
+            RequestId::Number(1000),
+        )
+    }
+
+    #[tokio::test]
+    async fn associated_server_request_routes_to_originating_stream() {
+        let (_handle, mut worker) = create_local_session("test-session", SessionConfig::default());
+        let receiver = worker.establish_request_wise_channel().await.unwrap();
+        let http_request_id = receiver.http_request_id.unwrap();
+        let originating_id = RequestId::Number(7);
+        worker.register_resource(
+            ResourceKey::McpRequestId(originating_id.clone()),
+            http_request_id,
+        );
+
+        let channel = worker.resolve_outbound_channel(&roots_request(Some(originating_id)));
+        assert!(
+            matches!(channel, OutboundChannel::RequestWise { id, close: false } if id == http_request_id)
+        );
+    }
+
+    #[tokio::test]
+    async fn unassociated_server_request_routes_to_common_stream() {
+        let (_handle, mut worker) = create_local_session("test-session", SessionConfig::default());
+        let _receiver = worker.establish_request_wise_channel().await.unwrap();
+        let channel = worker.resolve_outbound_channel(&roots_request(None));
+        assert!(matches!(channel, OutboundChannel::Common));
+    }
+
+    #[tokio::test]
+    async fn associated_request_for_completed_request_falls_back_to_common() {
+        // Originating request already unregistered (completion race / re-scoped
+        // task op): must fall back to Common, never a closed request-wise channel.
+        let (_handle, mut worker) = create_local_session("test-session", SessionConfig::default());
+        let receiver = worker.establish_request_wise_channel().await.unwrap();
+        let http_request_id = receiver.http_request_id.unwrap();
+        let originating_id = RequestId::Number(7);
+        worker.register_resource(
+            ResourceKey::McpRequestId(originating_id.clone()),
+            http_request_id,
+        );
+        worker.unregister_resource(&ResourceKey::McpRequestId(originating_id.clone()));
+
+        let channel = worker.resolve_outbound_channel(&roots_request(Some(originating_id)));
+        assert!(matches!(channel, OutboundChannel::Common));
+    }
 }

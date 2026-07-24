@@ -83,6 +83,7 @@ class PaginationButton:
 	backend_node_id: int  # Backend node ID for clicking
 	text: str  # Button text/label
 	selector: str  # XPath or other selector to locate the element
+	selector_index: int | None = None  # Model-visible selector index
 	is_disabled: bool = False  # Whether the button appears disabled
 
 

@@ -1114,6 +1114,7 @@ class DomService:
 			List of pagination button information dicts with:
 			- button_type: 'next', 'prev', 'first', 'last', 'page_number'
 			- backend_node_id: Backend node ID for clicking
+			- selector_index: Model-visible selector index
 			- text: Button text/label
 			- selector: XPath selector
 			- is_disabled: Whether the button appears disabled
@@ -1172,7 +1173,8 @@ class DomService:
 				pagination_buttons.append(
 					{
 						'button_type': button_type,
-						'backend_node_id': index,
+						'backend_node_id': node.backend_node_id,
+						'selector_index': index,
 						'text': node.get_all_children_text().strip() or aria_label or title,
 						'selector': node.xpath,
 						'is_disabled': is_disabled,
