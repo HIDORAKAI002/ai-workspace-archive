@@ -1,5 +1,0 @@
-node_modules/
-build/
-*.log
-.env*
-src/version.ts

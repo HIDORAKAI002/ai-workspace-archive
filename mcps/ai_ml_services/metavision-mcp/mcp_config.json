@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "metavision": {
-      "command": "python3",
-      "args": ["/home/ubuntu/metavision_brain/mcp_server.py"],
-      "description": "MetaVision AI Studio - Generate 3D models, browse gallery"
-    }
-  }
-}
