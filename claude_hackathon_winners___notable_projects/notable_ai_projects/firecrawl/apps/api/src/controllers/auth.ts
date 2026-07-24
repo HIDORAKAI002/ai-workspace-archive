@@ -27,10 +27,7 @@ import {
 } from "../db/rpc";
 import { AuthResponse, RateLimiterMode } from "../types";
 import { AuthCreditUsageChunk, AuthCreditUsageChunkFromTeam } from "./v1/types";
-import {
-  autumnService,
-  isAutumnLimitsEnabled,
-} from "../services/autumn/autumn.service";
+import { autumnService } from "../services/autumn/autumn.service";
 
 function normalizedApiIsUuid(potentialUuid: string): boolean {
   // Check if the string is a valid UUID
@@ -459,7 +456,7 @@ const KEYLESS_SUSPICIOUS_IP_MESSAGE = `Unfortunately, your IP address looks susp
  */
 async function handleKeylessAuth(
   req,
-  mode: RateLimiterMode | undefined,
+  mode: RateLimiterMode,
   allowKeyless: boolean | undefined,
 ): Promise<AuthResponse> {
   const unauthorized: AuthResponse = {
@@ -601,7 +598,7 @@ async function handleKeylessAuth(
 export async function authenticateUser(
   req,
   res,
-  mode?: RateLimiterMode,
+  mode: RateLimiterMode,
   options?: { allowKeyless?: boolean },
 ): Promise<AuthResponse> {
   const bypassChunk = mockACUC();
@@ -618,10 +615,24 @@ export async function authenticateUser(
   })(req, res, mode, options);
 }
 
+/**
+ * Builds the rate limiter for an authenticated team from its Autumn rate-limit
+ * multiplier. Shared by the OAuth and API-key paths so their limiter setup
+ * can't diverge.
+ */
+async function buildAuthenticatedRateLimiter(
+  teamId: string,
+  orgId: string | null | undefined,
+  mode: RateLimiterMode,
+): Promise<RateLimiterRedis> {
+  const multiplier = await autumnService.getRateLimitMultiplier(teamId, orgId);
+  return getAutumnRateLimiter(mode, multiplier);
+}
+
 async function supaAuthenticateUser(
   req,
   res,
-  mode?: RateLimiterMode,
+  mode: RateLimiterMode,
   options?: { allowKeyless?: boolean },
 ): Promise<AuthResponse> {
   const authHeader =
@@ -694,21 +705,11 @@ async function supaAuthenticateUser(
     subscriptionData = {
       team_id: teamId,
     };
-    if (isAutumnLimitsEnabled(chunk.org_id)) {
-      const rateLimitMultiplier = await autumnService.getRateLimitMultiplier(
-        teamId,
-        chunk.org_id,
-      );
-      rateLimiter = getAutumnRateLimiter(
-        mode ?? RateLimiterMode.Crawl,
-        rateLimitMultiplier,
-      );
-    } else {
-      rateLimiter = getRateLimiter(
-        mode ?? RateLimiterMode.Crawl,
-        chunk.rate_limits,
-      );
-    }
+    rateLimiter = await buildAuthenticatedRateLimiter(
+      teamId,
+      chunk.org_id,
+      mode,
+    );
   } else {
     normalizedApi = parseApi(token);
     if (!normalizedApiIsUuid(normalizedApi)) {
@@ -734,21 +735,11 @@ async function supaAuthenticateUser(
     subscriptionData = {
       team_id: teamId,
     };
-    if (isAutumnLimitsEnabled(chunk.org_id)) {
-      const rateLimitMultiplier = await autumnService.getRateLimitMultiplier(
-        teamId,
-        chunk.org_id,
-      );
-      rateLimiter = getAutumnRateLimiter(
-        mode ?? RateLimiterMode.Crawl,
-        rateLimitMultiplier,
-      );
-    } else {
-      rateLimiter = getRateLimiter(
-        mode ?? RateLimiterMode.Crawl,
-        chunk.rate_limits,
-      );
-    }
+    rateLimiter = await buildAuthenticatedRateLimiter(
+      teamId,
+      chunk.org_id,
+      mode,
+    );
   }
 
   if (chunk?.flags?.ipRestriction) {

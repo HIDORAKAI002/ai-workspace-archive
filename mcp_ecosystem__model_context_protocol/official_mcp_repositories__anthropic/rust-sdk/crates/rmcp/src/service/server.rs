@@ -49,6 +49,31 @@ impl ServiceRole for RoleServer {
             _ => None,
         }
     }
+
+    fn enforce_request_association(
+        request: &Self::Req,
+        peer_info: Option<&Self::PeerInfo>,
+        in_request_handler_scope: bool,
+    ) -> Result<(), ServiceError> {
+        let restricted = matches!(
+            request,
+            ServerRequest::CreateMessageRequest(_)
+                | ServerRequest::ListRootsRequest(_)
+                | ServerRequest::ElicitRequest(_)
+        );
+        if !restricted {
+            return Ok(());
+        }
+        let strict =
+            peer_info.is_some_and(|info| info.protocol_version >= ProtocolVersion::V_2026_07_28);
+        if strict && !in_request_handler_scope {
+            return Err(ServiceError::McpError(ErrorData::invalid_request(
+                "SEP-2260: server-to-client requests must be associated with an originating client request",
+                None,
+            )));
+        }
+        Ok(())
+    }
 }
 
 /// It represents the error that may occur when serving the server.
@@ -744,6 +769,10 @@ impl Peer<RoleServer> {
         }
     }
 
+    /// # SEP-2260: request association
+    ///
+    /// From protocol version `2026-07-28` this must be issued while handling a
+    /// client request; see [`OriginatingRequestId`].
     #[deprecated(
         since = "1.8.0",
         note = "Sampling is deprecated by SEP-2577 and will be removed in a future release. See https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577"
@@ -778,6 +807,10 @@ impl Peer<RoleServer> {
         }
     }
     method!(
+        /// # SEP-2260: request association
+        ///
+        /// From protocol version `2026-07-28` this must be issued while handling a
+        /// client request; see [`OriginatingRequestId`].
         #[deprecated(
             since = "1.8.0",
             note = "Roots is deprecated by SEP-2577 and will be removed in a future release. See https://github.com/modelcontextprotocol/modelcontextprotocol/pull/2577"
@@ -785,9 +818,21 @@ impl Peer<RoleServer> {
         peer_req list_roots ListRootsRequest() => ListRootsResult
     );
     #[cfg(feature = "elicitation")]
-    method!(peer_req create_elicitation ElicitRequest(ElicitRequestParams) => ElicitResult);
+    method!(
+        /// # SEP-2260: request association
+        ///
+        /// From protocol version `2026-07-28` this must be issued while handling a
+        /// client request; see [`OriginatingRequestId`].
+        peer_req create_elicitation ElicitRequest(ElicitRequestParams) => ElicitResult
+    );
     #[cfg(feature = "elicitation")]
-    method!(peer_req_with_timeout create_elicitation_with_timeout ElicitRequest(ElicitRequestParams) => ElicitResult);
+    method!(
+        /// # SEP-2260: request association
+        ///
+        /// From protocol version `2026-07-28` this must be issued while handling a
+        /// client request; see [`OriginatingRequestId`].
+        peer_req_with_timeout create_elicitation_with_timeout ElicitRequest(ElicitRequestParams) => ElicitResult
+    );
 
     method!(peer_not notify_cancelled CancelledNotification(CancelledNotificationParam));
     method!(peer_not notify_progress ProgressNotification(ProgressNotificationParam));
@@ -1014,6 +1059,11 @@ impl Peer<RoleServer> {
     /// # Ok(())
     /// # }
     /// ```
+    ///
+    /// # SEP-2260: request association
+    ///
+    /// From protocol version `2026-07-28` this must be issued while handling a
+    /// client request; see [`OriginatingRequestId`].
     #[cfg(all(feature = "schemars", feature = "elicitation"))]
     pub async fn elicit<T>(&self, message: impl Into<String>) -> Result<Option<T>, ElicitationError>
     where
@@ -1075,6 +1125,11 @@ impl Peer<RoleServer> {
     /// # Ok(())
     /// # }
     /// ```
+    ///
+    /// # SEP-2260: request association
+    ///
+    /// From protocol version `2026-07-28` this must be issued while handling a
+    /// client request; see [`OriginatingRequestId`].
     #[cfg(all(feature = "schemars", feature = "elicitation"))]
     pub async fn elicit_with_timeout<T>(
         &self,
@@ -1170,6 +1225,11 @@ impl Peer<RoleServer> {
     ///  Ok(())
     /// }
     /// ```
+    ///
+    /// # SEP-2260: request association
+    ///
+    /// From protocol version `2026-07-28` this must be issued while handling a
+    /// client request; see [`OriginatingRequestId`].
     #[cfg(feature = "elicitation")]
     pub async fn elicit_url(
         &self,
@@ -1221,6 +1281,11 @@ impl Peer<RoleServer> {
     ///  Ok(())
     /// }
     /// ```
+    ///
+    /// # SEP-2260: request association
+    ///
+    /// From protocol version `2026-07-28` this must be issued while handling a
+    /// client request; see [`OriginatingRequestId`].
     #[cfg(feature = "elicitation")]
     pub async fn elicit_url_with_timeout(
         &self,

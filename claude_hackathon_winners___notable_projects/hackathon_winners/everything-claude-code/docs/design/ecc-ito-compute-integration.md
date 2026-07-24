@@ -18,6 +18,30 @@ OAuth integration, billing flow, or rental mutation.
 No Phase 2 skill, CLI, MCP, OAuth, rental-management, or serving code should be
 built until Affaan approves the decisions at the end of this document.
 
+### Narrow sandbox handoff authorized on 2026-07-23
+
+Affaan separately authorized one smaller CLI slice:
+
+    ecc ito rent --accelerator h100 --count 1 --hours 24
+
+That command is implemented as `ito.compute.handoff.v1`. It validates an
+explicit H100 intent, records `ecc-cli` provenance, fixes the authority ceiling
+at read-only sandbox mode, and opens only the `/desk` page, where sign-in may be
+required. `--dry-run` emits the identical structured handoff without opening a
+browser.
+
+The current Itô desk does not expose a supported structured ECC deep link or a
+non-mutating external-intake endpoint. The CLI therefore returns
+`transport: manual_copy` and `acceptedByIto: false`; it does not pretend that
+opening `/desk` delivered the intent. A human may copy the bounded message into
+the conversational desk. ECC never reads credentials, files an RFQ, requests
+or accepts a quote, calls procurement, approves funds, creates an order, or
+contacts a counterparty. The user must stop before `Pay & buy`.
+
+This narrow authorization does not approve the five skills, MCP, OAuth, rental
+management, inference serving, deployment, publication, or any live economic
+mutation described later in this document.
+
 ## Thesis
 
 The distribution chain is:

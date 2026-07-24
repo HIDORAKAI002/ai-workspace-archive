@@ -110,6 +110,7 @@
     "scripts/hooks/",
     "scripts/install-apply.js",
     "scripts/install-plan.js",
+    "scripts/ito.js",
     "scripts/lib/",
     "scripts/list-installed.js",
     "scripts/loop-status.js",

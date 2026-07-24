@@ -149,6 +149,29 @@ pub trait ServiceRole: std::fmt::Debug + Send + Sync + 'static + Copy + Clone {
     ) -> impl Future<Output = ()> + MaybeSendFuture {
         async {}
     }
+
+    #[doc(hidden)]
+    fn enforce_request_association(
+        _request: &Self::Req,
+        _peer_info: Option<&Self::PeerInfo>,
+        _in_request_handler_scope: bool,
+    ) -> Result<(), ServiceError> {
+        Ok(())
+    }
+
+    /// Receive-side counterpart of [`Self::enforce_request_association`]:
+    /// SEP-2260 says clients receiving a server-to-client request with no
+    /// associated outbound request should reject it with invalid params. An
+    /// error return is sent back to the peer instead of dispatching to the
+    /// handler.
+    #[doc(hidden)]
+    fn enforce_peer_request_association(
+        _peer_request: &Self::PeerReq,
+        _peer_info: Option<&Self::PeerInfo>,
+        _has_pending_outbound_request: bool,
+    ) -> Result<(), McpError> {
+        Ok(())
+    }
 }
 
 pub(crate) fn uses_legacy_lifecycle(
@@ -158,6 +181,33 @@ pub(crate) fn uses_legacy_lifecycle(
     !uses_discover_lifecycle
         && protocol_version.is_none_or(|version| version < &ProtocolVersion::V_2026_07_28)
 }
+
+tokio::task_local! {
+    pub(crate) static ORIGINATING_REQUEST: RequestId;
+}
+
+pub(crate) fn in_request_handler_scope() -> bool {
+    ORIGINATING_REQUEST.try_with(|_| ()).is_ok()
+}
+
+/// Marker in an outbound request's non-serialized [`Extensions`] identifying
+/// the in-flight peer request it was issued from (SEP-2260). Attached for both
+/// roles whenever a request is sent from within a request handler; the
+/// streamable HTTP server reads it to deliver server-initiated requests on the
+/// originating request's SSE stream. Never on the wire (SEP-2260 defines no
+/// wire field), so session managers that serialize messages between processes
+/// lose it and such requests fall back to the standalone stream with a warning.
+///
+/// # Caller requirements
+///
+/// From protocol version `2026-07-28`, server-to-client sampling, roots, and
+/// elicitation requests must be issued while handling a client request;
+/// outside a handler they return an `invalid_request` error. The association
+/// is task-local and does not cross `tokio::spawn`, so use the task manager
+/// for long-running work.
+#[derive(Debug, Clone, PartialEq, Eq)]
+#[expect(clippy::exhaustive_structs, reason = "intentionally exhaustive")]
+pub struct OriginatingRequestId(pub RequestId);
 
 pub type TxJsonRpcMessage<R> =
     JsonRpcMessage<<R as ServiceRole>::Req, <R as ServiceRole>::Resp, <R as ServiceRole>::Not>;
@@ -504,11 +554,10 @@ impl<R: ServiceRole> RequestHandle<R> {
                         None => None,
                     }
                 }, if reset_timeout_on_progress && idle_sleep.is_some() && self.progress_reset_rx.is_some() => {
-                    if progress.is_some() {
-                        if let Some((timeout, sleep)) = idle_sleep.as_mut() {
+                    if progress.is_some()
+                        && let Some((timeout, sleep)) = idle_sleep.as_mut() {
                             sleep.as_mut().reset(tokio::time::Instant::now() + *timeout);
                         }
-                    }
                 }
             }
         }
@@ -725,6 +774,16 @@ impl<R: ServiceRole> Peer<R> {
         options: PeerRequestOptions,
         subscription_sender: Option<SubscriptionChannel<R::PeerNot>>,
     ) -> Result<RequestHandle<R>, ServiceError> {
+        R::enforce_request_association(
+            &request,
+            self.peer_info().as_deref(),
+            in_request_handler_scope(),
+        )?;
+        if let Ok(originating) = ORIGINATING_REQUEST.try_with(|id| id.clone()) {
+            request
+                .extensions_mut()
+                .insert(OriginatingRequestId(originating));
+        }
         let id = self.request_id_provider.next_request_id();
         let progress_token = self.progress_token_provider.next_progress_token();
         if let Some(metadata) = self.client_request_metadata.get() {
@@ -1291,11 +1350,10 @@ where
             tracing::trace!(?evt, "new event");
             match evt {
                 Event::SendTaskResult(SendTaskResult::Request { id, result }) => {
-                    if let Err(e) = result {
-                        if let Some(responder) = local_responder_pool.remove(&id) {
+                    if let Err(e) = result
+                        && let Some(responder) = local_responder_pool.remove(&id) {
                             let _ = responder.send(Err(ServiceError::TransportSend(e)));
                         }
-                    }
                 }
                 Event::SendTaskResult(SendTaskResult::Notification {
                     responder,
@@ -1308,16 +1366,14 @@ where
                         Ok(())
                     };
                     let _ = responder.send(response);
-                    if let Some(param) = cancellation_param {
-                        if let Some(request_id) = &param.request_id {
-                            if let Some(responder) = local_responder_pool.remove(request_id) {
+                    if let Some(param) = cancellation_param
+                        && let Some(request_id) = &param.request_id
+                            && let Some(responder) = local_responder_pool.remove(request_id) {
                                 tracing::info!(id = %request_id, reason = param.reason, "cancelled");
                                 let _response_result = responder.send(Err(ServiceError::Cancelled {
                                     reason: param.reason.clone(),
                                 }));
                             }
-                        }
-                    }
                 }
                 Event::ResponseSendTaskResult(result) => {
                     if let Err(error) = result {
@@ -1389,6 +1445,24 @@ where
                     ..
                 })) => {
                     tracing::debug!(%id, ?request, "received request");
+                    if let Err(error) = R::enforce_peer_request_association(
+                        &request,
+                        peer.peer_info().as_deref(),
+                        !local_responder_pool.is_empty(),
+                    ) {
+                        tracing::warn!(%id, message = %error.message, "rejected peer request");
+                        // send directly: the sink proxy path would drop the
+                        // error since the request was never registered in
+                        // local_ct_pool
+                        let send = transport.send(JsonRpcMessage::error(error, Some(id)));
+                        let current_span = tracing::Span::current();
+                        response_send_tasks.spawn(async move {
+                            if let Err(error) = send.await {
+                                tracing::error!(%error, "fail to send rejection error");
+                            }
+                        }.instrument(current_span));
+                        continue;
+                    }
                     {
                         let service = shared_service.clone();
                         let sink = sink_proxy_tx.clone();
@@ -1409,9 +1483,10 @@ where
                             extensions,
                         };
                         let current_span = tracing::Span::current();
+                        let handler_id = id.clone();
                         spawn_service_task(async move {
-                            let result = service
-                                .handle_request(request, context)
+                            let result = ORIGINATING_REQUEST
+                                .scope(handler_id, service.handle_request(request, context))
                                 .await;
                             let response = match result {
                                 Ok(result) => {
@@ -1606,5 +1681,52 @@ where
         handle: Some(handle),
         cancellation_token: ct.clone(),
         dg: ct.drop_guard(),
+    }
+}
+
+#[cfg(all(test, feature = "server"))]
+mod sep2260_marker_tests {
+    use std::sync::Arc;
+
+    use super::*;
+    use crate::model::{PingRequest, RequestId, ServerRequest};
+
+    fn ping() -> ServerRequest {
+        ServerRequest::PingRequest(PingRequest {
+            method: Default::default(),
+            extensions: Default::default(),
+        })
+    }
+
+    async fn send_and_capture(scope: Option<RequestId>) -> <RoleServer as ServiceRole>::Req {
+        // peer_info None keeps enforcement non-strict; only the sink message matters.
+        let (peer, mut rx) =
+            Peer::<RoleServer>::new(Arc::new(AtomicU32RequestIdProvider::default()), None);
+        let send = peer.send_request_with_option(ping(), PeerRequestOptions::no_options());
+        let _handle = match scope {
+            Some(id) => ORIGINATING_REQUEST.scope(id, send).await.unwrap(),
+            None => send.await.unwrap(),
+        };
+        let PeerSinkMessage::Request { request, .. } = rx.recv().await.expect("sink message")
+        else {
+            panic!("expected a request sink message");
+        };
+        request
+    }
+
+    #[tokio::test]
+    async fn outbound_request_carries_originating_id_when_in_scope() {
+        let request = send_and_capture(Some(RequestId::Number(7))).await;
+        let marker = request
+            .extensions()
+            .get::<OriginatingRequestId>()
+            .expect("marker attached");
+        assert_eq!(marker.0, RequestId::Number(7));
+    }
+
+    #[tokio::test]
+    async fn outbound_request_has_no_marker_outside_scope() {
+        let request = send_and_capture(None).await;
+        assert!(request.extensions().get::<OriginatingRequestId>().is_none());
     }
 }
