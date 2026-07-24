@@ -29,6 +29,18 @@ affordances are product behavior.
 **Correct approach:** drive the real UI as blocked and allowed roles, capture both
 outcomes, and report raw/missing feedback as a UX finding.
 
+### L-E3 — Publishing synthetic displacement as passing layout evidence
+
+**Wrong approach:** apply a large temporary transform to isolate position syncing,
+then publish a screenshot while the product panel is visibly displaced.
+
+**Why it fails:** the numeric assertion may pass while the visual evidence depicts
+a broken product state and appears to prove the regression.
+
+**Correct approach:** capture the settled result of a real layout transition. Keep
+synthetic position probes as text evidence only, and restore the DOM before any
+passing screenshot.
+
 ## Product and interaction design
 
 ### L-D1 — Treating a status badge as the information hierarchy

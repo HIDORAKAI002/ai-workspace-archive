@@ -90,7 +90,10 @@ def _ensure_strict_json_schema(
     elif (
         typ == "object"
         and "additionalProperties" in json_schema
-        and json_schema["additionalProperties"]
+        # Compare with ``is not False`` rather than truthiness: OpenAPI/MCP schemas often use
+        # ``additionalProperties: {}`` (an empty schema meaning "allow anything"). That value is
+        # falsy in Python, so a truthiness check would silently leave a non-strict schema in place.
+        and json_schema["additionalProperties"] is not False
     ):
         raise UserError(
             "additionalProperties should not be set for object types. This could be because "

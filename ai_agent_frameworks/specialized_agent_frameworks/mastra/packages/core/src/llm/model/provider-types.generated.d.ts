@@ -142,6 +142,7 @@ export type ProviderModelsMap = {
     'qwen/qwen3.6-plus',
     'qwen/qwen3.7-max',
     'qwen/qwen3.7-plus',
+    'tencent/hy3',
     'tencent/hy3-preview',
     'x-ai/grok-4.3',
     'x-ai/grok-4.5',
@@ -466,6 +467,9 @@ export type ProviderModelsMap = {
     'gpt-5.6-terra',
   ];
   readonly google: readonly [
+    'deep-research-max-preview-04-2026',
+    'deep-research-preview-04-2026',
+    'gemini-2.5-computer-use-preview-10-2025',
     'gemini-2.5-flash',
     'gemini-2.5-flash-image',
     'gemini-2.5-flash-lite',
@@ -473,20 +477,33 @@ export type ProviderModelsMap = {
     'gemini-2.5-pro',
     'gemini-2.5-pro-preview-tts',
     'gemini-3-flash-preview',
+    'gemini-3-pro-image',
     'gemini-3-pro-image-preview',
+    'gemini-3.1-flash-image',
     'gemini-3.1-flash-image-preview',
     'gemini-3.1-flash-lite',
+    'gemini-3.1-flash-lite-image',
+    'gemini-3.1-flash-live-preview',
+    'gemini-3.1-flash-tts-preview',
     'gemini-3.1-pro-preview',
     'gemini-3.1-pro-preview-customtools',
     'gemini-3.5-flash',
     'gemini-3.5-flash-lite',
+    'gemini-3.5-live-translate-preview',
     'gemini-3.6-flash',
     'gemini-embedding-001',
+    'gemini-embedding-2',
     'gemini-flash-latest',
     'gemini-flash-lite-latest',
     'gemini-omni-flash-preview',
+    'gemini-robotics-er-1.6-preview',
     'gemma-4-26b-a4b-it',
     'gemma-4-31b-it',
+    'lyria-3-clip-preview',
+    'lyria-3-pro-preview',
+    'veo-3.1-fast-generate-preview',
+    'veo-3.1-generate-preview',
+    'veo-3.1-lite-generate-preview',
   ];
   readonly thinkingmachines: readonly ['thinkingmachines/Inkling', 'thinkingmachines/Inkling:peft:262144'];
   readonly lilac: readonly ['google/gemma-4-31b-it', 'minimaxai/minimax-m3', 'moonshotai/kimi-k2.6', 'zai-org/glm-5.2'];
@@ -1539,6 +1556,7 @@ export type ProviderModelsMap = {
     'kimi-k2.6',
     'kimi-k2.7-code',
     'laguna-s-2.1-free',
+    'ling-3.0-flash-free',
     'mimo-v2.5-free',
     'minimax-m2.5',
     'minimax-m2.7',
@@ -2722,6 +2740,7 @@ export type ProviderModelsMap = {
     'grok-imagine-image',
     'grok-imagine-image-quality',
     'grok-imagine-video',
+    'grok-imagine-video-1.5',
   ];
   readonly zenifra: readonly ['alibaba/qwen3.6-35b-a3b'];
   readonly morph: readonly ['auto', 'morph-v3-fast', 'morph-v3-large'];
@@ -4075,6 +4094,7 @@ export type ProviderModelsMap = {
     'inception/mercury-2',
     'inclusionai/ling-2.6-1t',
     'inclusionai/ling-2.6-flash',
+    'inclusionai/ling-3.0-flash:free',
     'inclusionai/ring-2.6-1t',
     'inflection/inflection-3-pi',
     'inflection/inflection-3-productivity',
@@ -4546,6 +4566,7 @@ export type ProviderModelsMap = {
   ];
   readonly chutes: readonly [
     'MiniMaxAI/MiniMax-M2.5-TEE',
+    'Nemotron-3-Nano-Omni-30B-TEE',
     'Qwen/Qwen3-235B-A22B-Thinking-2507-TEE',
     'Qwen/Qwen3-32B-TEE',
     'Qwen/Qwen3.5-397B-A17B-TEE',

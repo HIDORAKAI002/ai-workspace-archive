@@ -344,11 +344,28 @@
           </VueFlow>
         </div>
 
+        <!-- Right panel floating toggle (bottom-right of canvas) -->
+        <button v-show="viewMode !== 'chat'" class="right-panel-fab" @click="isRightPanelOpen = !isRightPanelOpen" :title="isRightPanelOpen ? $t('launch.collapse_panel') : $t('launch.expand_panel')">
+          <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="5" cy="6" r="2.5"></circle>
+            <circle cx="19" cy="6" r="2.5"></circle>
+            <circle cx="12" cy="18" r="2.5"></circle>
+            <line x1="5" y1="8.5" x2="12" y2="15.5"></line>
+            <line x1="19" y1="8.5" x2="12" y2="15.5"></line>
+          </svg>
+        </button>
       </div>
 
       <!-- Right panel -->
-      <div class="right-panel">
-        <div class="control-section">
+      <div
+        class="right-panel"
+        :class="{
+          'right-panel-overlay': viewMode === 'graph',
+          'right-panel-collapsed': viewMode === 'graph' && !isRightPanelOpen
+        }"
+      >
+
+        <div v-show="viewMode !== 'graph' || isRightPanelOpen" class="control-section">
           <label class="section-label">{{ $t('launch.workflow_selection') }}</label>
       <div
         class="select-wrapper custom-file-selector"
@@ -720,6 +737,7 @@ const showSettingsModal = ref(false)
 // View mode
 const viewMode = ref('chat')
 const isChatPanelOpen = ref(true)
+const isRightPanelOpen = ref(true)
 
 // WebSocket reference
 let ws = null
@@ -2569,7 +2587,7 @@ watch(
 .chat-panel-toggle {
   position: absolute;
   top: 12px;
-  right: -32px;
+  right: -28px;
   width: 28px;
   height: 28px;
   border-radius: 0 8px 8px 0;
@@ -2602,7 +2620,7 @@ watch(
 }
 
 .chat-panel-collapsed .chat-panel-toggle {
-  right: -32px;
+  right: -28px;
   left: auto;
 }
 
@@ -3226,6 +3244,60 @@ watch(
   gap: 20px;
   min-width: 250px;
 }
+
+/* Right Panel — overlay mode (graph view) */
+.right-panel-overlay {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 300px;
+  max-width: 40%;
+  z-index: 10;
+  flex: none;
+  min-width: 0;
+  pointer-events: none;
+  transition: width 0.3s ease;
+}
+
+.right-panel-overlay .control-section {
+  pointer-events: auto;
+}
+
+.right-panel-collapsed {
+  width: 0;
+}
+
+.right-panel-fab {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  border: 1px solid rgba(120, 160, 255, 0.3);
+  background: rgba(26, 26, 26, 0.94);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(120, 160, 255, 0.08);
+  color: rgba(180, 200, 255, 0.85);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: auto;
+  transition: all 0.2s ease;
+  padding: 0;
+  z-index: 11;
+}
+
+.right-panel-fab:hover {
+  background: rgba(40, 45, 60, 0.95);
+  color: #c8d8ff;
+  border-color: rgba(120, 160, 255, 0.5);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 0 12px rgba(120, 160, 255, 0.15);
+  transform: translateY(-2px);
+}
+
 
 .control-section {
   flex: 1;

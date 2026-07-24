@@ -283,9 +283,12 @@ class MCPServerManager(AbstractAsyncContextManager["MCPServerManager"]):
                 self._remove_failed_server(server)
                 self.errors.pop(server, None)
         except asyncio.CancelledError as exc:
+            # Always record so connect_all()'s failure cleanup includes this server.
+            # Re-raising without recording left partially-opened servers uncleaned
+            # (especially under `async with`, where __aexit__ never runs).
+            self._record_failure(server, exc, phase="connect")
             if not self.suppress_cancelled_error:
                 raise
-            self._record_failure(server, exc, phase="connect")
         except Exception as exc:
             self._record_failure(server, exc, phase="connect")
             if raise_on_error:

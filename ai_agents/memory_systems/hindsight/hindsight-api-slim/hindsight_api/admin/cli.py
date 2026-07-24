@@ -9,6 +9,7 @@ import io
 import json
 import logging
 import zipfile
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -67,7 +68,67 @@ BACKUP_TABLES = [
     "graph_maintenance_queue",
 ]
 
-MANIFEST_VERSION = "1"
+MANIFEST_VERSION = "2"
+
+
+@dataclass(frozen=True)
+class BackupColumn:
+    """A PostgreSQL column shape required to decode a binary COPY stream."""
+
+    name: str
+    type_name: str
+
+
+async def _table_columns(conn: asyncpg.Connection, schema: str, table: str) -> list[BackupColumn]:
+    rows = await conn.fetch(
+        """
+        SELECT a.attname AS name, pg_catalog.format_type(a.atttypid, a.atttypmod) AS type_name
+        FROM pg_catalog.pg_attribute AS a
+        JOIN pg_catalog.pg_class AS c ON c.oid = a.attrelid
+        JOIN pg_catalog.pg_namespace AS n ON n.oid = c.relnamespace
+        WHERE n.nspname = $1 AND c.relname = $2 AND a.attnum > 0 AND NOT a.attisdropped
+          AND a.attgenerated = ''
+        ORDER BY a.attnum
+        """,
+        schema,
+        table,
+    )
+    return [BackupColumn(name=row["name"], type_name=row["type_name"]) for row in rows]
+
+
+async def _validate_restore_schema(
+    conn: asyncpg.Connection, manifest: dict[str, Any], schema: str
+) -> dict[str, list[str]]:
+    """Validate every COPY stream against the target before destructive work starts.
+
+    Type equality is an exact ``format_type`` string match. This is deliberately
+    stricter than binary-COPY wire compatibility (e.g. ``varchar`` and ``text``
+    share a binary format yet compare unequal here): we would rather fail a
+    genuinely-restorable backup with a clear, actionable error than silently risk
+    a subtle binary mismatch. Restores blocked this way can be recovered by
+    aligning the target schema.
+    """
+    restore_columns: dict[str, list[str]] = {}
+    errors: list[str] = []
+    for table, table_manifest in manifest["tables"].items():
+        source_columns = [BackupColumn(**column) for column in table_manifest["columns"]]
+        target_by_name = {column.name: column for column in await _table_columns(conn, schema, table)}
+        missing = [column.name for column in source_columns if column.name not in target_by_name]
+        mismatched = [
+            f"{column.name} ({column.type_name} in backup, {target_by_name[column.name].type_name} in target)"
+            for column in source_columns
+            if column.name in target_by_name and target_by_name[column.name].type_name != column.type_name
+        ]
+        if missing:
+            errors.append(f"{table}: target is missing backup columns {', '.join(missing)}")
+        if mismatched:
+            errors.append(f"{table}: incompatible column types: {', '.join(mismatched)}")
+        restore_columns[table] = [column.name for column in source_columns]
+
+    if errors:
+        details = "; ".join(errors)
+        raise ValueError(f"Backup schema is incompatible with target schema '{schema}': {details}")
+    return restore_columns
 
 
 async def _admin_connect(db_url: str) -> asyncpg.Connection:
@@ -111,9 +172,19 @@ async def _backup(database_url: str, output_path: Path, schema: str = "public") 
 
                     buffer = io.BytesIO()
 
-                    # Use binary COPY for exact type preservation
+                    columns = await _table_columns(conn, schema, table)
+
+                    # Pin the ordered columns into both the stream and manifest.
+                    # PostgreSQL binary COPY does not encode column identities, so
+                    # restore must validate this shape before truncating any data.
                     # asyncpg requires schema_name as separate parameter
-                    await conn.copy_from_table(table, schema_name=schema, output=buffer, format="binary")
+                    await conn.copy_from_table(
+                        table,
+                        schema_name=schema,
+                        columns=[column.name for column in columns],
+                        output=buffer,
+                        format="binary",
+                    )
 
                     data = buffer.getvalue()
                     zf.writestr(f"{table}.bin", data)
@@ -124,6 +195,7 @@ async def _backup(database_url: str, output_path: Path, schema: str = "public") 
                     tables[table] = {
                         "rows": row_count,
                         "size_bytes": len(data),
+                        "columns": [{"name": column.name, "type_name": column.type_name} for column in columns],
                     }
 
                     typer.echo(f" {row_count} rows")
@@ -144,6 +216,11 @@ async def _restore(database_url: str, input_path: Path, schema: str = "public") 
             manifest: dict[str, Any] = json.loads(zf.read("manifest.json"))
             if manifest.get("version") != MANIFEST_VERSION:
                 raise ValueError(f"Unsupported backup version: {manifest.get('version')}")
+
+            # Complete the compatibility check before entering the transaction
+            # that truncates tables. This turns historical schema drift into an
+            # actionable error without risking the target's existing data.
+            restore_columns = await _validate_restore_schema(conn, manifest, schema)
 
             # Use a transaction for atomic restore - either all tables are
             # restored or none are, preventing partial/inconsistent state.
@@ -167,7 +244,13 @@ async def _restore(database_url: str, input_path: Path, schema: str = "public") 
                     data = zf.read(filename)
                     buffer = io.BytesIO(data)
                     # asyncpg requires schema_name as separate parameter
-                    await conn.copy_to_table(table, schema_name=schema, source=buffer, format="binary")
+                    await conn.copy_to_table(
+                        table,
+                        schema_name=schema,
+                        columns=restore_columns[table],
+                        source=buffer,
+                        format="binary",
+                    )
 
                 # Refresh materialized view
                 typer.echo("  Refreshing materialized views...")

@@ -207,6 +207,7 @@
   "acceptance.workspace.filters.all": "Tất cả các chấp nhận",
   "acceptance.workspace.filters.completed": "Đã hoàn thành",
   "acceptance.workspace.filters.empty.active": "Không có chấp nhận nào đang tiến hành.",
+  "acceptance.workspace.filters.empty.all": "Chưa có sự chấp nhận nào.",
   "acceptance.workspace.filters.empty.completed": "Không có chấp nhận nào đã hoàn thành.",
   "acceptance.workspace.filters.noSearchResults": "Không có chấp nhận nào khớp với “{{query}}”.",
   "acceptance.workspace.filters.showAll": "Hiển thị tất cả các chấp nhận",

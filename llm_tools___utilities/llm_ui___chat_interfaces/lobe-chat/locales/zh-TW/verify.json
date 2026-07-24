@@ -207,6 +207,7 @@
   "acceptance.workspace.filters.all": "所有驗收",
   "acceptance.workspace.filters.completed": "已完成",
   "acceptance.workspace.filters.empty.active": "目前沒有進行中的驗收。",
+  "acceptance.workspace.filters.empty.all": "尚無任何接受。",
   "acceptance.workspace.filters.empty.completed": "目前沒有已完成的驗收。",
   "acceptance.workspace.filters.noSearchResults": "沒有符合「{{query}}」的驗收。",
   "acceptance.workspace.filters.showAll": "顯示所有驗收",

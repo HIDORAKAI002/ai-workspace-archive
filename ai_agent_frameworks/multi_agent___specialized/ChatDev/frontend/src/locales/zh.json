@@ -110,6 +110,8 @@
     "title": "启动",
     "collapse_chat": "折叠聊天",
     "expand_chat": "展开聊天",
+    "collapse_panel": "折叠面板",
+    "expand_panel": "展开面板",
     "loading_image": "加载图片...",
     "preparing": "准备中...",
     "upload_file": "上传文件",
