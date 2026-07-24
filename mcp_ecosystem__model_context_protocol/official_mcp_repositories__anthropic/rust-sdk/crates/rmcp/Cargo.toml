@@ -3,6 +3,7 @@ name = "rmcp"
 license = { workspace = true }
 version = { workspace = true }
 edition = { workspace = true }
+rust-version = { workspace = true }
 repository = { workspace = true }
 homepage = { workspace = true }
 readme = { workspace = true }
@@ -57,7 +58,7 @@ pastey = { version = "0.2.0", optional = true }
 # oauth2 support
 oauth2 = { version = "5.0", optional = true, default-features = false }
 # JWT signing for client credentials (private_key_jwt)
-jsonwebtoken = { version = "10", optional = true }
+jsonwebtoken = { version = "10", optional = true, features = ["aws_lc_rs"] }
 
 # for auto generate schema
 schemars = { version = "1.0", optional = true, features = ["chrono04"] }
@@ -445,3 +446,8 @@ required-features = [
   "reqwest",
 ]
 path = "tests/test_streamable_http_disconnect_cancel.rs"
+
+[[test]]
+name = "test_sep_2260_stream_routing"
+required-features = ["server", "elicitation", "transport-streamable-http-server", "reqwest"]
+path = "tests/test_sep_2260_stream_routing.rs"

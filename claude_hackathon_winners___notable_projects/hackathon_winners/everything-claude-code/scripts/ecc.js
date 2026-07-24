@@ -4,6 +4,7 @@ const { spawnSync } = require('child_process');
 const path = require('path');
 const { listAvailableLanguages } = require('./lib/install-executor');
 const { getComputeSponsorCopy } = require('./lib/compute-sponsor');
+const { createSafeItoEnvironment } = require('./lib/ito-environment');
 
 const COMMANDS = {
   install: {
@@ -25,6 +26,10 @@ const COMMANDS = {
   'control-pane': {
     script: 'control-pane.js',
     description: 'Run the local ECC2 operator control pane',
+  },
+  ito: {
+    script: 'ito.js',
+    description: 'Prepare a read-only sandbox handoff to the Itô compute desk',
   },
   'install-plan': {
     script: 'install-plan.js',
@@ -86,6 +91,7 @@ const PRIMARY_COMMANDS = [
   'catalog',
   'consult',
   'control-pane',
+  'ito',
   'list-installed',
   'doctor',
   'repair',
@@ -132,6 +138,8 @@ Examples:
   ecc catalog show framework:nextjs
   ecc consult "security reviews"
   ecc control-pane --port 8765
+  ecc ito rent --accelerator h100 --count 1 --hours 24
+  ecc --dry-run ito rent --accelerator h100 --count 1 --hours 24 --json
   ecc list-installed --json
   ecc doctor --target cursor
   ecc repair --dry-run
@@ -223,7 +231,9 @@ function runCommand(commandName, args) {
     [path.join(__dirname, command.script), ...args],
     {
       cwd: process.cwd(),
-      env: process.env,
+      env: commandName === 'ito'
+        ? { ...createSafeItoEnvironment(process.env, { includeControls: true }) }
+        : process.env,
       encoding: 'utf8',
       maxBuffer: 10 * 1024 * 1024,
     }

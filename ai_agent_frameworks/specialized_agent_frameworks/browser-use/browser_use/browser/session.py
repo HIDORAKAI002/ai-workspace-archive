@@ -560,6 +560,7 @@ class BrowserSession(BaseModel):
 
 	_cached_browser_state_summary: Any = PrivateAttr(default=None)
 	_cached_selector_map: dict[int, EnhancedDOMTreeNode] = PrivateAttr(default_factory=dict)
+	_cached_selector_indices: dict[tuple[str, int], int] = PrivateAttr(default_factory=dict)
 	_downloaded_files: list[str] = PrivateAttr(default_factory=list)  # Track files downloaded during this session
 	_closed_popup_messages: list[str] = PrivateAttr(default_factory=list)  # Store messages from auto-closed JavaScript dialogs
 
@@ -659,6 +660,7 @@ class BrowserSession(BaseModel):
 		self._cdp_client_root = None  # type: ignore
 		self._cached_browser_state_summary = None
 		self._cached_selector_map.clear()
+		self._cached_selector_indices.clear()
 		self._downloaded_files.clear()
 
 		self.agent_focus_target_id = None
@@ -1230,6 +1232,7 @@ class BrowserSession(BaseModel):
 		# Clear cached browser state
 		self._cached_browser_state_summary = None
 		self._cached_selector_map.clear()
+		self._cached_selector_indices.clear()
 		self.logger.debug('🔄 Cached browser state cleared')
 
 		# Update agent focus if a specific target_id is provided (only for page/tab targets)
@@ -2400,6 +2403,18 @@ class BrowserSession(BaseModel):
 
 		return None
 
+	def get_selector_index(self, node: EnhancedDOMTreeNode) -> int:
+		"""Return the model-visible selector index for a DOM node."""
+		node_identity = (str(node.session_id), node.backend_node_id)
+		return self._cached_selector_indices.get(node_identity, node.backend_node_id)
+
+	def _get_cached_node_by_backend_id(self, backend_node_id: int, session_id: str | None) -> EnhancedDOMTreeNode | None:
+		"""Resolve a backend ID only within the CDP session that produced it."""
+		for node in (self._cached_selector_map or {}).values():
+			if node.backend_node_id == backend_node_id and str(node.session_id) == str(session_id):
+				return node
+		return None
+
 	def update_cached_selector_map(self, selector_map: dict[int, EnhancedDOMTreeNode]) -> None:
 		"""Update the cached selector map with new DOM state.
 
@@ -2409,6 +2424,9 @@ class BrowserSession(BaseModel):
 			selector_map: The new selector map from DOM serialization
 		"""
 		self._cached_selector_map = selector_map
+		self._cached_selector_indices = {
+			(str(node.session_id), node.backend_node_id): index for index, node in selector_map.items()
+		}
 
 	# Alias for backwards compatibility
 	async def get_element_by_index(self, index: int) -> EnhancedDOMTreeNode | None:
@@ -2457,11 +2475,10 @@ class BrowserSession(BaseModel):
 				return None
 
 			# Try to find element in cached selector_map (avoids extra CDP call)
-			if self._cached_selector_map:
-				for node in self._cached_selector_map.values():
-					if node.backend_node_id == backend_node_id:
-						self.logger.debug(f'Found element at ({x}, {y}) in cached selector_map')
-						return node
+			cached_node = self._get_cached_node_by_backend_id(backend_node_id, session_id)
+			if cached_node is not None:
+				self.logger.debug(f'Found element at ({x}, {y}) in cached selector_map')
+				return cached_node
 
 			# Not in cache - fall back to CDP DOM.describeNode to get actual node info
 			try:
@@ -2865,7 +2882,7 @@ class BrowserSession(BaseModel):
 		try:
 			import json
 
-			cdp_session = await self.get_or_create_cdp_session()
+			cdp_session = await self.cdp_client_for_node(node)
 
 			# Get current coordinates
 			rect = await self.get_element_coordinates(node.backend_node_id, cdp_session)
@@ -3107,7 +3124,7 @@ class BrowserSession(BaseModel):
 
 			# Convert selector_map to the format expected by the highlighting script
 			elements_data = []
-			for _, node in selector_map.items():
+			for element_index, node in selector_map.items():
 				# Get bounding box using absolute position (includes iframe translations) if available
 				if node.absolute_position:
 					# Use absolute position which includes iframe coordinate translations
@@ -3128,6 +3145,7 @@ class BrowserSession(BaseModel):
 							'frame_id': getattr(node, 'frame_id', None),
 							'node_id': node.node_id,
 							'backend_node_id': node.backend_node_id,
+							'element_index': element_index,
 							'xpath': node.xpath,
 							'text_content': node.get_all_children_text()[:50]
 							if hasattr(node, 'get_all_children_text')
@@ -3213,7 +3231,7 @@ class BrowserSession(BaseModel):
 				interactiveElements.forEach((element, index) => {{
 					const highlight = document.createElement('div');
 					highlight.setAttribute('data-browser-use-highlight', 'element');
-					highlight.setAttribute('data-element-id', element.backend_node_id);
+					highlight.setAttribute('data-element-id', element.element_index);
 					highlight.style.cssText = `
 						position: absolute;
 						left: ${{element.x}}px;
@@ -3231,8 +3249,8 @@ class BrowserSession(BaseModel):
 						border: none;
 					`;
 
-					// Enhanced label with backend node ID
-					const label = createTextElement('div', element.backend_node_id, `
+					// Label with the same selector index shown to the model
+					const label = createTextElement('div', element.element_index, `
 						position: absolute;
 						top: -20px;
 						left: 0;

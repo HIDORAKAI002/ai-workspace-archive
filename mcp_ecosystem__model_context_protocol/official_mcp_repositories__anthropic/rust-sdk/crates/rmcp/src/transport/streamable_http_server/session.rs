@@ -77,6 +77,16 @@ pub enum RestoreOutcome<T> {
 /// trait for every HTTP request that carries (or should carry) a session ID.
 ///
 /// See the [module-level docs](self) for background on sessions.
+///
+/// # SEP-2260 request association
+///
+/// Server-initiated requests issued while handling a client request carry an
+/// [`OriginatingRequestId`](crate::service::OriginatingRequestId) marker in
+/// their non-serialized `Extensions`; the bundled local session manager uses
+/// it to deliver such requests on the originating request's SSE stream.
+/// Implementations that serialize messages between processes lose the marker
+/// and fall back to the standalone stream, violating SEP-2260 for 2026-07-28+
+/// clients; they need their own association mechanism.
 pub trait SessionManager: Send + Sync + 'static {
     type Error: std::error::Error + Send + 'static;
     type Transport: crate::transport::Transport<RoleServer>;
