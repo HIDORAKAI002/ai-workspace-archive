@@ -20,6 +20,7 @@ import {
 } from '@lobechat/types';
 
 import type { ConnectorToolPermission } from '@/database/schemas';
+import { applyToolNameMaxLength } from '@/helpers/applyToolNameMaxLength';
 import { isToolAvailableInCurrentEnv } from '@/helpers/toolAvailability';
 import { patchManifestWithPermissions } from '@/libs/mcp/patchManifestPermissions';
 import { getAgentStoreState } from '@/store/agent';
@@ -114,6 +115,11 @@ export const createToolsEngine = (config: ToolsEngineConfig = {}): ToolsEngine =
     disabledPluginIds = [],
     manifestContext,
   } = config;
+
+  // Push the deployment's `TOOL_NAME_MAX_LENGTH` in before any tool name is
+  // generated — the client mirror of `createServerToolsEngine`. Without it a
+  // deployment setting `0` would still get `MD5HASH_…` names on this path.
+  applyToolNameMaxLength();
 
   const toolStoreState = getToolStoreState();
 

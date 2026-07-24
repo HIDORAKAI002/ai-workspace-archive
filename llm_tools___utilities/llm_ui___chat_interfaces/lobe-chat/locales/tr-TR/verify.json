@@ -207,6 +207,7 @@
   "acceptance.workspace.filters.all": "Tüm kabuller",
   "acceptance.workspace.filters.completed": "Tamamlandı",
   "acceptance.workspace.filters.empty.active": "Devam eden kabul yok.",
+  "acceptance.workspace.filters.empty.all": "Henüz kabul yok.",
   "acceptance.workspace.filters.empty.completed": "Tamamlanmış kabul yok.",
   "acceptance.workspace.filters.noSearchResults": "“{{query}}” ile eşleşen kabul yok.",
   "acceptance.workspace.filters.showAll": "Tüm kabulleri göster",

@@ -132,6 +132,8 @@
     "title": "Launch",
     "collapse_chat": "Collapse chat",
     "expand_chat": "Expand chat",
+    "collapse_panel": "Collapse panel",
+    "expand_panel": "Expand panel",
     "loading_image": "Loading image...",
     "preparing": "Preparing...",
     "upload_file": "Upload File",

@@ -56,6 +56,40 @@ def test_object_with_true_additional_properties():
         ensure_strict_json_schema(schema)
 
 
+def test_object_with_empty_dict_additional_properties():
+    # OpenAPI/MCP schemas commonly use ``additionalProperties: {}`` to mean "allow anything".
+    # That empty mapping is falsy in Python, but it is still non-strict and must be rejected.
+    schema = {
+        "type": "object",
+        "properties": {"a": {"type": "string"}},
+        "additionalProperties": {},
+    }
+    with pytest.raises(UserError):
+        ensure_strict_json_schema(schema)
+
+
+def test_object_with_schema_additional_properties():
+    # A non-empty additionalProperties schema is also non-strict and must be rejected.
+    schema = {
+        "type": "object",
+        "properties": {"a": {"type": "string"}},
+        "additionalProperties": {"type": "string"},
+    }
+    with pytest.raises(UserError):
+        ensure_strict_json_schema(schema)
+
+
+def test_object_with_false_additional_properties_is_allowed():
+    schema = {
+        "type": "object",
+        "properties": {"a": {"type": "string"}},
+        "additionalProperties": False,
+    }
+    result = ensure_strict_json_schema(schema)
+    assert result["additionalProperties"] is False
+    assert result["required"] == ["a"]
+
+
 def test_array_items_processing_and_default_removal():
     # When processing an array, the items schema is processed recursively.
     # Also, any "default": None should be removed.

@@ -4,7 +4,7 @@ const { spawnSync } = require('child_process');
 const path = require('path');
 const { listAvailableLanguages } = require('./lib/install-executor');
 const { getComputeSponsorCopy } = require('./lib/compute-sponsor');
-const { createSafeItoEnvironment } = require('./lib/ito-environment');
+const { createSafeItoInvocationEnvironment } = require('./lib/ito-environment');
 
 const COMMANDS = {
   install: {
@@ -29,7 +29,7 @@ const COMMANDS = {
   },
   ito: {
     script: 'ito.js',
-    description: 'Prepare a read-only sandbox handoff to the Itô compute desk',
+    description: 'Invoke the separately installed canonical Itô compute CLI',
   },
   'install-plan': {
     script: 'install-plan.js',
@@ -107,7 +107,7 @@ const PRIMARY_COMMANDS = [
 ];
 
 function showHelp(exitCode = 0) {
-  console.log(`
+  process.stdout.write(`
 ECC selective-install CLI
 
 Usage:
@@ -138,8 +138,10 @@ Examples:
   ecc catalog show framework:nextjs
   ecc consult "security reviews"
   ecc control-pane --port 8765
-  ecc ito rent --accelerator h100 --count 1 --hours 24
-  ecc --dry-run ito rent --accelerator h100 --count 1 --hours 24 --json
+  ecc ito auth
+  ecc ito find --gpu h200 --count 8 --nodes 1 --gpus-per-node 8 --days 30 --storage-tb 1 --start-window 2099-08-15 --max-rate 3.00 --form-factor bare_metal --contract-type reservation --fabric infiniband --region us-east-1
+  ecc ito status --json
+  ecc ito evals --cluster clu_prod_example --live-sixtytwo --nodes gpu-01,gpu-02 --config-dir /absolute/path/to/qualification-config
   ecc list-installed --json
   ecc doctor --target cursor
   ecc repair --dry-run
@@ -225,14 +227,17 @@ function runCommand(commandName, args) {
   if (!command) {
     throw new Error(`Unknown command: ${commandName}`);
   }
-
   const result = spawnSync(
     process.execPath,
     [path.join(__dirname, command.script), ...args],
     {
       cwd: process.cwd(),
       env: commandName === 'ito'
-        ? { ...createSafeItoEnvironment(process.env, { includeControls: true }) }
+        ? {
+          ...createSafeItoInvocationEnvironment(process.env, args, {
+            includeControls: true,
+          }),
+        }
         : process.env,
       encoding: 'utf8',
       maxBuffer: 10 * 1024 * 1024,

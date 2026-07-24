@@ -207,6 +207,7 @@
   "acceptance.workspace.filters.all": "すべての受け入れ",
   "acceptance.workspace.filters.completed": "完了",
   "acceptance.workspace.filters.empty.active": "進行中の受け入れはありません。",
+  "acceptance.workspace.filters.empty.all": "まだ承認がありません。",
   "acceptance.workspace.filters.empty.completed": "完了した受け入れはありません。",
   "acceptance.workspace.filters.noSearchResults": "「{{query}}」に一致する受け入れはありません。",
   "acceptance.workspace.filters.showAll": "すべての受け入れを表示",

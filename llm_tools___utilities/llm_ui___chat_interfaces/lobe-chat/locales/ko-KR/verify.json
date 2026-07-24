@@ -207,6 +207,7 @@
   "acceptance.workspace.filters.all": "모든 수락",
   "acceptance.workspace.filters.completed": "완료됨",
   "acceptance.workspace.filters.empty.active": "진행 중인 수락이 없습니다.",
+  "acceptance.workspace.filters.empty.all": "아직 승인된 항목이 없습니다.",
   "acceptance.workspace.filters.empty.completed": "완료된 수락이 없습니다.",
   "acceptance.workspace.filters.noSearchResults": "“{{query}}”와 일치하는 수락이 없습니다.",
   "acceptance.workspace.filters.showAll": "모든 수락 보기",
