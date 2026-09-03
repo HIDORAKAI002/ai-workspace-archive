@@ -1,5 +1,8 @@
 # Archive Sync Changelog
 
+## [2026-09-03 09:58 IST] Auto-Sync
+- **17 Repositories Updated:** MCP Inspector, Snowflake MCP, HuggingFace Spaces MCP, Guardrails AI, Activepieces, NocoDB, Directus, appcypher/awesome-mcp-servers, MobinX/awesome-mcp-list, BerriAI/litellm, stanfordnlp/dspy, ollama/ollama, Arize-ai/openinference, QuivrHQ/quivr, openai/openai-node, obra/superpowers, lyogavin/airllm
+
 ## [2026-09-03 03:38 IST] Auto-Sync
 - **15 Repositories Updated:** Keboola MCP, AWS MCP Server, Tavily MCP, Flowise, Langflow, Windmill, ToolJet, modelcontextprotocol/csharp-sdk, AgentVerse, Aider-AI/aider, AgentOps-AI/agentops, openlit/openlit, anthropics/anthropic-sdk-typescript, mastra-ai/mastra, ragflow/ragflow
 
