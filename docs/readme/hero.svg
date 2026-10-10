@@ -1,138 +1,84 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" width="1200" height="480" role="img" aria-label="AI Workspace Archive">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" width="1200" height="520" role="img" aria-label="AI Workspace Archive">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#07080d"/>
-      <stop offset="1" stop-color="#121624"/>
+      <stop offset="0" stop-color="#05060a"/>
+      <stop offset="1" stop-color="#14081c"/>
     </linearGradient>
     <linearGradient id="neon" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#22d3ee">
-        <animate attributeName="stop-color" values="#22d3ee;#e879f9;#fbbf24;#22d3ee" dur="6s" repeatCount="indefinite"/>
-      </stop>
-      <stop offset="0.55" stop-color="#e879f9">
-        <animate attributeName="stop-color" values="#e879f9;#fbbf24;#22d3ee;#e879f9" dur="6s" repeatCount="indefinite"/>
-      </stop>
-      <stop offset="1" stop-color="#fbbf24">
-        <animate attributeName="stop-color" values="#fbbf24;#22d3ee;#e879f9;#fbbf24" dur="6s" repeatCount="indefinite"/>
-      </stop>
+      <stop offset="0" stop-color="#22d3ee"><animate attributeName="stop-color" values="#22d3ee;#e879f9;#fbbf24;#22d3ee" dur="4s" repeatCount="indefinite"/></stop>
+      <stop offset="1" stop-color="#e879f9"><animate attributeName="stop-color" values="#e879f9;#fbbf24;#22d3ee;#e879f9" dur="4s" repeatCount="indefinite"/></stop>
     </linearGradient>
-    <radialGradient id="halo" cx="50%" cy="46%" r="38%">
-      <stop offset="0" stop-color="#22d3ee" stop-opacity="0.28"/>
+    <radialGradient id="halo" cx="50%" cy="42%" r="42%">
+      <stop offset="0" stop-color="#e879f9" stop-opacity="0.45"/>
+      <stop offset="0.45" stop-color="#22d3ee" stop-opacity="0.12"/>
       <stop offset="1" stop-color="#22d3ee" stop-opacity="0"/>
     </radialGradient>
     <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="6" result="b"/>
-      <feMerge>
-        <feMergeNode in="b"/>
-        <feMergeNode in="SourceGraphic"/>
-      </feMerge>
+      <feGaussianBlur stdDeviation="7" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
-
-  <rect width="1200" height="480" fill="url(#bg)"/>
-  <ellipse cx="600" cy="210" rx="340" ry="120" fill="url(#halo)">
-    <animate attributeName="rx" values="280;380;280" dur="4.2s" repeatCount="indefinite"/>
-    <animate attributeName="opacity" values="0.55;1;0.55" dur="4.2s" repeatCount="indefinite"/>
+  <rect width="1200" height="520" fill="url(#bg)"/>
+  <ellipse cx="600" cy="210" rx="420" ry="150" fill="url(#halo)">
+    <animate attributeName="rx" values="300;460;300" dur="3.4s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.45;1;0.45" dur="3.4s" repeatCount="indefinite"/>
   </ellipse>
-
-  <g opacity="0.14" stroke="#334155">
-    <path d="M0 80H1200M0 180H1200M0 280H1200M0 380H1200"/>
-    <path d="M150 0V480M350 0V480M550 0V480M750 0V480M950 0V480M1100 0V480"/>
+  <g fill="#67e8f9">
+    <circle cx="80" cy="90" r="2"><animate attributeName="cy" values="480;20" dur="7s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" dur="7s" repeatCount="indefinite"/></circle>
+    <circle cx="180" cy="140" r="2" fill="#e879f9"><animate attributeName="cy" values="500;10" dur="9s" begin="1s" repeatCount="indefinite"/></circle>
+    <circle cx="320" cy="60" r="1.5" fill="#fbbf24"><animate attributeName="cy" values="500;0" dur="6s" begin="0.4s" repeatCount="indefinite"/></circle>
+    <circle cx="860" cy="200" r="2" fill="#34d399"><animate attributeName="cy" values="510;20" dur="8s" begin="1.4s" repeatCount="indefinite"/></circle>
+    <circle cx="1040" cy="80" r="2" fill="#fb7185"><animate attributeName="cy" values="490;10" dur="7.5s" begin="0.8s" repeatCount="indefinite"/></circle>
+    <circle cx="1120" cy="160" r="1.5"><animate attributeName="cy" values="500;30" dur="10s" begin="2s" repeatCount="indefinite"/></circle>
   </g>
-
-  <rect x="24" y="20" width="1152" height="440" rx="26" fill="none" stroke="url(#neon)" stroke-width="2.5" stroke-dasharray="28 14">
-    <animate attributeName="stroke-dashoffset" values="0;-168" dur="4s" repeatCount="indefinite"/>
+  <rect x="18" y="16" width="1164" height="488" rx="28" fill="none" stroke="url(#neon)" stroke-width="3" stroke-dasharray="18 10">
+    <animate attributeName="stroke-dashoffset" values="0;-280" dur="2.8s" repeatCount="indefinite"/>
   </rect>
-
-  <!-- orbiting sparks, not a scan line -->
   <g>
-    <animateTransform attributeName="transform" type="rotate" from="0 600 214" to="360 600 214" dur="14s" repeatCount="indefinite"/>
-    <ellipse cx="600" cy="214" rx="390" ry="88" fill="none" stroke="#67e8f9" stroke-opacity="0.25" stroke-width="1.5" stroke-dasharray="6 18"/>
-    <circle cx="990" cy="214" r="6" fill="#67e8f9"/>
-    <circle cx="210" cy="214" r="5" fill="#e879f9"/>
-    <circle cx="600" cy="126" r="5" fill="#fbbf24"/>
-    <circle cx="600" cy="302" r="4" fill="#34d399"/>
+    <animateTransform attributeName="transform" type="rotate" from="0 600 205" to="360 600 205" dur="10s" repeatCount="indefinite"/>
+    <ellipse cx="600" cy="205" rx="400" ry="86" fill="none" stroke="#67e8f9" stroke-opacity="0.55" stroke-width="1.5" stroke-dasharray="4 10"/>
+    <circle cx="1000" cy="205" r="6" fill="#67e8f9"/>
+    <circle cx="200" cy="205" r="5" fill="#e879f9"/>
+    <circle cx="600" cy="119" r="5" fill="#fbbf24"/>
   </g>
   <g>
-    <animateTransform attributeName="transform" type="rotate" from="360 600 214" to="0 600 214" dur="9s" repeatCount="indefinite"/>
-    <circle cx="760" cy="214" r="4" fill="#fb7185"/>
-    <circle cx="440" cy="214" r="4" fill="#60a5fa"/>
-    <circle cx="600" cy="150" r="3.5" fill="#a3e635"/>
+    <animateTransform attributeName="transform" type="rotate" from="360 600 205" to="0 600 205" dur="7s" repeatCount="indefinite"/>
+    <ellipse cx="600" cy="205" rx="330" ry="64" fill="none" stroke="#e879f9" stroke-opacity="0.45" stroke-dasharray="2 8"/>
+    <circle cx="930" cy="205" r="4" fill="#fb7185"/>
+    <circle cx="270" cy="205" r="4" fill="#a3e635"/>
   </g>
-
-  <!-- pulse rings -->
   <g fill="none" stroke="#67e8f9" stroke-width="2">
-    <ellipse cx="600" cy="214" rx="80" ry="28" opacity="0">
-      <animate attributeName="rx" values="70;260" dur="3.2s" repeatCount="indefinite"/>
-      <animate attributeName="ry" values="24;90" dur="3.2s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.55;0" dur="3.2s" repeatCount="indefinite"/>
+    <ellipse cx="600" cy="210" rx="60" ry="22" opacity="0">
+      <animate attributeName="rx" values="50;240" dur="2.6s" repeatCount="indefinite"/>
+      <animate attributeName="ry" values="18;78" dur="2.6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.7;0" dur="2.6s" repeatCount="indefinite"/>
     </ellipse>
-    <ellipse cx="600" cy="214" rx="80" ry="28" opacity="0">
-      <animate attributeName="rx" values="70;260" dur="3.2s" begin="1.6s" repeatCount="indefinite"/>
-      <animate attributeName="ry" values="24;90" dur="3.2s" begin="1.6s" repeatCount="indefinite"/>
-      <animate attributeName="opacity" values="0.4;0" dur="3.2s" begin="1.6s" repeatCount="indefinite"/>
+    <ellipse cx="600" cy="210" rx="60" ry="22" opacity="0">
+      <animate attributeName="rx" values="50;240" dur="2.6s" begin="1.3s" repeatCount="indefinite"/>
+      <animate attributeName="ry" values="18;78" dur="2.6s" begin="1.3s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0.5;0" dur="2.6s" begin="1.3s" repeatCount="indefinite"/>
     </ellipse>
   </g>
-
-  <g filter="url(#glow)" font-family="Arial, Helvetica, sans-serif" text-anchor="middle">
-    <g>
-      <text x="600" y="176" fill="#f8fafc" font-size="62" font-weight="700">AI WORKSPACE</text>
-      <animate attributeName="opacity" values="1;0.72;1;1;0.4;1" keyTimes="0;0.08;0.14;0.62;0.66;1" dur="3.1s" repeatCount="indefinite"/>
+  <g filter="url(#glow)" font-family="Arial, Helvetica, sans-serif" font-weight="700" text-anchor="middle">
+    <g opacity="0.85">
+      <text x="592" y="176" fill="#22d3ee" font-size="64">AI WORKSPACE</text>
+      <text x="608" y="264" fill="#e879f9" font-size="82">ARCHIVE</text>
+      <animate attributeName="opacity" values="0;0.9;0;0;0.75;0" dur="1.8s" repeatCount="indefinite"/>
     </g>
-    <g>
-      <text x="600" y="262" fill="#67e8f9" font-size="78" font-weight="700">ARCHIVE</text>
-      <animate attributeName="opacity" values="1;1;0.35;1" keyTimes="0;0.72;0.78;0.86" dur="2.4s" repeatCount="indefinite"/>
-      <animate attributeName="fill" values="#67e8f9;#e879f9;#fbbf24;#67e8f9" dur="6s" repeatCount="indefinite"/>
-    </g>
+    <text x="600" y="176" fill="#f8fafc" font-size="64">AI WORKSPACE</text>
+    <text x="600" y="264" fill="#67e8f9" font-size="82">ARCHIVE
+      <animate attributeName="fill" values="#67e8f9;#e879f9;#fbbf24;#67e8f9" dur="4.5s" repeatCount="indefinite"/>
+    </text>
   </g>
-
-  <line x1="430" y1="286" x2="770" y2="286" stroke="url(#neon)" stroke-width="3" stroke-linecap="round"/>
-  <circle r="5" fill="#f8fafc">
-    <animate attributeName="cx" values="430;770;430" dur="2.8s" repeatCount="indefinite"/>
-    <animate attributeName="cy" values="286;286;286" dur="2.8s" repeatCount="indefinite"/>
-  </circle>
-
-  <text x="600" y="324" text-anchor="middle" fill="#cbd5e1" font-family="Arial, Helvetica, sans-serif" font-size="18">OFFLINE   ·   NO SUBSCRIPTIONS   ·   NO GATEKEEPING</text>
-
+  <text x="600" y="312" text-anchor="middle" fill="#e2e8f0" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="700">OFFLINE   ·   NO SUBSCRIPTIONS   ·   NO GATEKEEPING</text>
   <g font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" text-anchor="middle">
-    <g>
-      <rect x="54" y="356" width="124" height="46" rx="23" fill="#0b1220" stroke="#67e8f9" stroke-width="2"/>
-      <text x="116" y="385" fill="#67e8f9">Skills</text>
-      <animateTransform attributeName="transform" type="translate" values="0 0;0 -6;0 0" dur="2.4s" repeatCount="indefinite"/>
-    </g>
-    <g>
-      <rect x="190" y="356" width="124" height="46" rx="23" fill="#0b1220" stroke="#e879f9" stroke-width="2"/>
-      <text x="252" y="385" fill="#e879f9">MCP</text>
-      <animateTransform attributeName="transform" type="translate" values="0 0;0 -6;0 0" dur="2.4s" begin="0.3s" repeatCount="indefinite"/>
-    </g>
-    <g>
-      <rect x="326" y="356" width="124" height="46" rx="23" fill="#0b1220" stroke="#fbbf24" stroke-width="2"/>
-      <text x="388" y="385" fill="#fbbf24">Rules</text>
-      <animateTransform attributeName="transform" type="translate" values="0 0;0 -6;0 0" dur="2.4s" begin="0.6s" repeatCount="indefinite"/>
-    </g>
-    <g>
-      <rect x="462" y="356" width="124" height="46" rx="23" fill="#0b1220" stroke="#fb7185" stroke-width="2"/>
-      <text x="524" y="385" fill="#fb7185">Prompts</text>
-      <animateTransform attributeName="transform" type="translate" values="0 0;0 -6;0 0" dur="2.4s" begin="0.9s" repeatCount="indefinite"/>
-    </g>
-    <g>
-      <rect x="598" y="356" width="124" height="46" rx="23" fill="#0b1220" stroke="#34d399" stroke-width="2"/>
-      <text x="660" y="385" fill="#34d399">APIs</text>
-      <animateTransform attributeName="transform" type="translate" values="0 0;0 -6;0 0" dur="2.4s" begin="1.2s" repeatCount="indefinite"/>
-    </g>
-    <g>
-      <rect x="734" y="356" width="124" height="46" rx="23" fill="#0b1220" stroke="#60a5fa" stroke-width="2"/>
-      <text x="796" y="385" fill="#60a5fa">No-code</text>
-      <animateTransform attributeName="transform" type="translate" values="0 0;0 -6;0 0" dur="2.4s" begin="1.5s" repeatCount="indefinite"/>
-    </g>
-    <g>
-      <rect x="870" y="356" width="124" height="46" rx="23" fill="#0b1220" stroke="#f472b6" stroke-width="2"/>
-      <text x="932" y="385" fill="#f472b6">Public</text>
-      <animateTransform attributeName="transform" type="translate" values="0 0;0 -6;0 0" dur="2.4s" begin="1.8s" repeatCount="indefinite"/>
-    </g>
-    <g>
-      <rect x="1006" y="356" width="124" height="46" rx="23" fill="#0b1220" stroke="#a3e635" stroke-width="2"/>
-      <text x="1068" y="385" fill="#a3e635">Agents</text>
-      <animateTransform attributeName="transform" type="translate" values="0 0;0 -6;0 0" dur="2.4s" begin="2.1s" repeatCount="indefinite"/>
-    </g>
+    <g><rect x="48" y="392" width="128" height="48" rx="24" fill="#0b1220" stroke="#67e8f9" stroke-width="2"/><text x="112" y="422" fill="#67e8f9">Skills</text><animateTransform attributeName="transform" type="translate" values="0 0;0 -8;0 0" dur="1.8s" repeatCount="indefinite"/></g>
+    <g><rect x="186" y="392" width="128" height="48" rx="24" fill="#0b1220" stroke="#e879f9" stroke-width="2"/><text x="250" y="422" fill="#e879f9">MCP</text><animateTransform attributeName="transform" type="translate" values="0 0;0 -8;0 0" dur="1.8s" begin="0.22s" repeatCount="indefinite"/></g>
+    <g><rect x="324" y="392" width="128" height="48" rx="24" fill="#0b1220" stroke="#fbbf24" stroke-width="2"/><text x="388" y="422" fill="#fbbf24">Rules</text><animateTransform attributeName="transform" type="translate" values="0 0;0 -8;0 0" dur="1.8s" begin="0.44s" repeatCount="indefinite"/></g>
+    <g><rect x="462" y="392" width="128" height="48" rx="24" fill="#0b1220" stroke="#fb7185" stroke-width="2"/><text x="526" y="422" fill="#fb7185">Prompts</text><animateTransform attributeName="transform" type="translate" values="0 0;0 -8;0 0" dur="1.8s" begin="0.66s" repeatCount="indefinite"/></g>
+    <g><rect x="600" y="392" width="128" height="48" rx="24" fill="#0b1220" stroke="#34d399" stroke-width="2"/><text x="664" y="422" fill="#34d399">APIs</text><animateTransform attributeName="transform" type="translate" values="0 0;0 -8;0 0" dur="1.8s" begin="0.88s" repeatCount="indefinite"/></g>
+    <g><rect x="738" y="392" width="128" height="48" rx="24" fill="#0b1220" stroke="#60a5fa" stroke-width="2"/><text x="802" y="422" fill="#60a5fa">No-code</text><animateTransform attributeName="transform" type="translate" values="0 0;0 -8;0 0" dur="1.8s" begin="1.1s" repeatCount="indefinite"/></g>
+    <g><rect x="876" y="392" width="128" height="48" rx="24" fill="#0b1220" stroke="#f472b6" stroke-width="2"/><text x="940" y="422" fill="#f472b6">Public</text><animateTransform attributeName="transform" type="translate" values="0 0;0 -8;0 0" dur="1.8s" begin="1.32s" repeatCount="indefinite"/></g>
+    <g><rect x="1014" y="392" width="128" height="48" rx="24" fill="#0b1220" stroke="#a3e635" stroke-width="2"/><text x="1078" y="422" fill="#a3e635">Agents</text><animateTransform attributeName="transform" type="translate" values="0 0;0 -8;0 0" dur="1.8s" begin="1.54s" repeatCount="indefinite"/></g>
   </g>
 </svg>
