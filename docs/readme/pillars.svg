@@ -1,66 +1,56 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 240" width="1200" height="240" role="img" aria-label="Eight pillars of the archive">
-  <rect width="1200" height="240" fill="#07080d"/>
-  <text x="48" y="48" fill="#f8fafc" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700">Eight pillars. One local checkout.</text>
-  <text x="48" y="78" fill="#94a3b8" font-family="Arial, Helvetica, sans-serif" font-size="16">Skills, MCP, rules, prompts, providers, no-code, public APIs, agents.</text>
-  <line x1="70" y1="132" x2="1130" y2="132" stroke="#1e293b" stroke-width="6" stroke-linecap="round"/>
-  <line x1="70" y1="132" x2="1130" y2="132" stroke="#67e8f9" stroke-width="4" stroke-linecap="round" stroke-dasharray="90 1040">
-    <animate attributeName="stroke-dashoffset" values="1130;0" dur="4.2s" repeatCount="indefinite"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 250" width="1200" height="250" role="img" aria-label="Eight pillars">
+  <rect width="1200" height="250" fill="#05060a"/>
+  <text x="40" y="46" fill="#f8fafc" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">EIGHT PILLARS. ONE CHECKOUT. NO TABS.</text>
+  <line x1="60" y1="128" x2="1140" y2="128" stroke="#1e293b" stroke-width="8" stroke-linecap="round"/>
+  <line x1="60" y1="128" x2="1140" y2="128" stroke="#e879f9" stroke-width="4" stroke-linecap="round" stroke-dasharray="70 200">
+    <animate attributeName="stroke-dashoffset" values="540;0" dur="2.4s" repeatCount="indefinite"/>
   </line>
-
-  <g>
-    <circle cx="70" cy="132" r="18" fill="#0b1220" stroke="#67e8f9" stroke-width="3"/>
-    <circle cx="70" cy="132" r="6" fill="#67e8f9">
-      <animate attributeName="r" values="4;8;4" dur="2.2s" begin="0.0s" repeatCount="indefinite"/>
+<g>
+    <circle cx="70" cy="128" r="22" fill="#0b1220" stroke="#67e8f9" stroke-width="3">
+      <animate attributeName="r" values="16;26;16" dur="1.6s" begin="0.0s" repeatCount="indefinite"/>
     </circle>
-    <text x="70" y="184" text-anchor="middle" fill="#67e8f9" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">Skills</text>
-  </g>
-  <g>
-    <circle cx="221" cy="132" r="18" fill="#0b1220" stroke="#e879f9" stroke-width="3"/>
-    <circle cx="221" cy="132" r="6" fill="#e879f9">
-      <animate attributeName="r" values="4;8;4" dur="2.2s" begin="0.2s" repeatCount="indefinite"/>
+    <circle cx="70" cy="128" r="6" fill="#67e8f9"/>
+    <text x="70" y="188" text-anchor="middle" fill="#67e8f9" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">Skills</text>
+  </g><g>
+    <circle cx="220" cy="128" r="22" fill="#0b1220" stroke="#e879f9" stroke-width="3">
+      <animate attributeName="r" values="16;26;16" dur="1.6s" begin="0.15s" repeatCount="indefinite"/>
     </circle>
-    <text x="221" y="184" text-anchor="middle" fill="#e879f9" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">MCP</text>
-  </g>
-  <g>
-    <circle cx="372" cy="132" r="18" fill="#0b1220" stroke="#fbbf24" stroke-width="3"/>
-    <circle cx="372" cy="132" r="6" fill="#fbbf24">
-      <animate attributeName="r" values="4;8;4" dur="2.2s" begin="0.4s" repeatCount="indefinite"/>
+    <circle cx="220" cy="128" r="6" fill="#e879f9"/>
+    <text x="220" y="188" text-anchor="middle" fill="#e879f9" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">MCP</text>
+  </g><g>
+    <circle cx="370" cy="128" r="22" fill="#0b1220" stroke="#fbbf24" stroke-width="3">
+      <animate attributeName="r" values="16;26;16" dur="1.6s" begin="0.3s" repeatCount="indefinite"/>
     </circle>
-    <text x="372" y="184" text-anchor="middle" fill="#fbbf24" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">Rules</text>
-  </g>
-  <g>
-    <circle cx="523" cy="132" r="18" fill="#0b1220" stroke="#fb7185" stroke-width="3"/>
-    <circle cx="523" cy="132" r="6" fill="#fb7185">
-      <animate attributeName="r" values="4;8;4" dur="2.2s" begin="0.6000000000000001s" repeatCount="indefinite"/>
+    <circle cx="370" cy="128" r="6" fill="#fbbf24"/>
+    <text x="370" y="188" text-anchor="middle" fill="#fbbf24" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">Rules</text>
+  </g><g>
+    <circle cx="520" cy="128" r="22" fill="#0b1220" stroke="#fb7185" stroke-width="3">
+      <animate attributeName="r" values="16;26;16" dur="1.6s" begin="0.44999999999999996s" repeatCount="indefinite"/>
     </circle>
-    <text x="523" y="184" text-anchor="middle" fill="#fb7185" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">Prompts</text>
-  </g>
-  <g>
-    <circle cx="674" cy="132" r="18" fill="#0b1220" stroke="#34d399" stroke-width="3"/>
-    <circle cx="674" cy="132" r="6" fill="#34d399">
-      <animate attributeName="r" values="4;8;4" dur="2.2s" begin="0.8s" repeatCount="indefinite"/>
+    <circle cx="520" cy="128" r="6" fill="#fb7185"/>
+    <text x="520" y="188" text-anchor="middle" fill="#fb7185" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">Prompts</text>
+  </g><g>
+    <circle cx="670" cy="128" r="22" fill="#0b1220" stroke="#34d399" stroke-width="3">
+      <animate attributeName="r" values="16;26;16" dur="1.6s" begin="0.6s" repeatCount="indefinite"/>
     </circle>
-    <text x="674" y="184" text-anchor="middle" fill="#34d399" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">Providers</text>
-  </g>
-  <g>
-    <circle cx="825" cy="132" r="18" fill="#0b1220" stroke="#60a5fa" stroke-width="3"/>
-    <circle cx="825" cy="132" r="6" fill="#60a5fa">
-      <animate attributeName="r" values="4;8;4" dur="2.2s" begin="1.0s" repeatCount="indefinite"/>
+    <circle cx="670" cy="128" r="6" fill="#34d399"/>
+    <text x="670" y="188" text-anchor="middle" fill="#34d399" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">Providers</text>
+  </g><g>
+    <circle cx="820" cy="128" r="22" fill="#0b1220" stroke="#60a5fa" stroke-width="3">
+      <animate attributeName="r" values="16;26;16" dur="1.6s" begin="0.75s" repeatCount="indefinite"/>
     </circle>
-    <text x="825" y="184" text-anchor="middle" fill="#60a5fa" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">No-code</text>
-  </g>
-  <g>
-    <circle cx="976" cy="132" r="18" fill="#0b1220" stroke="#f472b6" stroke-width="3"/>
-    <circle cx="976" cy="132" r="6" fill="#f472b6">
-      <animate attributeName="r" values="4;8;4" dur="2.2s" begin="1.2000000000000002s" repeatCount="indefinite"/>
+    <circle cx="820" cy="128" r="6" fill="#60a5fa"/>
+    <text x="820" y="188" text-anchor="middle" fill="#60a5fa" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">No-code</text>
+  </g><g>
+    <circle cx="970" cy="128" r="22" fill="#0b1220" stroke="#f472b6" stroke-width="3">
+      <animate attributeName="r" values="16;26;16" dur="1.6s" begin="0.8999999999999999s" repeatCount="indefinite"/>
     </circle>
-    <text x="976" y="184" text-anchor="middle" fill="#f472b6" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">APIs</text>
-  </g>
-  <g>
-    <circle cx="1127" cy="132" r="18" fill="#0b1220" stroke="#a3e635" stroke-width="3"/>
-    <circle cx="1127" cy="132" r="6" fill="#a3e635">
-      <animate attributeName="r" values="4;8;4" dur="2.2s" begin="1.4000000000000001s" repeatCount="indefinite"/>
+    <circle cx="970" cy="128" r="6" fill="#f472b6"/>
+    <text x="970" y="188" text-anchor="middle" fill="#f472b6" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">APIs</text>
+  </g><g>
+    <circle cx="1120" cy="128" r="22" fill="#0b1220" stroke="#a3e635" stroke-width="3">
+      <animate attributeName="r" values="16;26;16" dur="1.6s" begin="1.05s" repeatCount="indefinite"/>
     </circle>
-    <text x="1127" y="184" text-anchor="middle" fill="#a3e635" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">Agents</text>
-  </g>
-</svg>
+    <circle cx="1120" cy="128" r="6" fill="#a3e635"/>
+    <text x="1120" y="188" text-anchor="middle" fill="#a3e635" font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700">Agents</text>
+  </g></svg>

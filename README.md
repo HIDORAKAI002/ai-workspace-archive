@@ -1,35 +1,37 @@
 <div align="center">
 
-<img src="docs/readme/hero.svg" width="100%" alt="AI Workspace Archive animated sign">
+<img src="docs/readme/hero.svg" width="100%" alt="AI Workspace Archive. Glitching neon sign, orbiting sparks, pulsing pillar chips. No scan line.">
 
-**The most comprehensive self-hostable AI developer toolbox on GitHub.**
+<img src="docs/readme/ticker.svg" width="100%" alt="Scrolling archive scale: 29,746 skills, 3,348 IDE rules, 23 MCP servers, 1,400+ public APIs, 174 upstream repos.">
+
+**ONE REPO. THE WHOLE TOOLBOX. ALREADY ON DISK.**
 
 [![Stars](https://img.shields.io/github/stars/HIDORAKAI002/ai-workspace-archive?style=for-the-badge&logo=github&color=gold)](https://github.com/HIDORAKAI002/ai-workspace-archive/stargazers)
 [![File count](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/HIDORAKAI002/ai-workspace-archive/main/file_counts.json&style=for-the-badge)](https://github.com/HIDORAKAI002/ai-workspace-archive/blob/main/file_counts.json)
-[![Sync](https://img.shields.io/badge/sync-every%206%20hours-0f766e?style=for-the-badge)](https://github.com/HIDORAKAI002/ai-workspace-archive/blob/main/.github/workflows/sync_upstream.yml)
+[![Sync](https://img.shields.io/badge/sync-every%206%20hours-db2777?style=for-the-badge)](https://github.com/HIDORAKAI002/ai-workspace-archive/blob/main/.github/workflows/sync_upstream.yml)
 [![Licenses](https://img.shields.io/badge/licenses-upstream-yellow?style=for-the-badge)](#disclaimer)
-
-*29,746 agent skills and files · 23 MCP servers · 3,348 IDE rules · 8 system prompt collections · 12 API providers · 15 no-code platforms · 1,400+ public APIs · 174 curated upstream repos, all free*
 
 </div>
 
-## <img src="docs/readme/icons/skills.svg" width="32" height="32" alt=""> Get started
+> **Stop collecting tabs.** 29,746 skill files. 3,348 IDE rules. 23 MCP servers. 8 system-prompt collections. 12 API providers. 15 no-code platforms. 1,400+ public APIs. 174 upstream repos. Cloned, categorized, and refreshed every 6 hours. Offline. No subscription. No gatekeeping.
 
-Clone it once. Everything after that is a local file.
+<p align="center"><img src="docs/readme/pillars.svg" width="100%" alt="Eight pillars pulse in sequence: skills, MCP, rules, prompts, providers, no-code, public APIs, agents."></p>
+
+## <img src="docs/readme/icons/skills.svg" width="32" height="32" alt=""> Get in
 
 ```bash
 git clone https://github.com/HIDORAKAI002/ai-workspace-archive.git
 cd ai-workspace-archive
 ```
 
-| | **Browse offline** | **Wire into your editor** |
+| | **Browse offline** | **Drop it into the editor** |
 |---|---|---|
-| What you get | The full catalog on disk. No account, no subscription. | A skill, an IDE rule, or an MCP server dropped into the tool you already use. |
-| First command | `ls ai_skills_library/skills/development/` | `cp ide_rules/cursor/react-typescript.cursorrules /your-project/.cursorrules` |
+| What you get | The full catalog on disk. No account. | A skill, a Cursor rule, or an MCP server in the tool you already run. |
+| First move | `ls ai_skills_library/skills/development/` | `cp ide_rules/cursor/react-typescript.cursorrules /your-project/.cursorrules` |
 | Best for | Reading prompts, pricing, and upstream source before you install anything | Cursor, Claude Desktop, Copilot, or a local no-code app |
 
 <details>
-<summary><strong>Three copy-paste paths</strong></summary>
+<summary><strong>Three paths. Copy. Paste. Go.</strong></summary>
 
 **Use a skill**
 
@@ -55,12 +57,8 @@ docker compose up -d   # http://localhost:5678
 
 </details>
 
-> **Archive = the toolbox, not another subscription.** The model still does the thinking. This repo is the shelf next to it: skills, MCP servers, IDE rules, system prompts, provider pricing, no-code apps, public APIs, and agent frameworks, already cloned and categorized. One checkout. Offline. No gatekeeping.
-
-<p align="center"><img src="docs/readme/pillars.svg" width="100%" alt="Eight archive pillars lighting in sequence: skills, MCP, rules, prompts, providers, no-code, public APIs, and agents"></p>
-
 <details>
-<summary><strong>What the sync actually does</strong></summary>
+<summary><strong>The loop, in one breath</strong></summary>
 
 A VPS bot checks each tracked upstream repo every 6 hours, one at a time. If it changed, the bot clones fresh, strips `.git`, and pushes the file diff. GitHub Actions runs the same idea daily at 02:00 UTC as a backup. The catalogs below are the map. The folders are the copies.
 
@@ -84,6 +82,8 @@ A VPS bot checks each tracked upstream repo every 6 hours, one at a time. If it 
 | - | [Archive Stats](#archive-stats) | Full breakdown | - |
 
 ---
+
+<p align="center"><img src="docs/readme/divider.svg" width="100%" alt=""></p>
 
 <p align="center"><img src="docs/readme/icons/skills.svg" width="48" height="48" alt=""></p>
 
@@ -272,6 +272,8 @@ ai_skills_library/skills/
 </details>
 
 ---
+
+<p align="center"><img src="docs/readme/divider.svg" width="100%" alt=""></p>
 
 <p align="center"><img src="docs/readme/icons/mcp.svg" width="48" height="48" alt=""></p>
 
@@ -472,6 +474,8 @@ npm install          # or: pip install -e . / cargo build
 
 ---
 
+<p align="center"><img src="docs/readme/divider.svg" width="100%" alt=""></p>
+
 <p align="center"><img src="docs/readme/icons/rules.svg" width="48" height="48" alt=""></p>
 
 ## Pillar 3 -- IDE Context Rules
@@ -608,6 +612,8 @@ cp ide_rules/copilot/nextjs.md /your-project/.github/copilot-instructions.md
 
 ---
 
+<p align="center"><img src="docs/readme/divider.svg" width="100%" alt=""></p>
+
 <p align="center"><img src="docs/readme/icons/prompts.svg" width="48" height="48" alt=""></p>
 
 ## Pillar 4 -- System Prompts and Frameworks
@@ -664,6 +670,8 @@ cp ide_rules/copilot/nextjs.md /your-project/.github/copilot-instructions.md
 </details>
 
 ---
+
+<p align="center"><img src="docs/readme/divider.svg" width="100%" alt=""></p>
 
 <p align="center"><img src="docs/readme/icons/providers.svg" width="48" height="48" alt=""></p>
 
@@ -843,6 +851,8 @@ Each provider has a dedicated markdown file in `/api_providers/`:
 
 ---
 
+<p align="center"><img src="docs/readme/divider.svg" width="100%" alt=""></p>
+
 <p align="center"><img src="docs/readme/icons/nocode.svg" width="48" height="48" alt=""></p>
 
 ## Pillar 6 -- No-Code and Visual Workflow Builders
@@ -935,6 +945,8 @@ Each provider has a dedicated markdown file in `/api_providers/`:
 </details>
 
 ---
+
+<p align="center"><img src="docs/readme/divider.svg" width="100%" alt=""></p>
 
 <p align="center"><img src="docs/readme/icons/apis.svg" width="48" height="48" alt=""></p>
 
@@ -1176,6 +1188,8 @@ Each provider has a dedicated markdown file in `/api_providers/`:
 </details>
 
 ---
+
+<p align="center"><img src="docs/readme/divider.svg" width="100%" alt=""></p>
 
 <p align="center"><img src="docs/readme/icons/agents.svg" width="48" height="48" alt=""></p>
 

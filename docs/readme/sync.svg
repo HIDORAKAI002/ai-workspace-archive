@@ -1,27 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 230" width="1200" height="230" role="img" aria-label="Archive sync flow">
-  <rect width="1200" height="230" fill="#07080d"/>
-  <text x="48" y="46" fill="#f8fafc" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700">Stays current without a manual pull</text>
-  <rect x="48" y="84" width="300" height="104" rx="20" fill="#0b1220" stroke="#67e8f9" stroke-width="2"/>
-  <text x="198" y="128" text-anchor="middle" fill="#67e8f9" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">Upstream repos</text>
-  <text x="198" y="158" text-anchor="middle" fill="#cbd5e1" font-family="Arial, Helvetica, sans-serif" font-size="16">55+ public sources</text>
-  <rect x="450" y="84" width="300" height="104" rx="20" fill="#0b1220" stroke="#e879f9" stroke-width="2"/>
-  <text x="600" y="128" text-anchor="middle" fill="#e879f9" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">Every 6 hours</text>
-  <text x="600" y="158" text-anchor="middle" fill="#cbd5e1" font-family="Arial, Helvetica, sans-serif" font-size="16">VPS bot + daily Actions</text>
-  <rect x="852" y="84" width="300" height="104" rx="20" fill="#0b1220" stroke="#fbbf24" stroke-width="2"/>
-  <text x="1002" y="128" text-anchor="middle" fill="#fbbf24" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="700">This archive</text>
-  <text x="1002" y="158" text-anchor="middle" fill="#cbd5e1" font-family="Arial, Helvetica, sans-serif" font-size="16">.git stripped, files kept</text>
-  <line x1="348" y1="136" x2="450" y2="136" stroke="#67e8f9" stroke-width="3" stroke-dasharray="8 8">
-    <animate attributeName="stroke-dashoffset" values="32;0" dur="1s" repeatCount="indefinite"/>
-  </line>
-  <line x1="750" y1="136" x2="852" y2="136" stroke="#e879f9" stroke-width="3" stroke-dasharray="8 8">
-    <animate attributeName="stroke-dashoffset" values="32;0" dur="1s" repeatCount="indefinite"/>
-  </line>
-  <circle r="7" fill="#f8fafc">
-    <animate attributeName="cx" values="348;442" dur="1.5s" repeatCount="indefinite"/>
-    <animate attributeName="cy" values="136;136" dur="1.5s" repeatCount="indefinite"/>
-  </circle>
-  <circle r="7" fill="#f8fafc">
-    <animate attributeName="cx" values="750;844" dur="1.5s" begin="0.4s" repeatCount="indefinite"/>
-    <animate attributeName="cy" values="136;136" dur="1.5s" repeatCount="indefinite"/>
-  </circle>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 240" width="1200" height="240" role="img" aria-label="Sync loop">
+  <rect width="1200" height="240" fill="#05060a"/>
+  <text x="40" y="48" fill="#f8fafc" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="700">IT PULLS ITSELF. EVERY 6 HOURS.</text>
+  <rect x="36" y="86" width="320" height="112" rx="22" fill="#0b1220" stroke="#67e8f9" stroke-width="3"/>
+  <text x="196" y="136" text-anchor="middle" fill="#67e8f9" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">UPSTREAM</text>
+  <text x="196" y="166" text-anchor="middle" fill="#e2e8f0" font-family="Arial, Helvetica, sans-serif" font-size="16">55+ public repos</text>
+  <rect x="440" y="86" width="320" height="112" rx="22" fill="#0b1220" stroke="#e879f9" stroke-width="3"/>
+  <text x="600" y="136" text-anchor="middle" fill="#e879f9" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">6 HOUR LOOP</text>
+  <text x="600" y="166" text-anchor="middle" fill="#e2e8f0" font-family="Arial, Helvetica, sans-serif" font-size="16">VPS bot + daily Actions</text>
+  <rect x="844" y="86" width="320" height="112" rx="22" fill="#0b1220" stroke="#fbbf24" stroke-width="3"/>
+  <text x="1004" y="136" text-anchor="middle" fill="#fbbf24" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700">THIS ARCHIVE</text>
+  <text x="1004" y="166" text-anchor="middle" fill="#e2e8f0" font-family="Arial, Helvetica, sans-serif" font-size="16">.git stripped, files kept</text>
+  <circle r="8" fill="#f8fafc"><animate attributeName="cx" values="356;430" dur="0.9s" repeatCount="indefinite"/><animate attributeName="cy" values="142;142" dur="0.9s" repeatCount="indefinite"/></circle>
+  <circle r="8" fill="#f8fafc"><animate attributeName="cx" values="760;834" dur="0.9s" begin="0.3s" repeatCount="indefinite"/><animate attributeName="cy" values="142;142" dur="0.9s" repeatCount="indefinite"/></circle>
 </svg>
