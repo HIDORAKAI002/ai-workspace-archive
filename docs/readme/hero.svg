@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 480" width="1200" height="480" role="img" aria-label="AI Workspace Archive">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#07080d"/>
+      <stop offset="1" stop-color="#121624"/>
+    </linearGradient>
+    <linearGradient id="neon" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#22d3ee"/>
+      <stop offset="0.55" stop-color="#e879f9"/>
+      <stop offset="1" stop-color="#fbbf24"/>
+    </linearGradient>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="1200" height="480" fill="url(#bg)"/>
+  <g opacity="0.16" stroke="#334155">
+    <path d="M0 60H1200M0 140H1200M0 220H1200M0 300H1200M0 380H1200"/>
+    <path d="M100 0V480M250 0V480M400 0V480M550 0V480M700 0V480M850 0V480M1000 0V480M1150 0V480"/>
+  </g>
+  <rect x="24" y="20" width="1152" height="440" rx="26" fill="none" stroke="url(#neon)" stroke-width="2" stroke-dasharray="36 16">
+    <animate attributeName="stroke-dashoffset" values="0;-104" dur="6s" repeatCount="indefinite"/>
+  </rect>
+  <rect x="0" y="40" width="1200" height="8" fill="#67e8f9" opacity="0">
+    <animate attributeName="y" values="36;420;36" dur="5.5s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0;0.28;0" dur="5.5s" repeatCount="indefinite"/>
+  </rect>
+  <g filter="url(#glow)" font-family="Arial, Helvetica, sans-serif" text-anchor="middle">
+    <g>
+      <text x="600" y="168" fill="#f8fafc" font-size="62" font-weight="700">AI WORKSPACE</text>
+      <animate attributeName="opacity" values="1;1;0.45;1" keyTimes="0;0.46;0.5;0.56" dur="3.4s" repeatCount="indefinite"/>
+    </g>
+    <g>
+      <text x="600" y="258" fill="#67e8f9" font-size="78" font-weight="700">ARCHIVE</text>
+      <animate attributeName="opacity" values="1;0.3;1;1" keyTimes="0;0.07;0.14;1" dur="2.8s" repeatCount="indefinite"/>
+    </g>
+  </g>
+  <rect x="390" y="278" width="420" height="4" rx="2" fill="url(#neon)">
+    <animate attributeName="width" values="80;420;80" dur="3.6s" repeatCount="indefinite"/>
+    <animate attributeName="x" values="560;390;560" dur="3.6s" repeatCount="indefinite"/>
+  </rect>
+  <text x="600" y="322" text-anchor="middle" fill="#cbd5e1" font-family="Arial, Helvetica, sans-serif" font-size="18">OFFLINE   ·   NO SUBSCRIPTIONS   ·   NO GATEKEEPING</text>
+  <g font-family="Arial, Helvetica, sans-serif" font-size="16" font-weight="700" text-anchor="middle">
+
+    <g>
+      <rect x="36" y="356" width="132" height="46" rx="23" fill="#0b1220" stroke="#67e8f9" stroke-width="2"/>
+      <text x="102" y="385" fill="#67e8f9">Skills</text>
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="4.8s" begin="0.0s" repeatCount="indefinite"/>
+    </g>
+    <g>
+      <rect x="182" y="356" width="132" height="46" rx="23" fill="#0b1220" stroke="#e879f9" stroke-width="2"/>
+      <text x="248" y="385" fill="#e879f9">MCP</text>
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="4.8s" begin="0.3s" repeatCount="indefinite"/>
+    </g>
+    <g>
+      <rect x="328" y="356" width="132" height="46" rx="23" fill="#0b1220" stroke="#fbbf24" stroke-width="2"/>
+      <text x="394" y="385" fill="#fbbf24">Rules</text>
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="4.8s" begin="0.6s" repeatCount="indefinite"/>
+    </g>
+    <g>
+      <rect x="474" y="356" width="132" height="46" rx="23" fill="#0b1220" stroke="#fb7185" stroke-width="2"/>
+      <text x="540" y="385" fill="#fb7185">Prompts</text>
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="4.8s" begin="0.8999999999999999s" repeatCount="indefinite"/>
+    </g>
+    <g>
+      <rect x="620" y="356" width="132" height="46" rx="23" fill="#0b1220" stroke="#34d399" stroke-width="2"/>
+      <text x="686" y="385" fill="#34d399">APIs</text>
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="4.8s" begin="1.2s" repeatCount="indefinite"/>
+    </g>
+    <g>
+      <rect x="766" y="356" width="132" height="46" rx="23" fill="#0b1220" stroke="#60a5fa" stroke-width="2"/>
+      <text x="832" y="385" fill="#60a5fa">No-code</text>
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="4.8s" begin="1.5s" repeatCount="indefinite"/>
+    </g>
+    <g>
+      <rect x="912" y="356" width="132" height="46" rx="23" fill="#0b1220" stroke="#f472b6" stroke-width="2"/>
+      <text x="978" y="385" fill="#f472b6">Public</text>
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="4.8s" begin="1.7999999999999998s" repeatCount="indefinite"/>
+    </g>
+    <g>
+      <rect x="1058" y="356" width="132" height="46" rx="23" fill="#0b1220" stroke="#a3e635" stroke-width="2"/>
+      <text x="1124" y="385" fill="#a3e635">Agents</text>
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="4.8s" begin="2.1s" repeatCount="indefinite"/>
+    </g>
+  </g>
+</svg>
