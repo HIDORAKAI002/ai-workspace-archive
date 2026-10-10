@@ -1,18 +1,71 @@
 <div align="center">
 
-# AI Workspace Archive
+<img src="docs/readme/hero.svg" width="100%" alt="AI Workspace Archive animated sign">
 
 **The most comprehensive self-hostable AI developer toolbox on GitHub.**
 
-*29,746 agent skills & files | 23 MCP servers | 3,348 IDE rules | 8 system prompt collections | 12 API providers | 15 no-code platforms | 1,400+ public APIs -- 174 curated upstream repos, all free*
+[![Stars](https://img.shields.io/github/stars/HIDORAKAI002/ai-workspace-archive?style=for-the-badge&logo=github&color=gold)](https://github.com/HIDORAKAI002/ai-workspace-archive/stargazers)
+[![File count](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/HIDORAKAI002/ai-workspace-archive/main/file_counts.json&style=for-the-badge)](https://github.com/HIDORAKAI002/ai-workspace-archive/blob/main/file_counts.json)
+[![Sync](https://img.shields.io/badge/sync-every%206%20hours-0f766e?style=for-the-badge)](https://github.com/HIDORAKAI002/ai-workspace-archive/blob/main/.github/workflows/sync_upstream.yml)
+[![Licenses](https://img.shields.io/badge/licenses-upstream-yellow?style=for-the-badge)](#disclaimer)
 
-> One repository. Everything an AI developer needs. Offline. No subscriptions. No gatekeeping.
-
-[ ![File Count Shield](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/HIDORAKAI002/ai-workspace-archive/main/file_counts.json) ](https://github.com/HIDORAKAI002/ai-workspace-archive/blob/main/file_counts.json)
+*29,746 agent skills and files · 23 MCP servers · 3,348 IDE rules · 8 system prompt collections · 12 API providers · 15 no-code platforms · 1,400+ public APIs · 174 curated upstream repos, all free*
 
 </div>
 
----
+## <img src="docs/readme/icons/skills.svg" width="32" height="32" alt=""> Get started
+
+Clone it once. Everything after that is a local file.
+
+```bash
+git clone https://github.com/HIDORAKAI002/ai-workspace-archive.git
+cd ai-workspace-archive
+```
+
+| | **Browse offline** | **Wire into your editor** |
+|---|---|---|
+| What you get | The full catalog on disk. No account, no subscription. | A skill, an IDE rule, or an MCP server dropped into the tool you already use. |
+| First command | `ls ai_skills_library/skills/development/` | `cp ide_rules/cursor/react-typescript.cursorrules /your-project/.cursorrules` |
+| Best for | Reading prompts, pricing, and upstream source before you install anything | Cursor, Claude Desktop, Copilot, or a local no-code app |
+
+<details>
+<summary><strong>Three copy-paste paths</strong></summary>
+
+**Use a skill**
+
+```bash
+ls ai_skills_library/skills/development/
+# Copy any skill file, then paste it as a system prompt in Claude, Cursor, or GPT
+```
+
+**Install an MCP server**
+
+```bash
+cd mcps/databases/supabase-mcp
+npm install
+# Add it to claude_desktop_config.json, then restart Claude Desktop
+```
+
+**Run a no-code platform locally**
+
+```bash
+cd nocode_platforms/ai_workflow_automation_platforms/n8n
+docker compose up -d   # http://localhost:5678
+```
+
+</details>
+
+> **Archive = the toolbox, not another subscription.** The model still does the thinking. This repo is the shelf next to it: skills, MCP servers, IDE rules, system prompts, provider pricing, no-code apps, public APIs, and agent frameworks, already cloned and categorized. One checkout. Offline. No gatekeeping.
+
+<p align="center"><img src="docs/readme/pillars.svg" width="100%" alt="Eight archive pillars lighting in sequence: skills, MCP, rules, prompts, providers, no-code, public APIs, and agents"></p>
+
+<details>
+<summary><strong>What the sync actually does</strong></summary>
+
+A VPS bot checks each tracked upstream repo every 6 hours, one at a time. If it changed, the bot clones fresh, strips `.git`, and pushes the file diff. GitHub Actions runs the same idea daily at 02:00 UTC as a backup. The catalogs below are the map. The folders are the copies.
+
+</details>
+
 
 ## Table of Contents
 
@@ -31,6 +84,8 @@
 | - | [Archive Stats](#archive-stats) | Full breakdown | - |
 
 ---
+
+<p align="center"><img src="docs/readme/icons/skills.svg" width="48" height="48" alt=""></p>
 
 ## Pillar 1 -- AI Skills and Prompt Library
 
@@ -217,6 +272,8 @@ ai_skills_library/skills/
 </details>
 
 ---
+
+<p align="center"><img src="docs/readme/icons/mcp.svg" width="48" height="48" alt=""></p>
 
 ## Pillar 2 -- MCP Server Repository
 
@@ -415,6 +472,8 @@ npm install          # or: pip install -e . / cargo build
 
 ---
 
+<p align="center"><img src="docs/readme/icons/rules.svg" width="48" height="48" alt=""></p>
+
 ## Pillar 3 -- IDE Context Rules
 
 > **`/ide_rules/`** -- 3,348 AI editor instruction files for Cursor, Windsurf, Cline, and GitHub Copilot -- covering every major language, framework, and tech stack
@@ -549,6 +608,8 @@ cp ide_rules/copilot/nextjs.md /your-project/.github/copilot-instructions.md
 
 ---
 
+<p align="center"><img src="docs/readme/icons/prompts.svg" width="48" height="48" alt=""></p>
+
 ## Pillar 4 -- System Prompts and Frameworks
 
 > **`/system_prompts/`** -- 8 carefully curated repositories spanning leaked production system prompts, prompt engineering masterclasses, prompt management tools, testing frameworks, and AI safety guardrails
@@ -603,6 +664,8 @@ cp ide_rules/copilot/nextjs.md /your-project/.github/copilot-instructions.md
 </details>
 
 ---
+
+<p align="center"><img src="docs/readme/icons/providers.svg" width="48" height="48" alt=""></p>
 
 ## Pillar 5 -- AI API Providers Reference
 
@@ -780,6 +843,8 @@ Each provider has a dedicated markdown file in `/api_providers/`:
 
 ---
 
+<p align="center"><img src="docs/readme/icons/nocode.svg" width="48" height="48" alt=""></p>
+
 ## Pillar 6 -- No-Code and Visual Workflow Builders
 
 > **`/nocode_platforms/`** -- 15 fully cloned repositories across 5 categories -- AI workflow builders, low-code internal tools, n8n templates, Flowise tools, and additional platforms
@@ -870,6 +935,8 @@ Each provider has a dedicated markdown file in `/api_providers/`:
 </details>
 
 ---
+
+<p align="center"><img src="docs/readme/icons/apis.svg" width="48" height="48" alt=""></p>
 
 ## Pillar 7 -- Public APIs Directory
 
@@ -1110,6 +1177,8 @@ Each provider has a dedicated markdown file in `/api_providers/`:
 
 ---
 
+<p align="center"><img src="docs/readme/icons/agents.svg" width="48" height="48" alt=""></p>
+
 ## Pillar 8 -- AI Agents & Advanced Tooling
 
 > **`/ai_agents/` & related** -- Full implementations, reasoning frameworks, and tool configs for advanced autonomous agents, personal assistants, and AI infrastructure.
@@ -1208,6 +1277,8 @@ npm install && npm run build && npm start  # -> http://localhost:3000
 </details>
 
 ---
+
+<p align="center"><img src="docs/readme/sync.svg" width="100%" alt="Upstream repositories sync into the archive every 6 hours"></p>
 
 ## Auto-Sync System
 
